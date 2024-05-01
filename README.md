@@ -34,3 +34,25 @@ Here you can:
 *Speaking of questions, you can also create your own questions to ask your guests to collect additional information from them:*
 
 https://github.com/Kenford20/wedding-approuter/assets/41027303/a287d3e2-3ed0-4c16-8e7a-9d7b0f01d5e9
+
+
+<br><br>
+### Guest List Management
+After creating your events that you plan to host, you can navigate to the guest list page where you can begin to add all the guests you plan to invite to your wedding.<br><br>
+
+*Guest List Demo*
+
+https://github.com/Kenford20/wedding-approuter/assets/41027303/4646bd01-4f29-48a9-95eb-b5a8533a345c
+
+
+Here you can:
+- Create, edit, and delete individual guests or household/party of guests
+- View specific guests grouped by individual events that they were invited to
+- Manage events in this page as well
+- Update individual RSVPs for a singular guest for a specific event
+- See a highly interactive tabular view of your guest list that supports...
+  - sorting by naming
+  - sorting by party size
+  - filter by RSVP
+  - search guest name
+ 
