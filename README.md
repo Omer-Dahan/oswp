@@ -12,3 +12,20 @@ I really just focused on the baseline custom wedding website features and rsvp &
 <img width="252" alt="Screenshot 2024-05-01 at 2 32 25 AM" src="https://github.com/Kenford20/wedding-approuter/assets/41027303/aeb7ec1a-e1be-443f-8233-325fe39ca53c">
 
 <br>You can create an account with either Google or Github - I opted to use [Clerk](https://clerk.com/) to handle user management & authentication rather than [NextAuth.js](https://next-auth.js.org)
+
+
+<br><br>
+### Website Management via Dashboard
+Once you've logged in and entered the names of you and your future wed, a custom website associated with your account with a unique url will be generated for you and you'll be taken to the dashboard page.<br><br>
+
+*Dashboard Demo*
+
+https://github.com/Kenford20/wedding-approuter/assets/41027303/ec96b46f-edad-43b3-863e-37fb3c415db2
+
+Here you can:
+- Create and manage your upcoming events for guests to eventually RSVP to
+- Edit your custom website url
+- Add a password to prevent unwanted access to your website
+- Upload a cover photo to display on your website (stored on **AWS S3 bucket**)
+- Toggle the visibility of your RSVP form for guests visiting your website
+- See charted views of the responses and answers you've received for each event along with their associated questions<br><br>
