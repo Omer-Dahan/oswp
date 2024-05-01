@@ -75,3 +75,27 @@ Last but not least, you created all those events, questions, and parties of gues
 *RSVP Page Demo*
 
 https://github.com/Kenford20/wedding-approuter/assets/41027303/86bc013c-e9cb-4866-88f3-5e4bab4e6f06
+
+<br><br>
+
+And... that's it! I know there's a lot more to what TheKnot offers than what was showcased here, but my goal here really was to learn NextJS & TypeScript and experience developing with a new and modern stack.
+
+### *With that said, here's a more exhaustive list of the technologies that were involved in making this happen:*
+
+- [Next.js](https://nextjs.org)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com)
+- [tRPC](https://trpc.io)
+- [Clerk](https://clerk.com/)
+- [shadcn/radix-ui](https://ui.shadcn.com/)
+- [Prisma ORM](https://prisma.io)
+- MySQL hosted on [PlanetScale](https://planetscale.com/)
+- PostgreSQL hosted on [Supabase](https://supabase.com/)
+- [Zod](https://zod.dev/)
+- `@aws-sdk/client-s3`
+- `react-dropzone` & `react-cropper`
+- `react-chartjs-2`
+
+
+### *License:*
+MIT © [Kenny Zhou](https://github.com/kenford20)
