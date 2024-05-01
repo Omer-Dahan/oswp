@@ -56,3 +56,22 @@ Here you can:
   - filter by RSVP
   - search guest name
  
+
+<br>
+
+### Your Website
+Finally, we move away from the dashboard and all that management into your website! It's still pretty barebones and a WIP, but planning to work features like theme and content customization soon!
+
+*Sample Website*
+<img width="1043" alt="Screenshot 2024-05-01 at 5 05 41 AM" src="https://github.com/Kenford20/wedding-approuter/assets/41027303/eab3803a-6a49-451a-85a1-630ff68725e3">
+
+<br><br>
+
+### Guest RSVP
+Last but not least, you created all those events, questions, and parties of guests so that you could direct them to your website and collect RSVPs & information from them! Assuming you're all done setting things up and have enabled RSVPing, your guests can navigate to the RSVP page where they'll be presented with a multi-step form to fill out.
+
+<br>
+
+*RSVP Page Demo*
+
+https://github.com/Kenford20/wedding-approuter/assets/41027303/86bc013c-e9cb-4866-88f3-5e4bab4e6f06
