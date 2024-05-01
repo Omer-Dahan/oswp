@@ -29,3 +29,8 @@ Here you can:
 - Upload a cover photo to display on your website (stored on **AWS S3 bucket**)
 - Toggle the visibility of your RSVP form for guests visiting your website
 - See charted views of the responses and answers you've received for each event along with their associated questions<br><br>
+
+
+*Speaking of questions, you can also create your own questions to ask your guests to collect additional information from them:*
+
+https://github.com/Kenford20/wedding-approuter/assets/41027303/a287d3e2-3ed0-4c16-8e7a-9d7b0f01d5e9
