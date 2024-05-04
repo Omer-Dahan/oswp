@@ -122,7 +122,9 @@ export const GuestNameForm = ({
                       type="checkbox"
                       id={`guest${guestIndex}: ${event.id}`}
                       onChange={(e) => handleSelectEvent(e, event, guestIndex)}
-                      checked={guest.invites[event.id] === "Invited"}
+                      checked={["Invited", "Attending", "Declined"].includes(
+                        guest.invites[event.id] ?? "",
+                      )}
                     />
                   </div>
                   <label
