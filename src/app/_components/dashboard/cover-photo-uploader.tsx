@@ -38,13 +38,13 @@ export default function CoverPhotoUploader({
   });
 
   useEffect(() => {
-    console.log("photoz", coverPhoto);
     // Revoke the data uris to avoid memory leaks
     return () =>
       coverPhoto.forEach((photo) => URL.revokeObjectURL(photo.preview ?? ""));
   }, [coverPhoto]);
 
   const upload = async () => {
+    setIsUploading(true);
     const file = coverPhoto[0];
     if (!file) return;
 
@@ -53,20 +53,15 @@ export default function CoverPhotoUploader({
     formData.append("name", file.name);
     formData.append("type", file.type);
     const { ok } = await uploadImage(formData);
+    setIsUploading(false);
     if (ok) {
       setCoverPhoto([]);
       router.refresh();
     }
-    setIsUploading(false);
   };
 
   return (
-    <form
-      action={() => {
-        setIsUploading(true);
-        void upload();
-      }}
-    >
+    <form action={() => void upload()}>
       {coverPhoto.length > 0 && (
         <ImageCropperModal
           coverPhoto={coverPhoto}
