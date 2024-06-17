@@ -142,8 +142,9 @@ const ProgressBar = ({
         className="absolute right-3 top-2 z-20 cursor-pointer"
         onClick={() => {
           if (
-            currentStep > 1 &&
-            window.confirm("Are you sure? Your RSVP has not been sent.")
+            currentStep <= 1 ||
+            (currentStep > 1 &&
+              window.confirm("Are you sure? Your RSVP has not been sent."))
           ) {
             window.location.href = basePath;
           }
