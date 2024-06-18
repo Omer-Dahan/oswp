@@ -18,9 +18,9 @@ export default function WeddingPage({ weddingData, path }: WeddingPageProps) {
         <h1 className="my-5 text-6xl font-medium tracking-widest">
           {weddingData.groomFirstName} & {weddingData.brideFirstName}
         </h1>
-        {weddingData.date?.standardFormat && (
-          <span className="text-lg">{weddingData.date?.standardFormat}</span>
-        )}
+        <span className="text-lg">
+          {weddingData.date?.standardFormat ?? "Date To Be Announced"}
+        </span>
         {weddingData.daysRemaining > 0 && (
           <p className="text-lg">{weddingData.daysRemaining} Days To Go!</p>
         )}
@@ -72,7 +72,7 @@ export default function WeddingPage({ weddingData, path }: WeddingPageProps) {
           {weddingData.groomFirstName[0]} & {weddingData.brideFirstName[0]}
         </h2>
         <p className="mt-4 text-lg tracking-widest">
-          {weddingData.date.numberFormat?.toString()}
+          {weddingData.date.numberFormat?.toString() ?? "Date To Be Announced"}
         </p>
       </div>
 
