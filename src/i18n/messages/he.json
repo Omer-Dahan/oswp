@@ -95,5 +95,264 @@
     "lastNameRequired": "שם משפחה נדרש",
     "emailRequired": "דוא\"ל נדרש",
     "emailInvalid": "אנא הזינו דוא\"ל תקין"
+  },
+  "template": {
+    "common": {
+      "gettingMarried": "אנחנו מתחתנים",
+      "dateToBeAnnounced": "מועד טרם נקבע",
+      "rsvp": "אישור הגעה",
+      "saveTheDateLabel": "שמרו את התאריך",
+      "visitWebsite": "לאתר שלנו",
+      "formalInvitationNote": "ההזמנה הרשמית תישלח בהמשך.",
+      "together": "ביחד עם המשפחות שלנו",
+      "invitationLine": "מתכבדים להזמינכם",
+      "and": "וה",
+      "weddingHeaderAlt": "תמונת כותרת של החתונה",
+      "websiteCoverAlt": "תמונת שער של האתר",
+      "theCoupleAlt": "הזוג",
+      "nav": {
+        "home": "בית",
+        "saveTheDate": "שמרו את התאריך",
+        "invitation": "ההזמנה",
+        "rsvp": "אישור הגעה"
+      }
+    },
+    "aurelia": {
+      "daysToGo": "נשארו {days} ימים",
+      "sections": {
+        "ourStory": "הסיפור שלנו",
+        "gettingThere": "איך מגיעים",
+        "byOurSide": "לצידנו",
+        "goodToKnow": "חשוב לדעת",
+        "withGratitude": "בהערכה",
+        "curatedExperiences": "חוויות נבחרות",
+        "theDestination": "היעד",
+        "view": "לצפייה"
+      }
+    },
+    "classic": {
+      "daysToGo": "נשארו {days} ימים!",
+      "sections": {
+        "viewStay": "לצפייה באירוח"
+      }
+    },
+    "voyage": {
+      "skipToContent": "מעבר לתוכן",
+      "dateToBeAnnounced": "מועד טרם נקבע",
+      "nav": {
+        "home": "בית",
+        "thingsToDo": "מה לעשות",
+        "more": "עוד",
+        "menu": "תפריט"
+      },
+      "footer": {
+        "thankYou": "תודה שאתם חלק מההתחלה שלנו"
+      },
+      "pageHeading": {
+        "backHome": "← בית"
+      },
+      "pages": {
+        "weekend": {
+          "title": "סוף השבוע של החתונה",
+          "description": "הרגעים שאנחנו מתים לחלוק איתכם."
+        },
+        "stay": {
+          "title": "איפה להתארח",
+          "description": "מצאו בית לסוף השבוע, עם כל פרטי ההזמנה בהישג יד."
+        },
+        "travel": {
+          "title": "טיסות ונסיעות",
+          "description": "כל מה שצריך למסע ולזמן שלכם כאן."
+        },
+        "puebla": {
+          "title": "לגלות את פואבלה",
+          "description": "קצת השראה מקומית לזמן שבין האירועים."
+        },
+        "mexico": {
+          "title": "לגלות את מקסיקו",
+          "description": "להפוך את המסע להרפתקה ארוכה יותר."
+        },
+        "story": {
+          "title": "הסיפור שלנו",
+          "description": "האנשים, המקומות והרגעים שהביאו אותנו עד הנה."
+        },
+        "faq": {
+          "title": "שאלות ויצירת קשר",
+          "description": "כמה תשובות שימושיות, ודרך להישאר בקשר."
+        },
+        "registry": {
+          "title": "מתנות",
+          "description": "הנוכחות שלכם היא המתנה הגדולה ביותר."
+        }
+      },
+      "minimal": {
+        "youAreInvited": "הוזמנתם",
+        "tagline": "ההרפתקה הגדולה שלנו מתחילה כאן."
+      },
+      "home": {
+        "heroFallbackLine1": "הנצח שלנו",
+        "heroFallbackLine2": "מתחיל ב",
+        "heroFallbackLocation": "גן עדן",
+        "heroTagline": "אנחנו מתים לחגוג את האהבה שלנו איתכם בעיר שגנבה לנו את הלב.",
+        "rsvpNow": "אישור הגעה",
+        "weddingDetails": "פרטי החתונה",
+        "navStrip": {
+          "scheduleLabel": "לוח זמנים",
+          "scheduleDetail": "כל האירועים",
+          "stayLabel": "הזמינו את החדר",
+          "stayDetail": "מלונות ומחירי חתונה",
+          "travelLabel": "איך מגיעים",
+          "travelDetail": "טיסות והסעות",
+          "wearLabel": "מה ללבוש",
+          "wearDetail": "קוד לבוש והנחיות"
+        },
+        "ourStoryEyebrow": "הסיפור שלנו",
+        "journeyHeading": "המסע עד הנה",
+        "readOurStory": "לקריאת הסיפור שלנו",
+        "thingsToDoEyebrow": "מה לעשות",
+        "adventureHeading": "קצת הרפתקה מצפה לכם",
+        "explorePueblaTitle": "לגלות את פואבלה",
+        "explorePueblaDescription": "האתרים, האוכל וטיולי היום האהובים עלינו לזמן שבין האירועים.",
+        "exploreMexicoTitle": "לגלות את מקסיקו",
+        "exploreMexicoDescription": "הישארו עוד קצת. גלו את המקומות האהובים עלינו להרפתקה גדולה יותר.",
+        "kindlyRsvp": "נא אשרו הגעה",
+        "cantWaitHeading": "אנחנו מתים לחגוג איתכם!",
+        "cantWaitBody": "נשמח לחגוג איתכם. ספרו לנו אם תוכלו להגיע.",
+        "yourInvitation": "ההזמנה שלכם",
+        "rsvpDeadline": "מועד אחרון לאישור הגעה: {deadline}",
+        "sendRsvp": "שליחת אישור הגעה"
+      },
+      "invitation": {
+        "visitOurWebsite": "לאתר שלנו"
+      },
+      "saveTheDate": {
+        "daysToGo": "נשארו {days} ימים"
+      },
+      "sections": {
+        "aboutUs": "עלינו",
+        "thankYouStory": "תודה שאתם חלק מהסיפור שלנו.",
+        "ourStoryEyebrow": "הסיפור שלנו",
+        "theDestination": "היעד",
+        "curatedExperiences": "חוויות נבחרות",
+        "ourPeople": "האנשים שלנו",
+        "thankYouPeople": "תודה שאתם האנשים שלנו.",
+        "readMore": "לקריאה נוספת",
+        "close": "סגירה",
+        "travelAndStay": "נסיעות ואירוח",
+        "questions": "שאלות?",
+        "recommendedStays": "מקומות אירוח מומלצים",
+        "visitWebsite": "לאתר",
+        "registry": "מתנות"
+      },
+      "weekend": {
+        "eyebrow": "סוף השבוע של החתונה",
+        "heading": "בואו נחגוג ביחד",
+        "allTimesLocal": "כל השעות הן לפי שעון המקום של האירוע.",
+        "dateToBeAnnounced": "מועד טרם נקבע",
+        "timeToBeAnnounced": "שעה טרם נקבעה",
+        "venueComingSoon": "פרטי המקום יתפרסמו בהמשך",
+        "eventDetails": "פרטי האירוע ←",
+        "getDirections": "הוראות הגעה ↗",
+        "whatToWearLabel": "מה ללבוש: ",
+        "attireToBeAnnounced": "קוד הלבוש יתפרסם בהמשך",
+        "scheduleEmpty": "לוח הזמנים יתפרסם כאן כשהתוכניות שלנו יסתגרו.",
+        "viewFullWeekend": "לצפייה בכל סוף השבוע",
+        "dressCodeEyebrow": "קוד לבוש",
+        "dressCodeHeading": "מה ללבוש",
+        "dressCodeIntro": "קצת הכוונה לכל אירוע, כדי שתוכלו להתכונן בראש שקט.",
+        "moreGuidanceSoon": "עוד הנחיות בקרוב",
+        "moreGuidanceBody": "הצעות לבגדים, לנעליים ולפרטים האחרונים יתפרסמו כאן כשהפרטים יסתגרו."
+      },
+      "flightSearch": {
+        "eyebrow": "איך מגיעים",
+        "heading": "חיפוש טיסות",
+        "intro": "אנחנו ממליצים לטוס למקסיקו סיטי או לפואבלה — מצאו טיסה לשדה התעופה שמתאים למסע שלכם.",
+        "flyingInto": "נוחתים ב",
+        "flyingFrom": "טסים מ",
+        "flyingFromPlaceholder": "עיר או קוד שדה תעופה, לדוגמה לונדון",
+        "depart": "יציאה",
+        "return": "חזרה",
+        "searchFlights": "חיפוש טיסות"
+      },
+      "stays": {
+        "eyebrow": "תרגישו בבית",
+        "checkInstructions": "בדקו את ההנחיות של כל מלון לפני ההזמנה כדי לקבל את מחירי החתונה.",
+        "bookingComingSoon": "קישור להזמנה יתפרסם בקרוב.",
+        "accommodationComingSoon": "ההמלצות שלנו לאירוח ופרטי ההזמנה יתפרסמו בקרוב.",
+        "visitWebsite": "לאתר"
+      },
+      "stayDetails": {
+        "viewDetails": "פרטי המלון",
+        "viewDetailsAria": "פרטי המלון עבור {name}",
+        "close": "סגירה"
+      },
+      "contentPage": {
+        "pageLinks": {
+          "schedule": "לוח זמנים",
+          "whatToWear": "מה ללבוש",
+          "weddingTransport": "הסעות לחתונה",
+          "gettingHere": "איך מגיעים",
+          "weddingSchedule": "לוח הזמנים של החתונה",
+          "questionsContact": "שאלות? צרו קשר",
+          "travelDates": "תאריכי הנסיעה",
+          "transfers": "הסעות",
+          "hotels": "מלונות",
+          "explorePuebla": "לגלות את פואבלה",
+          "exploreMexico": "לגלות את מקסיקו",
+          "extendTrip": "מאריכים את הטיול? לגלות את מקסיקו",
+          "gettingAround": "איך מתניידים",
+          "mexicoCityGuide": "מדריך למקסיקו סיטי",
+          "stayingNearby": "מתארחים בקרבת מקום? לגלות את פואבלה",
+          "travelInformation": "מידע על נסיעות",
+          "hotelBookingDetails": "פרטי הזמנת מלון",
+          "travelTransfers": "נסיעות והסעות",
+          "contactWhatsapp": "יצירת קשר ו-WhatsApp"
+        },
+        "contact": {
+          "helpEyebrow": "אנחנו כאן לעזור",
+          "helpHeading": "יש לכם שאלה?",
+          "helpBody": "פנו ל{contactNames} בכל שאלה — נשמח לעזור.",
+          "loopEyebrow": "הישארו מעודכנים",
+          "loopHeading": "קבוצת הוואטסאפ שלנו",
+          "loopBody": "מקום לעדכונים ושאלות על החתונה ככל שמתקרבים לאירוע.",
+          "joinWhatsapp": "הצטרפות לקבוצת הוואטסאפ"
+        },
+        "weekendPage": {
+          "transportHeading": "איך מגיעים לאירועים",
+          "transportBody1": "נדאג להסעות ממרכז פואבלה למקום הטקס וחזרה, כך שלא תצטרכו לדאוג לתחבורה בעצמכם. נקודות האיסוף והשעות יתפרסמו כאן בהתקרב מועד החתונה.",
+          "transportBody2": "כל שאר האירועים יהיו בטווח הליכה ממרכז פואבלה.",
+          "venuesDirections": "מקומות והוראות הגעה"
+        },
+        "travelPage": {
+          "planJourneyEyebrow": "מתכננים את המסע",
+          "whenToTravel": "מתי לנסוע",
+          "datesFallback": "תאריכי האירועים יתפרסמו כאן לאחר שיסתגרו.",
+          "allowTime": "השאירו זמן להתארגן לפני האירוע הראשון, ומספיק זמן להמשך המסע לאחר האירועים.",
+          "checkSchedule": "לצפייה בלוח הזמנים",
+          "gettingToPueblaEyebrow": "איך מגיעים לפואבלה",
+          "mexicoCityToPuebla": "ממקסיקו סיטי לפואבלה",
+          "arrivingIntro": "אם אתם נוחתים בנמל התעופה הבינלאומי של מקסיקו סיטי (MEX / AICM), תוכלו להמשיך ישירות לפואבלה באוטובוס או לארגן הסעה פרטית.",
+          "byBusHeading": "באוטובוס משדה התעופה",
+          "byBusBody": "חברת Estrella Roja מפעילה אוטובוסים כל שעה מטרמינל 1 וטרמינל 2 לפואבלה. ניתן לרכוש כרטיסים במקום בדלפקי המכירה בשדה התעופה. בדקו את תחנת ההגעה בפואבלה לפני המשך הנסיעה למלון. הקצו זמן להגירה, לאיסוף מזוודות ולתנועה בעת תכנון ההמשך.",
+          "driversHeading": "נהגים והסעות פרטיות",
+          "driversBody": "נוסיף כאן פרטי קשר של נהגים מוכרים ואפשרויות להסעה פרטית בהתקרב מועד החתונה, כולל איך להזמין ולתאם איסוף.",
+          "contactsComingSoon": "פרטי קשר יתפרסמו בקרוב"
+        },
+        "storyPage": {
+          "comingSoon": "הסיפור שלנו והרגעים האהובים עלינו יתפרסמו בקרוב."
+        },
+        "faqPage": {
+          "heading": "שאלות ותשובות",
+          "seePrefix": "לפרטים על ",
+          "seeWhatToWear": "מה ללבוש לכל אירוע",
+          "seeHotelRates": "מחירי המלונות והוראות ההזמנה",
+          "seeTravelDetails": "פרטי הנסיעה וההסעות"
+        },
+        "registryPage": {
+          "presenceIsGift": "הנוכחות שלכם היא המתנה הגדולה ביותר.",
+          "detailsComingSoon": "פרטים יתפרסמו בקרוב."
+        }
+      }
+    }
   }
 }

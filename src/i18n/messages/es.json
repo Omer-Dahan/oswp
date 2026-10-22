@@ -95,5 +95,264 @@
     "lastNameRequired": "El apellido es obligatorio",
     "emailRequired": "El correo electrónico es obligatorio",
     "emailInvalid": "Por favor ingresa un correo electrónico válido"
+  },
+  "template": {
+    "common": {
+      "gettingMarried": "We're getting married",
+      "dateToBeAnnounced": "Date To Be Announced",
+      "rsvp": "RSVP",
+      "saveTheDateLabel": "Save the Date",
+      "visitWebsite": "Visit our website",
+      "formalInvitationNote": "Formal invitation to follow.",
+      "together": "Together with their families",
+      "invitationLine": "request the pleasure of your company",
+      "and": "and",
+      "weddingHeaderAlt": "Wedding header",
+      "websiteCoverAlt": "Website Cover Photo",
+      "theCoupleAlt": "The couple",
+      "nav": {
+        "home": "Home",
+        "saveTheDate": "Save the Date",
+        "invitation": "Invitation",
+        "rsvp": "RSVP"
+      }
+    },
+    "aurelia": {
+      "daysToGo": "{days} days to go",
+      "sections": {
+        "ourStory": "Our Story",
+        "gettingThere": "Getting There",
+        "byOurSide": "By Our Side",
+        "goodToKnow": "Good to Know",
+        "withGratitude": "With Gratitude",
+        "curatedExperiences": "Curated Experiences",
+        "theDestination": "The Destination",
+        "view": "View"
+      }
+    },
+    "classic": {
+      "daysToGo": "{days} Days To Go!",
+      "sections": {
+        "viewStay": "View stay"
+      }
+    },
+    "voyage": {
+      "skipToContent": "Skip to content",
+      "dateToBeAnnounced": "Date to be announced",
+      "nav": {
+        "home": "Home",
+        "thingsToDo": "Things to Do",
+        "more": "More",
+        "menu": "Menu"
+      },
+      "footer": {
+        "thankYou": "Thank you for being part of our beginning"
+      },
+      "pageHeading": {
+        "backHome": "← Home"
+      },
+      "pages": {
+        "weekend": {
+          "title": "Wedding Weekend",
+          "description": "The moments we can't wait to share with you."
+        },
+        "stay": {
+          "title": "Where to Stay",
+          "description": "Find your home for the weekend, with booking details close at hand."
+        },
+        "travel": {
+          "title": "Travel",
+          "description": "Everything you need for the journey and your time here."
+        },
+        "puebla": {
+          "title": "Explore Puebla",
+          "description": "A little local inspiration for the time between celebrations."
+        },
+        "mexico": {
+          "title": "Explore Mexico",
+          "description": "Make a longer adventure of your journey."
+        },
+        "story": {
+          "title": "Our Story",
+          "description": "The people, places and moments that brought us here."
+        },
+        "faq": {
+          "title": "FAQs & Contact",
+          "description": "A few useful answers, and a way to stay in touch."
+        },
+        "registry": {
+          "title": "Registry",
+          "description": "Your presence means the world to us."
+        }
+      },
+      "minimal": {
+        "youAreInvited": "You are invited",
+        "tagline": "Our greatest adventure begins here."
+      },
+      "home": {
+        "heroFallbackLine1": "Our Forever",
+        "heroFallbackLine2": "Begins in",
+        "heroFallbackLocation": "Paradise",
+        "heroTagline": "We can't wait to celebrate our love with you in the city that stole our hearts.",
+        "rsvpNow": "RSVP Now",
+        "weddingDetails": "Wedding Details",
+        "navStrip": {
+          "scheduleLabel": "Schedule",
+          "scheduleDetail": "Every celebration",
+          "stayLabel": "Book Your Stay",
+          "stayDetail": "Hotels & wedding rates",
+          "travelLabel": "Getting Here",
+          "travelDetail": "Flights & transfers",
+          "wearLabel": "What to Wear",
+          "wearDetail": "Dress code & guidance"
+        },
+        "ourStoryEyebrow": "Our story",
+        "journeyHeading": "The journey to here",
+        "readOurStory": "Read our story",
+        "thingsToDoEyebrow": "Things to do",
+        "adventureHeading": "A little adventure awaits",
+        "explorePueblaTitle": "Explore Puebla",
+        "explorePueblaDescription": "Our favourite sights, food and day trips for the time between celebrations.",
+        "exploreMexicoTitle": "Explore Mexico",
+        "exploreMexicoDescription": "Stay a little longer. Discover our favourite places for a bigger adventure.",
+        "kindlyRsvp": "Kindly RSVP",
+        "cantWaitHeading": "We can't wait to celebrate with you!",
+        "cantWaitBody": "We would be honored to celebrate with you. Let us know if you can make the journey.",
+        "yourInvitation": "Your Invitation",
+        "rsvpDeadline": "RSVP deadline: {deadline}",
+        "sendRsvp": "Send RSVP"
+      },
+      "invitation": {
+        "visitOurWebsite": "Visit our website"
+      },
+      "saveTheDate": {
+        "daysToGo": "{days} days to go"
+      },
+      "sections": {
+        "aboutUs": "About Us",
+        "thankYouStory": "Thank you for being part of our story.",
+        "ourStoryEyebrow": "Our Story",
+        "theDestination": "The Destination",
+        "curatedExperiences": "Curated Experiences",
+        "ourPeople": "Our People",
+        "thankYouPeople": "Thank you for being our people.",
+        "readMore": "Read more",
+        "close": "Close",
+        "travelAndStay": "Travel & Stay",
+        "questions": "Questions?",
+        "recommendedStays": "Recommended Stays",
+        "visitWebsite": "Visit Website",
+        "registry": "Registry"
+      },
+      "weekend": {
+        "eyebrow": "Wedding Weekend",
+        "heading": "Let's Celebrate Together",
+        "allTimesLocal": "All times are local to the event venue.",
+        "dateToBeAnnounced": "Date to be announced",
+        "timeToBeAnnounced": "Time to be announced",
+        "venueComingSoon": "Venue details coming soon",
+        "eventDetails": "Event details →",
+        "getDirections": "Get directions ↗",
+        "whatToWearLabel": "What to wear: ",
+        "attireToBeAnnounced": "Dress code to be announced",
+        "scheduleEmpty": "The schedule will appear here as our plans are confirmed.",
+        "viewFullWeekend": "View the full weekend",
+        "dressCodeEyebrow": "Dress code",
+        "dressCodeHeading": "What to Wear",
+        "dressCodeIntro": "A little guidance for each celebration, so you can pack with confidence.",
+        "moreGuidanceSoon": "More guidance coming soon",
+        "moreGuidanceBody": "Outfit suggestions, footwear advice and any finishing touches will appear here once the details are confirmed."
+      },
+      "flightSearch": {
+        "eyebrow": "Getting There",
+        "heading": "Search Flights",
+        "intro": "We recommend flying to either Mexico City or Puebla — find a flight into whichever airport suits your journey.",
+        "flyingInto": "Flying Into",
+        "flyingFrom": "Flying From",
+        "flyingFromPlaceholder": "City or airport code, e.g. London",
+        "depart": "Depart",
+        "return": "Return",
+        "searchFlights": "Search Flights"
+      },
+      "stays": {
+        "eyebrow": "Make yourself at home",
+        "checkInstructions": "Check each hotel's instructions before booking to make sure you receive any wedding rates.",
+        "bookingComingSoon": "Booking link coming soon.",
+        "accommodationComingSoon": "Our accommodation recommendations and booking details are coming soon.",
+        "visitWebsite": "Visit Website"
+      },
+      "stayDetails": {
+        "viewDetails": "View hotel details",
+        "viewDetailsAria": "View hotel details for {name}",
+        "close": "Close"
+      },
+      "contentPage": {
+        "pageLinks": {
+          "schedule": "Schedule",
+          "whatToWear": "What to Wear",
+          "weddingTransport": "Wedding transport",
+          "gettingHere": "Getting here",
+          "weddingSchedule": "Wedding schedule",
+          "questionsContact": "Questions? Contact us",
+          "travelDates": "Travel dates",
+          "transfers": "Transfers",
+          "hotels": "Hotels",
+          "explorePuebla": "Explore Puebla",
+          "exploreMexico": "Explore Mexico",
+          "extendTrip": "Extending your trip? Explore Mexico",
+          "gettingAround": "Getting around",
+          "mexicoCityGuide": "Mexico City guide",
+          "stayingNearby": "Staying nearby? Explore Puebla",
+          "travelInformation": "Travel information",
+          "hotelBookingDetails": "Hotel booking details",
+          "travelTransfers": "Travel & transfers",
+          "contactWhatsapp": "Contact & WhatsApp"
+        },
+        "contact": {
+          "helpEyebrow": "We're here to help",
+          "helpHeading": "Have a question?",
+          "helpBody": "Please contact {contactNames} with any questions—we're happy to help.",
+          "loopEyebrow": "Stay in the loop",
+          "loopHeading": "Our WhatsApp community",
+          "loopBody": "A place for wedding updates and questions as we get closer to the celebration.",
+          "joinWhatsapp": "Join the WhatsApp community"
+        },
+        "weekendPage": {
+          "transportHeading": "Getting to the celebrations",
+          "transportBody1": "We'll provide transport from Puebla city centre to the ceremony venue and back, so you won't need to arrange your own journey. Pickup locations and times will be shared here closer to the wedding.",
+          "transportBody2": "All other events will be within walking distance of Puebla city centre.",
+          "venuesDirections": "Venues & directions"
+        },
+        "travelPage": {
+          "planJourneyEyebrow": "Plan your journey",
+          "whenToTravel": "When to travel",
+          "datesFallback": "Event dates will be shared here once confirmed.",
+          "allowTime": "Allow time to settle in before your first event, and leave enough time for your onward journey after the celebrations.",
+          "checkSchedule": "Check the schedule",
+          "gettingToPueblaEyebrow": "Getting to Puebla",
+          "mexicoCityToPuebla": "Mexico City to Puebla",
+          "arrivingIntro": "If you're arriving at Mexico City International Airport (MEX / AICM), you can continue directly to Puebla by bus or arrange a private transfer.",
+          "byBusHeading": "By bus from the airport",
+          "byBusBody": "Estrella Roja runs hourly buses from Terminal 1 and Terminal 2 to Puebla. Tickets can be bought on site at the airport bus ticket counters. Check the Puebla drop-off point before arranging the final journey to your hotel. Allow time for immigration, baggage collection and traffic when planning your connection.",
+          "driversHeading": "Drivers & private transfers",
+          "driversBody": "We'll add known driver contacts and private transfer options here closer to the wedding, including how to book and arrange your pickup.",
+          "contactsComingSoon": "Contacts coming soon"
+        },
+        "storyPage": {
+          "comingSoon": "Our story and favourite moments are coming soon."
+        },
+        "faqPage": {
+          "heading": "Questions & Answers",
+          "seePrefix": "See ",
+          "seeWhatToWear": "what to wear for each event",
+          "seeHotelRates": "hotel rates and booking instructions",
+          "seeTravelDetails": "travel and transfer details"
+        },
+        "registryPage": {
+          "presenceIsGift": "Your presence is the greatest gift.",
+          "detailsComingSoon": "Details coming soon."
+        }
+      }
+    }
   }
 }
