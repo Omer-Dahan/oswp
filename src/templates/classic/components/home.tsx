@@ -7,7 +7,12 @@ import { ClassicNavbar } from '~/templates/classic/components/navbar'
 import { ClassicSections } from '~/templates/classic/components/sections'
 import type { TemplateSurfaceProps } from '~/templates/types'
 
-export async function ClassicHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+export async function ClassicHome({
+  weddingData,
+  path,
+  introText,
+  locale,
+}: Readonly<TemplateSurfaceProps>) {
   const t = await getTranslations('template')
   const { website } = weddingData
 
@@ -60,7 +65,7 @@ export async function ClassicHome({ weddingData, path, introText }: Readonly<Tem
         <div key={event.id} className='flex flex-col gap-2'>
           <h3 className='text-4xl tracking-widest'>{event.name.toLowerCase()}</h3>
           {!!event.date && (
-            <span className='font-thin text-2xl'>{formatDateStandard(event.date)}</span>
+            <span className='font-thin text-2xl'>{formatDateStandard(event.date, locale)}</span>
           )}
           {!!event.startTime && (
             <span className='font-thin text-2xl'>

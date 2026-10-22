@@ -3,7 +3,11 @@ import { formatDateStandard } from '~/app/utils/helpers'
 import { ClassicHeaderImage } from '~/templates/classic/components/media'
 import type { TemplateSurfaceProps } from '~/templates/types'
 
-export function ClassicInvitation({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+export function ClassicInvitation({
+  weddingData,
+  path,
+  locale,
+}: Readonly<TemplateSurfaceProps>) {
   const { website } = weddingData
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
   const copy = weddingData.invitation
@@ -40,7 +44,7 @@ export function ClassicInvitation({ weddingData, path }: Readonly<TemplateSurfac
                 {weddingData.date?.standardFormat ?? 'Date To Be Announced'}
               </p>
               {weddingEvent?.date && (
-                <p className='font-thin text-lg'>{formatDateStandard(weddingEvent.date)}</p>
+                <p className='font-thin text-lg'>{formatDateStandard(weddingEvent.date, locale)}</p>
               )}
               {weddingEvent?.startTime && (
                 <p className='font-thin text-lg'>

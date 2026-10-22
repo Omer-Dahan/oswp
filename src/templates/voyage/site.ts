@@ -58,8 +58,8 @@ export function orderedEvents(events: VoyageEvent[]) {
   })
 }
 /** Database calendar dates must not shift into the server's timezone. */
-export function eventDate(date: Date) {
-  return new Intl.DateTimeFormat('en-GB', {
+export function eventDate(date: Date, locale?: string) {
+  return new Intl.DateTimeFormat(locale === 'he' ? 'he-IL' : 'en-GB', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -67,14 +67,14 @@ export function eventDate(date: Date) {
     timeZone: 'UTC',
   }).format(date)
 }
-export function eventDateRange(events: VoyageEvent[]) {
+export function eventDateRange(events: VoyageEvent[], locale?: string) {
   const dates = orderedEvents(events).flatMap((event) => (event.date ? [event.date] : []))
   const first = dates[0]
   const last = dates[dates.length - 1]
   if (!first || !last) return null
   return first.getTime() === last.getTime()
-    ? eventDate(first)
-    : `${eventDate(first)} – ${eventDate(last)}`
+    ? eventDate(first, locale)
+    : `${eventDate(first, locale)} – ${eventDate(last, locale)}`
 }
 export function flightDates(events: VoyageEvent[]) {
   const dates = orderedEvents(events).flatMap((event) => (event.date ? [event.date] : []))

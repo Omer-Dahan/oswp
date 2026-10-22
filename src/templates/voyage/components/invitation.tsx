@@ -12,7 +12,11 @@ import {
   sectionHeadingClass,
 } from '~/templates/voyage/components/primitives'
 
-export function VoyageInvitation({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+export function VoyageInvitation({
+  weddingData,
+  path,
+  locale,
+}: Readonly<TemplateSurfaceProps>) {
   const { website } = weddingData
   const weddingEvent =
     weddingData.events.find((event) => event.name === 'Wedding Day') ?? weddingData.events[0]
@@ -57,7 +61,7 @@ export function VoyageInvitation({ weddingData, path }: Readonly<TemplateSurface
             </p>
             {weddingEvent?.date ? (
               <p className={`${bodyFont} text-[#6F675D] text-sm`}>
-                {formatDateStandard(weddingEvent.date)}
+                {formatDateStandard(weddingEvent.date, locale)}
                 {weddingEvent.startTime ? ` · ${weddingEvent.startTime}` : ''}
               </p>
             ) : null}

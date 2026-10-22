@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import { getLocale } from 'next-intl/server'
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 import { PersonalizedWelcome } from '~/components/website/personalized-welcome'
 import type { WeddingPageData } from '~/server/domains/website/website.types'
@@ -18,6 +19,7 @@ export default async function WeddingWebsite({
 }: Readonly<WeddingWebsiteProps>) {
   const headersList = await headers()
   const isMobile = headersList.get('sec-ch-ua-mobile') === '?1'
+  const locale = await getLocale()
 
   const path = `/w/${websiteSubUrl}`
   const websiteBuilderEnabled = weddingData.websiteBuilderEnabled
@@ -47,9 +49,9 @@ export default async function WeddingWebsite({
     <TemplateThemeProvider template={template}>
       {welcome}
       {isMobile ? (
-        <HomeMobile weddingData={weddingData} path={path} introText={introText} />
+        <HomeMobile weddingData={weddingData} path={path} introText={introText} locale={locale} />
       ) : (
-        <Home weddingData={weddingData} path={path} introText={introText} />
+        <Home weddingData={weddingData} path={path} introText={introText} locale={locale} />
       )}
     </TemplateThemeProvider>
   )

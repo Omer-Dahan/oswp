@@ -31,6 +31,8 @@ export type TemplateSurfaceProps = {
   path: string
   /** Optional intro copy from the HOME website section. */
   introText?: string
+  /** Active guest-site locale, for locale-aware date/time formatting. */
+  locale?: string
 }
 
 /**

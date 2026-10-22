@@ -1,7 +1,7 @@
-// format: January 1, 2024
-function formatDateStandard(date: Date | null | undefined) {
+// format: January 1, 2024 (he: 1 בינואר 2024)
+function formatDateStandard(date: Date | null | undefined, locale?: string) {
   if (!date) return
-  return date.toLocaleDateString('en-us', {
+  return date.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-us', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

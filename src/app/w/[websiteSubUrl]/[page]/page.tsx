@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
 import { resolveInvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 import { loadVisitorWedding } from '~/app/w/[websiteSubUrl]/_lib/load-visitor-wedding'
 import { grantWebsiteAccess } from '~/app/w/[websiteSubUrl]/_lib/website-access'
@@ -46,11 +47,17 @@ export default async function VoyagePageRoute({ params }: Props) {
   const template = resolveTemplate(weddingData.website.templateId)
   if (template.id !== 'voyage' || !weddingData.websiteBuilderEnabled) return notFound()
   const invitedHousehold = await resolveInvitedHousehold(websiteSubUrl, inviteToken)
+  const locale = await getLocale()
   return (
     <TemplateThemeProvider template={template}>
       {invitedHousehold ? <PersonalizedWelcome invitedHousehold={invitedHousehold} /> : null}
       <main>
-        <VoyageContentPage weddingData={weddingData} path={`/w/${websiteSubUrl}`} page={page} />
+        <VoyageContentPage
+          weddingData={weddingData}
+          path={`/w/${websiteSubUrl}`}
+          page={page}
+          locale={locale}
+        />
       </main>
     </TemplateThemeProvider>
   )
