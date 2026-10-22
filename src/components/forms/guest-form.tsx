@@ -89,7 +89,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
   // Mutations directly in component
   const createMutation = api.household.create.useMutation({
     onSuccess: () => {
-      toast.success('Party created successfully!')
+      toast.success('המסיבה נוצרה בהצלחה!')
       reset(getDefaultHouseholdFormData(events))
       if (shouldCloseAfterSave) {
         toggleGuestForm()
@@ -109,16 +109,16 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
             })
           }
         })
-        toast.error('Please fix the form errors')
+        toast.error('אנא תקנו את שגיאות הטופס')
       } else {
-        toast.error('Failed to create party. Please try again.')
+        toast.error('יצירת המסיבה נכשלה. אנא נסו שוב.')
       }
     },
   })
 
   const updateMutation = api.household.update.useMutation({
     onSuccess: (data) => {
-      toast.success('Party updated successfully!')
+      toast.success('המסיבה עודכנה בהצלחה!')
       // Reset form with updated data to clear dirty state
       if (data) {
         reset(data as unknown as HouseholdFormData)
@@ -138,22 +138,22 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
             })
           }
         })
-        toast.error('Please fix the form errors')
+        toast.error('אנא תקנו את שגיאות הטופס')
       } else {
-        toast.error('Failed to update party. Please try again.')
+        toast.error('עדכון המסיבה נכשל. אנא נסו שוב.')
       }
     },
   })
 
   const deleteMutation = api.household.delete.useMutation({
     onSuccess: () => {
-      toast.success('Party deleted successfully!')
+      toast.success('המסיבה נמחקה בהצלחה!')
       toggleGuestForm()
       void utils.dashboard.getForActiveWorkspace.invalidate()
       router.refresh()
     },
     onError: () => {
-      toast.error('Failed to delete party. Please try again.')
+      toast.error('מחיקת המסיבה נכשלה. אנא נסו שוב.')
     },
   })
 
@@ -249,7 +249,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
           <button
             type='button'
             onClick={handleRequestClose}
-            aria-label='Close guest form'
+            aria-label='סגירת טופס אורח'
             className='text-muted-foreground transition-colors hover:text-foreground'
           >
             <IoMdClose size={24} aria-hidden='true' />
@@ -325,11 +325,11 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
               </AccordionTrigger>
               <AccordionContent className='px-6 pb-6'>
                 <div className='space-y-2'>
-                  <Label htmlFor='notes'>Additional Information</Label>
+                  <Label htmlFor='notes'>מידע נוסף</Label>
                   <textarea
                     id='notes'
                     {...register('notes')}
-                    placeholder='Enter notes about your guests, like food allergies or special requests'
+                    placeholder='הזינו הערות על האורחים שלכם, כמו אלרגיות למזון או בקשות מיוחדות'
                     className='flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                   />
                   {errors.notes && (
@@ -374,14 +374,14 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
       <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Party?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק מסיבה?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this party and all associated guests. This action cannot
               be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
@@ -400,13 +400,13 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
       <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogTitle>לבטל שינויים שלא נשמרו?</AlertDialogTitle>
             <AlertDialogDescription>
               You have unsaved edits in this form. If you close now, your changes will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Keep editing</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoading}>המשך עריכה</AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault()

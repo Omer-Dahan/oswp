@@ -24,7 +24,7 @@ export default function GiftSection({ control, register, errors, events }: GiftS
 
   return (
     <>
-      <h2 className='my-4 font-bold text-2xl'>Gifts</h2>
+      <h2 className='my-4 font-bold text-2xl'>מתנות</h2>
       {fields.map((field, index) => {
         // Look up event name by eventId
         const event = events.find((e) => e.id === field.eventId)
@@ -63,7 +63,7 @@ export default function GiftSection({ control, register, errors, events }: GiftS
               <div>
                 <input
                   {...register(`gifts.${index}.description`)}
-                  placeholder='Gift Received'
+                  placeholder='מתנה התקבלה'
                   className={`w-[100%] rounded-lg border p-3 ${
                     giftErrors?.description ? 'border-red-500' : 'border-gray-300'
                   }`}

@@ -35,13 +35,13 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
 
   const updateDetails = api.wedding.updateDetails.useMutation({
     onSuccess: () => {
-      toast.success('Names updated successfully.')
+      toast.success('השמות עודכנו בהצלחה.')
       void utils.dashboard.getForActiveWorkspace.invalidate()
       void utils.wedding.getDetails.invalidate()
       router.refresh()
     },
     onError: () => {
-      toast.error('Failed to update names. Please try again.')
+      toast.error('עדכון השמות נכשל. נסו שוב.')
     },
   })
 
@@ -87,10 +87,10 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
             Groom
           </h3>
           <div className='space-y-2'>
-            <Label htmlFor='groomFirstName'>First Name</Label>
+            <Label htmlFor='groomFirstName'>שם פרטי</Label>
             <Input
               id='groomFirstName'
-              placeholder='Enter first name'
+              placeholder='הזינו שם פרטי'
               {...register('groomFirstName')}
               disabled={isSubmitting}
             />
@@ -99,10 +99,10 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
             )}
           </div>
           <div className='space-y-2'>
-            <Label htmlFor='groomLastName'>Last Name</Label>
+            <Label htmlFor='groomLastName'>שם משפחה</Label>
             <Input
               id='groomLastName'
-              placeholder='Enter last name'
+              placeholder='הזינו שם משפחה'
               {...register('groomLastName')}
               disabled={isSubmitting}
             />
@@ -118,10 +118,10 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
             Bride
           </h3>
           <div className='space-y-2'>
-            <Label htmlFor='brideFirstName'>First Name</Label>
+            <Label htmlFor='brideFirstName'>שם פרטי</Label>
             <Input
               id='brideFirstName'
-              placeholder='Enter first name'
+              placeholder='הזינו שם פרטי'
               {...register('brideFirstName')}
               disabled={isSubmitting}
             />
@@ -130,10 +130,10 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
             )}
           </div>
           <div className='space-y-2'>
-            <Label htmlFor='brideLastName'>Last Name</Label>
+            <Label htmlFor='brideLastName'>שם משפחה</Label>
             <Input
               id='brideLastName'
-              placeholder='Enter last name'
+              placeholder='הזינו שם משפחה'
               {...register('brideLastName')}
               disabled={isSubmitting}
             />
@@ -174,7 +174,7 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
             Ceremony details are managed from the Events page.
           </p>
           <Button asChild variant='outline' className='w-full sm:w-auto'>
-            <Link href={ceremonyHref}>Edit Ceremony in Events</Link>
+            <Link href={ceremonyHref}>עריכת הטקס בעמוד אירועים</Link>
           </Button>
         </div>
       </div>

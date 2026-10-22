@@ -41,7 +41,7 @@ export default function SetPasswordView({ setShowPasswordView, password }: SetPa
             <GoArrowLeft size={28} />
           </button>
           <span className='border-r'></span>
-          <h1 className='font-bold text-2xl'>Set a Password</h1>
+          <h1 className='font-bold text-2xl'>הגדרת סיסמה</h1>
         </div>
       </div>
       <div className='px-5 py-7'>
@@ -50,7 +50,7 @@ export default function SetPasswordView({ setShowPasswordView, password }: SetPa
           it&apos;s easy for guests to remember (and for you to share!).
         </p>
         <input
-          placeholder='Guest Password'
+          placeholder='סיסמת אורחים'
           className='w-[100%] border p-3'
           value={passwordInput}
           onChange={(e) => setPasswordInput(e.target.value)}

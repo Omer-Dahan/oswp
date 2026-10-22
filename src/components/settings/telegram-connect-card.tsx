@@ -17,7 +17,7 @@ export function TelegramConnectCard() {
       if (typeof window !== 'undefined') {
         window.open(data.deepLink, '_blank', 'noopener,noreferrer')
       }
-      toast.success('Open Telegram and tap Start to finish pairing.')
+      toast.success('פתחו את Telegram והקישו על התחלה כדי לסיים את ההתאמה.')
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to create pairing link')
@@ -27,10 +27,10 @@ export function TelegramConnectCard() {
   const revokeIdentity = api.messaging.revokeIdentity.useMutation({
     onSuccess: () => {
       void linkedChats.refetch()
-      toast.success('Telegram chat unlinked')
+      toast.success('הצ\'אט ב-Telegram נותק')
     },
     onError: () => {
-      toast.error('Failed to unlink Telegram chat')
+      toast.error('ניתוק הצ\'אט ב-Telegram נכשל')
     },
   })
 
@@ -63,7 +63,7 @@ export function TelegramConnectCard() {
             in a new tab.
           </p>
           <p className='mt-1 text-muted-foreground'>
-            Link expires in 15 minutes. Tap <strong>Start</strong> inside Telegram to finish.
+            Link expires in 15 minutes. Tap <strong>התחלה</strong> inside Telegram to finish.
           </p>
           <a
             href={pendingDeepLink}
@@ -81,7 +81,7 @@ export function TelegramConnectCard() {
           Connected chats
         </p>
         {linkedChats.isLoading ? (
-          <p className='text-muted-foreground text-xs'>Loading…</p>
+          <p className='text-muted-foreground text-xs'>טוען…</p>
         ) : linkedChats.data && linkedChats.data.length > 0 ? (
           <ul className='space-y-1'>
             {linkedChats.data.map((chat) => (
@@ -112,7 +112,7 @@ export function TelegramConnectCard() {
             ))}
           </ul>
         ) : (
-          <p className='text-muted-foreground text-xs'>No Telegram chats linked yet.</p>
+          <p className='text-muted-foreground text-xs'>אין צ'אטים של Telegram מקושרים עדיין.</p>
         )}
       </div>
     </div>

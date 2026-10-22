@@ -139,7 +139,7 @@ export function ModernEventForm({
             <Input
               id='eventName'
               {...register('eventName')}
-              placeholder='e.g., Wedding Ceremony'
+              placeholder='למשל, טקס חתונה'
               disabled={isSubmitting}
               className={cn(errors.eventName && 'border-destructive')}
             />
@@ -167,7 +167,7 @@ export function ModernEventForm({
                   {selectedDate ? (
                     format(selectedDate, 'PPP')
                   ) : (
-                    <span className='text-xs md:text-sm'>Pick a date</span>
+                    <span className='text-xs md:text-sm'>בחרו תאריך</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -255,7 +255,7 @@ export function ModernEventForm({
             <Input
               id='attire'
               {...register('attire')}
-              placeholder='e.g., Black Tie, Cocktail Attire'
+              placeholder='למשל, עניבה שחורה, לבוש קוקטייל'
               disabled={isSubmitting}
               className={cn(errors.attire && 'border-destructive')}
             />
@@ -272,7 +272,7 @@ export function ModernEventForm({
             <Textarea
               id='description'
               {...register('description')}
-              placeholder='Add any additional details about the event...'
+              placeholder='הוסיפו פרטים נוספים על האירוע...'
               rows={3}
               disabled={isSubmitting}
               className={cn(errors.description && 'border-destructive', 'resize-none')}

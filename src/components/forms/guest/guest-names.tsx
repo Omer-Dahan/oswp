@@ -190,7 +190,7 @@ export const GuestNameForm = ({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor={`guest${guestIndex}-lastName`}>Last Name</Label>
+            <Label htmlFor={`guest${guestIndex}-lastName`}>שם משפחה</Label>
             <Input
               id={`guest${guestIndex}-lastName`}
               {...register(`guestParty.${guestIndex}.lastName`)}
@@ -204,7 +204,7 @@ export const GuestNameForm = ({
 
         <div className='grid gap-4 sm:grid-cols-2'>
           <div className='space-y-2'>
-            <Label htmlFor={`guest${guestIndex}-email`}>Email</Label>
+            <Label htmlFor={`guest${guestIndex}-email`}>דוא"ל</Label>
             <Input
               id={`guest${guestIndex}-email`}
               {...register(`guestParty.${guestIndex}.email`)}
@@ -217,7 +217,7 @@ export const GuestNameForm = ({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor={`guest${guestIndex}-phone`}>Phone</Label>
+            <Label htmlFor={`guest${guestIndex}-phone`}>טלפון</Label>
             <Controller
               name={`guestParty.${guestIndex}.phone`}
               control={control}
@@ -251,7 +251,7 @@ export const GuestNameForm = ({
             render={({ field }) => (
               <Select value={field.value ?? 'ADULT'} onValueChange={field.onChange}>
                 <SelectTrigger id={`guest${guestIndex}-ageGroup`}>
-                  <SelectValue placeholder='Select age group' />
+                  <SelectValue placeholder='בחרו קבוצת גיל' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={GUEST_AGE_GROUP.INFANT}>Infant (0-2 years)</SelectItem>

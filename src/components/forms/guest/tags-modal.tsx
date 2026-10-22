@@ -54,7 +54,7 @@ export function TagsModal({
 
   const createTagMutation = api.guestTag.create.useMutation({
     onSuccess: async () => {
-      toast.success('Tag created successfully!')
+      toast.success('התגית נוצרה בהצלחה!')
       await refetchTags()
       reset()
       setIsCreating(false)
@@ -154,7 +154,7 @@ export function TagsModal({
 
           {/* Available Tags */}
           <div className='space-y-2'>
-            <Label>Available Tags</Label>
+            <Label>תגיות זמינות</Label>
             <div className='max-h-[200px] overflow-y-auto rounded-lg border bg-card p-3'>
               {tags.length === 0 ? (
                 <p className='py-4 text-center text-muted-foreground text-sm'>
@@ -214,18 +214,18 @@ export function TagsModal({
               className='space-y-3 rounded-lg border bg-muted/50 p-4'
             >
               <div className='space-y-2'>
-                <Label htmlFor='tag-name'>Tag Name</Label>
+                <Label htmlFor='tag-name'>שם תגית</Label>
                 <Input
                   id='tag-name'
                   {...register('name')}
-                  placeholder='e.g., VIP, Family, Friends'
+                  placeholder='למשל, VIP, משפחה, חברים'
                   autoFocus
                 />
                 {errors.name && <p className='text-destructive text-sm'>{errors.name.message}</p>}
               </div>
 
               <div className='space-y-2'>
-                <Label>Color</Label>
+                <Label>צבע</Label>
                 <div className='flex gap-2'>
                   {DEFAULT_COLORS.map((color) => (
                     <button
@@ -273,7 +273,7 @@ export function TagsModal({
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Tags</Button>
+          <Button onClick={handleSave}>שמרו תגיות</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

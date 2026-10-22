@@ -45,7 +45,7 @@ export default function EditUrlView({ setShowEditUrlView, websiteUrl }: EditUrlV
             <GoArrowLeft size={28} />
           </button>
           <span className='border-r'></span>
-          <h1 className='font-bold text-2xl'>Edit URL</h1>
+          <h1 className='font-bold text-2xl'>עריכת כתובת</h1>
         </div>
       </div>
 

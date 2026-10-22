@@ -47,7 +47,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
         className='pb-32'
       >
         <header className='flex justify-between border-b p-5'>
-          <h1 className='font-semibold text-xl'>RSVP Settings</h1>
+          <h1 className='font-semibold text-xl'>הגדרות RSVP</h1>
           <IoMdClose
             size={25}
             className='cursor-pointer'
@@ -57,7 +57,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
         <section className='border-b px-5 py-8'>
           <div>
             <div className='mb-2 flex justify-between'>
-              <h2 className='font-semibold text-xl'>Page Visibility</h2>
+              <h2 className='font-semibold text-xl'>נראות הדף</h2>
               <div className='flex items-center gap-3'>
                 <Switch
                   id='rsvp-page-visibility-toggle'
@@ -67,11 +67,11 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                 <span>{pageIsVisible ? 'Visible' : 'Hidden'}</span>
               </div>
             </div>
-            <p>No one can RSVP from your Website until this page is visible</p>
+            <p>אף אחד לא יוכל לאשר הגעה מהאתר שלכם עד שדף זה יהיה גלוי</p>
           </div>
         </section>
         <section className='border-b px-5 py-8'>
-          <h2 className='mb-3 font-semibold text-xl'>Access</h2>
+          <h2 className='mb-3 font-semibold text-xl'>גישה</h2>
           <ul className='flex flex-col gap-3'>
             <li>
               <div className='flex gap-2'>
@@ -84,7 +84,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                 />
                 <label htmlFor='guest-list-only'>
                   Guest List Only (recommended)
-                  <p>Only guests on your Guest List can RSVP.</p>
+                  <p>רק מוזמנים ברשימת המוזמנים יכולים לאשר הגעה.</p>
                 </label>
               </div>
             </li>
@@ -99,7 +99,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                 />
                 <label htmlFor='public-rsvp'>
                   Public RSVP (not recommended)
-                  <p>Anyone with the link to your Wedding Website can RSVP.</p>
+                  <p>כל מי שיש לו קישור לאתר החתונה יכול לאשר הגעה.</p>
                 </label>
               </div>
             </li>
@@ -107,7 +107,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
         </section>
 
         <section className='px-5 py-8'>
-          <h2 className='mb-3 font-semibold text-xl'>Guest List Visibility</h2>
+          <h2 className='mb-3 font-semibold text-xl'>נראות רשימת המוזמנים</h2>
           <div className='flex gap-2'>
             <input
               id='guest-list-visibility'

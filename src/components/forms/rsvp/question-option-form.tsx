@@ -44,7 +44,7 @@ export default function QuestionOptionsForm({
         }
       >
         <AiOutlinePlusCircle size={25} color={sharedStyles.primaryColorHex} />
-        <span className={`text-${sharedStyles.primaryColor}`}>Add Another Option</span>
+        <span className={`text-${sharedStyles.primaryColor}`}>הוספת אפשרות נוספת</span>
       </button>
     </div>
   )
