@@ -64,11 +64,11 @@ const getDisplayRsvpForGuest = (
   if (selectedEventId !== 'all') {
     return (
       invitations.find((invitation) => invitation.eventId === selectedEventId)?.rsvp ??
-      'Not Invited'
+      'לא הוזמן'
     )
   }
 
-  const responses = invitations.map((invitation) => invitation.rsvp ?? 'Not Invited')
+  const responses = invitations.map((invitation) => invitation.rsvp ?? 'לא הוזמן')
   const hasAttending = responses.includes('Attending')
   const hasDeclined = responses.includes('Declined')
 
@@ -76,7 +76,7 @@ const getDisplayRsvpForGuest = (
   if (hasAttending) return 'Attending'
   if (hasDeclined) return 'Declined'
   if (responses.includes('Invited')) return 'Invited'
-  return 'Not Invited'
+  return 'לא הוזמן'
 }
 
 const copyToClipboard = async (value: string) => {
@@ -199,7 +199,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
                 : '…'}
           </span>
           <div>
-            <p className='font-medium text-sm'>RSVP Status</p>
+            <p className='font-medium text-sm'>סטטוס RSVP</p>
             <p className='font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>
               {selectedEventId === 'all' ? 'Across all invitations' : 'For selected event'}
             </p>
@@ -219,7 +219,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
         />
 
         <GuestDetailSection
-          title='Party Members'
+          title='חברי המפלגה'
           contentClassName='space-y-2'
           actionClassName='-mr-1'
           action={
@@ -228,7 +228,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
               onClick={() => setIsMembersModalOpen(true)}
               className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
             >
-              Manage members
+              ניהול חברים
             </button>
           }
         >
@@ -254,7 +254,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
                   <div className='flex items-center gap-1.5'>
                     {guest.isPrimaryContact ? (
                       <Badge variant='secondary' className='text-[0.62rem]'>
-                        Primary
+                        ראשי
                       </Badge>
                     ) : null}
                     <Badge variant='outline' className={getRsvpBadgeClassName(rsvp)}>
@@ -268,7 +268,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
         </GuestDetailSection>
 
         <GuestDetailSection
-          title='Save the Date'
+          title='שמרו את התאריך'
           contentClassName='space-y-2'
           action={
             <button
@@ -290,7 +290,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
             <p className='text-foreground/75 text-sm leading-relaxed'>
               Publish your wedding website first to share save-the-date links.{' '}
               <Link href='/website' className='text-primary underline underline-offset-2'>
-                Publish your website
+                פרסמו את האתר שלכם
               </Link>
               .
             </p>
@@ -345,7 +345,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
             onClick={onRequestDelete}
             className='rounded-md border border-destructive/30 px-2 py-1 font-medium text-destructive text-xs hover:bg-destructive/10'
           >
-            Delete party
+            מחיקת מפלגה
           </button>
         </div>
       ) : null}
@@ -368,20 +368,20 @@ function EventInvitationsSection(props: Readonly<EventInvitationsSectionProps>) 
 
   return (
     <GuestDetailSection
-      title='Event Invitations & RSVP'
+      title='הזמנות לאירוע ואישורי הגעה'
       contentClassName='space-y-2'
       action={
         <Link
           href={rsvpManageHref}
           className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
         >
-          Manage in Events
+          ניהול באירועים
         </Link>
       }
     >
       {eventsToShow.length === 0 ? (
         <p className='text-foreground/55 text-sm'>
-          No events yet. Create an event to invite guests.
+          אין אירועים עדיין. צרו אירוע כדי להזמין אורחים.
         </p>
       ) : (
         <ul className='space-y-3'>
@@ -401,11 +401,11 @@ function EventInvitationsSection(props: Readonly<EventInvitationsSectionProps>) 
                         <InvitationRsvpSelect
                           guestId={guest.id}
                           eventId={event.id}
-                          rsvp={invitation.rsvp ?? 'Not Invited'}
+                          rsvp={invitation.rsvp ?? 'לא הוזמן'}
                         />
                       ) : (
-                        <Badge variant='outline' className={getRsvpBadgeClassName('Not Invited')}>
-                          Not Invited
+                        <Badge variant='outline' className={getRsvpBadgeClassName('לא הוזמן')}>
+                          לא הוזמן
                         </Badge>
                       )}
                     </li>
@@ -448,7 +448,7 @@ function InvitationRsvpSelect(props: Readonly<InvitationRsvpSelectProps>) {
     },
     onError: () => {
       setValue(rsvp)
-      toast.error('Failed to update RSVP. Please try again.')
+      toast.error('עדכון אישור ההגעה נכשל. נסו שוב.')
     },
   })
 
@@ -512,7 +512,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
   if (isEditing) {
     return (
       <GuestDetailSection
-        title='Contact & Address'
+        title='פרטי קשר וכתובת'
         contentClassName='space-y-3'
         action={
           <button
@@ -520,14 +520,14 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
             onClick={onToggleEdit}
             className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
           >
-            Done
+            הושלם
           </button>
         }
       >
         <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
           <label className='space-y-1'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              Email
+              דוא״ל
             </span>
             <input
               name='email'
@@ -541,7 +541,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           {/* biome-ignore lint/a11y/noLabelWithoutControl: PhoneInput renders a nested input element */}
           <label className='space-y-1'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              Phone
+              טלפון
             </span>
             <PhoneInput
               name='phone'
@@ -578,7 +578,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </label>
           <label className='space-y-1'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              City
+              עיר
             </span>
             <input
               name='city'
@@ -591,7 +591,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </label>
           <label className='space-y-1'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              State
+              מדינה
             </span>
             <input
               name='state'
@@ -604,7 +604,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </label>
           <label className='space-y-1'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              Zip code
+              מיקוד
             </span>
             <input
               name='zipCode'
@@ -617,7 +617,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </label>
           <label className='space-y-1'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              Country
+              ארץ
             </span>
             <input
               name='country'
@@ -635,35 +635,35 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
 
   return (
     <GuestDetailSection
-      title='Contact & Address'
+      title='פרטי קשר וכתובת'
       contentClassName='space-y-3'
       action={
         <button
           type='button'
           onClick={onToggleEdit}
           className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
-          aria-label='Edit Contact & Address'
+          aria-label='עריכת פרטי קשר וכתובת'
         >
-          Edit
+          עריכה
         </button>
       }
     >
       <dl className='grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2'>
         <div>
           <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-            Email
+            דוא״ל
           </dt>
           <dd className='text-foreground/85'>{primaryContactEmail ?? 'Not provided'}</dd>
         </div>
         <div>
           <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-            Phone
+            טלפון
           </dt>
           <dd className='text-foreground/85'>{primaryContactPhone ?? 'Not provided'}</dd>
         </div>
         <div className='sm:col-span-2'>
           <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-            Address
+            כתובת
           </dt>
           <dd className='text-foreground/85'>
             {addressFields.filter((value): value is string => Boolean(value)).join(', ') ||
@@ -694,7 +694,7 @@ function AttendanceLikelihoodSection(props: Readonly<AttendanceLikelihoodSection
   const currentValue = value ?? 3
 
   return (
-    <GuestDetailSection title='Attendance Likelihood'>
+    <GuestDetailSection title='סבירות הגעה'>
       <div className='space-y-3'>
         <Slider
           min={1}
@@ -719,7 +719,7 @@ function AttendanceLikelihoodSection(props: Readonly<AttendanceLikelihoodSection
         </div>
         {isUnset && (
           <p className='font-mono text-[0.55rem] text-foreground/45 uppercase tracking-wider'>
-            Drag slider to set likelihood
+            גררו את הסליידר כדי לקבוע סבירות
           </p>
         )}
       </div>
@@ -732,15 +732,15 @@ function NotesSection(props: Readonly<NotesSectionProps>) {
 
   return (
     <GuestDetailSection
-      title='Notes'
+      title='הערות'
       action={
         <button
           type='button'
           onClick={onToggleEdit}
           className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
-          aria-label='Edit Notes'
+          aria-label='עריכת הערות'
         >
-          {isEditing ? 'Done' : 'Edit'}
+          {isEditing ? 'הושלם' : 'עריכה'}
         </button>
       }
     >
@@ -749,11 +749,11 @@ function NotesSection(props: Readonly<NotesSectionProps>) {
           name='notes'
           value={draftNotes}
           onChange={(event) => updateDraft('notes', event.target.value)}
-          placeholder='No notes yet'
+          placeholder='אין הערות עדיין'
           className='min-h-[90px] w-full rounded-md border border-border/70 bg-background p-2.5 text-sm leading-relaxed'
         />
       ) : (
-        <p className='text-foreground/85 leading-relaxed'>{notes ?? 'No notes yet'}</p>
+        <p className='text-foreground/85 leading-relaxed'>{notes ?? 'אין הערות עדיין'}</p>
       )}
     </GuestDetailSection>
   )
@@ -789,9 +789,9 @@ function CommunicationLogSection(props: Readonly<CommunicationLogSectionProps>) 
   }
 
   return (
-    <GuestDetailSection title='Communication Log' contentClassName='space-y-2'>
+    <GuestDetailSection title='יומן תקשורת' contentClassName='space-y-2'>
       {entries.length === 0 ? (
-        <p className='text-foreground/55'>No communication activity yet.</p>
+        <p className='text-foreground/55'>אין פעילות תקשורת עדיין.</p>
       ) : (
         <ul className='space-y-2'>
           {entries.map((entry) => (
@@ -819,7 +819,7 @@ function CommunicationLogSection(props: Readonly<CommunicationLogSectionProps>) 
                       onClick={() => onDeleteNote(entry.id)}
                       className='rounded-md px-1.5 py-0.5 font-medium text-destructive/70 text-xs hover:bg-destructive/10 hover:text-destructive'
                     >
-                      Remove
+                      הסרה
                     </button>
                   )}
                 </div>
@@ -838,7 +838,7 @@ function CommunicationLogSection(props: Readonly<CommunicationLogSectionProps>) 
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSubmitNote()
             }}
-            placeholder='Add a note...'
+            placeholder='הוסיפו הערה...'
             className='h-8 min-w-0 flex-1 rounded-md border border-border/70 bg-background px-2.5 text-sm'
           />
           <button
@@ -847,7 +847,7 @@ function CommunicationLogSection(props: Readonly<CommunicationLogSectionProps>) 
             disabled={!noteText.trim()}
             className='h-8 rounded-md bg-primary/10 px-3 font-medium text-primary text-xs hover:bg-primary/20 disabled:opacity-40 disabled:hover:bg-primary/10'
           >
-            Add
+            הוספה
           </button>
         </div>
       )}

@@ -13,9 +13,9 @@ type AnswersSectionProps = {
 
 export function AnswersSection({ answers, isLoading = false }: Readonly<AnswersSectionProps>) {
   return (
-    <GuestDetailSection title='RSVP Answers'>
+    <GuestDetailSection title='תשובות אישורי הגעה'>
       {isLoading ? (
-        <p className='text-foreground/60 text-sm'>Loading answers…</p>
+        <p className='text-foreground/60 text-sm'>טוען תשובות…</p>
       ) : answers.length === 0 ? (
         <p className='text-foreground/60 text-sm leading-relaxed'>
           This household hasn&apos;t answered any RSVP questions yet.
@@ -28,7 +28,7 @@ export function AnswersSection({ answers, isLoading = false }: Readonly<AnswersS
                 <p className='font-medium text-foreground text-sm'>{group.questionText}</p>
                 {group.scope === 'event' ? (
                   <Badge variant='outline' className='text-[0.6rem]'>
-                    Event
+                    אירוע
                   </Badge>
                 ) : null}
               </div>

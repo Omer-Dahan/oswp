@@ -228,12 +228,12 @@ const ProgressBar = ({
     >
       <button
         type='button'
-        aria-label='Close RSVP form'
+        aria-label='סגרו טופס RSVP'
         className='absolute top-2 right-20 z-20 rounded-md text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
         onClick={() => {
           if (
             !shouldConfirmRsvpClose({ currentStep, numSteps }) ||
-            window.confirm('Are you sure? Your RSVP has not been sent.')
+            window.confirm('האם אתם בטוחים? ה-RSVP שלכם לא נשלח.')
           ) {
             window.location.href = basePath
           }

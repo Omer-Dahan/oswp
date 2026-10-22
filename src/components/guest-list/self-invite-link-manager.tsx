@@ -15,20 +15,20 @@ export function SelfInviteLinkManager() {
   const generateToken = api.selfFill.generateToken.useMutation({
     onSuccess: () => {
       void refetch()
-      toast.success('Invite link generated!')
+      toast.success('קישור ההזמנה נוצר!')
     },
     onError: () => {
-      toast.error('Failed to generate invite link')
+      toast.error('יצירת קישור ההזמנה נכשלה')
     },
   })
 
   const revokeToken = api.selfFill.revokeToken.useMutation({
     onSuccess: () => {
       void refetch()
-      toast.success('Invite link revoked')
+      toast.success('קישור ההזמנה בוטל')
     },
     onError: () => {
-      toast.error('Failed to revoke invite link')
+      toast.error('ביטול קישור ההזמנה נכשל')
     },
   })
 
@@ -44,7 +44,7 @@ export function SelfInviteLinkManager() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      toast.error('Failed to copy link')
+      toast.error('העתקת הקישור נכשלה')
     }
   }
 
@@ -56,7 +56,7 @@ export function SelfInviteLinkManager() {
     if (error.data?.code === 'FORBIDDEN') {
       return (
         <p className='text-muted-foreground text-sm'>
-          Invite link management requires permission to send invitations.
+          ניהול קישורי הזמנה דורש הרשאה לשליחת הזמנות.
         </p>
       )
     }
@@ -73,7 +73,7 @@ export function SelfInviteLinkManager() {
         disabled={generateToken.isPending}
       >
         <Link2 className='mr-2 h-3.5 w-3.5' aria-hidden='true' />
-        Generate Invite Link
+        יצירת קישור הזמנה
       </Button>
     )
   }
@@ -103,7 +103,7 @@ export function SelfInviteLinkManager() {
           size='sm'
           onClick={() => generateToken.mutate({})}
           disabled={generateToken.isPending}
-          aria-label='Reset invite link'
+          aria-label='איפוס קישור הזמנה'
           title='Reset link (old link stops working)'
         >
           <RefreshCw
@@ -117,8 +117,8 @@ export function SelfInviteLinkManager() {
           size='sm'
           onClick={() => revokeToken.mutate({})}
           disabled={revokeToken.isPending}
-          aria-label='Revoke invite link'
-          title='Revoke link'
+          aria-label='ביטול קישור הזמנה'
+          title='ביטול קישור'
           className='text-destructive hover:text-destructive'
         >
           <X className='h-4 w-4' aria-hidden='true' />
@@ -132,7 +132,7 @@ export function SelfInviteLinkManager() {
       {tokenData.expiresAt &&
         tokenData.earliestEventDate &&
         new Date(tokenData.expiresAt) < new Date(tokenData.earliestEventDate) && (
-          <p className='text-destructive text-xs'>This link expires before your earliest event</p>
+          <p className='text-destructive text-xs'>קישור זה יפוג לפני האירוע המוקדם ביותר שלכם</p>
         )}
     </div>
   )

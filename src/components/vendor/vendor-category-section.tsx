@@ -72,7 +72,7 @@ export function VendorCategorySection({
           className='shrink-0 text-muted-foreground hover:text-foreground'
           onClick={() => setShowCategoryConfig(true)}
         >
-          Customize category
+          התאמת קטגוריה
         </Button>
         <Button
           size='sm'
@@ -80,12 +80,12 @@ export function VendorCategorySection({
           className='shrink-0'
           onClick={() => setShowAddForm(true)}
         >
-          Add vendor
+          הוספת ספק
         </Button>
       </div>
 
       {vendors.length === 0 && (
-        <p className='py-4 text-center text-muted-foreground text-sm'>No vendors added yet</p>
+        <p className='py-4 text-center text-muted-foreground text-sm'>לא נוספו ספקים עדיין</p>
       )}
 
       <div className='flex flex-col gap-2'>

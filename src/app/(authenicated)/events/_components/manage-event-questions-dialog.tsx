@@ -52,7 +52,7 @@ export function ManageEventQuestionsDialog({
 
   const deleteQuestion = api.question.delete.useMutation({
     onSuccess: async () => {
-      toast.success('Question deleted')
+      toast.success('השאלה נמחקה')
       setDeletingQuestion(undefined)
       await utils.event.getAllByUserIdWithStats.refetch()
     },
@@ -80,13 +80,13 @@ export function ManageEventQuestionsDialog({
           <DialogHeader>
             <DialogTitle>RSVP Questions — {event.name}</DialogTitle>
             <DialogDescription>
-              Manage event-specific questions guests see when they RSVP to this event.
+              נהלו שאלות ספציפיות לאירוע שאורחים רואים כשהם מאשרים הגעה לאירוע זה.
             </DialogDescription>
           </DialogHeader>
 
           {!event.collectRsvp ? (
             <div className='rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm'>
-              Turn on <strong>Collect RSVPs</strong> for this event to use RSVP questions.
+              הפעילו <strong>איסוף אישורי הגעה</strong> עבור אירוע זה כדי להשתמש בשאלות אישור הגעה.
             </div>
           ) : null}
 
@@ -102,17 +102,17 @@ export function ManageEventQuestionsDialog({
                 disabled={!event.collectRsvp}
               >
                 <Plus className='mr-1 h-4 w-4' />
-                Add question
+                הוסיפו שאלה
               </Button>
             </div>
             <p className='text-muted-foreground text-xs'>
-              Multiple-choice questions can optionally include an <strong>Other</strong> write-in
+              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> write-in
               answer in public RSVP.
             </p>
 
             {questions.length === 0 ? (
               <div className='rounded-md border border-dashed p-6 text-center text-muted-foreground text-sm'>
-                No RSVP questions yet.
+                אין עדיין שאלות אישור הגעה.
               </div>
             ) : (
               <ul className='space-y-2'>
@@ -133,7 +133,7 @@ export function ManageEventQuestionsDialog({
                               {question.options?.length ?? 0} options
                             </span>
                             {question.allowOther ? (
-                              <Badge variant='secondary'>Other enabled</Badge>
+                              <Badge variant='secondary'>אחר מופעל</Badge>
                             ) : null}
                           </>
                         ) : null}
@@ -167,7 +167,7 @@ export function ManageEventQuestionsDialog({
 
           <DialogFooter>
             <Button variant='outline' onClick={() => onOpenChange(false)}>
-              Close
+              סגרו
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -187,13 +187,13 @@ export function ManageEventQuestionsDialog({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete RSVP question?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק שאלת אישור הגעה?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete “{deletingQuestion?.text}” and any collected answers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteQuestion.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteQuestion.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
               disabled={deleteQuestion.isPending}

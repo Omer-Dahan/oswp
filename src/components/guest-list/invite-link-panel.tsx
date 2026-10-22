@@ -11,15 +11,15 @@ export function InviteLinkPanel() {
   return (
     <>
       <Button variant='outline' onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        Invite Link
+        קישור הזמנה
       </Button>
       {open && (
         <div className='mb-6 rounded-lg border border-border bg-muted/20 p-4'>
           <p className='mb-3 font-mono text-[0.58rem] text-foreground/60 uppercase tracking-widest'>
-            Guest Self-Invite Link
+            קישור הזמנה עצמית לאורחים
           </p>
           <p className='mb-3 text-muted-foreground text-sm'>
-            Share this link so guests can add their own contact details to your list.
+            שתפו קישור זה כדי שאורחים יוסיפו את פרטי הקשר שלהם לרשימה שלכם.
           </p>
           <SelfInviteLinkManager />
         </div>

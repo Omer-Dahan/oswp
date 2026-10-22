@@ -30,14 +30,14 @@ function VendorEmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className='flex flex-col items-center gap-5 py-20 text-center'>
       <div className='max-w-sm'>
-        <p className='font-display text-4xl text-foreground'>No vendors yet</p>
+        <p className='font-display text-4xl text-foreground'>אין ספקים עדיין</p>
         <p className='mt-3 text-muted-foreground text-sm leading-relaxed'>
           Track quotes, contacts, and contracts for your venue, caterer, photographer, and every
           other vendor in one place.
         </p>
       </div>
       <Button type='button' size='lg' onClick={onAdd}>
-        Add your first vendor
+        הוספת הספק הראשון
       </Button>
     </div>
   )
@@ -90,20 +90,20 @@ export default function VendorList({ initialVendors }: VendorListProps) {
         <div className='flex flex-col gap-7'>
           <div className='flex flex-wrap items-end justify-between gap-4'>
             <div className='flex flex-col gap-2'>
-              <h2 className='font-display text-5xl text-foreground leading-none'>Your vendors</h2>
+              <h2 className='font-display text-5xl text-foreground leading-none'>הספקים שלכם</h2>
               <p className='text-muted-foreground text-sm'>
                 {summary.booked} booked · {summary.deciding} deciding · {summary.categoriesToFill}{' '}
                 {summary.categoriesToFill === 1 ? 'category' : 'categories'} to fill
               </p>
             </div>
             <Button type='button' onClick={() => setShowAddForm(true)}>
-              Add vendor
+              הוספת ספק
             </Button>
           </div>
 
           <div className='-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:flex-wrap md:overflow-visible'>
             <CategoryTab
-              label='All'
+              label='הכל'
               count={allVendors.length}
               active={categoryFilter === 'ALL'}
               onClick={() => setCategoryFilter('ALL')}
@@ -138,7 +138,7 @@ export default function VendorList({ initialVendors }: VendorListProps) {
                 No {filterLabel.toLowerCase()} vendors yet
               </p>
               <p className='text-muted-foreground text-sm'>
-                Add the ones you are talking to and compare their quotes side by side.
+                הוסיפו את אלה שאתם מדברים איתם והשוו את הצעות המחיר שלהם זו לצד זו.
               </p>
               <Button type='button' onClick={() => setShowAddForm(true)}>
                 Add {filterLabel.toLowerCase()} vendor
@@ -182,7 +182,7 @@ export default function VendorList({ initialVendors }: VendorListProps) {
         <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
             <DialogTitle className='font-display text-2xl'>
-              {filterLabel ? `Add ${filterLabel.toLowerCase()} vendor` : 'Add vendor'}
+              {filterLabel ? `Add ${filterLabel.toLowerCase()} vendor` : 'הוספת ספק'}
             </DialogTitle>
           </DialogHeader>
           <VendorForm

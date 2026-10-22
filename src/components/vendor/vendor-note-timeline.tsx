@@ -20,7 +20,7 @@ export function VendorNoteTimeline({ notes }: { notes: VendorNote[] }) {
   if (notes.length === 0) {
     return (
       <p className='font-mono text-[0.68rem] text-muted-foreground uppercase tracking-wider'>
-        No interaction notes yet
+        אין הערות אינטראקציה עדיין
       </p>
     )
   }

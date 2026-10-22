@@ -169,7 +169,7 @@ export function ManageEventGuestsDialog({
         <DialogHeader>
           <DialogTitle>Manage Guests — {event.name}</DialogTitle>
           <DialogDescription>
-            Select which guests to add to this event. This does not send invitations.
+            בחרו אילו אורחים להוסיף לאירוע זה. פעולה זו אינה שולחת הזמנות.
           </DialogDescription>
         </DialogHeader>
 
@@ -177,7 +177,7 @@ export function ManageEventGuestsDialog({
           <div className='relative'>
             <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground' />
             <Input
-              placeholder='Search guests...'
+              placeholder='חיפוש אורחים...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className='pl-9'
@@ -195,7 +195,7 @@ export function ManageEventGuestsDialog({
                 className='h-7 px-2 text-xs'
                 onClick={() => setAllRsvp(RSVP_STATUS.INVITED)}
               >
-                Invite All
+                הזמינו את כולם
               </Button>
               <Button
                 variant='outline'
@@ -203,7 +203,7 @@ export function ManageEventGuestsDialog({
                 className='h-7 px-2 text-xs'
                 onClick={() => setAllRsvp(RSVP_STATUS.NOT_INVITED)}
               >
-                Uninvite All
+                בטלו הזמנת כולם
               </Button>
             </div>
           </div>
@@ -249,7 +249,7 @@ export function ManageEventGuestsDialog({
 
         <DialogFooter>
           <Button variant='outline' onClick={() => handleOpenChange(false)}>
-            Cancel
+            ביטול
           </Button>
           <Button
             onClick={handleSave}

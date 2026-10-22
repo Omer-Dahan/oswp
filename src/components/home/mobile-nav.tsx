@@ -41,13 +41,13 @@ export default function MobileNav({ links }: Readonly<MobileNavProps>) {
       <button
         ref={triggerRef}
         type='button'
-        aria-label='Open navigation menu'
+        aria-label='פתיחת תפריט ניווט'
         aria-controls={panelId}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
         className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border border-border px-3 py-2 font-mono text-[0.62rem] text-foreground uppercase tracking-[.12em] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
       >
-        Menu
+        תפריט
       </button>
 
       {isOpen && (
@@ -55,7 +55,7 @@ export default function MobileNav({ links }: Readonly<MobileNavProps>) {
           id={panelId}
           role='dialog'
           aria-modal='true'
-          aria-label='Mobile navigation menu'
+          aria-label='תפריט ניווט לנייד'
           className='absolute top-full right-0 left-0 border-border border-b bg-background/98 px-6 py-5 backdrop-blur-md'
         >
           <ul className='flex flex-col gap-3'>
@@ -79,7 +79,7 @@ export default function MobileNav({ links }: Readonly<MobileNavProps>) {
                 onClick={() => setIsOpen(false)}
                 className='mt-1 inline-flex min-h-11 items-center justify-center rounded-sm bg-foreground px-4 py-2 font-mono text-[0.68rem] text-background uppercase tracking-[.12em] transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
               >
-                Sign In
+                התחברות
               </Link>
             </li>
           </ul>

@@ -199,7 +199,7 @@ function GuestCardComponent({
             {rsvpSummary.attending === 0 &&
               rsvpSummary.invited === 0 &&
               rsvpSummary.declined === 0 && (
-                <span className='text-muted-foreground'>No RSVP data</span>
+                <span className='text-muted-foreground'>אין נתוני אישור הגעה</span>
               )}
           </div>
 

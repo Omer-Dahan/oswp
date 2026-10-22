@@ -132,7 +132,7 @@ export function SeatingGuestSidebar(props: Readonly<SeatingGuestSidebarProps>) {
     <aside
       ref={setNodeRef}
       data-seating-sidebar
-      aria-label='Unseated guests'
+      aria-label='אורחים ללא הושבה'
       className={cn(
         'flex h-[40vh] min-h-0 flex-col rounded-xl border border-border bg-card shadow-sm transition-colors lg:h-auto',
         isOver && 'border-primary/50 bg-accent'
@@ -140,7 +140,7 @@ export function SeatingGuestSidebar(props: Readonly<SeatingGuestSidebarProps>) {
     >
       <div className='space-y-2 border-border/70 border-b p-3'>
         <div className='flex items-baseline justify-between'>
-          <h2 className='font-medium text-sm'>Unseated guests</h2>
+          <h2 className='font-medium text-sm'>אורחים ללא הושבה</h2>
           <span className='text-[0.64rem] text-muted-foreground tabular-nums'>
             {seatedGuests}/{totalGuests} seated
           </span>
@@ -148,8 +148,8 @@ export function SeatingGuestSidebar(props: Readonly<SeatingGuestSidebarProps>) {
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder='Search guests'
-          aria-label='Search unseated guests'
+          placeholder='חיפוש אורחים'
+          aria-label='חיפוש אורחים ללא הושבה'
           className='h-9'
         />
       </div>

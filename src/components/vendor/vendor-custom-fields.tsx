@@ -54,7 +54,7 @@ export function VendorCustomFields({
   if (definitions.length === 0) {
     return (
       <p className='font-mono text-[0.68rem] text-muted-foreground uppercase tracking-wider'>
-        No category fields configured yet
+        לא הוגדרו שדות קטגוריה עדיין
       </p>
     )
   }

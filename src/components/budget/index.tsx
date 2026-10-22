@@ -27,7 +27,7 @@ function BudgetEmptyState({ onAdd }: { onAdd: () => void }) {
         </span>
       </div>
       <div className='max-w-sm'>
-        <p className='font-serif text-foreground text-xl'>Start your budget</p>
+        <p className='font-serif text-foreground text-xl'>התחילו את התקציב</p>
         <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
           Set a target, break it into sections like venue and catering, then track every payment —
           including refundable deposits that come back after the event.
@@ -38,7 +38,7 @@ function BudgetEmptyState({ onAdd }: { onAdd: () => void }) {
         onClick={onAdd}
         className='font-mono text-[0.65rem] uppercase tracking-widest'
       >
-        Add your first section
+        הוסיפו את הסעיף הראשון
       </Button>
     </div>
   )
@@ -64,13 +64,13 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
     <div className='mx-auto w-full max-w-[1320px]'>
       <div className='mb-6'>
         <p className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-widest'>
-          Wedding finances
+          כספים לחתונה
         </p>
         <h1 className='mt-2 font-display text-4xl text-foreground italic md:text-5xl'>
-          Your budget, beautifully clear.
+          התקציב שלכם, ברור ויפה.
         </h1>
         <p className='mt-2 text-muted-foreground text-sm'>
-          Plan each section, record payments, and keep deposits in view.
+          תכננו כל שלב, תעדו תשלומים ושמרו את הפיקדונות באופק.
         </p>
       </div>
       <BudgetSummary summary={current.summary} currency={currency} />
@@ -87,7 +87,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
           </div>
           <div className='grid min-w-0 overflow-hidden rounded-lg border border-border/70 bg-card/65 xl:grid-cols-[minmax(245px,30%)_minmax(0,1fr)]'>
             <nav
-              aria-label='Budget sections'
+              aria-label='סעיפי תקציב'
               className='min-w-0 border-border/70 border-b bg-background/60 xl:border-r xl:border-b-0'
             >
               <Button
@@ -97,7 +97,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
                 className='h-14 w-full justify-start gap-2 rounded-none border-border/70 border-b px-5 text-primary hover:bg-primary/5 hover:text-primary'
               >
                 <Plus className='h-4 w-4' aria-hidden='true' />
-                Add section
+                הוספת שלב
               </Button>
               <div className='flex overflow-x-auto xl:block'>
                 {categories.map((category) => {
@@ -151,7 +151,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
       <Dialog open={showAddCategory} onOpenChange={setShowAddCategory}>
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle className='font-display text-xl italic'>Add section</DialogTitle>
+            <DialogTitle className='font-display text-xl italic'>הוספת שלב</DialogTitle>
           </DialogHeader>
           <CategoryForm
             mode='create'

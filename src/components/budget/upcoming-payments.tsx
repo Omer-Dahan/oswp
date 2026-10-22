@@ -38,7 +38,7 @@ export function UpcomingPayments({ categories, currency }: Readonly<UpcomingPaym
   return (
     <section className='mb-8 rounded-lg border border-border/70 bg-card p-4 md:p-5'>
       <div className='mb-3 flex items-center justify-between gap-3'>
-        <h2 className='font-serif text-foreground text-lg'>Upcoming payments</h2>
+        <h2 className='font-serif text-foreground text-lg'>תשלומים קרובים</h2>
         {overdueCount > 0 ? (
           <Badge variant='outline' className='border-destructive/40 text-[0.6rem] text-destructive'>
             {overdueCount} overdue

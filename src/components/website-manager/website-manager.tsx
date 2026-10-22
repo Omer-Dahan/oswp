@@ -39,7 +39,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
 
   const publishWebsite = api.website.create.useMutation({
     onSuccess: async () => {
-      toast.success('Your wedding website is live')
+      toast.success('אתר החתונה שלכם באוויר')
       await utils.website.getByUserId.invalidate()
       router.refresh()
     },
@@ -64,7 +64,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
       <div className='rounded-md border border-border/70 bg-card p-5'>
         <span className='inline-flex items-center gap-1.5 rounded-full bg-success/12 px-2 py-0.5 font-mono text-[0.58rem] text-success uppercase tracking-widest'>
           <Check className='h-3 w-3' aria-hidden='true' />
-          Published
+          פורסם
         </span>
         <p className='mt-3 text-foreground/75 text-sm leading-relaxed'>
           Your wedding website is live. Share this link with guests, or use the save-the-date links
@@ -85,7 +85,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
           <Button asChild variant='outline' size='sm'>
             <a href={liveUrl} target='_blank' rel='noreferrer'>
               <ExternalLink className='h-3.5 w-3.5' aria-hidden='true' />
-              View site
+              צפו באתר
             </a>
           </Button>
         </div>
@@ -109,7 +109,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
   return (
     <div className='rounded-md border border-border/70 bg-card p-5'>
       <span className='inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-mono text-[0.58rem] text-foreground/60 uppercase tracking-widest'>
-        Not published
+        לא פורסם
       </span>
       <p className='mt-3 text-foreground/75 text-sm leading-relaxed'>
         Publish your wedding website to get a public page for your guests. You&apos;ll need a
@@ -118,7 +118,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
 
       <div className='mt-4 space-y-1.5'>
         <Label htmlFor='website-suburl' className='font-medium text-foreground text-sm'>
-          Website address
+          כתובת האתר
         </Label>
         <div
           className={`flex items-center overflow-hidden rounded-[4px] border bg-background focus-within:ring-2 focus-within:ring-offset-2 ${
@@ -145,7 +145,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
             id='website-suburl-hint'
             className='font-mono text-[0.58rem] text-foreground/50 tracking-wider'
           >
-            Letters, numbers, dashes, and underscores only. You can change this later in settings.
+            אותיות, מספרים, מקפים וקווים תחתונים בלבד. תוכלו לשנות זאת מאוחר יותר בהגדרות.
           </p>
         ) : (
           <p

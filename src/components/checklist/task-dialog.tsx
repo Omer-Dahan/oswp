@@ -128,17 +128,17 @@ export function TaskDialog({
             {mode === 'create' ? 'Add task' : 'Edit task'}
           </DialogTitle>
           <DialogDescription>
-            Keep the checklist grounded in what actually needs to happen next.
+            שמרו על רשימת המשימות ממוקדת במה שבאמת צריך לקרות עכשיו.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={submitForm} className='space-y-4'>
           <div className='space-y-2'>
-            <Label htmlFor='task-title'>Task title</Label>
+            <Label htmlFor='task-title'>כותרת המשימה</Label>
             <Input
               id='task-title'
               {...register('title')}
-              placeholder='e.g., Book the string quartet'
+              placeholder='למשל, להזמין רביעיית מיתרים'
             />
             {errors.title ? (
               <p className='text-destructive text-sm'>{errors.title.message}</p>
@@ -147,14 +147,14 @@ export function TaskDialog({
 
           <div className='grid gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='task-category'>Category</Label>
+              <Label htmlFor='task-category'>קטגוריה</Label>
               <Controller
                 control={control}
                 name='category'
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id='task-category' aria-label='Task category'>
-                      <SelectValue placeholder='Select category' />
+                    <SelectTrigger id='task-category' aria-label='קטגוריית משימה'>
+                      <SelectValue placeholder='בחירת קטגוריה' />
                     </SelectTrigger>
                     <SelectContent>
                       {TASK_CATEGORIES.map((category) => (
@@ -169,14 +169,14 @@ export function TaskDialog({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='task-event'>Event</Label>
+              <Label htmlFor='task-event'>אירוע</Label>
               <Controller
                 control={control}
                 name='eventId'
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id='task-event' aria-label='Task event'>
-                      <SelectValue placeholder='Select event' />
+                    <SelectTrigger id='task-event' aria-label='אירוע המשימה'>
+                      <SelectValue placeholder='בחירת אירוע' />
                     </SelectTrigger>
                     <SelectContent>
                       {events.map((event) => (
@@ -196,7 +196,7 @@ export function TaskDialog({
 
           <div className='grid gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='task-months-before'>Months before wedding</Label>
+              <Label htmlFor='task-months-before'>חודשים לפני החתונה</Label>
               <Input
                 id='task-months-before'
                 type='number'
@@ -209,7 +209,7 @@ export function TaskDialog({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='task-due-date'>Due date</Label>
+              <Label htmlFor='task-due-date'>תאריך יעד</Label>
               <Input id='task-due-date' type='date' {...register('dueDate')} />
               {errors.dueDate ? (
                 <p className='text-destructive text-sm'>{errors.dueDate.message}</p>
@@ -218,21 +218,21 @@ export function TaskDialog({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='task-description'>Description</Label>
+            <Label htmlFor='task-description'>תיאור</Label>
             <Textarea
               id='task-description'
               {...register('description')}
-              placeholder='Optional context for the couple or planner.'
+              placeholder='הקשר אופציונלי לזוג או למתכנן.'
               rows={4}
             />
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='task-notes'>Notes</Label>
+            <Label htmlFor='task-notes'>הערות</Label>
             <Textarea
               id='task-notes'
               {...register('notes')}
-              placeholder='Optional notes.'
+              placeholder='הערות אופציונליות.'
               rows={3}
             />
           </div>
@@ -240,11 +240,11 @@ export function TaskDialog({
           <DialogFooter>
             {mode === 'edit' && onDelete ? (
               <Button type='button' variant='ghost' onClick={onDelete} className='mr-auto'>
-                Delete task
+                מחיקת משימה
               </Button>
             ) : null}
             <Button type='button' variant='ghost' onClick={() => onOpenChange(false)}>
-              Cancel
+              ביטול
             </Button>
             <Button type='submit' disabled={isSubmitting}>
               {mode === 'create' ? 'Save task' : 'Save changes'}

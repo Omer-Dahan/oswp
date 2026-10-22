@@ -75,8 +75,8 @@ export default function NamesForm() {
       <div className='flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-4'>
         <Card className='w-full max-w-2xl'>
           <CardHeader className='text-center'>
-            <CardTitle className='font-display text-3xl italic'>Plan Your Wedding</CardTitle>
-            <CardDescription>Add your names below to begin planning your day</CardDescription>
+            <CardTitle className='font-display text-3xl italic'>תכננו את החתונה</CardTitle>
+            <CardDescription>הוסיפו את השמות שלכם למטה כדי להתחיל לתכנן את היום שלכם</CardDescription>
           </CardHeader>
           <CardContent>
             {createWedding.isPending && (
@@ -86,7 +86,7 @@ export default function NamesForm() {
             )}
             {createWedding.isError && (
               <div className='mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive'>
-                <p className='font-semibold'>Error creating wedding</p>
+                <p className='font-semibold'>שגיאה ביצירת החתונה</p>
                 <p className='text-sm'>{createWedding.error?.message ?? 'Please try again'}</p>
               </div>
             )}
@@ -106,10 +106,10 @@ export default function NamesForm() {
                   <h3 className='font-semibold text-lg'>Groom&apos;s Information</h3>
                   <div className='space-y-4'>
                     <div className='space-y-2'>
-                      <Label htmlFor='groomFirstName'>First Name</Label>
+                      <Label htmlFor='groomFirstName'>שם פרטי</Label>
                       <Input
                         id='groomFirstName'
-                        placeholder='Enter first name'
+                        placeholder='הזינו שם פרטי'
                         {...register('groomFirstName')}
                         disabled={isSubmitting}
                       />
@@ -121,16 +121,16 @@ export default function NamesForm() {
                       <Label htmlFor='groomMiddleName'>Middle Name (Optional)</Label>
                       <Input
                         id='groomMiddleName'
-                        placeholder='Enter middle name'
+                        placeholder='הזינו שם אמצעי'
                         {...register('groomMiddleName')}
                         disabled={isSubmitting}
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='groomLastName'>Last Name</Label>
+                      <Label htmlFor='groomLastName'>שם משפחה</Label>
                       <Input
                         id='groomLastName'
-                        placeholder='Enter last name'
+                        placeholder='הזינו שם משפחה'
                         {...register('groomLastName')}
                         disabled={isSubmitting}
                       />
@@ -146,10 +146,10 @@ export default function NamesForm() {
                   <h3 className='font-semibold text-lg'>Bride&apos;s Information</h3>
                   <div className='space-y-4'>
                     <div className='space-y-2'>
-                      <Label htmlFor='brideFirstName'>First Name</Label>
+                      <Label htmlFor='brideFirstName'>שם פרטי</Label>
                       <Input
                         id='brideFirstName'
-                        placeholder='Enter first name'
+                        placeholder='הזינו שם פרטי'
                         {...register('brideFirstName')}
                         disabled={isSubmitting}
                       />
@@ -161,16 +161,16 @@ export default function NamesForm() {
                       <Label htmlFor='brideMiddleName'>Middle Name (Optional)</Label>
                       <Input
                         id='brideMiddleName'
-                        placeholder='Enter middle name'
+                        placeholder='הזינו שם אמצעי'
                         {...register('brideMiddleName')}
                         disabled={isSubmitting}
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='brideLastName'>Last Name</Label>
+                      <Label htmlFor='brideLastName'>שם משפחה</Label>
                       <Input
                         id='brideLastName'
-                        placeholder='Enter last name'
+                        placeholder='הזינו שם משפחה'
                         {...register('brideLastName')}
                         disabled={isSubmitting}
                       />
@@ -186,10 +186,10 @@ export default function NamesForm() {
               <div className='flex items-center justify-between rounded-lg border bg-muted/50 p-6'>
                 <div className='space-y-0.5'>
                   <Label htmlFor='wedding-details-toggle' className='text-base'>
-                    Do you have a wedding date and location?
+                    יש לכם תאריך ומיקום לחתונה?
                   </Label>
                   <p className='text-muted-foreground text-sm'>
-                    You can add this information now or later from your dashboard
+                    אפשר להוסיף את המידע עכשיו או מאוחר יותר מלוח הבקרה
                   </p>
                 </div>
                 <Controller
@@ -209,10 +209,10 @@ export default function NamesForm() {
               {/* Wedding Details Section (Conditional) */}
               {hasWeddingDetails && (
                 <div className='space-y-4 rounded-lg border bg-muted/50 p-6'>
-                  <h3 className='font-semibold text-lg'>Wedding Details</h3>
+                  <h3 className='font-semibold text-lg'>פרטי החתונה</h3>
                   <div className='grid gap-4 sm:grid-cols-2'>
                     <div className='space-y-2'>
-                      <Label>Wedding Date</Label>
+                      <Label>תאריך החתונה</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -231,7 +231,7 @@ export default function NamesForm() {
                                 day: 'numeric',
                               })
                             ) : (
-                              <span>Pick a date</span>
+                              <span>בחרו תאריך</span>
                             )}
                           </Button>
                         </PopoverTrigger>
@@ -250,10 +250,10 @@ export default function NamesForm() {
                       </Popover>
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='weddingLocation'>Wedding Location</Label>
+                      <Label htmlFor='weddingLocation'>מיקום החתונה</Label>
                       <Input
                         id='weddingLocation'
-                        placeholder='e.g., Beach Resort, Cabo'
+                        placeholder='למשל: ריזורט חוף, קאבו'
                         {...register('weddingLocation')}
                         disabled={isSubmitting}
                       />

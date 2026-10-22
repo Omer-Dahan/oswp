@@ -34,7 +34,7 @@ export default async function SeatingPage(
 
   return (
     <>
-      <DashboardTopbar title='Seating Chart' showManagementActions={false} />
+      <DashboardTopbar title='תרשים הושבה' showManagementActions={false} />
       <main className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-5 lg:px-6 lg:py-6'>
         <SeatingChartBuilder events={events} initialEventId={initialEventId} />
       </main>

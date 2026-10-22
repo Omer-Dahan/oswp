@@ -49,7 +49,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
   const createExpense = api.budget.createExpense.useMutation({
     onSuccess: async () => {
       await invalidate()
-      toast.success('Expense added')
+      toast.success('ההוצאה נוספה')
       onSuccess()
     },
     onError: (err) => toast.error(err.message || 'Could not add expense'),
@@ -58,7 +58,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
   const updateExpense = api.budget.updateExpense.useMutation({
     onSuccess: async () => {
       await invalidate()
-      toast.success('Expense updated')
+      toast.success('ההוצאה עודכנה')
       onSuccess()
     },
     onError: (err) => toast.error(err.message || 'Could not update expense'),
@@ -72,19 +72,19 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
     const parsedEstimated = estimatedAmount ? Number.parseFloat(estimatedAmount) : 0
     const parsedAmount = amount ? Number.parseFloat(amount) : 0
     if (!description.trim()) {
-      toast.error('Description is required')
+      toast.error('יש להזין תיאור')
       return
     }
     if (!Number.isFinite(parsedEstimated) || parsedEstimated < 0) {
-      toast.error('Enter a valid estimated amount')
+      toast.error('יש להזין סכום משוער תקין')
       return
     }
     if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
-      toast.error('Enter a valid amount')
+      toast.error('הזינו סכום תקין')
       return
     }
     if (parsedEstimated === 0 && parsedAmount === 0) {
-      toast.error('Enter an estimated or actual amount')
+      toast.error('יש להזין סכום משוער או בפועל')
       return
     }
 
@@ -114,12 +114,12 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
   return (
     <form onSubmit={handleSubmit} className='space-y-4'>
       <div className='space-y-1.5'>
-        <Label htmlFor='expense-description'>Description</Label>
+        <Label htmlFor='expense-description'>תיאור</Label>
         <Input
           id='expense-description'
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder='e.g. Venue balance, Photographer deposit'
+          placeholder='למשל: יתרת אולם, פיקדון צלם'
           maxLength={200}
           required
         />
@@ -156,7 +156,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
 
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
-          <Label htmlFor='expense-due-at'>Due date</Label>
+          <Label htmlFor='expense-due-at'>תאריך יעד</Label>
           <Input
             id='expense-due-at'
             type='date'
@@ -165,7 +165,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
           />
         </div>
         <div className='space-y-1.5'>
-          <Label htmlFor='expense-paid-at'>Date paid</Label>
+          <Label htmlFor='expense-paid-at'>תאריך תשלום</Label>
           <Input
             id='expense-paid-at'
             type='date'
@@ -179,10 +179,10 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
         <div className='flex items-center justify-between gap-3'>
           <div>
             <Label htmlFor='expense-is-deposit' className='cursor-pointer'>
-              This is a deposit
+              זהו פיקדון
             </Label>
             <p className='mt-0.5 text-muted-foreground text-xs'>
-              A payment held by the vendor, often returned later.
+              תשלום המוחזק על ידי הספק, לרוב מוחזר מאוחר יותר.
             </p>
           </div>
           <Switch
@@ -202,10 +202,10 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
           <div className='flex items-center justify-between gap-3 border-border/60 border-t pt-3'>
             <div>
               <Label htmlFor='expense-is-refundable' className='cursor-pointer'>
-                Refundable after the event
+                ניתן להחזר לאחר האירוע
               </Label>
               <p className='mt-0.5 text-muted-foreground text-xs'>
-                Excluded from your net spend since it comes back.
+                לא נכלל בהוצאה נטו מכיוון שהוא מוחזר.
               </p>
             </div>
             <Switch
@@ -222,7 +222,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
         {isDeposit && isRefundable ? (
           <div className='flex items-center justify-between gap-3 border-border/60 border-t pt-3'>
             <Label htmlFor='expense-refund-received' className='cursor-pointer'>
-              Refund received
+              ההחזר התקבל
             </Label>
             <Switch
               id='expense-refund-received'
@@ -234,12 +234,12 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
       </div>
 
       <div className='space-y-1.5'>
-        <Label htmlFor='expense-notes'>Notes</Label>
+        <Label htmlFor='expense-notes'>הערות</Label>
         <Textarea
           id='expense-notes'
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder='Optional details'
+          placeholder='פרטים אופציונליים'
           maxLength={2000}
           rows={2}
         />
@@ -247,7 +247,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
 
       <div className='flex justify-end gap-2 pt-1'>
         <Button type='button' variant='outline' onClick={onCancel} disabled={isPending}>
-          Cancel
+          ביטול
         </Button>
         <Button type='submit' disabled={isPending}>
           {isPending ? 'Saving...' : isEditing ? 'Save changes' : 'Add expense'}

@@ -62,7 +62,7 @@ export function GuestDetailDrawer(props: Readonly<GuestDetailDrawerProps>) {
           )}
         >
           <DialogClose
-            aria-label='Close guest details'
+            aria-label='סגירת פרטי אורח'
             className='absolute top-4 right-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
             <X className='h-4 w-4' aria-hidden='true' />
@@ -75,7 +75,7 @@ export function GuestDetailDrawer(props: Readonly<GuestDetailDrawerProps>) {
             {subtitle ? (
               <DialogDescription className='mt-1 text-sm'>{subtitle}</DialogDescription>
             ) : (
-              <DialogDescription className='sr-only'>Guest details panel</DialogDescription>
+              <DialogDescription className='sr-only'>חלונית פרטי אורח</DialogDescription>
             )}
             {headerMeta ? <div className='mt-3'>{headerMeta}</div> : null}
           </header>

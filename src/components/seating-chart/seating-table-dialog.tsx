@@ -112,18 +112,18 @@ export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
           <DialogTitle className='font-display text-2xl italic'>
             {mode === 'create' ? 'Add table' : 'Edit table'}
           </DialogTitle>
-          <DialogDescription>Pick a shape and how many guests it seats.</DialogDescription>
+          <DialogDescription>בחרו צורה וכמה אורחים היא מכילה.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={submit} noValidate className='space-y-4'>
           <div className='space-y-2'>
-            <Label htmlFor='seating-table-name'>Table name</Label>
-            <Input id='seating-table-name' placeholder='e.g., Head Table' {...register('name')} />
+            <Label htmlFor='seating-table-name'>שם השולחן</Label>
+            <Input id='seating-table-name' placeholder='למשל, שולחן ראשי' {...register('name')} />
             {errors.name ? <p className='text-destructive text-sm'>{errors.name.message}</p> : null}
           </div>
 
           <fieldset className='space-y-2'>
-            <legend className='font-medium text-sm leading-none'>Shape</legend>
+            <legend className='font-medium text-sm leading-none'>צורה</legend>
             <div className='grid grid-cols-2 gap-2'>
               {SHAPE_OPTIONS.map((option) => (
                 <label
@@ -155,7 +155,7 @@ export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
           </fieldset>
 
           <div className='space-y-2'>
-            <Label htmlFor='seating-table-capacity'>Seats</Label>
+            <Label htmlFor='seating-table-capacity'>מקומות</Label>
             <Input
               id='seating-table-capacity'
               type='number'
@@ -172,7 +172,7 @@ export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
           <DialogFooter className='gap-2 sm:justify-between'>
             {mode === 'edit' && onDelete ? (
               <Button type='button' variant='ghost' className='text-destructive' onClick={onDelete}>
-                Delete table
+                מחקו שולחן
               </Button>
             ) : (
               <span />

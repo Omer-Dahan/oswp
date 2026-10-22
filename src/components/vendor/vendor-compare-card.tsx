@@ -42,7 +42,7 @@ export function VendorCompareCard({ vendor, currency, onViewDetails }: VendorCom
             <p className='text-muted-foreground text-sm'>{quote.basis}</p>
           </>
         ) : (
-          <p className='text-muted-foreground text-sm'>No quote yet</p>
+          <p className='text-muted-foreground text-sm'>אין הצעת מחיר עדיין</p>
         )}
       </div>
 
@@ -58,7 +58,7 @@ export function VendorCompareCard({ vendor, currency, onViewDetails }: VendorCom
         className='mt-auto'
         onClick={() => onViewDetails(vendor.id)}
       >
-        View details
+        צפייה בפרטים
       </Button>
     </article>
   )

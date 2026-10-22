@@ -19,7 +19,7 @@ export default function NoGuestsView({ setPrefillHousehold, onImportClick }: NoG
         </span>
       </div>
       <div className='max-w-sm'>
-        <p className='font-serif text-xl text-foreground'>No guests yet</p>
+        <p className='font-serif text-xl text-foreground'>אין אורחים עדיין</p>
         <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
           Add guests one by one or import from a CSV. Track RSVPs, contact details, and household
           information all in one place.
@@ -32,7 +32,7 @@ export default function NoGuestsView({ setPrefillHousehold, onImportClick }: NoG
           onClick={onImportClick}
           className='font-mono text-[0.65rem] uppercase tracking-widest'
         >
-          Import from CSV
+          ייבוא מ-CSV
         </Button>
         <Button
           type='button'
@@ -42,7 +42,7 @@ export default function NoGuestsView({ setPrefillHousehold, onImportClick }: NoG
           }}
           className='font-mono text-[0.65rem] uppercase tracking-widest'
         >
-          Add your first guest
+          הוסיפו את האורח הראשון
         </Button>
       </div>
     </div>

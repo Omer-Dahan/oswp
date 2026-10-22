@@ -90,10 +90,10 @@ export function VendorCategoryConfigEditor({
 
   const upsertCategoryConfig = vendorApi.upsertCategoryConfig.useMutation({
     onSuccess: () => {
-      toast.success('Category fields saved')
+      toast.success('שדות הקטגוריה נשמרו')
       onOpenChange(false)
     },
-    onError: () => toast.error('Failed to save category fields'),
+    onError: () => toast.error('שמירת שדות הקטגוריה נכשלה'),
   })
 
   const addField = () => {
@@ -155,13 +155,13 @@ export function VendorCategoryConfigEditor({
       <div
         role='dialog'
         aria-modal='true'
-        aria-label='Customize Category'
+        aria-label='התאמת קטגוריה'
         className='w-full max-w-2xl rounded-lg border border-border/80 bg-background p-6 shadow-xl'
       >
         <div className='mb-4 flex items-center justify-between gap-3'>
-          <h2 className='font-display text-xl italic'>Customize Category</h2>
+          <h2 className='font-display text-xl italic'>התאמת קטגוריה</h2>
           <Button type='button' variant='ghost' onClick={() => onOpenChange(false)}>
-            Close
+            סגרו
           </Button>
         </div>
 
@@ -169,7 +169,7 @@ export function VendorCategoryConfigEditor({
           <div className='space-y-3'>
             {fieldDefinitions.length === 0 ? (
               <p className='font-mono text-[0.68rem] text-muted-foreground uppercase tracking-wider'>
-                No fields yet
+                אין שדות עדיין
               </p>
             ) : null}
 
@@ -209,7 +209,7 @@ export function VendorCategoryConfigEditor({
 
                   <div className='space-y-1.5'>
                     <Label className='font-mono text-[0.58rem] uppercase tracking-wider'>
-                      Type
+                      סוג
                     </Label>
                     <select
                       aria-label={`${definition.label || 'New field'} type`}
@@ -221,9 +221,9 @@ export function VendorCategoryConfigEditor({
                         })
                       }
                     >
-                      <option value='text'>Text</option>
-                      <option value='number'>Number</option>
-                      <option value='boolean'>Boolean</option>
+                      <option value='text'>טקסט</option>
+                      <option value='number'>מספר</option>
+                      <option value='boolean'>בוליאני</option>
                     </select>
                   </div>
 
@@ -235,7 +235,7 @@ export function VendorCategoryConfigEditor({
                       onClick={() => removeField(index)}
                     >
                       <Trash2 className='h-4 w-4' />
-                      Remove
+                      הסרה
                     </Button>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ export function VendorCategoryConfigEditor({
 
           <div className='flex gap-3'>
             <Button type='button' variant='outline' onClick={addField}>
-              Add Field
+              הוספת שדה
             </Button>
             <Button type='button' onClick={handleSave} disabled={upsertCategoryConfig.isPending}>
               {upsertCategoryConfig.isPending ? 'Saving...' : 'Save Fields'}

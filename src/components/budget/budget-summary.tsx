@@ -83,7 +83,7 @@ function BudgetSettingsDialog({
     event.preventDefault()
     const parsed = value ? Number.parseFloat(value) : 0
     if (!Number.isFinite(parsed) || parsed < 0) {
-      toast.error('Enter a valid amount')
+      toast.error('הזינו סכום תקין')
       return
     }
 
@@ -95,7 +95,7 @@ function BudgetSettingsDialog({
         await setTarget.mutateAsync({ targetTotal: parsed })
       }
       await utils.budget.getOverview.invalidate()
-      toast.success('Budget settings updated')
+      toast.success('הגדרות התקציב עודכנו')
       setOpen(false)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not update budget settings')
@@ -117,16 +117,16 @@ function BudgetSettingsDialog({
           variant='outline'
           className='font-mono text-[0.62rem] uppercase tracking-widest'
         >
-          {currentTarget > 0 ? 'Budget settings' : 'Set budget'}
+          {currentTarget > 0 ? 'הגדרות תקציב' : 'Set budget'}
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-sm'>
         <DialogHeader>
-          <DialogTitle className='font-display text-xl italic'>Budget settings</DialogTitle>
+          <DialogTitle className='font-display text-xl italic'>הגדרות תקציב</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-1.5'>
-            <Label htmlFor='budget-currency'>Currency</Label>
+            <Label htmlFor='budget-currency'>מטבע</Label>
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger id='budget-currency'>
                 <SelectValue />
@@ -164,7 +164,7 @@ function BudgetSettingsDialog({
               onClick={() => setOpen(false)}
               disabled={isPending}
             >
-              Cancel
+              ביטול
             </Button>
             <Button type='submit' disabled={isPending}>
               {isPending ? 'Saving...' : 'Save'}
@@ -188,9 +188,9 @@ export function BudgetSummary({ summary, currency }: Readonly<BudgetSummaryProps
     <section className='mb-8'>
       <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
         <div>
-          <h2 className='font-serif text-foreground text-lg'>Overview</h2>
+          <h2 className='font-serif text-foreground text-lg'>סקירה</h2>
           <p className='mt-0.5 text-muted-foreground text-sm'>
-            Net spend excludes refundable deposits since that money comes back to you.
+            הוצאה נטו אינה כוללת פיקדונות הניתנים להחזר, מכיוון שכסף זה חוזר אליכם.
           </p>
         </div>
         <BudgetSettingsDialog currentTarget={targetTotal} currentCurrency={currency} />
@@ -217,17 +217,17 @@ export function BudgetSummary({ summary, currency }: Readonly<BudgetSummaryProps
 
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <StatTile
-          label='Target budget'
+          label='תקציב יעד'
           value={targetTotal > 0 ? formatCurrency(targetTotal, currency) : '—'}
           hint={`Planned across sections: ${formatCurrency(totalPlanned, currency)}`}
         />
         <StatTile
-          label='Actual spend'
+          label='הוצאה בפועל'
           value={formatCurrency(actualSpend, currency)}
           hint='Gross of all payments'
         />
         <StatTile
-          label='Net spend'
+          label='הוצאה נטו'
           value={formatCurrency(netSpend, currency)}
           hint={
             outstandingDeposits > 0
@@ -236,7 +236,7 @@ export function BudgetSummary({ summary, currency }: Readonly<BudgetSummaryProps
           }
         />
         <StatTile
-          label='Remaining'
+          label='נותר'
           value={targetTotal > 0 ? formatCurrency(remaining, currency) : '—'}
           tone={targetTotal > 0 ? (remaining < 0 ? 'negative' : 'positive') : 'default'}
           hint={

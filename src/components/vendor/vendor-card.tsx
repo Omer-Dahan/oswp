@@ -47,14 +47,14 @@ export function VendorCard({
       toast.success(`${vendor.name} removed`)
       onDeleted()
     },
-    onError: () => toast.error('Failed to delete vendor'),
+    onError: () => toast.error('מחיקת הספק נכשלה'),
   })
   const setRating = api.vendor.setRating.useMutation({
     onSuccess: async () => {
       await utils.vendor.getAll.invalidate()
-      toast.success('Rating updated')
+      toast.success('הדירוג עודכן')
     },
-    onError: () => toast.error('Failed to save rating'),
+    onError: () => toast.error('שמירת הדירוג נכשלה'),
   })
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -112,7 +112,7 @@ export function VendorCard({
               <>
                 {vendor.location && <span className='text-border'>·</span>}
                 <span className='rounded-md bg-accent px-2 py-0.5 text-accent-foreground text-xs'>
-                  Contacted
+                  נוצר קשר
                 </span>
               </>
             )}
@@ -159,7 +159,7 @@ export function VendorCard({
                 event.stopPropagation()
                 setShowRatingsBreakdown((value) => !value)
               }}
-              aria-label='Toggle ratings breakdown'
+              aria-label='הצג/הסתר פירוט דירוגים'
               aria-expanded={showRatingsBreakdown}
               aria-controls={ratingsPanelId}
             >
@@ -199,11 +199,11 @@ export function VendorCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {vendor.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove this vendor and cannot be undone.
+              הפעולה תמחק את הספק לצמיתות ולא ניתן לבטלה.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteVendor.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteVendor.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()

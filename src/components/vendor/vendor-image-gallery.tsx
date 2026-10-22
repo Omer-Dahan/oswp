@@ -44,25 +44,25 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
   const saveImages = api.vendor.saveImages.useMutation({
     onSuccess: async () => {
       await utils.vendor.getById.invalidate({ vendorId })
-      toast.success('Images saved')
+      toast.success('התמונות נשמרו')
     },
-    onError: () => toast.error('Failed to save images'),
+    onError: () => toast.error('שמירת התמונות נכשלה'),
   })
 
   const deleteImage = api.vendor.deleteImage.useMutation({
     onSuccess: async () => {
       await utils.vendor.getById.invalidate({ vendorId })
-      toast.success('Image removed')
+      toast.success('התמונה הוסרה')
     },
-    onError: () => toast.error('Failed to remove image'),
+    onError: () => toast.error('הסרת התמונה נכשלה'),
   })
 
   const setCoverImage = api.vendor.setCoverImage.useMutation({
     onSuccess: async () => {
       await utils.vendor.getById.invalidate({ vendorId })
-      toast.success('Cover image updated')
+      toast.success('תמונת השער עודכנה')
     },
-    onError: () => toast.error('Failed to update cover image'),
+    onError: () => toast.error('עדכון תמונת השער נכשל'),
   })
 
   const fetchWebsiteImages = api.vendor.fetchWebsiteImages.useMutation()
@@ -90,7 +90,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
           })),
         })
       } catch {
-        toast.error('Failed to upload images')
+        toast.error('העלאת התמונות נכשלה')
       } finally {
         setIsUploading(false)
       }
@@ -114,12 +114,12 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
     try {
       const candidates = await fetchWebsiteImages.mutateAsync({ vendorId })
       if (candidates.length === 0) {
-        toast.info('No images found on their website')
+        toast.info('לא נמצאו תמונות באתר שלהם')
         return
       }
       setShowPicker(true)
     } catch {
-      toast.error('Could not fetch images from website')
+      toast.error('לא ניתן היה לאחזר תמונות מהאתר')
     }
   }
 
@@ -134,7 +134,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
       )
       const validResults = results.filter((r): r is NonNullable<typeof r> => r !== null)
       if (validResults.length === 0) {
-        toast.error('Failed to download selected images')
+        toast.error('הורדת התמונות שנבחרו נכשלה')
         return
       }
       await saveImages.mutateAsync({
@@ -145,7 +145,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
         })),
       })
     } catch {
-      toast.error('Failed to save images from website')
+      toast.error('שמירת התמונות מהאתר נכשלה')
     } finally {
       setIsUploading(false)
     }
@@ -161,11 +161,11 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
         <div className='flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-border p-6 text-center'>
           <Camera className='h-8 w-8 text-muted-foreground/40' />
           <p className='font-mono text-[10px] uppercase tracking-widest text-muted-foreground'>
-            No photos yet
+            אין תמונות עדיין
           </p>
           <div className='flex gap-2'>
             <Button type='button' variant='outline' size='sm' onClick={open} disabled={isUploading}>
-              Upload photos
+              העלאת תמונות
             </Button>
             {hasWebsite && (
               <Button
@@ -198,7 +198,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
                 {image.isPrimary && (
                   <div className='absolute left-1 top-1'>
                     <span className='rounded bg-primary/80 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary-foreground'>
-                      Cover
+                      שער
                     </span>
                   </div>
                 )}
@@ -206,7 +206,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
                   {!image.isPrimary && (
                     <button
                       type='button'
-                      aria-label='Set as cover image'
+                      aria-label='הגדרה כתמונת שער'
                       onClick={() => setCoverImage.mutate({ vendorId, imageId: image.id })}
                       disabled={setCoverImage.isPending}
                       className='rounded-full bg-white/20 p-1.5 text-white transition-colors hover:bg-white/40'
@@ -237,7 +237,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
                 className='flex items-center gap-1.5 rounded-md border border-dashed border-primary/30 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-wider text-primary transition-colors hover:border-primary hover:bg-primary/5'
               >
                 <Plus className='h-3 w-3' />
-                Add photos
+                הוספת תמונות
               </button>
               {hasWebsite && (
                 <button

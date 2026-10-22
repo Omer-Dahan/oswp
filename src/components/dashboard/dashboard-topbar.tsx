@@ -35,7 +35,7 @@ export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
         {/* Mobile menu trigger — 44×44 touch target */}
         <button
           type='button'
-          aria-label='Open sidebar'
+          aria-label='פתחו סרגל צד'
           onClick={onMenuToggle ?? openSidebar}
           className='flex h-11 w-11 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2 lg:hidden'
         >
@@ -66,7 +66,7 @@ export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
         {showManagementActions && (
           <button
             type='button'
-            aria-label='Add task'
+            aria-label='הוסיפו משימה'
             onClick={onAddTask ?? dispatchDashboardAddTaskEvent}
             className='flex min-h-[40px] items-center gap-1.5 rounded-[10px] bg-primary px-4 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >

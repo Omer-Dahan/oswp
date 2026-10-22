@@ -50,7 +50,7 @@ export function PendingSuggestionsFeed({ suggestions: initial }: PendingSuggesti
       </div>
 
       {suggestions.length === 0 ? (
-        <p className='py-8 text-center text-muted-foreground text-sm'>No pending suggestions</p>
+        <p className='py-8 text-center text-muted-foreground text-sm'>אין הצעות ממתינות</p>
       ) : (
         <div className='flex flex-col gap-3'>
           {suggestions.map((suggestion) => (

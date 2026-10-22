@@ -156,7 +156,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
           <PopoverTrigger asChild>
             <button
               type='button'
-              aria-label='Select country'
+              aria-label='בחרו מדינה'
               disabled={disabled}
               className='flex shrink-0 items-center gap-2 border-border border-r bg-muted/30 px-2.5 font-sans text-foreground text-sm transition-colors hover:bg-muted/50 focus-visible:outline-none disabled:cursor-not-allowed'
             >
@@ -184,7 +184,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
               <input
                 ref={searchInputRef}
                 type='text'
-                placeholder='Search countries...'
+                placeholder='חיפוש מדינות...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className='w-full rounded-[4px] border border-input bg-background py-1.5 pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring'
@@ -192,11 +192,11 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
             </div>
             <div
               role='listbox'
-              aria-label='Country codes'
+              aria-label='קידומות מדינה'
               className='max-h-72 touch-pan-y overflow-y-auto overscroll-contain'
             >
               {filteredCountries.length === 0 ? (
-                <p className='py-4 text-center text-muted-foreground text-sm'>No countries found</p>
+                <p className='py-4 text-center text-muted-foreground text-sm'>לא נמצאו מדינות</p>
               ) : (
                 filteredCountries.map((option) => {
                   const isSelected = option.code === selectedCountry

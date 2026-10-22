@@ -56,7 +56,7 @@ function TimingLine({ expense }: { expense: BudgetExpense }) {
       </p>
     )
   }
-  return <p className='font-mono text-muted-foreground text-xs'>Not scheduled</p>
+  return <p className='font-mono text-muted-foreground text-xs'>לא מתוזמן</p>
 }
 
 function ExpenseTable({
@@ -79,19 +79,19 @@ function ExpenseTable({
         <thead>
           <tr className='border-border/60 border-b bg-muted/40 text-left font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
             <th scope='col' className='px-5 py-4 font-normal'>
-              Expense
+              הוצאה
             </th>
             <th scope='col' className='px-3 py-4 text-right font-normal'>
-              Estimated
+              משוער
             </th>
             <th scope='col' className='px-3 py-4 text-right font-normal'>
-              Actual
+              בפועל
             </th>
             <th scope='col' className='px-3 py-4 font-normal'>
-              Status / date
+              סטטוס / תאריך
             </th>
             <th scope='col' className='px-3 py-4 font-normal'>
-              <span className='sr-only'>Actions</span>
+              <span className='sr-only'>פעולות</span>
             </th>
           </tr>
         </thead>
@@ -99,7 +99,7 @@ function ExpenseTable({
           {category.expenses.length === 0 ? (
             <tr>
               <td colSpan={5} className='px-5 py-12 text-center text-muted-foreground'>
-                No expenses recorded yet. Add your first expense below.
+                לא נרשמו הוצאות עדיין. הוסיפו את ההוצאה הראשונה שלכם למטה.
               </td>
             </tr>
           ) : (
@@ -113,7 +113,7 @@ function ExpenseTable({
                   <div className='mt-1.5 flex flex-wrap gap-1'>
                     {expense.isDeposit ? (
                       <Badge variant='secondary' className='text-[0.55rem]'>
-                        Deposit
+                        פיקדון
                       </Badge>
                     ) : null}
                     {expense.isRefundable ? (
@@ -155,14 +155,14 @@ function ExpenseTable({
                     <DropdownMenuContent align='end'>
                       <DropdownMenuItem onSelect={() => onEdit(expense)}>
                         <Pencil aria-hidden='true' />
-                        Edit expense
+                        עריכת הוצאה
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={() => onDelete(expense.id)}
                         className='text-destructive'
                       >
                         <Trash2 aria-hidden='true' />
-                        Delete expense
+                        מחיקת הוצאה
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -179,7 +179,7 @@ function ExpenseTable({
                 className='h-14 w-full justify-start gap-2 rounded-none px-5 text-primary hover:bg-primary/5 hover:text-primary'
               >
                 <Plus className='h-4 w-4' aria-hidden='true' />
-                Add new expense
+                הוספת הוצאה חדשה
               </Button>
             </td>
           </tr>
@@ -187,7 +187,7 @@ function ExpenseTable({
         <tfoot>
           <tr className='bg-muted/40 font-mono text-xs'>
             <th scope='row' className='px-5 py-5 text-left font-normal'>
-              Section total
+              סה״כ סעיף
             </th>
             <td className='whitespace-nowrap px-3 py-5 text-right tabular-nums'>
               {formatCurrency(category.totals.estimatedTotal, currency)}
@@ -218,7 +218,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
   const deleteCategory = api.budget.deleteCategory.useMutation({
     onSuccess: async () => {
       await invalidate()
-      toast.success('Section deleted')
+      toast.success('הסעיף נמחק')
       setConfirmDeleteCategory(false)
     },
     onError: (err) => toast.error(err.message || 'Could not delete section'),
@@ -227,7 +227,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
   const deleteExpense = api.budget.deleteExpense.useMutation({
     onSuccess: async () => {
       await invalidate()
-      toast.success('Expense deleted')
+      toast.success('ההוצאה נמחקה')
       setDeleteExpenseId(null)
     },
     onError: (err) => toast.error(err.message || 'Could not delete expense'),
@@ -250,7 +250,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
         <div className='flex flex-wrap items-start justify-between gap-4'>
           <div className='min-w-0'>
             <p className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
-              Selected section
+              סעיף נבחר
             </p>
             <h3
               id={`budget-category-heading-${category.id}`}
@@ -270,7 +270,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
               size='sm'
               onClick={() => setShowEditCategory(true)}
             >
-              Edit section
+              עריכת סעיף
             </Button>
             <Button
               type='button'
@@ -279,7 +279,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
               onClick={() => setConfirmDeleteCategory(true)}
               className='text-muted-foreground hover:text-destructive'
             >
-              Delete
+              מחיקה
             </Button>
           </div>
         </div>
@@ -346,7 +346,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
       <Dialog open={editExpense !== null} onOpenChange={(open) => !open && setEditExpense(null)}>
         <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
-            <DialogTitle className='font-display text-xl italic'>Edit expense</DialogTitle>
+            <DialogTitle className='font-display text-xl italic'>עריכת הוצאה</DialogTitle>
           </DialogHeader>
           {editExpense ? (
             <ExpenseForm
@@ -364,7 +364,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
       <Dialog open={showEditCategory} onOpenChange={setShowEditCategory}>
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle className='font-display text-xl italic'>Edit section</DialogTitle>
+            <DialogTitle className='font-display text-xl italic'>עריכת סעיף</DialogTitle>
           </DialogHeader>
           <CategoryForm
             mode='edit'
@@ -387,7 +387,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteCategory.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteCategory.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
@@ -395,7 +395,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
               }}
               disabled={deleteCategory.isPending}
             >
-              Delete
+              מחיקה
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -408,11 +408,11 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this expense?</AlertDialogTitle>
-            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>למחוק הוצאה זו?</AlertDialogTitle>
+            <AlertDialogDescription>לא ניתן לבטל פעולה זו.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteExpense.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteExpense.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
@@ -420,7 +420,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
               }}
               disabled={deleteExpense.isPending}
             >
-              Delete
+              מחיקה
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

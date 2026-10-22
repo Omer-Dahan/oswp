@@ -22,7 +22,7 @@ export default function EventsTabs({ events, selectedEventId }: EventsTabsProps)
           }`}
         >
           <Link href='?event=all' scroll={false}>
-            All Events
+            כל האירועים
           </Link>
         </li>
         {events?.map((event) => {
