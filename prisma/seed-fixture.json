@@ -31,10 +31,10 @@
   "wedding": {
     "id": "wedding-seed-shrek-fiona",
     "organizationId": "org-seed-shrek-fiona",
-    "groomFirstName": "Shrek",
-    "groomLastName": "Ogre",
-    "brideFirstName": "Fiona",
-    "brideLastName": "Ogre",
+    "groomFirstName": "יונתן",
+    "groomLastName": "כהן",
+    "brideFirstName": "דנה",
+    "brideLastName": "לוי",
     "enabledAddOns": ["website", "tasks", "gifts", "vendors", "website_builder"],
     "selfFillToken": "swamp-join-portal",
     "selfFillTokenGeneratedAt": "2026-03-01T10:00:00.000Z"
@@ -42,7 +42,7 @@
   "organization": {
     "id": "org-seed-shrek-fiona",
     "slug": "wedding-seed-shrek-fiona",
-    "name": "Shrek & Fiona"
+    "name": "יונתן ודנה"
   },
   "website": {
     "id": "website-seed-shrek-fiona",
@@ -56,37 +56,37 @@
     {
       "id": "event-seed-ceremony",
       "slug": "ceremony",
-      "name": "Swamp Ceremony",
+      "name": "טקס החופה",
       "date": "2026-07-12",
       "startTime": "15:00",
       "endTime": "16:15",
-      "venue": "Old Oak Grove, The Swamp",
-      "attire": "Fairy Tale Formal",
-      "description": "Vows beside the lily pond.",
+      "venue": "חורשת האלון העתיק",
+      "attire": "אלגנט חגיגי",
+      "description": "הבטחות נישואין לצד אגם הלוטוס.",
       "collectRsvp": true
     },
     {
       "id": "event-seed-feast",
       "slug": "welcome-feast",
-      "name": "Welcome Feast",
+      "name": "סעודת קבלת פנים",
       "date": "2026-07-12",
       "startTime": "18:00",
       "endTime": "22:00",
-      "venue": "Far Far Away Banquet Hall",
-      "attire": "Festive",
-      "description": "Live music and giant parfait towers.",
+      "venue": "אולם האירועים הרחק הרחק",
+      "attire": "חגיגי",
+      "description": "מוזיקה חיה ומגדלי פרפה מרשימים.",
       "collectRsvp": true
     },
     {
       "id": "event-seed-breakfast",
       "slug": "breakfast",
-      "name": "Morning-After Breakfast",
+      "name": "ארוחת בוקר למחרת",
       "date": "2026-07-13",
       "startTime": "09:30",
       "endTime": "11:00",
-      "venue": "Swamp Cottage Courtyard",
-      "attire": "Casual",
-      "description": "Waffles and coffee for overnight guests.",
+      "venue": "חצר הבקתה בביצה",
+      "attire": "קז'ואל",
+      "description": "וופלים וקפה לאורחים שנשארו ללילה.",
       "collectRsvp": true
     }
   ],
@@ -94,55 +94,55 @@
     {
       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "slug": "family",
-      "name": "Family",
+      "name": "משפחה",
       "color": "#16A34A"
     },
     {
       "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
       "slug": "friends",
-      "name": "Friends",
+      "name": "חברים",
       "color": "#0EA5E9"
     },
     {
       "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
       "slug": "bridal-party",
-      "name": "Bridal Party",
+      "name": "צוות החתונה",
       "color": "#7C3AED"
     },
     {
       "id": "d4e5f6a7-b8c9-0123-def0-234567890123",
       "slug": "vip",
-      "name": "VIP",
+      "name": "אורחי כבוד",
       "color": "#CA8A04"
     },
     {
       "id": "e5f6a7b8-c9d0-1234-ef01-345678901234",
       "slug": "out-of-town",
-      "name": "Out of Town",
+      "name": "מחוץ לעיר",
       "color": "#0284C7"
     },
     {
       "id": "f6a7b8c9-d0e1-2345-f012-456789012345",
       "slug": "kids",
-      "name": "Kids",
+      "name": "ילדים",
       "color": "#F97316"
     }
   ],
   "households": [
     {
       "id": "household-seed-donkey-dragon",
-      "address1": "1 Mud Lane",
+      "address1": "רחוב הביצה 1",
       "address2": null,
-      "city": "Swampside",
-      "state": "FFA",
+      "city": "ביצתיים",
+      "state": "מרכז",
       "zipCode": "10001",
-      "country": "Far Far Away",
-      "notes": "Needs high-chair seating for dragonlets.",
+      "country": "הרחק הרחק",
+      "notes": "צריך כיסאות תינוק לילדים הקטנים.",
       "guests": [
         {
           "key": "donkey",
-          "firstName": "Donkey",
-          "lastName": "The Donkey",
+          "firstName": "אבי",
+          "lastName": "אברהם",
           "email": "donkey@swamp.wed",
           "phone": "+12025550101",
           "isPrimaryContact": true,
@@ -153,15 +153,15 @@
             {
               "eventSlug": "welcome-feast",
               "rsvp": "Attending",
-              "dietaryRestrictions": "No onions"
+              "dietaryRestrictions": "בלי בצל"
             },
             { "eventSlug": "breakfast", "rsvp": "Attending", "dietaryRestrictions": null }
           ]
         },
         {
           "key": "dragon",
-          "firstName": "Dragon",
-          "lastName": "The Dragon",
+          "firstName": "שרה",
+          "lastName": "אברהם",
           "email": null,
           "phone": "+12025550102",
           "isPrimaryContact": false,
@@ -177,25 +177,25 @@
     },
     {
       "id": "household-seed-gingy",
-      "address1": "7 Cookie Crumble Ave",
-      "address2": "Suite B",
-      "city": "Far Far Away",
-      "state": "FFA",
+      "address1": "שדרות העוגיות 7",
+      "address2": "דירה ב'",
+      "city": "הרחק הרחק",
+      "state": "מרכז",
       "zipCode": "10002",
-      "country": "Far Far Away",
+      "country": "הרחק הרחק",
       "notes": null,
       "guests": [
         {
           "key": "gingy",
-          "firstName": "Gingy",
-          "lastName": "Cookie",
+          "firstName": "גבריאל",
+          "lastName": "כהן",
           "email": "gingy@swamp.wed",
           "phone": null,
           "isPrimaryContact": true,
           "ageGroup": "ADULT",
           "tagSlugs": ["friends", "out-of-town"],
           "invitations": [
-            { "eventSlug": "ceremony", "rsvp": "Attending", "dietaryRestrictions": "Nut-free" },
+            { "eventSlug": "ceremony", "rsvp": "Attending", "dietaryRestrictions": "ללא אגוזים" },
             { "eventSlug": "welcome-feast", "rsvp": "Attending", "dietaryRestrictions": null },
             { "eventSlug": "breakfast", "rsvp": "Declined", "dietaryRestrictions": null }
           ]
@@ -210,12 +210,12 @@
       "state": null,
       "zipCode": null,
       "country": null,
-      "notes": "Arriving with plus-ones pending.",
+      "notes": "מגיעים עם בני/בנות זוג, בטיפול.",
       "guests": [
         {
           "key": "wolf",
-          "firstName": "Big",
-          "lastName": "Bad Wolf",
+          "firstName": "דני",
+          "lastName": "אור",
           "email": null,
           "phone": null,
           "isPrimaryContact": true,
@@ -229,8 +229,8 @@
         },
         {
           "key": "pig-1",
-          "firstName": "Practical",
-          "lastName": "Pig",
+          "firstName": "יוסי",
+          "lastName": "אור",
           "email": "practical.pig@swamp.wed",
           "phone": null,
           "isPrimaryContact": false,
@@ -246,18 +246,18 @@
     },
     {
       "id": "household-seed-fairy-godmother",
-      "address1": "99 Royal Tower",
+      "address1": "מגדל המלוכה 99",
       "address2": null,
-      "city": "Far Far Away",
-      "state": "FFA",
+      "city": "הרחק הרחק",
+      "state": "מרכז",
       "zipCode": "10003",
-      "country": "Far Far Away",
-      "notes": "Requires stage access for grand entrance.",
+      "country": "הרחק הרחק",
+      "notes": "דורש גישה לבמה לכניסה מרשימה.",
       "guests": [
         {
           "key": "fairy-godmother",
-          "firstName": "Fairy",
-          "lastName": "Godmother",
+          "firstName": "מיכל",
+          "lastName": "שגיא",
           "email": "fairy.godmother@swamp.wed",
           "phone": "+12025550104",
           "isPrimaryContact": true,
@@ -273,18 +273,18 @@
     },
     {
       "id": "household-seed-three-mice",
-      "address1": "12 Tiny Wheel Rd",
+      "address1": "רחוב הגלגל הקטן 12",
       "address2": null,
-      "city": "Swampside",
-      "state": "FFA",
+      "city": "ביצתיים",
+      "state": "מרכז",
       "zipCode": "10004",
-      "country": "Far Far Away",
+      "country": "הרחק הרחק",
       "notes": null,
       "guests": [
         {
           "key": "mouse-1",
-          "firstName": "Blind",
-          "lastName": "Mouse One",
+          "firstName": "רון",
+          "lastName": "קטן",
           "email": null,
           "phone": "+12025550105",
           "isPrimaryContact": true,
@@ -298,8 +298,8 @@
         },
         {
           "key": "mouse-2",
-          "firstName": "Blind",
-          "lastName": "Mouse Two",
+          "firstName": "תום",
+          "lastName": "קטן",
           "email": null,
           "phone": null,
           "isPrimaryContact": false,
@@ -315,29 +315,29 @@
     },
     {
       "id": "household-seed-pinocchio",
-      "address1": "5 Puppet Plaza",
+      "address1": "כיכר הבובות 5",
       "address2": null,
-      "city": "Far Far Away",
-      "state": "FFA",
+      "city": "הרחק הרחק",
+      "state": "מרכז",
       "zipCode": "10005",
-      "country": "Far Far Away",
-      "notes": "Peanut allergy alert.",
+      "country": "הרחק הרחק",
+      "notes": "התראת אלרגיה לבוטנים.",
       "guests": [
         {
           "key": "pinocchio",
-          "firstName": "Pinocchio",
-          "lastName": "Wooden",
+          "firstName": "איתי",
+          "lastName": "עוז",
           "email": "pinocchio@swamp.wed",
           "phone": "+12025550106",
           "isPrimaryContact": true,
           "ageGroup": "TEEN",
           "tagSlugs": ["bridal-party", "kids"],
           "invitations": [
-            { "eventSlug": "ceremony", "rsvp": "Attending", "dietaryRestrictions": "Peanut-free" },
+            { "eventSlug": "ceremony", "rsvp": "Attending", "dietaryRestrictions": "ללא בוטנים" },
             {
               "eventSlug": "welcome-feast",
               "rsvp": "Attending",
-              "dietaryRestrictions": "Peanut-free"
+              "dietaryRestrictions": "ללא בוטנים"
             },
             { "eventSlug": "breakfast", "rsvp": "Attending", "dietaryRestrictions": null }
           ]
@@ -346,18 +346,18 @@
     },
     {
       "id": "household-seed-prince-charming",
-      "address1": "1 Regal Court",
+      "address1": "חצר המלכות 1",
       "address2": null,
-      "city": "Far Far Away",
-      "state": "FFA",
+      "city": "הרחק הרחק",
+      "state": "מרכז",
       "zipCode": "10006",
-      "country": "Far Far Away",
-      "notes": "Seat away from donkey to avoid drama.",
+      "country": "הרחק הרחק",
+      "notes": "לשבת במרחק ממשפחת אברהם למניעת מתח.",
       "guests": [
         {
           "key": "prince-charming",
-          "firstName": "Prince",
-          "lastName": "Charming",
+          "firstName": "עידן",
+          "lastName": "ברק",
           "email": "prince.charming@swamp.wed",
           "phone": "+12025550107",
           "isPrimaryContact": true,
@@ -373,18 +373,18 @@
     },
     {
       "id": "household-seed-captain-hook",
-      "address1": "13 Jolly Roger Dock",
+      "address1": "מזח הדגל השחור 13",
       "address2": null,
-      "city": "Neverland Harbor",
-      "state": "NL",
+      "city": "נמל הארץ שלעולם לא",
+      "state": "צפון",
       "zipCode": "20001",
-      "country": "Neverland",
+      "country": "הארץ שלעולם לא",
       "notes": null,
       "guests": [
         {
           "key": "captain-hook",
-          "firstName": "Captain",
-          "lastName": "Hook",
+          "firstName": "אלון",
+          "lastName": "ימי",
           "email": null,
           "phone": "+12025550108",
           "isPrimaryContact": true,
@@ -400,18 +400,18 @@
     },
     {
       "id": "household-seed-three-bears",
-      "address1": "3 Forest Path",
+      "address1": "שביל היער 3",
       "address2": null,
-      "city": "Whispering Woods",
-      "state": "WW",
+      "city": "יער הרחשים",
+      "state": "יער",
       "zipCode": "30001",
-      "country": "Enchanted Forest",
-      "notes": "Need child-friendly breakfast menu.",
+      "country": "היער המכושף",
+      "notes": "נדרש תפריט ארוחת בוקר מתאים לילדים.",
       "guests": [
         {
           "key": "papa-bear",
-          "firstName": "Papa",
-          "lastName": "Bear",
+          "firstName": "אבי",
+          "lastName": "דוביאן",
           "email": "papa.bear@swamp.wed",
           "phone": "+12025550109",
           "isPrimaryContact": true,
@@ -425,8 +425,8 @@
         },
         {
           "key": "mama-bear",
-          "firstName": "Mama",
-          "lastName": "Bear",
+          "firstName": "רונית",
+          "lastName": "דוביאן",
           "email": "mama.bear@swamp.wed",
           "phone": null,
           "isPrimaryContact": false,
@@ -440,8 +440,8 @@
         },
         {
           "key": "baby-bear",
-          "firstName": "Baby",
-          "lastName": "Bear",
+          "firstName": "נועה",
+          "lastName": "דוביאן",
           "email": null,
           "phone": null,
           "isPrimaryContact": false,
@@ -460,13 +460,13 @@
     {
       "householdId": "household-seed-donkey-dragon",
       "eventSlug": "welcome-feast",
-      "description": "Golden waffle maker",
+      "description": "מכונת וופלים זהובה",
       "thankyou": true
     },
     {
       "householdId": "household-seed-fairy-godmother",
       "eventSlug": "ceremony",
-      "description": "Crystal carriage centerpiece",
+      "description": "פמוט קריסטל בצורת כרכרה",
       "thankyou": false
     }
   ],
@@ -474,74 +474,70 @@
     {
       "id": "vendor-seed-venue",
       "category": "VENUE",
-      "name": "Far Far Away Banquet Hall",
-      "location": "Far Far Away",
+      "name": "אולם האירועים הרחק הרחק",
+      "location": "הרחק הרחק",
       "website": "https://banquet.swamp.wed",
       "instagram": "@ffa_banquethall",
       "status": "SELECTED",
-      "contactName": "Lord Farquaad Assistant",
+      "contactName": "העוזר של הלורד פארקוואד",
       "contactEmail": "venue@swamp.wed",
       "contactPhone": "+12025550201",
-      "quotes": [
-        { "price": "8500.00", "quoteDate": "2026-01-10", "notes": "Includes ceremony grove" }
-      ]
+      "quotes": [{ "price": "8500.00", "quoteDate": "2026-01-10", "notes": "כולל את חורשת הטקס" }]
     },
     {
       "id": "vendor-seed-venue-swamp-lodge",
       "category": "VENUE",
-      "name": "Swampview Lodge",
-      "location": "Swampside",
+      "name": "אחוזת נוף הביצה",
+      "location": "ביצתיים",
       "website": "https://lodge.swamp.wed",
       "instagram": "@swampviewlodge",
       "status": "IN_REVIEW",
-      "contactName": "Lodge Keeper",
+      "contactName": "מנהל האחוזה",
       "contactEmail": "lodge@swamp.wed",
       "contactPhone": "+12025550205",
-      "quotes": [{ "price": "6400.00", "quoteDate": "2026-01-15", "notes": "Feast hall only" }]
+      "quotes": [{ "price": "6400.00", "quoteDate": "2026-01-15", "notes": "אולם הסעודה בלבד" }]
     },
     {
       "id": "vendor-seed-catering",
       "category": "CATERING",
-      "name": "Dragonfire Catering",
-      "location": "Swampside",
+      "name": "קייטרינג אש הדרקון",
+      "location": "ביצתיים",
       "website": "https://catering.swamp.wed",
       "instagram": "@dragonfire_catering",
       "status": "IN_NEGOTIATION",
-      "contactName": "Chef Maurice",
+      "contactName": "השף מוריס",
       "contactEmail": "chef@swamp.wed",
       "contactPhone": "+12025550202",
       "quotes": [
-        { "price": "4200.00", "quoteDate": "2026-01-12", "notes": "Standard buffet" },
-        { "price": "5100.00", "quoteDate": "2026-01-20", "notes": "Premium dessert stations" }
+        { "price": "4200.00", "quoteDate": "2026-01-12", "notes": "מזנון סטנדרטי" },
+        { "price": "5100.00", "quoteDate": "2026-01-20", "notes": "עמדות קינוחים פרימיום" }
       ]
     },
     {
       "id": "vendor-seed-photo",
       "category": "PHOTOGRAPHER",
-      "name": "Magic Mirror Studios",
-      "location": "Far Far Away",
+      "name": "סטודיו המראה הקסומה",
+      "location": "הרחק הרחק",
       "website": "https://photos.swamp.wed",
       "instagram": "@magicmirrorstudios",
       "status": "PRE_SELECTED",
-      "contactName": "Mirror Mirror",
+      "contactName": "מראה מראה",
       "contactEmail": "bookings@swamp.wed",
       "contactPhone": null,
-      "quotes": [{ "price": "3000.00", "quoteDate": "2026-01-18", "notes": "Full day coverage" }]
+      "quotes": [{ "price": "3000.00", "quoteDate": "2026-01-18", "notes": "כיסוי יום מלא" }]
     },
     {
       "id": "vendor-seed-music",
       "category": "MUSIC",
-      "name": "Pied Piper Collective",
-      "location": "Far Far Away",
+      "name": "הרכב מחלל הקסם",
+      "location": "הרחק הרחק",
       "website": "https://music.swamp.wed",
       "instagram": "@piedpipercollective",
       "status": "IN_REVIEW",
-      "contactName": "Piper",
+      "contactName": "המחלל",
       "contactEmail": "music@swamp.wed",
       "contactPhone": "+12025550204",
-      "quotes": [
-        { "price": "1800.00", "quoteDate": "2026-01-22", "notes": "Ceremony and feast set" }
-      ]
+      "quotes": [{ "price": "1800.00", "quoteDate": "2026-01-22", "notes": "סט לטקס ולסעודה" }]
     }
   ],
   "questions": {
@@ -549,7 +545,7 @@
       {
         "slug": "ceremony-song-request",
         "eventSlug": "ceremony",
-        "text": "Any song requests for the ceremony?",
+        "text": "יש בקשות לשירים לטקס?",
         "type": "Text",
         "isRequired": false,
         "options": []
@@ -557,20 +553,20 @@
       {
         "slug": "feast-meal-choice",
         "eventSlug": "welcome-feast",
-        "text": "Choose your feast meal preference",
+        "text": "בחרו את העדפת המנה לסעודה",
         "type": "Option",
         "isRequired": true,
         "options": [
-          { "slug": "meal-veg", "text": "Vegetarian", "description": "Garden platter" },
-          { "slug": "meal-roast", "text": "Roast", "description": "Roasted boar" },
-          { "slug": "meal-fish", "text": "Fish", "description": "River catch" }
+          { "slug": "meal-veg", "text": "צמחוני", "description": "מגש גן ירקות" },
+          { "slug": "meal-roast", "text": "צלי", "description": "חזיר בר צלוי" },
+          { "slug": "meal-fish", "text": "דג", "description": "דגת נהר" }
         ]
       }
     ],
     "website": [
       {
         "slug": "site-accessibility-needs",
-        "text": "Do you have accessibility needs we should plan for?",
+        "text": "יש צרכי נגישות שעלינו לקחת בחשבון?",
         "type": "Text",
         "isRequired": false,
         "options": []
@@ -582,13 +578,13 @@
       "guestKey": "donkey",
       "questionSlug": "ceremony-song-request",
       "type": "text",
-      "response": "Please play I'm a Believer during recessional."
+      "response": "אנא נגנו שיר שמח בזמן הפרידה מהטקס."
     },
     {
       "guestKey": "gingy",
       "questionSlug": "site-accessibility-needs",
       "type": "text",
-      "response": "Need low table seating."
+      "response": "צריך שולחנות נמוכים."
     },
     {
       "guestKey": "pinocchio",
