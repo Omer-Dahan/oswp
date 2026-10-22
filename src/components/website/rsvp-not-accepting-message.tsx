@@ -1,11 +1,14 @@
 import { Clock } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 import { Button } from '~/components/ui/button'
 
 type RsvpNotAcceptingMessageProps = {
   basePath: string
 }
 
-export default function RsvpNotAcceptingMessage({ basePath }: RsvpNotAcceptingMessageProps) {
+export default async function RsvpNotAcceptingMessage({ basePath }: RsvpNotAcceptingMessageProps) {
+  const t = await getTranslations('rsvp')
+
   return (
     <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 px-6 py-12'>
       <div aria-hidden className='pointer-events-none absolute inset-0 -z-10'>
@@ -27,17 +30,17 @@ export default function RsvpNotAcceptingMessage({ basePath }: RsvpNotAcceptingMe
 
         <div className='space-y-2'>
           <p className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-[0.28em]'>
-            Coming Soon
+            {t('comingSoon')}
           </p>
-          <h1 className='font-serif text-2xl text-foreground sm:text-3xl'>RSVPs not yet open</h1>
-          <p className='text-muted-foreground text-sm leading-6'>
-            We&apos;re not quite ready to accept RSVPs yet. Check back soon!
-          </p>
+          <h1 className='font-serif text-2xl text-foreground sm:text-3xl'>
+            {t('notYetOpenTitle')}
+          </h1>
+          <p className='text-muted-foreground text-sm leading-6'>{t('notYetOpenDescription')}</p>
         </div>
 
         <div className='pt-4'>
           <Button asChild className='w-full' size='lg'>
-            <a href={basePath}>Back to Wedding</a>
+            <a href={basePath}>{t('backToWedding')}</a>
           </Button>
         </div>
       </div>

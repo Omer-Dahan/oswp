@@ -70,14 +70,14 @@ export default function QuestionMultipleChoice({
             <button
               type='button'
               onClick={() => setSelectedOptionId(option.id)}
-              className={`relative mb-3 w-full cursor-pointer rounded-lg border border-gray-700 p-5 text-left hover:bg-gray-700 hover:text-white ${selectedOptionId === option.id && 'bg-gray-700 text-white'}`}
+              className={`relative mb-3 w-full cursor-pointer rounded-lg border border-gray-700 p-5 text-start hover:bg-gray-700 hover:text-white ${selectedOptionId === option.id && 'bg-gray-700 text-white'}`}
             >
               <div className='flex flex-col gap-3'>
                 <h3>{option.text}</h3>
                 <p>{option.description}</p>
               </div>
               {selectedOptionId === option.id && (
-                <div className='absolute top-1/2 right-5 -translate-y-1/2'>
+                <div className='absolute top-1/2 end-5 -translate-y-1/2'>
                   <IoIosCheckmarkCircleOutline size={20} />
                 </div>
               )}
@@ -89,14 +89,14 @@ export default function QuestionMultipleChoice({
             <button
               type='button'
               onClick={() => setSelectedOptionId(OTHER_OPTION_ID)}
-              className={`relative mb-3 w-full cursor-pointer rounded-lg border border-gray-700 p-5 text-left hover:bg-gray-700 hover:text-white ${isOtherSelected && 'bg-gray-700 text-white'}`}
+              className={`relative mb-3 w-full cursor-pointer rounded-lg border border-gray-700 p-5 text-start hover:bg-gray-700 hover:text-white ${isOtherSelected && 'bg-gray-700 text-white'}`}
             >
               <div className='flex flex-col gap-3'>
                 <h3>{t('other')}</h3>
                 <p>{t('otherDescription')}</p>
               </div>
               {isOtherSelected && (
-                <div className='absolute top-1/2 right-5 -translate-y-1/2'>
+                <div className='absolute top-1/2 end-5 -translate-y-1/2'>
                   <IoIosCheckmarkCircleOutline size={20} />
                 </div>
               )}
@@ -106,7 +106,7 @@ export default function QuestionMultipleChoice({
       </ul>
       {isOtherSelected && (
         <textarea
-          className='w-full rounded-lg border border-gray-700 bg-white p-3 text-left text-base text-black placeholder:text-gray-500'
+          className='w-full rounded-lg border border-gray-700 bg-white p-3 text-start text-base text-black placeholder:text-gray-500'
           placeholder={t('otherPlaceholder')}
           value={otherResponse}
           onChange={(event) => setOtherResponse(event.target.value)}

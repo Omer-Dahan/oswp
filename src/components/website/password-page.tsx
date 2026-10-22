@@ -2,6 +2,7 @@
 
 import { Lock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
 import { Button } from '~/components/ui/button'
@@ -16,6 +17,7 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
   const [showError, setShowError] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const t = useTranslations('common')
 
   const verifyPassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -57,22 +59,20 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
 
         <div className='space-y-2'>
           <p className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-[0.28em]'>
-            Private Wedding Website
+            {t('privateWebsite')}
           </p>
           <h1 className='font-serif text-2xl text-foreground sm:text-3xl'>
-            This site is password protected
+            {t('passwordProtected')}
           </h1>
-          <p className='text-muted-foreground text-sm leading-6'>
-            Enter the password shared by the couple to unlock their wedding website.
-          </p>
+          <p className='text-muted-foreground text-sm leading-6'>{t('passwordProtectedHint')}</p>
         </div>
 
-        <div className='space-y-2 text-left'>
+        <div className='space-y-2 text-start'>
           <label
             className='font-mono text-[0.62rem] uppercase tracking-[0.18em]'
             htmlFor='website-password'
           >
-            Password
+            {t('password')}
           </label>
           <Input
             aria-describedby={showError ? 'website-password-error' : undefined}
@@ -84,7 +84,7 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
               setShowError(false)
               setPasswordInput(event.target.value)
             }}
-            placeholder='Enter password…'
+            placeholder={t('passwordPlaceholder')}
             spellCheck={false}
             type='password'
             value={passwordInput}
@@ -92,7 +92,7 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
         </div>
 
         <Button className='w-full' disabled={isSubmitting} size='lg' type='submit'>
-          {isSubmitting ? 'Unlocking…' : 'Unlock Site'}
+          {isSubmitting ? t('unlocking') : t('unlockSite')}
         </Button>
 
         <p
@@ -100,7 +100,7 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
           className='min-h-5 text-destructive text-sm'
           id='website-password-error'
         >
-          {showError ? 'Incorrect password. Check the password and try again.' : null}
+          {showError ? t('incorrectPassword') : null}
         </p>
       </form>
     </main>

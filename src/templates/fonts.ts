@@ -9,9 +9,11 @@
  */
 
 import {
+  Assistant,
   Cormorant_Garamond,
   Crimson_Text,
   EB_Garamond,
+  Frank_Ruhl_Libre,
   Great_Vibes,
   Jost,
   Mulish,
@@ -78,5 +80,21 @@ export const voyageScript = Great_Vibes({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--tpl-voyage-script',
+  display: 'swap',
+})
+
+/** Hebrew guest site — editorial serif for headings. */
+export const hebrewSerif = Frank_Ruhl_Libre({
+  subsets: ['hebrew'],
+  weight: ['400', '500', '700'],
+  variable: '--tpl-hebrew-serif',
+  display: 'swap',
+})
+
+/** Hebrew guest site — clean sans for body copy and forms. */
+export const hebrewSans = Assistant({
+  subsets: ['hebrew'],
+  weight: ['300', '400', '600'],
+  variable: '--tpl-hebrew-sans',
   display: 'swap',
 })

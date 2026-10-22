@@ -178,7 +178,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                   <span className='mx-auto mt-6 block h-px w-16 bg-border' />
                 </div>
 
-                <div className='mt-8 grid gap-6 border-border border-y py-8 text-center sm:grid-cols-2 sm:text-left'>
+                <div className='mt-8 grid gap-6 border-border border-y py-8 text-center sm:grid-cols-2 sm:text-start'>
                   <div>
                     <p
                       className={`text-muted-foreground text-xs uppercase tracking-[0.22em] ${labelFont}`}
@@ -198,7 +198,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                 </div>
 
                 {calendarLinks ? (
-                  <div className='mt-8 text-center sm:text-left'>
+                  <div className='mt-8 text-center sm:text-start'>
                     <p
                       className={`mb-3 text-muted-foreground text-xs uppercase tracking-[0.22em] ${labelFont}`}
                     >
@@ -210,7 +210,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                   </div>
                 ) : null}
 
-                <div className='mt-8 text-center sm:text-left'>
+                <div className='mt-8 text-center sm:text-start'>
                   <p
                     className={`text-muted-foreground text-xs uppercase tracking-[0.22em] ${labelFont}`}
                   >
