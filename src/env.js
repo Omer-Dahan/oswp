@@ -57,6 +57,9 @@ export const env = createEnv({
     // (same project) when a dedicated server key is not supplied.
     POSTHOG_KEY: z.string().min(1).optional(),
     POSTHOG_HOST: z.string().url().optional(),
+    // Optional: comma-separated list of extra Better Auth trusted origins
+    // (reverse proxy domain, custom domain, LAN host) beyond the static list.
+    EXTRA_TRUSTED_ORIGINS: z.string().min(1).optional(),
   },
 
   /**
@@ -133,6 +136,7 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     POSTHOG_KEY: process.env.POSTHOG_KEY,
     POSTHOG_HOST: process.env.POSTHOG_HOST,
+    EXTRA_TRUSTED_ORIGINS: process.env.EXTRA_TRUSTED_ORIGINS,
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_OTEL_SAMPLE_RATE: process.env.NEXT_PUBLIC_OTEL_SAMPLE_RATE,
