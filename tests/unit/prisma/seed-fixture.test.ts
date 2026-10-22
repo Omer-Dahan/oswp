@@ -54,11 +54,11 @@ describe('Shrek and Fiona seed fixture', () => {
       'viewer'
     )
 
-    expect(fixture.wedding.groomFirstName).toBe('Shrek')
-    expect(fixture.wedding.brideFirstName).toBe('Fiona')
+    expect(fixture.wedding.groomFirstName).toBe('יונתן')
+    expect(fixture.wedding.brideFirstName).toBe('דנה')
 
     expect(fixture.events.map((event) => event.name)).toEqual(
-      expect.arrayContaining(['Swamp Ceremony', 'Welcome Feast', 'Morning-After Breakfast'])
+      expect.arrayContaining(['טקס החופה', 'סעודת קבלת פנים', 'ארוחת בוקר למחרת'])
     )
   })
 
@@ -102,8 +102,8 @@ describe('Shrek and Fiona seed fixture', () => {
       .flatMap((household) => household.guests)
       .map((guest) => `${guest.firstName} ${guest.lastName}`)
 
-    expect(names).toEqual(expect.arrayContaining(['Prince Charming', 'Captain Hook', 'Papa Bear']))
-    expect(names).toEqual(expect.arrayContaining(['Mama Bear', 'Baby Bear']))
+    expect(names).toEqual(expect.arrayContaining(['עידן ברק', 'אלון ימי', 'אבי דוביאן']))
+    expect(names).toEqual(expect.arrayContaining(['רונית דוביאן', 'נועה דוביאן']))
   })
 
   it('does not depend on external CDN assets for cover photo in local/CI fixtures', () => {
