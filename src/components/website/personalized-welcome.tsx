@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 
 type PersonalizedWelcomeProps = {
@@ -10,17 +11,22 @@ type PersonalizedWelcomeProps = {
  * surface, inheriting the template's colours and fonts via CSS variables, so it
  * stays visually consistent across every template without per-template code.
  */
-export function PersonalizedWelcome({ invitedHousehold }: Readonly<PersonalizedWelcomeProps>) {
+export async function PersonalizedWelcome({
+  invitedHousehold,
+}: Readonly<PersonalizedWelcomeProps>) {
+  const t = await getTranslations('invite')
   const labelFont = 'font-[family-name:var(--tpl-label-font,var(--tpl-body-font))]'
 
   return (
     <aside
       className='w-full border-border/60 border-b bg-primary/5 px-6 py-3 text-center'
-      aria-label='Personalized welcome'
+      aria-label={t('personalizedWelcomeAriaLabel')}
     >
       <p className={`text-foreground/80 text-sm tracking-wide ${labelFont}`}>
-        Welcome, <span className='font-medium text-foreground'>{invitedHousehold.greeting}</span> —
-        we&apos;re so glad you&apos;re here.
+        {t.rich('welcomeGreeting', {
+          greeting: invitedHousehold.greeting,
+          name: (chunk) => <span className='font-medium text-foreground'>{chunk}</span>,
+        })}
       </p>
     </aside>
   )

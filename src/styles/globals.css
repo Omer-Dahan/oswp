@@ -303,6 +303,17 @@
     border-radius: 4px;
   }
 
+  /* Hebrew guest surfaces swap the Latin template fonts for Hebrew-covering ones. */
+  [data-guest-surface-he] {
+    font-family: var(--tpl-hebrew-sans);
+  }
+
+  [data-guest-surface-he] h1,
+  [data-guest-surface-he] h2,
+  [data-guest-surface-he] h3 {
+    font-family: var(--tpl-hebrew-serif);
+  }
+
   .theme {
     --font-sans: Montserrat, sans-serif;
     --font-mono: Ubuntu Mono, monospace;
