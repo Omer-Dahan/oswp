@@ -55,6 +55,7 @@ const config = {
       },
     ]
   },
+  allowedDevOrigins: ['192.168.1.232', 'localhost', '127.0.0.1'],
   skipTrailingSlashRedirect: true,
   env: {
     // Resolve app URL: explicit env var → Vercel branch URL → localhost fallback
