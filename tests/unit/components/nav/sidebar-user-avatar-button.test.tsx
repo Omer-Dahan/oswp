@@ -32,8 +32,8 @@ describe('SidebarUserAvatarButton', () => {
     expect(screen.getByText('Shrek')).toBeInTheDocument()
     expect(screen.getByText('SO')).toBeInTheDocument()
     expect(screen.getByText('Admin')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument()
-    expect(screen.getByText('Sign out')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /התנתקות/ })).toBeInTheDocument()
+    expect(screen.getByText('התנתקות')).toBeInTheDocument()
   })
 
   it('should hide text labels when collapsed and still trigger sign out', () => {
@@ -42,9 +42,9 @@ describe('SidebarUserAvatarButton', () => {
     render(<SidebarUserAvatarButton isCollapsed onSignOut={onSignOut} />)
 
     expect(screen.queryByText('User')).not.toBeInTheDocument()
-    expect(screen.queryByText('Sign out')).not.toBeInTheDocument()
+    expect(screen.queryByText('התנתקות')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+    fireEvent.click(screen.getByRole('button', { name: /התנתקות/ }))
     expect(onSignOut).toHaveBeenCalledTimes(1)
   })
 

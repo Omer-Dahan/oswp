@@ -72,7 +72,7 @@ describe('SidebarNavFrame', () => {
   it('calls signOut when user clicks sign out', () => {
     render(<SidebarNavFrame isOpen={false} setIsOpen={jest.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+    fireEvent.click(screen.getByRole('button', { name: /התנתקות/ }))
 
     expect(mockSignOut).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -122,15 +122,15 @@ describe('SidebarNavFrame', () => {
     render(<SidebarNavFrame isOpen={false} setIsOpen={jest.fn()} />)
 
     expect(screen.queryByText('Planning')).not.toBeInTheDocument()
-    expect(screen.queryByText('Guests')).not.toBeInTheDocument()
-    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Settings' })).toBeInTheDocument()
+    expect(screen.queryByText('רשימת מוזמנים')).not.toBeInTheDocument()
+    expect(screen.queryByText('לוח בקרה')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'הגדרות' })).toBeInTheDocument()
   })
 
   it('renders website navigation linking to the publish page', () => {
     render(<SidebarNavFrame isOpen={false} setIsOpen={jest.fn()} />)
 
-    expect(screen.getByRole('link', { name: 'Wedding Website' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'אתר החתונה' })).toHaveAttribute(
       'href',
       '/website'
     )
