@@ -39,11 +39,11 @@ export default function SidebarUserAvatarButton(props: Readonly<SidebarUserAvata
         className={`flex h-9 items-center gap-2 rounded-[10px] px-2 text-muted-foreground text-sm transition-colors hover:bg-sidebar-foreground/[0.06] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${
           isCollapsed ? 'justify-center' : ''
         }`}
-        title='Sign out'
-        aria-label='Sign out'
+        title='התנתקות'
+        aria-label='התנתקות'
       >
         <span className='text-[0.7rem]'>↪</span>
-        {!isCollapsed && 'Sign out'}
+        {!isCollapsed && 'התנתקות'}
       </button>
     </div>
   )

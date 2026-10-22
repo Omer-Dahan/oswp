@@ -1,7 +1,7 @@
 import { getSessionCookie } from 'better-auth/cookies'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { getLocaleFromCountry, type Locale } from '~/lib/locale/locale-detection'
+import { getLocaleFromCountry, isLocale, type Locale } from '~/lib/locale/locale-detection'
 import { POSTHOG_PROXY_PATH } from '~/lib/observability/config'
 import { reservedWebsiteRootSegmentsSet } from '~/lib/website/reserved-root-segments'
 import { isVoyagePage } from '~/templates/voyage/site'
@@ -96,10 +96,18 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next()
   }
   const langOverride = req.cookies.get('lang-override')?.value
-  const locale: Locale =
-    langOverride === 'en' || langOverride === 'es'
-      ? langOverride
-      : getLocaleFromCountry(req.headers.get('x-vercel-ip-country'))
+  const countryCode = req.headers.get('x-vercel-ip-country')
+  // Self-hosted deployments never see x-vercel-ip-country, so without a
+  // country signal the guest wedding site defaults to Hebrew instead of
+  // falling through to the generic English default used elsewhere.
+  const isGuestWebsitePath = pathname.startsWith('/w/')
+  const locale: Locale = isLocale(langOverride)
+    ? langOverride
+    : countryCode
+      ? getLocaleFromCountry(countryCode)
+      : isGuestWebsitePath
+        ? 'he'
+        : getLocaleFromCountry(countryCode)
 
   if (isPublicPath(pathname)) {
     return buildLocaleResponse(req, locale)

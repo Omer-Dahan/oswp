@@ -21,26 +21,26 @@ import { signOut } from '~/lib/auth-client'
 
 const SIDEBAR_SECTIONS: readonly SidebarSection[] = [
   {
-    title: 'Planning',
+    title: 'תכנון',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Events', href: '/events', icon: CalendarDays },
-      { label: 'Checklist', href: '/checklist', icon: ListChecks },
-      { label: 'Wedding Website', href: '/website', icon: Globe },
-      { label: 'Vendors', href: '/vendors', icon: Store },
-      { label: 'Budget', href: '/budget', icon: Wallet },
+      { label: 'לוח בקרה', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'אירועים', href: '/events', icon: CalendarDays },
+      { label: 'משימות', href: '/checklist', icon: ListChecks },
+      { label: 'אתר החתונה', href: '/website', icon: Globe },
+      { label: 'ספקים', href: '/vendors', icon: Store },
+      { label: 'תקציב', href: '/budget', icon: Wallet },
     ],
   },
   {
-    title: 'Guests',
+    title: 'מוזמנים',
     items: [
-      { label: 'Guest List', href: '/guest-list', icon: Users },
-      { label: 'Seating Chart', href: '/seating', icon: Armchair },
+      { label: 'רשימת מוזמנים', href: '/guest-list', icon: Users },
+      { label: 'סידורי הושבה', href: '/seating', icon: Armchair },
     ],
   },
   {
-    title: 'Settings',
-    items: [{ label: 'Settings', href: '/settings', icon: Settings }],
+    title: 'הגדרות',
+    items: [{ label: 'הגדרות', href: '/settings', icon: Settings }],
   },
 ]
 
@@ -57,7 +57,7 @@ function getSidebarSections(workspace: WorkspaceSnapshot): readonly SidebarSecti
   }
 
   if (!workspace.capabilities.canViewPlanning) {
-    return SIDEBAR_SECTIONS.filter((section) => section.title === 'Settings')
+    return SIDEBAR_SECTIONS.filter((section) => section.title === 'הגדרות')
   }
 
   return SIDEBAR_SECTIONS

@@ -14,9 +14,9 @@ jest.mock('~/components/locale-toggle', () => ({
   LocaleToggle: () => <button type='button'>Language</button>,
 }))
 
-it('does not show the unfinished locale toggle on wedding websites', async () => {
+it('shows the guest language switch on wedding websites', async () => {
   render(await WeddingWebsiteLayout({ children: <div>Wedding website</div> }))
 
   expect(screen.getByText('Wedding website')).toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: 'Language' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Language' })).toBeInTheDocument()
 })

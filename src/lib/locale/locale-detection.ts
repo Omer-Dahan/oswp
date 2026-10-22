@@ -22,7 +22,13 @@ export const SPANISH_COUNTRY_CODES = new Set([
   'GQ',
 ])
 
-export type Locale = 'en' | 'es' | 'he'
+export const LOCALES = ['en', 'es', 'he'] as const
+
+export type Locale = (typeof LOCALES)[number]
+
+export function isLocale(value: string | null | undefined): value is Locale {
+  return LOCALES.includes(value as Locale)
+}
 
 export function getLocaleFromCountry(countryCode: string | null | undefined): Locale {
   if (!countryCode) return 'en'
