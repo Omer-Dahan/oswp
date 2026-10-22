@@ -41,7 +41,7 @@ import { api } from '~/trpc/react'
 const STATUS_FILTER_OPTIONS = [
   { label: 'Active', value: 'active' },
   { label: 'Completed', value: 'completed' },
-  { label: 'All', value: 'all' },
+  { label: 'הכל', value: 'all' },
 ] as const
 
 type ChecklistPageClientProps = Readonly<{
@@ -102,7 +102,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to update task'),
+    onError: () => toast.error('עדכון המשימה נכשל'),
   })
   const createTask = api.task.create.useMutation({
     onSuccess: () => {
@@ -113,7 +113,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to create task'),
+    onError: () => toast.error('יצירת המשימה נכשלה'),
   })
   const updateTask = api.task.update.useMutation({
     onSuccess: () => {
@@ -124,7 +124,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to update task'),
+    onError: () => toast.error('עדכון המשימה נכשל'),
   })
   const deleteTask = api.task.delete.useMutation({
     onSuccess: () => {
@@ -136,7 +136,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to delete task'),
+    onError: () => toast.error('מחיקת המשימה נכשלה'),
   })
 
   const attestMilestone = api.milestone.attest.useMutation({
@@ -146,7 +146,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to update milestone'),
+    onError: () => toast.error('עדכון אבן הדרך נכשל'),
   })
   const dismissMilestone = api.milestone.dismiss.useMutation({
     onSuccess: () => {
@@ -155,7 +155,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to update milestone'),
+    onError: () => toast.error('עדכון אבן הדרך נכשל'),
   })
   const clearMilestoneOverride = api.milestone.clearOverride.useMutation({
     onSuccess: () => {
@@ -164,7 +164,7 @@ export function ChecklistPageClient({
         utils.dashboard.getForActiveWorkspace.invalidate(),
       ])
     },
-    onError: () => toast.error('Failed to update milestone'),
+    onError: () => toast.error('עדכון אבן הדרך נכשל'),
   })
 
   const updateFilter = (key: 'category' | 'eventId' | 'status', value: string) => {
@@ -210,7 +210,7 @@ export function ChecklistPageClient({
     <div className='mx-auto max-w-[1180px] space-y-8 pb-6'>
       <div className='flex flex-wrap items-end justify-between gap-4'>
         <div className='flex flex-col gap-3'>
-          <h2 className='font-display text-5xl text-foreground leading-none'>Your checklist</h2>
+          <h2 className='font-display text-5xl text-foreground leading-none'>רשימת המשימות שלכם</h2>
           <div className='flex items-center gap-3'>
             <div
               className='h-1.5 w-40 overflow-hidden rounded-full bg-secondary'
@@ -226,17 +226,17 @@ export function ChecklistPageClient({
           </div>
         </div>
         <Button type='button' onClick={() => setIsCreateDialogOpen(true)}>
-          Add task
+          הוסיפו משימה
         </Button>
       </div>
 
       <div className='space-y-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm'>
-        <FilterChipGroup label='Category'>
+        <FilterChipGroup label='קטגוריה'>
           <FilterChip
             active={filters.category === 'all'}
             onClick={() => updateFilter('category', 'all')}
           >
-            All
+            הכל
           </FilterChip>
           {TASK_CATEGORIES.map((category) => (
             <FilterChip
@@ -248,12 +248,12 @@ export function ChecklistPageClient({
             </FilterChip>
           ))}
         </FilterChipGroup>
-        <FilterChipGroup label='Event'>
+        <FilterChipGroup label='אירוע'>
           <FilterChip
             active={filters.eventId === 'all'}
             onClick={() => updateFilter('eventId', 'all')}
           >
-            All events
+            כל האירועים
           </FilterChip>
           {events.map((event) => (
             <FilterChip
@@ -265,7 +265,7 @@ export function ChecklistPageClient({
             </FilterChip>
           ))}
         </FilterChipGroup>
-        <FilterChipGroup label='Status'>
+        <FilterChipGroup label='סטטוס'>
           {STATUS_FILTER_OPTIONS.map((option) => (
             <FilterChip
               key={option.value}
@@ -280,8 +280,8 @@ export function ChecklistPageClient({
 
       {events.length === 0 ? (
         <ChecklistEmptyState
-          title='Add your first event to unlock the checklist'
-          description='Every task belongs to an event, so start by creating the ceremony or main celebration.'
+          title='הוסיפו אירוע ראשון כדי לפתוח את רשימת המשימות'
+          description='כל משימה שייכת לאירוע, לכן התחילו ביצירת הטקס או האירוע המרכזי.'
           action={{
             href: '/events',
             label: 'Go to events',
@@ -289,25 +289,25 @@ export function ChecklistPageClient({
         />
       ) : tasks.length === 0 && hasDefaultFilters ? (
         <ChecklistEmptyState
-          title='No tasks added yet'
-          description='Start with one custom task, or let the default checklist grow from your first planning steps.'
+          title='עדיין לא נוספו משימות'
+          description='התחילו עם משימה מותאמת אישית, או תנו לרשימת ברירת המחדל להתפתח מצעדי התכנון הראשונים שלכם.'
           action={{
-            label: 'Add task',
+            label: 'הוסיפו משימה',
             onClick: () => setIsCreateDialogOpen(true),
           }}
         />
       ) : tasks.length > 0 && !hasActiveTasks && filters.status !== 'completed' ? (
         <ChecklistEmptyState
-          title='Everything is checked off'
-          description='You are caught up for now. Switch to Completed to review what is already done, or add a new task.'
+          title='הכל מסומן כבוצע'
+          description='אתם מעודכנים לעת עתה. עברו ל׳הושלם׳ כדי לעיין במה שכבר נעשה, או הוסיפו משימה חדשה.'
           action={{
-            label: 'Add task',
+            label: 'הוסיפו משימה',
             onClick: () => setIsCreateDialogOpen(true),
           }}
         />
       ) : buckets.every((bucket) => bucket.tasks.length === 0) ? (
         <ChecklistEmptyState
-          title='Nothing in this view yet'
+          title='אין עדיין דבר בתצוגה זו'
           description={
             hasDefaultFilters
               ? 'Adjust the filters or add a task to start shaping the checklist.'
@@ -342,7 +342,7 @@ export function ChecklistPageClient({
                   </span>
                 </div>
                 {horizon.taskCount === 0 ? (
-                  <p className='px-1 text-muted-foreground text-sm'>Nothing here right now.</p>
+                  <p className='px-1 text-muted-foreground text-sm'>אין כאן כלום כרגע.</p>
                 ) : (
                   horizon.buckets
                     .filter((bucket) => bucket.tasks.length > 0)
@@ -365,12 +365,12 @@ export function ChecklistPageClient({
             <section className='space-y-2'>
               <button
                 type='button'
-                aria-label='Done bucket'
+                aria-label='סל הושלם'
                 aria-expanded={!collapsedBuckets.has('done')}
                 className='flex w-full items-center gap-3 text-left'
                 onClick={() => toggleBucket('done')}
               >
-                <h2 className='font-semibold text-foreground text-sm'>Done</h2>
+                <h2 className='font-semibold text-foreground text-sm'>הושלם</h2>
                 <span className='h-px flex-1 bg-border' />
                 <span className='text-muted-foreground text-sm'>
                   {done.tasks.length} · {collapsedBuckets.has('done') ? 'Show' : 'Hide'}
@@ -387,7 +387,7 @@ export function ChecklistPageClient({
       {milestones.length > 0 && (
         <section aria-labelledby='checklist-milestones' className='space-y-3'>
           <h2 id='checklist-milestones' className='font-semibold text-foreground text-lg'>
-            Milestones
+            אבני דרך
           </h2>
           <div className='flex gap-3 overflow-x-auto pb-2'>
             {milestones.map((milestone) => (
@@ -418,7 +418,7 @@ export function ChecklistPageClient({
                         }`}
                       />
                       <span className='text-muted-foreground text-xs'>
-                        {milestone.effectiveStatus === 'done' ? 'Done' : 'Pending'}
+                        {milestone.effectiveStatus === 'done' ? 'הושלם' : 'Pending'}
                       </span>
                       {hasMilestoneOverrideDivergence(milestone) ? (
                         <Badge variant='secondary' className='ml-auto text-[0.65rem]'>
@@ -467,13 +467,13 @@ export function ChecklistPageClient({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete task?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק משימה?</AlertDialogTitle>
             <AlertDialogDescription>
               This removes &quot;{deletingTask?.title ?? 'this task'}&quot; from the checklist.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (!deletingTask) {
@@ -482,7 +482,7 @@ export function ChecklistPageClient({
                 deleteTask.mutate({ taskId: deletingTask.id })
               }}
             >
-              Confirm delete
+              אישור מחיקה
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -617,7 +617,7 @@ function TaskRow({
         aria-label={`Edit task ${task.title}`}
         onClick={onEdit}
       >
-        Edit
+        עריכה
       </Button>
     </div>
   )

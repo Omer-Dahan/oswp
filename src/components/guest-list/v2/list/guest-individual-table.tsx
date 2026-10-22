@@ -31,13 +31,13 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
       <table className='w-full text-sm'>
         <thead>
           <tr className='border-border border-b bg-muted/40'>
-            <th className={thClass}>Person</th>
-            <th className={thClass}>Household</th>
-            <th className={thClass}>Email</th>
-            <th className={thClass}>Tags</th>
+            <th className={thClass}>אדם</th>
+            <th className={thClass}>משק בית</th>
+            <th className={thClass}>דוא״ל</th>
+            <th className={thClass}>תגיות</th>
             <th className={thClass}>RSVP</th>
-            <th className={thClass}>Contact Complete</th>
-            <th className={thClass}>Location Complete</th>
+            <th className={thClass}>פרטי קשר מלאים</th>
+            <th className={thClass}>מיקום מלא</th>
           </tr>
         </thead>
         <tbody>

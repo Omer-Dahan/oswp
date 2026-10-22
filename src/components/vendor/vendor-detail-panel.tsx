@@ -180,7 +180,7 @@ function QuoteFileUploader({
     onDropRejected: (rejections) => {
       const errors = rejections[0]?.errors
       if (errors?.some((error) => error.code === 'file-too-large')) {
-        toast.error('File exceeds 8 MB limit')
+        toast.error('הקובץ חורג ממגבלת 8 MB')
       } else if (errors?.some((error) => error.code === 'file-invalid-type')) {
         toast.error(`Unsupported file type. Accepted: ${ACCEPTED_TYPES_LABEL}`)
       } else {
@@ -213,11 +213,11 @@ function QuoteFileUploader({
           })),
         })
       }
-      toast.success('Files uploaded')
+      toast.success('הקבצים הועלו')
       setSelectedFiles([])
       onUploaded()
     } catch {
-      toast.error('Failed to upload files')
+      toast.error('העלאת הקבצים נכשלה')
     } finally {
       setIsSubmitting(false)
       setIsUploading(false)
@@ -240,12 +240,12 @@ function QuoteFileUploader({
         <input {...getInputProps()} />
         {isDragActive ? (
           <p className='font-mono text-[0.62rem] text-primary uppercase tracking-wider'>
-            Drop files here
+            גררו קבצים לכאן
           </p>
         ) : (
           <div className='space-y-0.5'>
             <p className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-wider'>
-              Drag & drop or click to attach
+              גררו ושחררו או לחצו לצירוף
             </p>
             <p className='font-mono text-[0.5rem] text-muted-foreground/70 tracking-wider'>
               {ACCEPTED_TYPES_LABEL} - max 8 MB each
@@ -321,40 +321,40 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
     onSuccess: async () => {
       await Promise.all([refetch(), utils.vendor.getAll.invalidate()])
     },
-    onError: () => toast.error('Failed to update status'),
+    onError: () => toast.error('עדכון הסטטוס נכשל'),
   })
 
   const updateVendor = vendorApi.update.useMutation({
-    onError: () => toast.error('Failed to update vendor'),
+    onError: () => toast.error('עדכון הספק נכשל'),
   })
 
   const addNote = vendorApi.addNote.useMutation({
-    onError: () => toast.error('Failed to add note'),
+    onError: () => toast.error('הוספת ההערה נכשלה'),
   })
 
   const deleteQuote = api.vendor.deleteQuote.useMutation({
     onSuccess: async () => {
       setDeletingQuoteId(null)
       await refetch()
-      toast.success('Quote removed')
+      toast.success('הצעת המחיר הוסרה')
     },
-    onError: () => toast.error('Failed to delete quote'),
+    onError: () => toast.error('מחיקת הצעת המחיר נכשלה'),
   })
 
   const deleteFile = api.vendor.deleteQuoteFile.useMutation({
     onSuccess: async () => {
       setDeletingFile(null)
       await refetch()
-      toast.success('File removed')
+      toast.success('הקובץ הוסר')
     },
-    onError: () => toast.error('Failed to delete file'),
+    onError: () => toast.error('מחיקת הקובץ נכשלה'),
   })
   const setRating = api.vendor.setRating.useMutation({
     onSuccess: async () => {
       await Promise.all([refetch(), utils.vendor.getAll.invalidate()])
-      toast.success('Rating updated')
+      toast.success('הדירוג עודכן')
     },
-    onError: () => toast.error('Failed to save rating'),
+    onError: () => toast.error('שמירת הדירוג נכשלה'),
   })
 
   useEffect(() => {
@@ -414,7 +414,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
         onSuccess: async () => {
           setNewNote('')
           await Promise.all([refetchNotes(), refetch(), utils.vendor.getAll.invalidate()])
-          toast.success('Note added')
+          toast.success('ההערה נוספה')
         },
       }
     )
@@ -442,7 +442,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
             )}
           >
             <DialogClose
-              aria-label='Close vendor details'
+              aria-label='סגירת פרטי הספק'
               className='absolute top-4 right-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             >
               <X className='h-4 w-4' aria-hidden='true' />
@@ -452,7 +452,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
               <DialogTitle className='font-display text-2xl text-foreground italic leading-tight'>
                 {enrichedVendor.name}
               </DialogTitle>
-              <DialogDescription className='sr-only'>Vendor details panel</DialogDescription>
+              <DialogDescription className='sr-only'>פאנל פרטי ספק</DialogDescription>
               <div className='mt-2 flex flex-wrap items-center gap-x-4 gap-y-2'>
                 <VendorStatusSelect
                   value={enrichedVendor.status}
@@ -476,7 +476,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                   ))}
                   {vendorData.ratingSummary.currentUserRating === null && (
                     <span className='font-mono text-[0.58rem] text-muted-foreground uppercase tracking-wider'>
-                      Unrated
+                      ללא דירוג
                     </span>
                   )}
                 </div>
@@ -485,11 +485,11 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                     htmlFor='vendor-contacted'
                     className='font-mono text-[0.58rem] text-muted-foreground uppercase tracking-wider'
                   >
-                    Contacted
+                    נוצר קשר
                   </Label>
                   <Switch
                     id='vendor-contacted'
-                    aria-label='Mark vendor as contacted'
+                    aria-label='סימון הספק כנוצר קשר'
                     checked={enrichedVendor.contacted === true}
                     onCheckedChange={(checked) =>
                       persistVendorUpdate(
@@ -521,7 +521,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                 ) : (
                   <div className='space-y-5'>
                     <section>
-                      <SectionLabel>Photos</SectionLabel>
+                      <SectionLabel>תמונות</SectionLabel>
                       <VendorImageGallery
                         images={enrichedVendor.images ?? []}
                         vendorId={enrichedVendor.id}
@@ -537,16 +537,16 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                             onClick={() => setShowEditForm(true)}
                             className='font-mono text-[0.58rem] text-primary uppercase tracking-wider hover:underline'
                           >
-                            Edit
+                            עריכה
                           </button>
                         }
                       >
-                        Details
+                        פרטים
                       </SectionLabel>
                       <dl className='grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2'>
                         {enrichedVendor.location ? (
                           <div>
-                            <DetailLabel>Location</DetailLabel>
+                            <DetailLabel>מיקום</DetailLabel>
                             <dd className='font-sans text-[0.92rem] text-foreground'>
                               {enrichedVendor.location}
                             </dd>
@@ -554,7 +554,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                         ) : null}
                         {enrichedVendor.website ? (
                           <div>
-                            <DetailLabel>Website</DetailLabel>
+                            <DetailLabel>אתר</DetailLabel>
                             <dd>
                               <a
                                 href={enrichedVendor.website}
@@ -569,7 +569,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                         ) : null}
                         {enrichedVendor.instagram ? (
                           <div>
-                            <DetailLabel>Instagram</DetailLabel>
+                            <DetailLabel>אינסטגרם</DetailLabel>
                             <dd className='font-sans text-[0.92rem] text-foreground'>
                               {enrichedVendor.instagram}
                             </dd>
@@ -582,11 +582,11 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                     enrichedVendor.contactEmail ||
                     enrichedVendor.contactPhone ? (
                       <section>
-                        <SectionLabel>Contact</SectionLabel>
+                        <SectionLabel>יצירת קשר</SectionLabel>
                         <dl className='grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2'>
                           {enrichedVendor.contactName ? (
                             <div>
-                              <DetailLabel>Name</DetailLabel>
+                              <DetailLabel>שם</DetailLabel>
                               <dd className='font-sans text-[0.92rem] text-foreground'>
                                 {enrichedVendor.contactName}
                               </dd>
@@ -594,7 +594,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                           ) : null}
                           {enrichedVendor.contactEmail ? (
                             <div>
-                              <DetailLabel>Email</DetailLabel>
+                              <DetailLabel>דוא״ל</DetailLabel>
                               <dd>
                                 <a
                                   href={`mailto:${enrichedVendor.contactEmail}`}
@@ -607,7 +607,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                           ) : null}
                           {enrichedVendor.contactPhone ? (
                             <div>
-                              <DetailLabel>Phone</DetailLabel>
+                              <DetailLabel>טלפון</DetailLabel>
                               <dd className='font-sans text-[0.92rem] text-foreground'>
                                 {enrichedVendor.contactPhone}
                               </dd>
@@ -618,15 +618,15 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                     ) : null}
 
                     <section>
-                      <SectionLabel icon={<Pencil className='h-3 w-3' />}>Scratchpad</SectionLabel>
+                      <SectionLabel icon={<Pencil className='h-3 w-3' />}>פנקס רשימות</SectionLabel>
                       <div className='rounded-md bg-amber-50/50 p-3 dark:bg-amber-950/10 space-y-3'>
                         <Textarea
                           id='vendor-scratchpad'
-                          aria-label='Scratchpad notes'
+                          aria-label='הערות פנקס'
                           value={scratchpad}
                           onChange={(event) => setScratchpad(event.target.value)}
                           className='min-h-28 font-serif'
-                          placeholder='Capture impressions, constraints, and reminders.'
+                          placeholder='תעדו רשמים, אילוצים ותזכורות.'
                         />
                         <Button
                           type='button'
@@ -641,16 +641,16 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
 
                     <section>
                       <SectionLabel icon={<Clock className='h-3 w-3' />}>
-                        Interaction Log
+                        יומן אינטראקציות
                       </SectionLabel>
                       <div className='space-y-3'>
                         <div className='flex gap-2'>
                           <Input
                             id='vendor-note-composer'
-                            aria-label='Add interaction note'
+                            aria-label='הוספת הערת אינטראקציה'
                             value={newNote}
                             onChange={(e) => setNewNote(e.target.value)}
-                            placeholder='Log outreach, follow-ups, and decisions.'
+                            placeholder='תעדו פניות, מעקבים והחלטות.'
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && newNote.trim()) handleAddNote()
                             }}
@@ -669,7 +669,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                     </section>
 
                     <section>
-                      <SectionLabel>Custom Fields</SectionLabel>
+                      <SectionLabel>שדות מותאמים</SectionLabel>
                       <VendorCustomFields
                         definitions={categoryConfig?.fieldDefinitions ?? []}
                         values={enrichedVendor.customFields}
@@ -713,7 +713,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
 
                       {enrichedVendor.quotes.length === 0 && !showQuoteForm ? (
                         <p className='font-mono text-[0.72rem] text-muted-foreground uppercase tracking-wider'>
-                          No quotes yet
+                          אין הצעות מחיר עדיין
                         </p>
                       ) : null}
 
@@ -764,7 +764,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                                         className='font-mono text-[0.58rem] text-muted-foreground uppercase tracking-wider hover:text-primary'
                                         onClick={() => setEditingQuoteId(quote.id)}
                                       >
-                                        Edit
+                                        עריכה
                                       </button>
                                       <button
                                         type='button'
@@ -772,7 +772,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                                         onClick={() => setDeletingQuoteId(quote.id)}
                                         disabled={deleteQuote.isPending}
                                       >
-                                        Remove
+                                        הסרה
                                       </button>
                                     </div>
                                   </div>
@@ -862,7 +862,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
 
               <footer className='flex gap-3 border-border/80 border-t px-5 py-4 md:px-6'>
                 <Button variant='outline' className='flex-1' onClick={onClose}>
-                  Close
+                  סגרו
                 </Button>
               </footer>
             </div>
@@ -878,13 +878,13 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove this quote?</AlertDialogTitle>
+            <AlertDialogTitle>להסיר את הצעת המחיר?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove the quote and all its attached files.
+              הפעולה תסיר לצמיתות את הצעת המחיר ואת כל הקבצים המצורפים אליה.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteQuote.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteQuote.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
@@ -904,13 +904,13 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
       <AlertDialog open={!!deletingFile} onOpenChange={(open) => !open && setDeletingFile(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove this file?</AlertDialogTitle>
+            <AlertDialogTitle>להסיר את הקובץ?</AlertDialogTitle>
             <AlertDialogDescription>
               &ldquo;{deletingFile?.name}&rdquo; will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteFile.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteFile.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()

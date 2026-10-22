@@ -24,7 +24,7 @@ export default async function ChecklistPage(_props: {
 
   return (
     <>
-      <DashboardTopbar title='Checklist' showManagementActions={false} />
+      <DashboardTopbar title='רשימת משימות' showManagementActions={false} />
       <main className='min-h-0 flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6'>
         <ChecklistPageClient
           initialTasks={initialTasks}

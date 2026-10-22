@@ -59,7 +59,7 @@ export function ManageGeneralQuestionsDialog({
 
   const deleteQuestion = api.question.delete.useMutation({
     onSuccess: async () => {
-      toast.success('Question deleted')
+      toast.success('השאלה נמחקה')
       setDeletingQuestion(undefined)
       await utils.question.getWebsiteQuestions.invalidate()
     },
@@ -85,7 +85,7 @@ export function ManageGeneralQuestionsDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-2xl'>
           <DialogHeader>
-            <DialogTitle>General RSVP Questions</DialogTitle>
+            <DialogTitle>שאלות אישור הגעה כלליות</DialogTitle>
             <DialogDescription>
               Asked of every guest who RSVPs, whether they accept or decline — for example a note to
               the couple or a question about children.
@@ -94,7 +94,7 @@ export function ManageGeneralQuestionsDialog({
 
           {!isRsvpEnabled ? (
             <div className='rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm'>
-              Turn on <strong>online RSVP</strong> for your website to collect answers to these
+              הפעילו <strong>אישור הגעה מקוון</strong> for your website to collect answers to these
               questions.
             </div>
           ) : null}
@@ -106,17 +106,17 @@ export function ManageGeneralQuestionsDialog({
               </p>
               <Button type='button' size='sm' onClick={openCreateForm} disabled={!isRsvpEnabled}>
                 <Plus className='mr-1 h-4 w-4' />
-                Add question
+                הוסיפו שאלה
               </Button>
             </div>
             <p className='text-muted-foreground text-xs'>
-              Multiple-choice questions can optionally include an <strong>Other</strong> write-in
+              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> write-in
               answer in public RSVP.
             </p>
 
             {questionList.length === 0 ? (
               <div className='rounded-md border border-dashed p-6 text-center text-muted-foreground text-sm'>
-                No general questions yet.
+                אין עדיין שאלות כלליות.
               </div>
             ) : (
               <ul className='space-y-2'>
@@ -137,7 +137,7 @@ export function ManageGeneralQuestionsDialog({
                               {question.options?.length ?? 0} options
                             </span>
                             {question.allowOther ? (
-                              <Badge variant='secondary'>Other enabled</Badge>
+                              <Badge variant='secondary'>אחר מופעל</Badge>
                             ) : null}
                           </>
                         ) : null}
@@ -171,7 +171,7 @@ export function ManageGeneralQuestionsDialog({
 
           <DialogFooter>
             <Button variant='outline' onClick={() => onOpenChange(false)}>
-              Close
+              סגרו
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -191,13 +191,13 @@ export function ManageGeneralQuestionsDialog({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete general question?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק שאלה כללית?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete “{deletingQuestion?.text}” and any collected answers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteQuestion.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteQuestion.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
               disabled={deleteQuestion.isPending}

@@ -110,7 +110,7 @@ export default function AuthenticatedAppShell(props: Readonly<AuthenticatedAppSh
             className='fixed inset-0 z-50 lg:hidden'
             role='dialog'
             aria-modal='true'
-            aria-label='Etta AI assistant'
+            aria-label='עוזרת AI של Etta'
           >
             <div
               className='absolute inset-0 bg-black/60'

@@ -49,7 +49,7 @@ export function VendorImagePicker({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className='max-h-[80vh] overflow-y-auto sm:max-w-lg'>
         <DialogHeader>
-          <DialogTitle>Select images from website</DialogTitle>
+          <DialogTitle>בחרו תמונות מהאתר</DialogTitle>
           <DialogDescription>
             Choose up to {maxSelect} image{maxSelect !== 1 ? 's' : ''} to add.
             {selected.size > 0 && ` ${selected.size} selected.`}
@@ -58,7 +58,7 @@ export function VendorImagePicker({
 
         {candidates.length === 0 ? (
           <p className='py-8 text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground'>
-            No images found
+            לא נמצאו תמונות
           </p>
         ) : (
           <div className='grid grid-cols-3 gap-2 py-2'>
@@ -102,7 +102,7 @@ export function VendorImagePicker({
 
         <DialogFooter>
           <Button variant='outline' onClick={onClose}>
-            Cancel
+            ביטול
           </Button>
           <Button onClick={handleConfirm} disabled={selected.size === 0}>
             Add selected ({selected.size})

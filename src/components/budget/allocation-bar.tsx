@@ -22,7 +22,7 @@ type Row = {
  * The legend always lists *every* section the couple has added, so it reflects
  * their full budget and updates as sections are added. The bar sizes each
  * section by the larger of its planned budget or its net spend; sections with
- * neither yet show in the legend as "not set" until they're budgeted or spent
+ * neither yet show in the legend as "לא הוגדר" until they're budgeted or spent
  * against, rather than silently disappearing.
  */
 export function AllocationBar({ categories, currency }: Readonly<AllocationBarProps>) {
@@ -67,7 +67,7 @@ export function AllocationBar({ categories, currency }: Readonly<AllocationBarPr
         </div>
       ) : (
         <p className='rounded-md bg-muted/40 px-3 py-2 text-muted-foreground text-xs'>
-          Add a planned budget to a section to see how your budget is split.
+          הוסיפו תקציב מתוכנן לסעיף כדי לראות כיצד התקציב שלכם מתחלק.
         </p>
       )}
 
@@ -93,7 +93,7 @@ export function AllocationBar({ categories, currency }: Readonly<AllocationBarPr
                 </>
               ) : (
                 <span className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
-                  not set
+                  לא הוגדר
                 </span>
               )}
             </li>

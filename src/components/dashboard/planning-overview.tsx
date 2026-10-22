@@ -155,7 +155,7 @@ function UpNextCard({
           id='dashboard-up-next'
           className='font-semibold text-primary text-xs uppercase tracking-[0.1em]'
         >
-          Up next
+          הבא בתור
         </h2>
         {task ? (
           <>
@@ -167,10 +167,10 @@ function UpNextCard({
         ) : (
           <>
             <p className='font-semibold text-2xl text-foreground tracking-tight'>
-              You're all caught up
+              אתם מעודכנים
             </p>
             <EmptyNote>
-              No active tasks yet. Add your first task to start tracking your planning progress.
+              אין משימות פעילות עדיין. הוסיפו את המשימה הראשונה כדי להתחיל לעקוב אחר התקדמות התכנון.
             </EmptyNote>
           </>
         )}
@@ -178,7 +178,7 @@ function UpNextCard({
       <div className='flex flex-wrap gap-2.5'>
         {task && (
           <Button type='button' size='lg' className='px-5' onClick={() => onComplete(task.id)}>
-            Mark done
+            סמנו כבוצע
           </Button>
         )}
         <Link href='/checklist' className={outlineLinkClass}>
@@ -203,7 +203,7 @@ function ComingUpCard({
   return (
     <Panel
       id='coming-up'
-      title='Coming up'
+      title='בקרוב'
       action='View all →'
       actionHref='/checklist'
       aside={<span className='text-muted-foreground text-sm'>{dueThisMonth} due this month</span>}
@@ -215,7 +215,7 @@ function ComingUpCard({
           ))}
         </div>
       ) : (
-        <EmptyNote>Nothing else is due right now.</EmptyNote>
+        <EmptyNote>אין דברים נוספים לביצוע כרגע.</EmptyNote>
       )}
       <p className='mt-3 text-muted-foreground text-xs'>
         {tasks.length + 1} of {totalActive} active tasks shown
@@ -243,11 +243,11 @@ function RsvpCard({ dashboardData }: { dashboardData: DashboardData | null }) {
 
   if (total === 0) {
     return (
-      <Panel id='rsvps' title='RSVPs'>
+      <Panel id='rsvps' title='אישורי הגעה'>
         <div className='flex flex-col gap-3'>
-          <p className='font-medium text-foreground text-sm'>No RSVPs collected yet</p>
+          <p className='font-medium text-foreground text-sm'>לא נאספו אישורי הגעה עדיין</p>
           <EmptyNote>
-            Enable RSVP collection on one of your events to start tracking responses
+            הפעילו איסוף אישורי הגעה באחד האירועים שלכם כדי להתחיל לעקוב אחר תגובות
           </EmptyNote>
           <Link href='/events' className={`${outlineLinkClass} self-start`}>
             Set up RSVPs →
@@ -262,7 +262,7 @@ function RsvpCard({ dashboardData }: { dashboardData: DashboardData | null }) {
   const declinedPct = (declined / total) * 100
 
   return (
-    <Panel id='rsvps' title='RSVPs'>
+    <Panel id='rsvps' title='אישורי הגעה'>
       <div className='flex flex-col gap-3'>
         <p className='font-display text-[2.75rem] text-foreground leading-none'>
           {attending}
@@ -294,7 +294,7 @@ function BudgetCard() {
 
   if (isLoading) {
     return (
-      <Panel id='budget' title='Budget' action='Manage →' actionHref='/budget'>
+      <Panel id='budget' title='תקציב' action='Manage →' actionHref='/budget'>
         <div className='flex flex-col gap-3'>
           <Skeleton className='h-10 w-32' />
           <Skeleton className='h-1.5 w-full' />
@@ -310,10 +310,10 @@ function BudgetCard() {
 
   if (!hasBudget) {
     return (
-      <Panel id='budget' title='Budget' action='Manage →' actionHref='/budget'>
+      <Panel id='budget' title='תקציב' action='Manage →' actionHref='/budget'>
         <div className='flex flex-col gap-3'>
-          <p className='font-medium text-foreground text-sm'>No budget set up yet</p>
-          <EmptyNote>Track your wedding spending against a target budget</EmptyNote>
+          <p className='font-medium text-foreground text-sm'>לא הוגדר תקציב עדיין</p>
+          <EmptyNote>עקבו אחר ההוצאות לחתונה מול תקציב יעד</EmptyNote>
           <Link href='/budget' className={`${outlineLinkClass} self-start`}>
             Set up your budget →
           </Link>
@@ -330,7 +330,7 @@ function BudgetCard() {
   const overBudget = target > 0 && netSpend > target
 
   return (
-    <Panel id='budget' title='Budget' action='Manage →' actionHref='/budget'>
+    <Panel id='budget' title='תקציב' action='Manage →' actionHref='/budget'>
       <div className='flex flex-col gap-3'>
         <p className='font-display text-[2.75rem] text-foreground leading-none'>
           {formatCurrency(netSpend, currency)}
@@ -372,10 +372,10 @@ function VendorsCard() {
 
   if (vendorCount === 0) {
     return (
-      <Panel id='vendors' title='Vendors' action='Manage →' actionHref='/vendors'>
+      <Panel id='vendors' title='ספקים' action='Manage →' actionHref='/vendors'>
         <div className='flex flex-col gap-3'>
-          <p className='font-medium text-foreground text-sm'>No vendors added yet</p>
-          <EmptyNote>Track quotes, contacts, and contracts in one place</EmptyNote>
+          <p className='font-medium text-foreground text-sm'>לא נוספו ספקים עדיין</p>
+          <EmptyNote>נהלו הצעות מחיר, אנשי קשר וחוזים במקום אחד</EmptyNote>
           <Link href='/vendors' className={`${outlineLinkClass} self-start`}>
             Add your first vendor →
           </Link>
@@ -385,7 +385,7 @@ function VendorsCard() {
   }
 
   return (
-    <Panel id='vendors' title='Vendors' action='Manage →' actionHref='/vendors'>
+    <Panel id='vendors' title='ספקים' action='Manage →' actionHref='/vendors'>
       <div className='flex flex-col gap-3'>
         <p className='flex items-baseline gap-2'>
           <span className='font-display text-[2.75rem] text-foreground leading-none'>
@@ -435,9 +435,9 @@ function MilestonesCard({ dashboardData }: { dashboardData: DashboardData | null
   }
 
   return (
-    <Panel id='milestones' title='Milestones' action='Full timeline →' actionHref='/checklist'>
+    <Panel id='milestones' title='אבני דרך' action='Full timeline →' actionHref='/checklist'>
       {visibleMilestones.length === 0 && (
-        <EmptyNote>Milestones appear here as you plan and tick off your checklist.</EmptyNote>
+        <EmptyNote>אבני דרך יופיעו כאן ככל שתתכננו ותסמנו פריטים ברשימת המשימות.</EmptyNote>
       )}
       <div className='flex flex-col'>
         {visibleMilestones.map((milestone, i) => {
@@ -492,7 +492,7 @@ function PlanningTasks({ dashboardData }: { dashboardData: DashboardData | null 
   const priorityQueue = dashboardData?.taskPriorityQueue
   const { tasks, toggleTask } = useTasksCardState(priorityQueue?.tasks ?? EMPTY_PRIORITY_TASKS)
   const completeTask = api.task.complete.useMutation({
-    onError: () => toast.error('Failed to update task'),
+    onError: () => toast.error('עדכון המשימה נכשל'),
   })
 
   const handleToggle = (taskId: string) => {
@@ -539,14 +539,14 @@ export default function PlanningOverview({ dashboardData }: PlanningOverviewProp
       ])
     },
     onError: () => {
-      toast.error('Failed to add task')
+      toast.error('הוספת המשימה נכשלה')
     },
   })
 
   useEffect(() => {
     const handleOpenCreateTask = () => {
       if (events.length === 0) {
-        toast.error('Add an event before creating a task')
+        toast.error('הוסיפו אירוע לפני יצירת משימה')
         return
       }
 

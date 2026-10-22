@@ -65,7 +65,7 @@ function PreviewTable({ rows }: PreviewTableProps) {
               <td className='px-3 py-2 text-muted-foreground'>{row.raw.ageGroup || 'ADULT'}</td>
               <td className='px-3 py-2'>
                 {row.valid ? (
-                  <span className='font-medium text-success text-xs'>Valid</span>
+                  <span className='font-medium text-success text-xs'>תקין</span>
                 ) : (
                   <span className='font-medium text-destructive text-xs'>
                     {row.errors.join('; ')}
@@ -179,9 +179,9 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
         {step === 'upload' ? (
           <>
             <DialogHeader>
-              <DialogTitle>Import Guests from CSV</DialogTitle>
+              <DialogTitle>ייבוא אורחים מ-CSV</DialogTitle>
               <DialogDescription>
-                Upload a CSV file to bulk-add guests. Each row becomes one household.
+                העלו קובץ CSV כדי להוסיף אורחים בכמות. כל שורה הופכת למשק בית אחד.
                 <span className='block'>
                   Phone must be E.164 format (for example: +12025550123).
                 </span>
@@ -191,24 +191,24 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
             <FileDropzone
               onFile={handleFile}
               accept={{ 'text/csv': ['.csv'] }}
-              label='Drag & drop a CSV file, or click to browse'
+              label='גררו ושחררו קובץ CSV, או לחצו לבחירה'
               sublabel='.csv files only'
               disabled={isParsing}
             />
 
             <DialogFooter className='mt-2 flex-row items-center justify-between sm:justify-between'>
               <Button variant='ghost' size='sm' type='button' onClick={downloadGuestCsvTemplate}>
-                Download Template
+                הורדת תבנית
               </Button>
               <Button variant='outline' type='button' onClick={handleClose}>
-                Cancel
+                ביטול
               </Button>
             </DialogFooter>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Preview Import</DialogTitle>
+              <DialogTitle>תצוגה מקדימה של ייבוא</DialogTitle>
               <DialogDescription>
                 {fileName} &mdash; {validRows.length} valid row{validRows.length !== 1 ? 's' : ''}
                 {invalidCount > 0 && (
@@ -231,7 +231,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
                 onClick={() => setStep('upload')}
                 disabled={bulkCreateMutation.isPending}
               >
-                Back
+                חזרה
               </Button>
               <div className='flex gap-2'>
                 <Button
@@ -240,7 +240,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
                   onClick={handleClose}
                   disabled={bulkCreateMutation.isPending}
                 >
-                  Cancel
+                  ביטול
                 </Button>
                 <Button
                   type='button'

@@ -126,7 +126,7 @@ export function EventQuestionFormDialog({
     if (!isQuestionValid) return
 
     if (questionType === 'Option' && validOptionCount < 2) {
-      toast.error('Add at least two answer options')
+      toast.error('הוסיפו לפחות שתי אפשרויות תשובה')
       return
     }
 
@@ -165,24 +165,24 @@ export function EventQuestionFormDialog({
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit RSVP Question' : 'Add RSVP Question'}</DialogTitle>
           <DialogDescription>
-            This question is shown only for this event when guests RSVP.
+            שאלה זו מוצגת רק עבור אירוע זה כאשר מוזמנים מאשרים הגעה.
           </DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='space-y-2'>
-            <Label htmlFor='event-question-text'>Question</Label>
+            <Label htmlFor='event-question-text'>שאלה</Label>
             <Input
               id='event-question-text'
               value={questionText}
               onChange={(event) => setQuestionText(event.target.value)}
-              placeholder='e.g., Meal preference?'
+              placeholder='למשל, העדפת מנה?'
               disabled={upsertQuestion.isPending}
             />
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='event-question-type'>Type</Label>
+            <Label htmlFor='event-question-type'>סוג</Label>
             <select
               id='event-question-type'
               className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background'
@@ -190,15 +190,15 @@ export function EventQuestionFormDialog({
               onChange={(event) => setQuestionType(event.target.value as 'Text' | 'Option')}
               disabled={upsertQuestion.isPending}
             >
-              <option value='Text'>Short Answer</option>
-              <option value='Option'>Multiple Choice</option>
+              <option value='Text'>תשובה קצרה</option>
+              <option value='Option'>בחירה מרובה</option>
             </select>
           </div>
 
           {questionType === 'Option' ? (
             <div className='space-y-3 rounded-md border p-3'>
               <div className='flex items-center justify-between'>
-                <Label>Answer options</Label>
+                <Label>אפשרויות תשובה</Label>
                 <Button
                   type='button'
                   variant='outline'
@@ -207,14 +207,14 @@ export function EventQuestionFormDialog({
                   disabled={upsertQuestion.isPending}
                 >
                   <Plus className='mr-1 h-4 w-4' />
-                  Add option
+                  הוספת אפשרות
                 </Button>
               </div>
               <p className='text-muted-foreground text-xs'>
-                Guests must answer multiple-choice questions.
+                מוזמנים חייבים לענות על שאלות בחירה מרובה.
               </p>
               <p className='text-muted-foreground text-xs'>
-                Enable <strong>Other</strong> when guests should be able to write in a custom answer
+                הפעלה <strong>אחר</strong> when guests should be able to write in a custom answer
                 in public RSVP.
               </p>
               <label
@@ -228,7 +228,7 @@ export function EventQuestionFormDialog({
                   onChange={(event) => setAllowOther(event.target.checked)}
                   disabled={upsertQuestion.isPending}
                 />
-                Allow Other write-in answer
+                אפשר תשובת ׳אחר׳ בכתיבה
               </label>
               <div className='space-y-2'>
                 {options.map((option, index) => (
@@ -239,7 +239,7 @@ export function EventQuestionFormDialog({
                     <Input
                       value={option.text}
                       onChange={(event) => handleOptionChange(index, 'text', event.target.value)}
-                      placeholder='Option label'
+                      placeholder='תווית אפשרות'
                       disabled={upsertQuestion.isPending}
                     />
                     <Input
@@ -247,7 +247,7 @@ export function EventQuestionFormDialog({
                       onChange={(event) =>
                         handleOptionChange(index, 'description', event.target.value)
                       }
-                      placeholder='Optional description'
+                      placeholder='תיאור אופציונלי'
                       disabled={upsertQuestion.isPending}
                     />
                     <Button
@@ -268,7 +268,7 @@ export function EventQuestionFormDialog({
 
         <DialogFooter>
           <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-            Cancel
+            ביטול
           </Button>
           <Button
             type='button'

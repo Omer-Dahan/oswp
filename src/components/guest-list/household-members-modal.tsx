@@ -172,9 +172,9 @@ export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-2xl'>
         <DialogHeader>
-          <DialogTitle>Manage Household Members</DialogTitle>
+          <DialogTitle>ניהול חברי משק הבית</DialogTitle>
           <DialogDescription>
-            Add, update, or remove people in this household before saving.
+            הוסיפו, עדכנו או הסירו אנשים במשק הבית לפני השמירה.
           </DialogDescription>
         </DialogHeader>
 
@@ -204,11 +204,11 @@ export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps
 
         <DialogFooter className='justify-between sm:justify-between'>
           <Button type='button' variant='outline' onClick={addMember}>
-            Add guest
+            הוספת אורח
           </Button>
           <div className='flex gap-2'>
             <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-              Cancel
+              ביטול
             </Button>
             <Button
               type='button'
@@ -279,7 +279,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             onClick={() => onToggleTagAlong(index)}
             aria-label={`Toggle tag-along for ${memberName}`}
           >
-            Tag-along
+            נלווה
           </Button>
           <Button
             type='button'
@@ -289,7 +289,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             disabled={member.isPrimaryContact || member.isTagAlong}
             aria-label={`Set ${memberName} as primary`}
           >
-            Set primary
+            הגדרה כראשי
           </Button>
           <Button
             type='button'
@@ -299,7 +299,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             disabled={removeDisabled}
             aria-label={`Remove ${memberName}`}
           >
-            Remove
+            הסרה
           </Button>
         </div>
       </div>
@@ -333,7 +333,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
 
         <div className='space-y-1'>
           <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-wider'>
-            Age group
+            קבוצת גיל
           </span>
           <Select
             value={member.ageGroup}
@@ -356,7 +356,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
 
         <div className='space-y-1 sm:col-span-2'>
           <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-wider'>
-            Tags
+            תגיות
           </span>
           <TagInput
             selectedTagIds={member.tagIds}

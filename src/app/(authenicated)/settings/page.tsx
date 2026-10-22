@@ -29,7 +29,7 @@ export default async function SettingsPage() {
           <div className='mb-6'>
             <h2 className='font-serif text-foreground text-xl'>פרטי החתונה</h2>
             <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
-              Update your names. Ceremony date and location are managed from Events.
+              עדכנו את השמות שלכם. תאריך ומיקום הטקס מנוהלים מתוך אירועים.
             </p>
           </div>
           <div className='space-y-6'>
@@ -47,18 +47,18 @@ export default async function SettingsPage() {
               />
             ) : weddingDetailsLoadFailed ? (
               <p className='text-foreground/60'>
-                Unable to load wedding details for the active workspace.
+                לא ניתן לטעון את פרטי החתונה עבור סביבת העבודה הפעילה.
               </p>
             ) : (
               <p className='text-foreground/60'>
-                No wedding found. Please complete onboarding first.
+                לא נמצאה חתונה. אנא השלימו את תהליך ההצטרפות תחילה.
               </p>
             )}
             <div className='space-y-3'>
               <div>
                 <h3 className='font-serif text-foreground text-xl'>תוספים</h3>
                 <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
-                  Turn optional workspace features on and off for your wedding.
+                  הפעילו וכבו תכונות סביבת עבודה אופציונליות עבור החתונה שלכם.
                 </p>
               </div>
               <PluginsSettingsCard enabledAddOns={wedding.enabledAddOns} />
@@ -67,7 +67,7 @@ export default async function SettingsPage() {
               <div>
                 <h3 className='font-serif text-foreground text-xl'>חברי הארגון</h3>
                 <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
-                  Invite collaborators and manage access to this workspace.
+                  הזמינו משתפי פעולה ונהלו גישה לסביבת עבודה זו.
                 </p>
               </div>
               <OrganizationMembersSettingsCard />
@@ -77,7 +77,7 @@ export default async function SettingsPage() {
               <div>
                 <h3 className='font-serif text-foreground text-xl'>אפליקציות מחוברות</h3>
                 <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
-                  Chat with Etta from other apps.
+                  שוחחו עם Etta מאפליקציות אחרות.
                 </p>
               </div>
               <TelegramConnectCard />

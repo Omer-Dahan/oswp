@@ -149,7 +149,7 @@ export default function GuestSearchFilter({
           <Input
             id='search-guests-input'
             className='w-64 pr-12 font-sans text-sm'
-            placeholder='Find guests'
+            placeholder='חיפוש אורחים'
             value={searchInput}
             onChange={(e) => filterHouseholdsBySearch(e.target.value)}
           />
@@ -166,7 +166,7 @@ export default function GuestSearchFilter({
               className='w-48 justify-between font-sans text-sm normal-case tracking-normal'
             >
               {selectedRsvpFilter === null ? (
-                <span>RSVP Status</span>
+                <span>סטטוס RSVP</span>
               ) : (
                 <div className='flex items-center gap-1.5'>
                   <span
@@ -220,7 +220,7 @@ export default function GuestSearchFilter({
               className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
             >
               {selectedTagFilter === null ? (
-                <span>Guest Tag</span>
+                <span>תגית אורח</span>
               ) : (
                 <span className='truncate'>{selectedTagName ?? selectedTagFilter}</span>
               )}
@@ -229,7 +229,7 @@ export default function GuestSearchFilter({
             {showTagDropdown && (
               <div className='absolute top-full left-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
                 {allTags.length === 0 ? (
-                  <p className='px-2 py-1.5 text-muted-foreground text-sm'>No tags found</p>
+                  <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו תגיות</p>
                 ) : (
                   allTags.map((tag) => (
                     <button
@@ -258,7 +258,7 @@ export default function GuestSearchFilter({
               className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
             >
               {selectedCountryFilter === null ? (
-                <span>Country</span>
+                <span>ארץ</span>
               ) : (
                 <span className='truncate'>{selectedCountryFilter}</span>
               )}
@@ -267,7 +267,7 @@ export default function GuestSearchFilter({
             {showCountryDropdown && (
               <div className='absolute top-full left-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
                 {availableCountries.length === 0 ? (
-                  <p className='px-2 py-1.5 text-muted-foreground text-sm'>No countries found</p>
+                  <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו מדינות</p>
                 ) : (
                   availableCountries.map((country) => (
                     <button
@@ -295,7 +295,7 @@ export default function GuestSearchFilter({
             className='font-sans text-primary text-sm normal-case tracking-normal'
             onClick={clearAllFilters}
           >
-            Clear
+            ניקוי
           </Button>
         )}
       </div>

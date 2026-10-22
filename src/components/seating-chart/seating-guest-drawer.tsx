@@ -89,18 +89,18 @@ export function SeatingGuestDrawer(props: Readonly<SeatingGuestDrawerProps>) {
       }
       footer={
         <Button asChild variant='outline' className='w-full'>
-          <Link href='/guest-list'>Edit in Guest List</Link>
+          <Link href='/guest-list'>עריכה ברשימת האורחים</Link>
         </Button>
       }
     >
       {guest ? (
         <GuestDetailSections>
           <GuestDetailSection
-            title='Seating'
+            title='הושבה'
             action={
               guest.tableId ? (
                 <Button size='sm' variant='ghost' onClick={() => onUnseat(guest.id)}>
-                  Remove from table
+                  הסרה מהשולחן
                 </Button>
               ) : null
             }
@@ -114,7 +114,7 @@ export function SeatingGuestDrawer(props: Readonly<SeatingGuestDrawerProps>) {
                 if (tableId !== guest.tableId) onSeat(guest.id, tableId)
               }}
             >
-              <SelectTrigger aria-label='Seat at table'>
+              <SelectTrigger aria-label='הושבה ליד שולחן'>
                 <SelectValue
                   placeholder={tables.length === 0 ? 'Add a table first' : 'Unassigned'}
                 />
@@ -133,22 +133,22 @@ export function SeatingGuestDrawer(props: Readonly<SeatingGuestDrawerProps>) {
             </Select>
           </GuestDetailSection>
 
-          <GuestDetailSection title='Guest' contentClassName='space-y-1.5'>
-            <DetailRow label='Email' value={guest.email} />
-            <DetailRow label='Phone' value={guest.phone} />
+          <GuestDetailSection title='אורח' contentClassName='space-y-1.5'>
+            <DetailRow label='דוא״ל' value={guest.email} />
+            <DetailRow label='טלפון' value={guest.phone} />
             <DetailRow
-              label='Age group'
+              label='קבוצת גיל'
               value={
                 AGE_GROUP_OPTIONS.find((option) => option.value === (guest.ageGroup ?? 'ADULT'))
                   ?.label ?? null
               }
             />
-            <DetailRow label='Dietary needs' value={guest.dietaryRestrictions} />
-            {guest.isTagAlong ? <DetailRow label='Tag-along' value='Yes' /> : null}
+            <DetailRow label='צרכים תזונתיים' value={guest.dietaryRestrictions} />
+            {guest.isTagAlong ? <DetailRow label='נלווה' value='Yes' /> : null}
           </GuestDetailSection>
 
           {household ? (
-            <GuestDetailSection title='Household' contentClassName='space-y-3'>
+            <GuestDetailSection title='משק בית' contentClassName='space-y-3'>
               <ul className='space-y-1'>
                 {household.guests.map((member) => (
                   <li key={member.id} className='flex items-center justify-between gap-3'>

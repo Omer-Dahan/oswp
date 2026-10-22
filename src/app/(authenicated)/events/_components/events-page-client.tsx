@@ -142,7 +142,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           }
         })
       })
-      toast.success('RSVP settings updated')
+      toast.success('הגדרות אישור ההגעה עודכנו')
     },
     onError: (error) => {
       setTogglingRsvpEventId(null)
@@ -219,7 +219,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
       onClick={() => setManagingGeneralQuestions(true)}
       disabled={websiteQuestions === null}
     >
-      General RSVP questions
+      שאלות אישור הגעה כלליות
     </Button>
   )
 
@@ -238,7 +238,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
   if (isLoading && initialEvents.length === 0) {
     return (
       <div className='flex items-center justify-center py-12'>
-        <p className='text-muted-foreground text-sm'>Loading events...</p>
+        <p className='text-muted-foreground text-sm'>טוען אירועים...</p>
       </div>
     )
   }
@@ -253,7 +253,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
             </span>
           </div>
           <div className='max-w-sm'>
-            <p className='font-serif text-xl text-foreground'>No events yet</p>
+            <p className='font-serif text-xl text-foreground'>אין אירועים עדיין</p>
             <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
               Get started by creating your first wedding event. Add ceremonies, receptions,
               rehearsal dinners, and more.
@@ -265,7 +265,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
               onClick={() => setIsCreateDialogOpen(true)}
               className='font-mono text-[0.65rem] uppercase tracking-widest'
             >
-              Create your first event
+              צרו את האירוע הראשון שלכם
             </Button>
             {generalQuestionsButton}
           </div>
@@ -315,7 +315,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           {generalQuestionsButton}
           <Button onClick={() => setIsCreateDialogOpen(true)} size='sm'>
             <Plus className='mr-2 h-4 w-4' />
-            Create Event
+            יצירת אירוע
           </Button>
         </div>
       </div>
@@ -362,14 +362,14 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Event?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק אירוע?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete &quot;{deletingEvent?.name}&quot; and all associated
               invitations, questions, and responses. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteEvent.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteEvent.isPending}>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()

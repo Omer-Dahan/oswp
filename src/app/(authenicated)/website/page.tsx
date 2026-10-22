@@ -54,7 +54,7 @@ export default async function WebsitePage() {
   if (!isWebsiteBuilderEnabled) {
     return (
       <>
-        <DashboardTopbar title='Website' showManagementActions={false} />
+        <DashboardTopbar title='אתר' showManagementActions={false} />
         <div className='min-h-0 flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6'>
           <div className='mx-auto max-w-2xl'>
             <WebsiteDisabledCallout />
@@ -66,13 +66,13 @@ export default async function WebsitePage() {
 
   return (
     <>
-      <DashboardTopbar title='Website' showManagementActions={false} />
+      <DashboardTopbar title='אתר' showManagementActions={false} />
       <div className='min-h-0 flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6'>
         <div className='mx-auto max-w-2xl space-y-6'>
           <div className='mb-2'>
-            <h2 className='font-serif text-foreground text-xl'>Wedding Website</h2>
+            <h2 className='font-serif text-foreground text-xl'>אתר החתונה</h2>
             <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
-              Publish your public wedding page and share it with guests.
+              פרסמו את עמוד החתונה הציבורי ושתפו אותו עם האורחים.
             </p>
           </div>
           <WebsiteManager

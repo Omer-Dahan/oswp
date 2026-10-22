@@ -33,7 +33,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
   const createCategory = api.budget.createCategory.useMutation({
     onSuccess: async () => {
       await invalidate()
-      toast.success('Section added')
+      toast.success('הסעיף נוסף')
       onSuccess()
     },
     onError: (err) => toast.error(err.message || 'Could not add section'),
@@ -42,7 +42,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
   const updateCategory = api.budget.updateCategory.useMutation({
     onSuccess: async () => {
       await invalidate()
-      toast.success('Section updated')
+      toast.success('הסעיף עודכן')
       onSuccess()
     },
     onError: (err) => toast.error(err.message || 'Could not update section'),
@@ -53,12 +53,12 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     if (!name.trim()) {
-      toast.error('Section name is required')
+      toast.error('יש להזין שם סעיף')
       return
     }
     const parsed = plannedAmount ? Number.parseFloat(plannedAmount) : 0
     if (!Number.isFinite(parsed) || parsed < 0) {
-      toast.error('Enter a valid planned amount')
+      toast.error('יש להזין סכום מתוכנן תקין')
       return
     }
 
@@ -72,12 +72,12 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
   return (
     <form onSubmit={handleSubmit} className='space-y-4'>
       <div className='space-y-1.5'>
-        <Label htmlFor='category-name'>Section name</Label>
+        <Label htmlFor='category-name'>שם הסעיף</Label>
         <Input
           id='category-name'
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder='e.g. Venue, Catering, Attire'
+          placeholder='למשל: אולם, קייטרינג, לבוש'
           maxLength={100}
           required
         />
@@ -97,7 +97,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
       </div>
       <div className='flex justify-end gap-2 pt-1'>
         <Button type='button' variant='outline' onClick={onCancel} disabled={isPending}>
-          Cancel
+          ביטול
         </Button>
         <Button type='submit' disabled={isPending}>
           {isPending ? 'Saving...' : isEditing ? 'Save changes' : 'Add section'}

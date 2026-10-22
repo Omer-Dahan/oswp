@@ -410,7 +410,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     const closeIfStillOpen = () => setTableDialog((current) => dialogAfterSave(current, openId))
     // An edit of a table someone else deleted must never turn into a create
     if (tableDialog.mode === 'edit' && !editingTable) {
-      toast.error('This table was deleted. Refresh to see the latest seating chart.')
+      toast.error('השולחן הזה נמחק. רעננו כדי לראות את תוכנית המקומות העדכנית.')
       setTableDialog(null)
       return
     }
@@ -438,7 +438,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     }
     const position = getNextTablePosition(chart.tables, values)
     if (!position) {
-      toast.error('No room left on the floor plan. Move or remove a table to make space.')
+      toast.error('אין מקום פנוי בתוכנית האולם. הזיזו או הסירו שולחן כדי לפנות מקום.')
       return
     }
     createTable.mutate(
@@ -473,8 +473,8 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     <div className='flex min-h-0 flex-1 flex-col gap-4'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <Select value={eventId ?? undefined} onValueChange={handleEventChange}>
-          <SelectTrigger className='sm:w-64' aria-label='Event'>
-            <SelectValue placeholder='Select event' />
+          <SelectTrigger className='sm:w-64' aria-label='אירוע'>
+            <SelectValue placeholder='בחירת אירוע' />
           </SelectTrigger>
           <SelectContent>
             {events.map((event) => (
@@ -487,7 +487,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         <div className='flex gap-2'>
           <Button variant='outline' onClick={handleExport} disabled={!chart}>
             <Download className='mr-2 h-4 w-4' aria-hidden='true' />
-            Export CSV
+            ייצוא CSV
           </Button>
           <Button
             data-seating-focus-key={ADD_TABLE_FOCUS_KEY}
@@ -495,7 +495,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
             disabled={!chart}
           >
             <Plus className='mr-2 h-4 w-4' aria-hidden='true' />
-            Add table
+            הוסיפו שולחן
           </Button>
         </div>
       </div>
@@ -525,7 +525,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
               onSelectGuest={openGuestFrom('sidebar-guest')}
             />
             <section
-              aria-label='Floor plan'
+              aria-label='תוכנית מקומות'
               className='relative h-[65vh] min-h-[24rem] overflow-auto rounded-xl border border-border bg-muted/40 lg:h-auto'
             >
               <div
@@ -596,20 +596,20 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
       >
         <AlertDialogContent onCloseAutoFocus={returnFocusFromTableDialog}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this table?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק את השולחן הזה?</AlertDialogTitle>
             <AlertDialogDescription>
-              Guests seated here will move back to the unseated list.
+              אורחים שיושבים כאן יחזרו לרשימת הלא משובצים.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pendingDeleteId) deleteTable.mutate({ id: pendingDeleteId })
                 setPendingDeleteId(null)
               }}
             >
-              Delete table
+              מחקו שולחן
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

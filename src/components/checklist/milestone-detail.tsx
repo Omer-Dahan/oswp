@@ -115,7 +115,7 @@ function MilestoneDetailContent({
       <div className='space-y-2 text-left'>
         <h2 className='font-display text-2xl italic'>{milestone.title}</h2>
         <p className='text-muted-foreground text-sm'>
-          Review the system-derived milestone status or override it manually.
+          עברו על סטטוס האבן דרך שנקבע על ידי המערכת או עקפו אותו ידנית.
         </p>
       </div>
 
@@ -130,7 +130,7 @@ function MilestoneDetailContent({
 
       <fieldset className='space-y-2'>
         <legend className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-[0.12em]'>
-          Override
+          עקיפה
         </legend>
 
         {OVERRIDE_OPTIONS.map((option) => (

@@ -67,7 +67,7 @@ function EventCardBase({
           <div className='flex shrink-0 items-center gap-2'>
             {event.collectRsvp && (
               <Badge variant='secondary' className='shrink-0 text-xs'>
-                RSVPs
+                אישורי הגעה
               </Badge>
             )}
             <div className='flex items-center gap-2'>
@@ -75,7 +75,7 @@ function EventCardBase({
                 htmlFor={`${event.id}-collect-rsvp-toggle`}
                 className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'
               >
-                Collect RSVPs
+                איסוף אישורי הגעה
               </label>
               <Switch
                 id={`${event.id}-collect-rsvp-toggle`}
@@ -119,17 +119,17 @@ function EventCardBase({
                   <div className='flex items-center gap-1'>
                     <div className='h-2 w-2 rounded-full bg-success' />
                     <span className='font-medium'>{guestResponses.attending}</span>
-                    <span className='text-muted-foreground'>Attending</span>
+                    <span className='text-muted-foreground'>מגיעים</span>
                   </div>
                   <div className='flex items-center gap-1'>
                     <div className='h-2 w-2 rounded-full bg-muted-foreground/60' />
                     <span className='font-medium'>{guestResponses.invited}</span>
-                    <span className='text-muted-foreground'>Pending</span>
+                    <span className='text-muted-foreground'>ממתין</span>
                   </div>
                   <div className='flex items-center gap-1'>
                     <div className='h-2 w-2 rounded-full bg-destructive' />
                     <span className='font-medium'>{guestResponses.declined}</span>
-                    <span className='text-muted-foreground'>Declined</span>
+                    <span className='text-muted-foreground'>לא מגיעים</span>
                   </div>
                 </div>
               )}
@@ -153,8 +153,8 @@ function EventCardBase({
               onClick={() => onManageGuests(event.id)}
             >
               <Users className='h-3.5 w-3.5 md:mr-1' />
-              <span className='hidden md:inline'>Manage Guests</span>
-              <span className='md:hidden'>Guests</span>
+              <span className='hidden md:inline'>ניהול מוזמנים</span>
+              <span className='md:hidden'>מוזמנים</span>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -165,24 +165,24 @@ function EventCardBase({
                   aria-label={`Event actions for ${event.name}`}
                 >
                   <MoreHorizontal className='h-4 w-4' />
-                  <span className='sr-only'>Event actions</span>
+                  <span className='sr-only'>פעולות אירוע</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end'>
                 <DropdownMenuItem onClick={() => onManageQuestions(event.id)}>
                   <ClipboardList className='mr-2 h-3.5 w-3.5' />
-                  RSVP Questions
+                  שאלות אישור הגעה
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(event.id)}>
                   <Pencil className='mr-2 h-3.5 w-3.5' />
-                  Edit
+                  עריכה
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className='text-destructive focus:text-destructive'
                   onClick={() => onDelete(event.id)}
                 >
                   <Trash2 className='mr-2 h-3.5 w-3.5' />
-                  Delete
+                  מחיקה
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

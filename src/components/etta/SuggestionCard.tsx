@@ -39,14 +39,14 @@ export function SuggestionCard({ suggestion, onApprove, onDismiss }: SuggestionC
           onClick={() => onApprove(suggestion.id)}
           className='rounded-md bg-emerald-600 px-3 py-1.5 font-medium text-white text-xs transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
         >
-          Approve
+          אישור
         </button>
         <button
           type='button'
           onClick={() => onDismiss(suggestion.id)}
           className='rounded-md px-3 py-1.5 font-medium text-muted-foreground text-xs transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
         >
-          Dismiss
+          דחייה
         </button>
       </div>
     </div>

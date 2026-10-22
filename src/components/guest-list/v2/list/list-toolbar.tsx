@@ -77,7 +77,7 @@ export function ListToolbar({
           className='font-sans text-sm normal-case tracking-normal'
         >
           <SortIcon active={activeSort?.field === 'name'} direction={activeSort?.direction} />
-          Sort by Name
+          מיון לפי שם
         </Button>
         <Button
           type='button'
@@ -87,7 +87,7 @@ export function ListToolbar({
           className='font-sans text-sm normal-case tracking-normal'
         >
           <SortIcon active={activeSort?.field === 'partySize'} direction={activeSort?.direction} />
-          Sort by Party Size
+          מיון לפי גודל קבוצה
         </Button>
         {onViewModeChange && workflowMode === 'households' && (
           <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
@@ -115,7 +115,7 @@ function ViewModeToggle({
     <div className='flex overflow-hidden rounded-md border border-border'>
       <button
         type='button'
-        aria-label='Card view'
+        aria-label='תצוגת כרטיסים'
         onClick={() => onViewModeChange('cards')}
         className={toggleBtnClass(viewMode === 'cards')}
       >
@@ -123,7 +123,7 @@ function ViewModeToggle({
       </button>
       <button
         type='button'
-        aria-label='Table view'
+        aria-label='תצוגת טבלה'
         onClick={() => onViewModeChange('table')}
         className={toggleBtnClass(viewMode === 'table', true)}
       >
@@ -144,19 +144,19 @@ function WorkflowModeToggle({
     <div className='flex overflow-hidden rounded-md border border-border'>
       <button
         type='button'
-        aria-label='Households'
+        aria-label='משקי בית'
         onClick={() => onWorkflowModeChange('households')}
         className={toggleBtnClass(workflowMode === 'households')}
       >
-        Households
+        משקי בית
       </button>
       <button
         type='button'
-        aria-label='Person Audit'
+        aria-label='ביקורת אנשים'
         onClick={() => onWorkflowModeChange('personAudit')}
         className={toggleBtnClass(workflowMode === 'personAudit', true)}
       >
-        Person Audit
+        ביקורת אנשים
       </button>
     </div>
   )

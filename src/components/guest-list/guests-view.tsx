@@ -318,11 +318,11 @@ export default function GuestsView({
             setDrawerBaseline(draftSnapshot)
             setEditingSections(new Set())
           }
-          toast.success('Guest details saved')
+          toast.success('פרטי האורח נשמרו')
           void utils.dashboard.getForActiveWorkspace.invalidate()
         },
         onError: () => {
-          toast.error('Failed to save guest details')
+          toast.error('שמירת פרטי האורח נכשלה')
         },
       }
     )
@@ -461,12 +461,12 @@ export default function GuestsView({
                   }
                 })
               )
-              toast.success('Household members saved')
+              toast.success('בני הבית נשמרו')
               void utils.dashboard.getForActiveWorkspace.invalidate()
               resolve(true)
             },
             onError: () => {
-              toast.error('Failed to save household members')
+              toast.error('שמירת בני הבית נכשלה')
               resolve(false)
             },
           }
@@ -535,11 +535,11 @@ export default function GuestsView({
           setFilteredHouseholds((previous) =>
             previous.filter((household) => household.id !== householdId)
           )
-          toast.success('Party deleted successfully')
+          toast.success('המסיבה נמחקה בהצלחה')
           void utils.dashboard.getForActiveWorkspace.invalidate()
         },
         onError: () => {
-          toast.error('Failed to delete party')
+          toast.error('מחיקת המסיבה נכשלה')
         },
       }
     )
@@ -558,19 +558,19 @@ export default function GuestsView({
 
   const addNoteMutation = api.communicationLog.addNote.useMutation({
     onSuccess: (_data, variables) => {
-      toast.success('Note added')
+      toast.success('ההערה נוספה')
       void utils.communicationLog.getByHouseholdId.invalidate({
         householdId: variables.householdId,
       })
     },
     onError: () => {
-      toast.error('Failed to add note')
+      toast.error('הוספת ההערה נכשלה')
     },
   })
 
   const deleteNoteMutation = api.communicationLog.deleteNote.useMutation({
     onSuccess: () => {
-      toast.success('Note removed')
+      toast.success('ההערה הוסרה')
       if (selectedHousehold) {
         void utils.communicationLog.getByHouseholdId.invalidate({
           householdId: selectedHousehold.id,
@@ -578,7 +578,7 @@ export default function GuestsView({
       }
     },
     onError: () => {
-      toast.error('Failed to delete note')
+      toast.error('מחיקת ההערה נכשלה')
     },
   })
 
@@ -658,7 +658,7 @@ export default function GuestsView({
         />
         <div className='flex shrink-0 gap-3'>
           <Button type='button' variant='outline' onClick={onImportClick}>
-            Import Guests
+            ייבוא אורחים
           </Button>
           <Button
             type='button'
@@ -667,7 +667,7 @@ export default function GuestsView({
               toggleGuestForm()
             }}
           >
-            Add Guest
+            הוספת אורח
           </Button>
         </div>
       </div>
@@ -720,7 +720,7 @@ export default function GuestsView({
                 variant='outline'
                 className='border-amber-500/40 bg-amber-500/10 text-[0.58rem] text-amber-700 uppercase tracking-wider'
               >
-                Unsaved changes
+                שינויים שלא נשמרו
               </Badge>
             ) : null}
             {selectedHouseholdTags.map((tag) => (
@@ -743,7 +743,7 @@ export default function GuestsView({
                 className='flex-1'
                 onClick={handleDiscardChanges}
               >
-                Discard changes
+                ביטול שינויים
               </Button>
               <Button
                 type='button'
@@ -751,7 +751,7 @@ export default function GuestsView({
                 onClick={saveDrawerChanges}
                 disabled={updateHouseholdMutation.isPending}
               >
-                Save changes
+                שמירת שינויים
               </Button>
             </div>
           ) : null
@@ -787,13 +787,13 @@ export default function GuestsView({
       <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogTitle>לבטל שינויים שלא נשמרו?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved drawer changes. Keep editing to continue or discard and close.
+              יש שינויים שלא נשמרו במגירה. המשיכו לערוך כדי להמשיך, או בטלו וסגרו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogCancel>המשך עריכה</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setShowDiscardDialog(false)
@@ -803,7 +803,7 @@ export default function GuestsView({
                 setEditingSections(new Set())
               }}
             >
-              Discard and close
+              ביטול וסגירה
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -830,7 +830,7 @@ export default function GuestsView({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteHouseholdMutation.isPending}>
-              Cancel
+              ביטול
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
@@ -929,10 +929,10 @@ const SelectedEventTableHeader = ({
         )
         if (!matchingInvitation) return
         switch (matchingInvitation.rsvp) {
-          case 'Attending':
+          case 'מגיעים':
             guestResponses.attending += 1
             break
-          case 'Declined':
+          case 'לא מגיעים':
             guestResponses.declined += 1
             break
           default:
@@ -970,7 +970,7 @@ const SelectedEventTableHeader = ({
         <h2 className='font-bold text-xl'>{selectedEvent.name}</h2>
         <button
           type='button'
-          aria-label='Edit event details'
+          aria-label='עריכת פרטי האירוע'
           className='rounded-sm text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2'
           onClick={() => handleEditEvent(selectedEvent)}
         >
@@ -983,21 +983,21 @@ const SelectedEventTableHeader = ({
           <span className='h-1.5 w-1.5 rounded-full bg-success' />
           <span className='font-medium'>{guestResponses.attending}</span>
           <span className='font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-            Attending
+            מגיעים
           </span>
         </div>
         <div className='flex items-center gap-1.5'>
           <span className='h-1.5 w-1.5 rounded-full bg-destructive' />
           <span className='font-medium'>{guestResponses.declined}</span>
           <span className='font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-            Declined
+            לא מגיעים
           </span>
         </div>
         <div className='flex items-center gap-1.5'>
           <span className='h-1.5 w-1.5 rounded-full bg-muted-foreground' />
           <span className='font-medium'>{guestResponses.noResponse}</span>
           <span className='font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-            No Response
+            אין תגובה
           </span>
         </div>
       </div>

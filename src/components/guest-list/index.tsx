@@ -67,8 +67,8 @@ export default function GuestList({ dashboardData }: { dashboardData: DashboardD
     return (
       <div className='flex min-h-96 items-center justify-center'>
         <div className='flex flex-col gap-5 text-center'>
-          <h1 className='text-3xl'>Something went wrong!</h1>
-          <p>Sorry about that. Please refresh the page in a moment.</p>
+          <h1 className='text-3xl'>משהו השתבש!</h1>
+          <p>מצטערים על כך. רעננו את העמוד בעוד רגע.</p>
         </div>
       </div>
     )

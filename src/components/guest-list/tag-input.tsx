@@ -218,7 +218,7 @@ export function TagInput({
                   i === highlightedIndex ? 'bg-accent text-accent-foreground' : ''
                 } cursor-pointer`}
               >
-                <span className='text-muted-foreground'>Create</span>
+                <span className='text-muted-foreground'>יצירה</span>
                 <Badge variant='secondary' className='px-1.5 py-0 text-xs'>
                   {option.name}
                 </Badge>

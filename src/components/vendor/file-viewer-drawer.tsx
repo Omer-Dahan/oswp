@@ -47,10 +47,10 @@ export function FileViewerDrawer({ file, onClose }: FileViewerDrawerProps) {
           )}
         >
           <DialogTitle className='sr-only'>{file?.name ?? 'File Viewer'}</DialogTitle>
-          <DialogDescription className='sr-only'>File viewer</DialogDescription>
+          <DialogDescription className='sr-only'>מציג קבצים</DialogDescription>
 
           <DialogClose
-            aria-label='Close file viewer'
+            aria-label='סגירת מציג הקבצים'
             className='absolute top-4 right-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
             <X className='h-4 w-4' aria-hidden='true' />

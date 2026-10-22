@@ -93,7 +93,7 @@ export function QuoteForm({
     onDropRejected: (rejections) => {
       const errors = rejections[0]?.errors
       if (errors?.some((e) => e.code === 'file-too-large')) {
-        toast.error('File exceeds 8 MB limit')
+        toast.error('הקובץ חורג ממגבלת 8 MB')
       } else if (errors?.some((e) => e.code === 'file-invalid-type')) {
         toast.error(`Unsupported file type. Accepted: ${ACCEPTED_TYPES_LABEL}`)
       } else {
@@ -109,7 +109,7 @@ export function QuoteForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!price || !quoteDate) {
-      toast.error('Price and date are required')
+      toast.error('מחיר ותאריך הם שדות חובה')
       return
     }
 
@@ -125,7 +125,7 @@ export function QuoteForm({
           notes: notes || undefined,
         })
         await utils.vendor.getAll.invalidate()
-        toast.success('Quote updated')
+        toast.success('הצעת מחיר עודכנה')
         onSuccess()
       } else {
         const newQuote = await addQuote.mutateAsync({
@@ -158,7 +158,7 @@ export function QuoteForm({
         }
 
         await utils.vendor.getAll.invalidate()
-        toast.success('Quote added')
+        toast.success('הצעת מחיר נוספה')
         onSuccess()
       }
     } catch {
@@ -198,21 +198,21 @@ export function QuoteForm({
         </label>
         <div className='space-y-1'>
           <span className='font-mono text-[0.55rem] text-muted-foreground uppercase tracking-widest'>
-            Quote Type
+            סוג הצעה
           </span>
           <Select value={quoteType} onValueChange={(v) => setQuoteType(v as QuoteType)}>
             <SelectTrigger className='h-9'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={QUOTE_TYPE.FLAT_FEE}>Flat Fee</SelectItem>
-              <SelectItem value={QUOTE_TYPE.PER_GUEST}>Per Guest</SelectItem>
+              <SelectItem value={QUOTE_TYPE.FLAT_FEE}>מחיר קבוע</SelectItem>
+              <SelectItem value={QUOTE_TYPE.PER_GUEST}>לפי אורח</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <label className='space-y-1' htmlFor='quote-date'>
           <span className='font-mono text-[0.55rem] text-muted-foreground uppercase tracking-widest'>
-            Date
+            תאריך
           </span>
           <Input
             id='quote-date'
@@ -227,11 +227,11 @@ export function QuoteForm({
 
       <label className='space-y-1' htmlFor='quote-notes'>
         <span className='font-mono text-[0.55rem] text-muted-foreground uppercase tracking-widest'>
-          Notes
+          הערות
         </span>
         <Textarea
           id='quote-notes'
-          placeholder='Package details, inclusions, conditions...'
+          placeholder='פרטי החבילה, מה כלול, תנאים...'
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
@@ -243,7 +243,7 @@ export function QuoteForm({
       {!isEdit && (
         <div className='space-y-1'>
           <span className='font-mono text-[0.55rem] text-muted-foreground uppercase tracking-widest'>
-            Attachments
+            קבצים מצורפים
           </span>
           <div
             {...getRootProps()}
@@ -257,12 +257,12 @@ export function QuoteForm({
             <input {...getInputProps()} />
             {isDragActive ? (
               <p className='font-mono text-[0.62rem] text-primary uppercase tracking-wider'>
-                Drop files here
+                גררו קבצים לכאן
               </p>
             ) : (
               <div className='space-y-0.5'>
                 <p className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-wider'>
-                  Drag & drop files, or click to browse
+                  גררו ושחררו קבצים, או לחצו לבחירה
                 </p>
                 <p className='font-mono text-[0.5rem] text-muted-foreground/70 tracking-wider'>
                   {ACCEPTED_TYPES_LABEL} — max 8 MB each
@@ -296,7 +296,7 @@ export function QuoteForm({
 
       <div className='flex gap-2 self-end'>
         <Button type='button' variant='outline' size='sm' onClick={onCancel} disabled={busy}>
-          Cancel
+          ביטול
         </Button>
         <Button type='submit' size='sm' disabled={busy}>
           {busy

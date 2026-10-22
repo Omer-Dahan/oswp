@@ -178,7 +178,7 @@ export function EttaChat({ persona, guestToken, isConfigured = true, onClose }: 
         {onClose && (
           <button
             type='button'
-            aria-label='Close Etta'
+            aria-label='סגירת Etta'
             onClick={onClose}
             className='flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-foreground/[0.06] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar'
           >
@@ -201,7 +201,7 @@ export function EttaChat({ persona, guestToken, isConfigured = true, onClose }: 
         ref={scrollRef}
         role='log'
         aria-live='polite'
-        aria-label='Conversation with Etta'
+        aria-label='שיחה עם Etta'
         className='flex flex-1 flex-col gap-3 overflow-y-auto px-3 py-3 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-sidebar-foreground/15 [&::-webkit-scrollbar]:w-[3px]'
       >
         {messages.map((msg) => (
@@ -266,12 +266,12 @@ export function EttaChat({ persona, guestToken, isConfigured = true, onClose }: 
           type='text'
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder='Ask Etta anything…'
+          placeholder='שאלו את Etta כל דבר…'
           className='flex-1 rounded border border-sidebar-border bg-sidebar-foreground/[0.06] px-3 py-2 font-serif text-[0.82rem] text-sidebar-foreground/80 italic placeholder:text-muted-foreground focus:border-primary/50 focus:text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-ring/40'
         />
         <button
           type='submit'
-          aria-label='Send'
+          aria-label='שליחה'
           disabled={isLoading || !input.trim()}
           className='flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm text-white shadow transition-all hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar disabled:opacity-40 disabled:hover:bg-primary'
         >

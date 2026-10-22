@@ -150,12 +150,12 @@ export default function NonAuthenticatedView() {
           <div className='flex flex-col justify-center px-6 py-24 md:px-12 md:py-20'>
             <p className='fu mb-6 flex items-center gap-3 font-mono text-[0.62rem] text-primary uppercase tracking-[.2em]'>
               <span className='block h-px w-7 bg-primary' />
-              Open Source Wedding Platform
+              פלטפורמת חתונות בקוד פתוח
             </p>
             <h1 className='fu fu1 font-display font-normal text-[clamp(3rem,5.5vw,5rem)] leading-[1.06] tracking-tight'>
-              The <em className='text-primary italic'>infrastructure</em>
+              ה <em className='text-primary italic'>infrastructure</em>
               <br />
-              for your forever
+              לנצח שלכם
             </h1>
             <p className='fu fu2 mt-6 max-w-md font-light font-serif text-[1.05rem] text-muted-foreground leading-[1.75]'>
               A self-hosted platform with everything your wedding needs — invitations, RSVPs,
@@ -189,7 +189,7 @@ export default function NonAuthenticatedView() {
                 </span>
               </div>
               <div className='px-5 py-5 font-mono text-[0.74rem] leading-[1.9]'>
-                <p className='text-white/25'># deploy your wedding platform</p>
+                <p className='text-white/25'># פרסו את פלטפורמת החתונה שלכם</p>
                 <p className='mt-2'>
                   <span className='mr-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>npx</span>{' '}
@@ -209,7 +209,7 @@ export default function NonAuthenticatedView() {
                 <p className='mt-2'>
                   <span className='mr-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>etta</span>{' '}
-                  <span className='text-[#C678DD]'>"who hasn't RSVP'd yet?"</span>
+                  <span className='text-[#C678DD]'>״מי עוד לא אישר הגעה?״</span>
                 </p>
                 <p className='text-[#E06C75]'>{'  '}✦ Etta thinking...</p>
                 <p className='text-white/55'>{'  '}23 guests pending — want me</p>
@@ -246,12 +246,12 @@ export default function NonAuthenticatedView() {
         <section id='features' className='mx-auto w-full max-w-6xl px-6 py-28 md:px-12'>
           <p className='mb-3 flex items-center gap-3 font-mono text-[0.6rem] text-primary uppercase tracking-[.2em]'>
             <span className='block h-px w-5 bg-primary' />
-            What's inside
+            מה בפנים
           </p>
           <h2 className='font-display font-normal text-[clamp(2rem,4vw,3rem)] leading-[1.1] tracking-tight'>
-            Everything you need,
+            כל מה שצריך,
             <br />
-            <em className='text-primary italic'>nothing you don't</em>
+            <em className='text-primary italic'>בלי מה שלא</em>
           </h2>
 
           <div className='mt-14 overflow-hidden rounded border border-border bg-border'>
@@ -288,12 +288,12 @@ export default function NonAuthenticatedView() {
             <div>
               <p className='mb-3 flex items-center gap-3 font-mono text-[0.6rem] text-gold uppercase tracking-[.2em]'>
                 <span className='block h-px w-5 bg-gold' />
-                Meet Etta
+                הכירו את Etta
               </p>
               <h2 className='font-display font-normal text-[clamp(2rem,4vw,3rem)] text-background leading-[1.1] tracking-tight'>
-                Your AI wedding
+                מתכננת החתונה
                 <br />
-                <em className='text-gold italic'>planner, Etta</em>
+                <em className='text-gold italic'>החכמה שלכם, Etta</em>
               </h2>
               <p className='mt-6 max-w-md font-light font-serif text-[1rem] text-background/60 leading-[1.75]'>
                 Etta is OSWP's built-in AI wedding planner. She lives inside your planning data,
@@ -372,7 +372,7 @@ export default function NonAuthenticatedView() {
               <div className='flex items-center gap-3 border-white/10 border-t px-5 py-3'>
                 <input
                   type='text'
-                  placeholder='Ask Etta anything…'
+                  placeholder='שאלו את Etta כל דבר…'
                   readOnly
                   className='flex-1 bg-transparent font-serif text-[0.82rem] text-background/35 italic outline-none placeholder:text-background/35'
                 />
@@ -393,12 +393,12 @@ export default function NonAuthenticatedView() {
             <div>
               <p className='mb-3 flex items-center gap-3 font-mono text-[0.6rem] text-primary uppercase tracking-[.2em]'>
                 <span className='block h-px w-5 bg-primary' />
-                Built for developers
+                בנוי למפתחים
               </p>
               <h2 className='font-display font-normal text-[clamp(2rem,4vw,3rem)] leading-[1.1] tracking-tight'>
-                A backend you
+                בקאנד שאתם
                 <br />
-                <em className='text-primary italic'>actually own</em>
+                <em className='text-primary italic'>באמת שולטים בו</em>
               </h2>
             </div>
             <p className='font-light font-serif text-[0.95rem] text-muted-foreground leading-[1.75]'>
