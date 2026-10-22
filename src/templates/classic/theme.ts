@@ -15,8 +15,8 @@ const cssVars: CSSProperties = {
   '--primary-foreground': '1 0 0',
   '--muted-foreground': '0.5534 0.0116 58.07',
   '--border': '0.9296 0.037 38.69',
-  '--tpl-heading-font': 'var(--tpl-classic-serif)',
-  '--tpl-body-font': 'var(--tpl-classic-serif)',
+  '--tpl-heading-font': 'var(--tpl-classic-serif), var(--tpl-hebrew-serif), serif',
+  '--tpl-body-font': 'var(--tpl-classic-serif), var(--tpl-hebrew-serif), serif',
 } as CSSProperties
 
 export const classicTheme: TemplateTheme = {

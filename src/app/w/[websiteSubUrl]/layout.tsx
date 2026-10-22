@@ -18,9 +18,7 @@ export default async function WeddingWebsiteLayout({
         data-guest-surface-he={isHebrew ? '' : undefined}
         dir={isHebrew ? 'rtl' : 'ltr'}
         lang={locale}
-        className={
-          isHebrew ? `contents ${hebrewSerif.variable} ${hebrewSans.variable}` : 'contents'
-        }
+        className={`contents ${hebrewSerif.variable} ${hebrewSans.variable}`}
       >
         <div className='fixed top-3 right-3 z-50'>
           <LocaleToggle />

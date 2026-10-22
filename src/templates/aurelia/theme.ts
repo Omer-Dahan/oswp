@@ -27,8 +27,8 @@ const cssVars: CSSProperties = {
   '--border': '0.9 0.025 290',
   '--input': '0.9 0.025 290',
   '--ring': '0.505 0.176 291',
-  '--tpl-heading-font': 'var(--tpl-aurelia-serif)',
-  '--tpl-body-font': 'var(--tpl-aurelia-sans)',
+  '--tpl-heading-font': 'var(--tpl-aurelia-serif), var(--tpl-hebrew-serif), serif',
+  '--tpl-body-font': 'var(--tpl-aurelia-sans), var(--tpl-hebrew-sans), sans-serif',
 } as CSSProperties
 
 export const aureliaTheme: TemplateTheme = {
