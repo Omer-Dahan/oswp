@@ -17,22 +17,22 @@ export default function ContactForm({ register, errors }: ContactFormProps) {
       </p>
 
       <div className='space-y-2'>
-        <Label htmlFor='household-address1'>Street Address</Label>
+        <Label htmlFor='household-address1'>כתובת רחוב</Label>
         <Input
           id='household-address1'
           {...register('address1')}
-          placeholder='123 Main St'
+          placeholder='רחוב הראשי 123'
           className={errors.address1 ? 'border-destructive' : ''}
         />
         {errors.address1 && <p className='text-destructive text-sm'>{errors.address1.message}</p>}
       </div>
 
       <div className='space-y-2'>
-        <Label htmlFor='household-address2'>Apt / Suite / Other</Label>
+        <Label htmlFor='household-address2'>דירה / סוויטה / אחר</Label>
         <Input
           id='household-address2'
           {...register('address2')}
-          placeholder='Apt 4B'
+          placeholder='דירה 4B'
           className={errors.address2 ? 'border-destructive' : ''}
         />
         {errors.address2 && <p className='text-destructive text-sm'>{errors.address2.message}</p>}
@@ -40,18 +40,18 @@ export default function ContactForm({ register, errors }: ContactFormProps) {
 
       <div className='grid gap-4 sm:grid-cols-3'>
         <div className='space-y-2 sm:col-span-2'>
-          <Label htmlFor='household-city'>City</Label>
+          <Label htmlFor='household-city'>עיר</Label>
           <Input
             id='household-city'
             {...register('city')}
-            placeholder='San Francisco'
+            placeholder='סן פרנסיסקו'
             className={errors.city ? 'border-destructive' : ''}
           />
           {errors.city && <p className='text-destructive text-sm'>{errors.city.message}</p>}
         </div>
 
         <div className='space-y-2'>
-          <Label htmlFor='household-state'>State / Province</Label>
+          <Label htmlFor='household-state'>מדינה / מחוז</Label>
           <Input
             id='household-state'
             {...register('state')}
@@ -64,7 +64,7 @@ export default function ContactForm({ register, errors }: ContactFormProps) {
 
       <div className='grid gap-4 sm:grid-cols-2'>
         <div className='space-y-2'>
-          <Label htmlFor='household-zipCode'>Zip / Postal Code</Label>
+          <Label htmlFor='household-zipCode'>מיקוד</Label>
           <Input
             id='household-zipCode'
             {...register('zipCode')}
@@ -75,11 +75,11 @@ export default function ContactForm({ register, errors }: ContactFormProps) {
         </div>
 
         <div className='space-y-2'>
-          <Label htmlFor='household-country'>Country</Label>
+          <Label htmlFor='household-country'>מדינה</Label>
           <Input
             id='household-country'
             {...register('country')}
-            placeholder='United States'
+            placeholder='ארצות הברית'
             className={errors.country ? 'border-destructive' : ''}
           />
           {errors.country && <p className='text-destructive text-sm'>{errors.country.message}</p>}

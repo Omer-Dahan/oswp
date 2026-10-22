@@ -90,7 +90,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
           <h1 className='font-semibold text-xl'>{isEditMode ? 'Edit Event' : 'Add Event'}</h1>
           <button
             type='button'
-            aria-label='Close event form'
+            aria-label='סגירת טופס אירוע'
             onClick={() => toggleEventForm()}
             className='rounded-md text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
@@ -98,7 +98,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
           </button>
         </div>
         <div className='p-5'>
-          <h2 className='mb-3 font-semibold text-xl'>Event Information</h2>
+          <h2 className='mb-3 font-semibold text-xl'>פרטי האירוע</h2>
           <div className='grid grid-cols-1 grid-rows-[repeat(6,50px)] gap-5'>
             <AnimatedInputLabel
               id='event-name'
@@ -153,7 +153,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
               className='mt-0.5 h-4 w-4 rounded border-gray-300'
             />
             <div>
-              <span className='font-medium text-sm'>Allow tag-alongs to be invited</span>
+              <span className='font-medium text-sm'>אפשרו הזמנת מלווים</span>
               <p className='text-muted-foreground text-xs'>
                 Tag-alongs (babies, children, etc.) can be invited and RSVP for this event
               </p>

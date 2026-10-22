@@ -18,7 +18,7 @@ export default function GeneralQuestionsSection({
   setPrefillQuestion,
   setShowQuestionForm,
 }: GeneralQuestionsSectionProps) {
-  if (!website) return <div>Could not load questions. Please refresh the page.</div>
+  if (!website) return <div>לא ניתן לטעון שאלות. נא לרענן את העמוד.</div>
   const onAddQuestion = (websiteId: string) => {
     setUseEditMode(false)
     setPrefillQuestion({
@@ -32,7 +32,7 @@ export default function GeneralQuestionsSection({
   }
   return (
     <div className='py-10'>
-      <h1 className='py-2 font-bold text-2xl'>General Questions</h1>
+      <h1 className='py-2 font-bold text-2xl'>שאלות כלליות</h1>
       <p>
         These questions will be asked of all guests that RSVP, regardless of if they say
         &apos;Yes&apos; or &apos;No&apos;
@@ -64,7 +64,7 @@ export default function GeneralQuestionsSection({
         onClick={() => onAddQuestion(website.id)}
       >
         <AiOutlinePlusCircle size={25} color={sharedStyles.primaryColorHex} />
-        <span className={`text-${sharedStyles.primaryColor}`}>Add Another Question</span>
+        <span className={`text-${sharedStyles.primaryColor}`}>הוספת שאלה נוספת</span>
       </button>
     </div>
   )

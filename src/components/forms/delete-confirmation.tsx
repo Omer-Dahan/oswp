@@ -17,7 +17,7 @@ export default function DeleteConfirmation({
   return (
     <SidePaneWrapper>
       <div className='flex h-screen flex-col justify-center gap-3 px-7 text-center'>
-        <h1 className='font-semibold text-xl'>Are you sure?</h1>
+        <h1 className='font-semibold text-xl'>האם אתם בטוחים?</h1>
         {disclaimerText && <p>{disclaimerText}</p>}
         <div className='mt-4 flex gap-5'>
           <button

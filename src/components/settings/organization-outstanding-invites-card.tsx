@@ -116,7 +116,7 @@ async function fetchOutstandingInvitesState(): Promise<
   const invitations = canCreate
     ? await authGet<OrganizationInvitation[]>(
         '/organization/list-invitations',
-        'Unable to load outstanding invitations.'
+        'לא ניתן לטעון הזמנות ממתינות.'
       )
     : []
 
@@ -168,7 +168,7 @@ export function OrganizationOutstandingInvitesCard() {
         setState({
           canCancel: false,
           canCreate: false,
-          error: error instanceof Error ? error.message : 'Unable to load outstanding invitations.',
+          error: error instanceof Error ? error.message : 'לא ניתן לטעון הזמנות ממתינות.',
           hasLoaded: true,
           invitations: [],
           isLoading: false,
@@ -205,7 +205,7 @@ export function OrganizationOutstandingInvitesCard() {
           },
           'Unable to resend invitation.'
         )
-        toast.success('Invitation resent.')
+        toast.success('ההזמנה נשלחה מחדש.')
         loadState()
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Unable to resend invitation.')
@@ -230,7 +230,7 @@ export function OrganizationOutstandingInvitesCard() {
           },
           'Unable to cancel invitation.'
         )
-        toast.success('Invitation canceled.')
+        toast.success('ההזמנה בוטלה.')
         loadState()
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Unable to cancel invitation.')
@@ -289,7 +289,7 @@ export function OrganizationOutstandingInvitesCard() {
               <div className='flex items-start gap-3'>
                 <AlertCircle className='mt-0.5 h-4 w-4 shrink-0 text-destructive' />
                 <div className='space-y-2'>
-                  <p>Unable to load outstanding invitations.</p>
+                  <p>לא ניתן לטעון הזמנות ממתינות.</p>
                   <p className='text-foreground/60'>{state.error}</p>
                 </div>
               </div>

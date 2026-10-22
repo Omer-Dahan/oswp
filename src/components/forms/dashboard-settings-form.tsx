@@ -91,7 +91,7 @@ const Main = ({
   return (
     <>
       <div className='flex justify-between border-b px-8 py-5'>
-        <h1 className='font-bold text-2xl'>Settings</h1>
+        <h1 className='font-bold text-2xl'>הגדרות</h1>
         <button
           type='button'
           className='cursor-pointer'
@@ -101,7 +101,7 @@ const Main = ({
         </button>
       </div>
       <div className='px-8 pb-5'>
-        <h2 className='my-4 font-bold text-2xl'>Visibility</h2>
+        <h2 className='my-4 font-bold text-2xl'>נראות</h2>
         <div className='flex items-center justify-between pb-3'>
           <Label htmlFor='search-engine-toggle' className='text-md'>
             Appear in Search Engines
@@ -119,7 +119,7 @@ const Main = ({
         </p>
       </div>
       <div className='px-8 pb-5'>
-        <h2 className='my-4 font-bold text-2xl'>Privacy</h2>
+        <h2 className='my-4 font-bold text-2xl'>פרטיות</h2>
         <div className='flex items-center justify-between pb-3'>
           <Label htmlFor='password-toggle' className='text-md'>
             Require a Password
@@ -142,7 +142,7 @@ const Main = ({
         {website?.isPasswordEnabled && (
           <div className='pt-5'>
             <div className='flex justify-between pb-2'>
-              <span>Guest Password</span>
+              <span>סיסמת אורחים</span>
               <button
                 type='button'
                 className={`text-${sharedStyles.primaryColor}`}
@@ -157,7 +157,7 @@ const Main = ({
       </div>
       <div className='px-8 pb-5'>
         <div className='flex justify-between'>
-          <h2 className='my-4 font-bold text-2xl'>Your URL</h2>
+          <h2 className='my-4 font-bold text-2xl'>הכתובת שלכם</h2>
           <button
             type='button'
             className={`text-${sharedStyles.primaryColor}`}
@@ -171,7 +171,7 @@ const Main = ({
       <div className='flex items-center justify-center border-t border-b py-10'>
         <div className='flex gap-2'>
           <BsTrash3 size={25} />
-          <span className='text-lg underline'>Deactivate your Wedding Website</span>
+          <span className='text-lg underline'>השבתת אתר החתונה</span>
         </div>
       </div>
     </>

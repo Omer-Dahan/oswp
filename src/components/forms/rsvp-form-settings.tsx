@@ -44,7 +44,7 @@ export default function RsvpFormSettings({
           onClick={() => setShowRsvpSettings(false)}
         >
           <GoArrowLeft size={36} />
-          <span className='font-semibold text-2xl'>Online RSVP</span>
+          <span className='font-semibold text-2xl'>אישור הגעה מקוון</span>
         </button>
       </div>
       <div className='m-auto w-[800px]'>
@@ -117,7 +117,7 @@ const EventRsvpSection = ({ event, numGuests }: EventRsvpSectionProps) => {
       <div className='flex items-center justify-between pb-4'>
         <h2 className='font-bold text-2xl'>{event.name}</h2>
         <div className='flex items-center gap-3'>
-          <span>Collect RSVPs</span>
+          <span>איסוף אישורי הגעה</span>
           {updateEventRsvpSetting.isPending ? (
             <LoadingSpinner size={20} />
           ) : (
@@ -161,12 +161,12 @@ const EventRsvpSection = ({ event, numGuests }: EventRsvpSectionProps) => {
             })}
           </ul>
           <p className='mt-5 text-muted-foreground text-sm'>
-            Event RSVP questions are now managed in the new <b>Events</b> page.
+            Event RSVP questions are now managed in the new <b>אירועים</b> page.
           </p>
         </>
       ) : event.collectRsvp ? (
         <div className='rounded-md border border-dashed p-4 text-muted-foreground text-sm'>
-          No questions configured yet. Use the new <b>Events</b> page to add event RSVP questions.
+          No questions configured yet. Use the new <b>אירועים</b> page to add event RSVP questions.
         </div>
       ) : (
         <NoRsvpView />

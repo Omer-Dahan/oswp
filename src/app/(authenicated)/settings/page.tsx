@@ -23,11 +23,11 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <DashboardTopbar title='Settings' showManagementActions={false} />
+      <DashboardTopbar title='הגדרות' showManagementActions={false} />
       <div className='min-h-0 flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6'>
         <div className='mx-auto max-w-2xl'>
           <div className='mb-6'>
-            <h2 className='font-serif text-foreground text-xl'>Wedding Details</h2>
+            <h2 className='font-serif text-foreground text-xl'>פרטי החתונה</h2>
             <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
               Update your names. Ceremony date and location are managed from Events.
             </p>
@@ -56,7 +56,7 @@ export default async function SettingsPage() {
             )}
             <div className='space-y-3'>
               <div>
-                <h3 className='font-serif text-foreground text-xl'>Plugins</h3>
+                <h3 className='font-serif text-foreground text-xl'>תוספים</h3>
                 <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
                   Turn optional workspace features on and off for your wedding.
                 </p>
@@ -65,7 +65,7 @@ export default async function SettingsPage() {
             </div>
             <div className='space-y-3'>
               <div>
-                <h3 className='font-serif text-foreground text-xl'>Organization Members</h3>
+                <h3 className='font-serif text-foreground text-xl'>חברי הארגון</h3>
                 <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
                   Invite collaborators and manage access to this workspace.
                 </p>
@@ -75,7 +75,7 @@ export default async function SettingsPage() {
             </div>
             <div className='space-y-3'>
               <div>
-                <h3 className='font-serif text-foreground text-xl'>Connected Apps</h3>
+                <h3 className='font-serif text-foreground text-xl'>אפליקציות מחוברות</h3>
                 <p className='mt-1 font-mono text-[0.62rem] text-foreground/55 tracking-wider'>
                   Chat with Etta from other apps.
                 </p>

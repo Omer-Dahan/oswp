@@ -219,7 +219,7 @@ export function OrganizationMembersSettingsCard() {
         setState({
           canInvite: false,
           canUpdateMembers: false,
-          error: error instanceof Error ? error.message : 'Unable to load organization members.',
+          error: error instanceof Error ? error.message : 'לא ניתן לטעון את חברי הארגון.',
           isLoading: false,
           members: [],
           organization: null,
@@ -240,7 +240,7 @@ export function OrganizationMembersSettingsCard() {
         <CardHeader className='pb-2'>
           <div className='flex items-start justify-between gap-3'>
             <div className='space-y-1'>
-              <CardTitle className='font-serif text-foreground text-xl'>Members</CardTitle>
+              <CardTitle className='font-serif text-foreground text-xl'>חברים</CardTitle>
               <CardDescription className='text-foreground/70'>
                 Invite collaborators and manage who can access this wedding workspace.
               </CardDescription>
@@ -295,7 +295,7 @@ export function OrganizationMembersSettingsCard() {
                       },
                       'Unable to remove member.'
                     )
-                    toast.success('Member removed')
+                    toast.success('החבר הוסר')
                     loadOrganizationState()
                     return true
                   } catch (error) {
@@ -314,7 +314,7 @@ export function OrganizationMembersSettingsCard() {
                       { invitationId },
                       'Unable to cancel invitation.'
                     )
-                    toast.success('Invitation canceled')
+                    toast.success('ההזמנה בוטלה')
                     loadOrganizationState()
                   } catch (error) {
                     toast.error(
@@ -382,7 +382,7 @@ function OrganizationMembersErrorState({ error, onRetry }: { error: string; onRe
       <div className='flex items-start gap-3'>
         <AlertCircle className='mt-0.5 h-4 w-4 shrink-0 text-destructive' />
         <div className='space-y-3'>
-          <p>Unable to load organization members.</p>
+          <p>לא ניתן לטעון את חברי הארגון.</p>
           <p className='text-foreground/60'>{error}</p>
           <Button onClick={onRetry} size='sm' type='button' variant='outline'>
             Retry
@@ -484,7 +484,7 @@ function OrganizationMembersList({
       >
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle>Confirm Member Removal</DialogTitle>
+            <DialogTitle>אישור הסרת חבר</DialogTitle>
             <DialogDescription>
               Type delete to confirm removing{' '}
               {memberPendingRemoval?.user?.name ||
@@ -703,7 +703,7 @@ function InviteMemberDialog({
         'Unable to send invitation.'
       )
 
-      toast.success('Invitation sent successfully')
+      toast.success('ההזמנה נשלחה בהצלחה')
       onInviteSent()
       handleOpenChange(false)
     } catch (error) {
@@ -716,7 +716,7 @@ function InviteMemberDialog({
     <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Invite Member</DialogTitle>
+          <DialogTitle>הזמינו חבר</DialogTitle>
           <DialogDescription>
             Send an organization invitation without reloading the page.
           </DialogDescription>
@@ -749,7 +749,7 @@ function InviteMemberDialog({
               value={role}
               onValueChange={(value) => setRole(value as OrganizationRoleOption)}
             >
-              <SelectTrigger id='organization-invite-role' aria-label='Member role'>
+              <SelectTrigger id='organization-invite-role' aria-label='תפקיד חבר'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -819,7 +819,7 @@ function EditMemberRoleDialog({
         'Unable to update member role.'
       )
 
-      toast.success('Member role updated')
+      toast.success('תפקיד החבר עודכן')
       onRoleUpdated()
       onOpenChange(false)
     } catch (error) {
@@ -832,7 +832,7 @@ function EditMemberRoleDialog({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Edit Role</DialogTitle>
+          <DialogTitle>ערכו תפקיד</DialogTitle>
           <DialogDescription>
             Update the organization role for{' '}
             {member.user?.name || member.user?.email || 'this member'}.
@@ -850,7 +850,7 @@ function EditMemberRoleDialog({
               value={role}
               onValueChange={(value) => setRole(value as OrganizationRoleOption)}
             >
-              <SelectTrigger id='organization-member-role' aria-label='Member role'>
+              <SelectTrigger id='organization-member-role' aria-label='תפקיד חבר'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

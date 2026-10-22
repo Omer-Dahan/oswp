@@ -135,10 +135,10 @@ export default function QuestionForm({
         className='pb-32'
       >
         <div className='flex justify-between border-b p-5'>
-          <h1 className='font-semibold text-xl'>Add Question</h1>
+          <h1 className='font-semibold text-xl'>הוספת שאלה</h1>
           <button
             type='button'
-            aria-label='Close question form'
+            aria-label='סגירת טופס שאלה'
             onClick={() => setShowQuestionForm(false)}
             className='rounded-md text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
@@ -169,7 +169,7 @@ export default function QuestionForm({
                 onChange={() => setQuestionType('Text')}
                 className='h-6 w-6'
               />
-              <label htmlFor='short-answer'>Short Answer</label>
+              <label htmlFor='short-answer'>תשובה קצרה</label>
             </div>
             <div className='flex items-center gap-2'>
               <input
@@ -179,7 +179,7 @@ export default function QuestionForm({
                 onChange={() => setQuestionType('Option')}
                 className='h-6 w-6'
               />
-              <label htmlFor='multiple-choice'>Multiple Choice</label>
+              <label htmlFor='multiple-choice'>בחירה מרובה</label>
             </div>
           </div>
         </div>

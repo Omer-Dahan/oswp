@@ -53,7 +53,7 @@ export default function QuestionOption({
           handleOnChange={handleOnChange}
         />
         <textarea
-          placeholder='Description'
+          placeholder='תיאור'
           value={option.description}
           onChange={(e) => handleOnChange({ field: 'description', inputValue: e.target.value })}
           className='h-24 w-full rounded-lg border p-3 text-sm'

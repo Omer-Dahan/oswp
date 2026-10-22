@@ -14,7 +14,7 @@ export default function NoQuestionsView({
   const numGuests = attending + invited + declined
   return (
     <div className='flex flex-col gap-3 border-2 border-dashed p-5'>
-      <b>Need to collect additional guest info?</b>
+      <b>צריכים לאסוף מידע נוסף על האורחים?</b>
       <p>
         Add questions that all {numGuests} guest(s) on your{' '}
         <b className='underline'>{event.name}</b> list will see when they RSVP &apos;Yes!&apos; on
@@ -26,7 +26,7 @@ export default function NoQuestionsView({
         onClick={() => onAddQuestion(event.id)}
       >
         <AiOutlinePlusCircle size={25} color={sharedStyles.primaryColorHex} />
-        <span className={`text-${sharedStyles.primaryColor}`}>Add a Follow-Up Question</span>
+        <span className={`text-${sharedStyles.primaryColor}`}>הוספת שאלת המשך</span>
       </button>
     </div>
   )
