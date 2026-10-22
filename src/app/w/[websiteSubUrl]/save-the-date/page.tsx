@@ -36,12 +36,15 @@ const formatGuestName = (guest: { firstName: string; lastName: string }) =>
 const formatEventDateRange = (first: Date, last: Date, locale: string) => {
   // Event dates come from a `@db.Date` column (midnight UTC), so format in UTC to
   // show the day the couple entered regardless of the viewer's timezone.
-  const dateFormatter = new Intl.DateTimeFormat(locale === 'es' ? 'es' : 'en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    timeZone: 'UTC',
-  })
+  const dateFormatter = new Intl.DateTimeFormat(
+    locale === 'he' ? 'he-IL' : locale === 'es' ? 'es' : 'en-US',
+    {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }
+  )
 
   return first.getTime() === last.getTime()
     ? dateFormatter.format(first)

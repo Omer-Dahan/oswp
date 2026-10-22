@@ -6,7 +6,11 @@ import type { TemplateSurfaceProps } from '~/templates/types'
 
 const headingFont = 'font-[family-name:var(--tpl-heading-font)]'
 
-export async function AureliaInvitation({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+export async function AureliaInvitation({
+  weddingData,
+  path,
+  locale,
+}: Readonly<TemplateSurfaceProps>) {
   const t = await getTranslations('template')
   const { website } = weddingData
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
@@ -42,7 +46,9 @@ export async function AureliaInvitation({ weddingData, path }: Readonly<Template
             {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
           </p>
           {weddingEvent?.date && (
-            <p className='text-muted-foreground text-sm'>{formatDateStandard(weddingEvent.date)}</p>
+            <p className='text-muted-foreground text-sm'>
+              {formatDateStandard(weddingEvent.date, locale)}
+            </p>
           )}
           {weddingEvent?.startTime && (
             <p className='text-muted-foreground text-sm'>

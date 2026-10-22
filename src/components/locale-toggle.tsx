@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
 
-const NEXT_LOCALE = { en: 'he', he: 'es', es: 'en' } as const
+const NEXT_LOCALE = { en: 'he', he: 'en' } as const
 
-const LOCALE_LABEL = { en: 'English', he: 'עברית', es: 'Español' } as const
+const LOCALE_LABEL = { en: 'EN', he: 'עברית' } as const
 
 export function LocaleToggle() {
   const locale = useLocale()

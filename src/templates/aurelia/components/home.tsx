@@ -9,7 +9,12 @@ import type { TemplateSurfaceProps } from '~/templates/types'
 
 const headingFont = 'font-[family-name:var(--tpl-heading-font)]'
 
-export async function AureliaHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+export async function AureliaHome({
+  weddingData,
+  path,
+  introText,
+  locale,
+}: Readonly<TemplateSurfaceProps>) {
   const t = await getTranslations('template')
   const { website } = weddingData
 
@@ -87,7 +92,7 @@ export async function AureliaHome({ weddingData, path, introText }: Readonly<Tem
               <h3 className={`${headingFont} text-3xl text-primary italic`}>{event.name}</h3>
               {!!event.date && (
                 <span className='text-muted-foreground text-sm uppercase tracking-[0.2em]'>
-                  {formatDateStandard(event.date)}
+                  {formatDateStandard(event.date, locale)}
                 </span>
               )}
               {!!event.startTime && (

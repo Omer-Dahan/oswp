@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server'
+import { getLocale } from 'next-intl/server'
 
 import { calculateDaysRemaining, formatDateNumber } from '~/app/utils/helpers'
 import { deriveWeddingSubUrl } from '~/lib/website-slug'
@@ -215,6 +216,7 @@ export class WebsiteManagementService {
         message: 'Failed to fetch wedding data.',
       })
     }
+    const locale = await getLocale()
     const weddingDate = events.find((event) => event.name === 'Wedding Day')?.date
     const homeSection = sections.find((section) => section.type === WebsiteSectionType.HOME)
     const homeContent =
@@ -259,7 +261,7 @@ export class WebsiteManagementService {
       brideFirstName: wedding.brideFirstName,
       brideLastName: wedding.brideLastName,
       date: {
-        standardFormat: weddingDate?.toLocaleDateString('en-us', {
+        standardFormat: weddingDate?.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-us', {
           weekday: 'long',
           year: 'numeric',
           month: 'short',

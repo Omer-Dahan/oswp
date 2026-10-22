@@ -15,10 +15,12 @@ export function VoyageWeekend({
   events,
   path,
   summary = false,
+  locale,
 }: {
   events: VoyageEvent[]
   path: string
   summary?: boolean
+  locale?: string
 }) {
   const sorted = orderedEvents(events)
   return (
@@ -53,7 +55,7 @@ export function VoyageWeekend({
                 <p className={`${labelFont} text-primary text-xs uppercase tracking-widest`}>
                   {event.date ? (
                     <time dateTime={event.date.toISOString().slice(0, 10)}>
-                      {eventDate(event.date)}
+                      {eventDate(event.date, locale)}
                     </time>
                   ) : (
                     'Date to be announced'

@@ -83,16 +83,22 @@ export function VoyageContentPage({
   weddingData,
   path,
   page,
+  locale,
 }: TemplateSurfaceProps & { page: VoyagePage }) {
   return (
     <VoyageSiteShell weddingData={weddingData} path={path} current={page}>
       <VoyagePageHeading {...voyagePages[page]} path={path} />
-      <PageContent weddingData={weddingData} path={path} page={page} />
+      <PageContent weddingData={weddingData} path={path} page={page} locale={locale} />
     </VoyageSiteShell>
   )
 }
 
-function PageContent({ weddingData, path, page }: TemplateSurfaceProps & { page: VoyagePage }) {
+function PageContent({
+  weddingData,
+  path,
+  page,
+  locale,
+}: TemplateSurfaceProps & { page: VoyagePage }) {
   const { sections, events, website } = weddingData
   const travel = sectionOf(sections, 'TRAVEL')
   switch (page) {
@@ -107,7 +113,7 @@ function PageContent({ weddingData, path, page }: TemplateSurfaceProps & { page:
               { label: 'Wedding transport', href: '/weekend#wedding-transport' },
             ]}
           />
-          <VoyageWeekend events={events} path={path} />
+          <VoyageWeekend events={events} path={path} locale={locale} />
           <Band id='wedding-transport' tone='cream'>
             <div className='mx-auto max-w-3xl space-y-4'>
               <h2 className={`${headingFont} text-4xl`}>Getting to the celebrations</h2>
@@ -158,7 +164,7 @@ function PageContent({ weddingData, path, page }: TemplateSurfaceProps & { page:
               <Eyebrow>Plan your journey</Eyebrow>
               <h2 className={`${headingFont} text-4xl`}>When to travel</h2>
               <p className={`${bodyFont} text-xl`}>
-                {eventDateRange(events) || 'Event dates will be shared here once confirmed.'}
+                {eventDateRange(events, locale) || 'Event dates will be shared here once confirmed.'}
               </p>
               <p className={`${bodyFont} text-lg text-muted-foreground leading-8`}>
                 Allow time to settle in before your first event, and leave enough time for your

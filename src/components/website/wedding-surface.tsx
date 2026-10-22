@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
 import type { WeddingPageData } from '~/server/domains/website/website.types'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
 
@@ -17,7 +18,7 @@ type WeddingSurfaceProps = {
  * builder, so they 404 when the plugin is disabled — only the minimal home page
  * remains public in that state.
  */
-export default function WeddingSurface({
+export default async function WeddingSurface({
   websiteSubUrl,
   weddingData,
   surface,
@@ -28,12 +29,13 @@ export default function WeddingSurface({
 
   const path = `/w/${websiteSubUrl}`
   const introText = weddingData.website.introText.trim() ? weddingData.website.introText : undefined
+  const locale = await getLocale()
   const template = resolveTemplate(weddingData.website.templateId)
   const Surface = template.components[surface]
 
   return (
     <TemplateThemeProvider template={template}>
-      <Surface weddingData={weddingData} path={path} introText={introText} />
+      <Surface weddingData={weddingData} path={path} introText={introText} locale={locale} />
     </TemplateThemeProvider>
   )
 }

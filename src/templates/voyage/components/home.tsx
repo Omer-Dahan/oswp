@@ -29,7 +29,12 @@ import { VoyageSiteShell } from '~/templates/voyage/components/site-shell'
 import { VoyageWeekend } from '~/templates/voyage/components/weekend'
 import { coupleIdentity, eventDateRange, flightDates, sectionOf } from '~/templates/voyage/site'
 
-export function VoyageHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+export function VoyageHome({
+  weddingData,
+  path,
+  introText,
+  locale,
+}: Readonly<TemplateSurfaceProps>) {
   const { website } = weddingData
   const { coupleNames } = coupleIdentity(weddingData)
   const destination = sectionOf(weddingData.sections, 'DESTINATION')
@@ -41,7 +46,7 @@ export function VoyageHome({ weddingData, path, introText }: Readonly<TemplateSu
   )?.answer
   const location = destination?.content.location ?? null
   const heroUrl = website.headerImageUrl ?? website.coverPhotoUrl ?? null
-  const dateLabel = eventDateRange(weddingData.events) ?? weddingData.date?.standardFormat
+  const dateLabel = eventDateRange(weddingData.events, locale) ?? weddingData.date?.standardFormat
   const heroHeadline = website.headline?.trim()
   const heroHeadlineAccent = website.headlineAccent?.trim()
   const rsvpHref = website.isRsvpEnabled ? `${path}/rsvp` : undefined
@@ -135,7 +140,7 @@ export function VoyageHome({ weddingData, path, introText }: Readonly<TemplateSu
         </div>
       </nav>
       {destination ? <VoyageDestination content={destination.content} /> : null}
-      <VoyageWeekend events={weddingData.events} path={path} summary />
+      <VoyageWeekend events={weddingData.events} path={path} locale={locale} summary />
       {story?.content.body ? (
         <Band tone='cream'>
           <div className='grid items-center gap-10 md:grid-cols-2'>
