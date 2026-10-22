@@ -16,11 +16,31 @@ export const authOrganizationRoles = organizationRoles
 
 const appBaseUrl = env.NEXT_PUBLIC_APP_URL ?? `http://localhost:${env.PORT ?? '3000'}`
 const localTrustedHostnames = new Set(['127.0.0.1', '::1', 'localhost'])
+
+// RFC1918 private-network ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.
+// Self-hosted deployments are often reached over a LAN IP rather than a public domain.
+function isPrivateNetworkHostname(hostname: string): boolean {
+  const match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(hostname)
+  if (!match) return false
+
+  const octets = match.slice(1, 5).map(Number)
+  if (octets.some((octet) => octet < 0 || octet > 255)) return false
+
+  const [a, b] = octets as [number, number, number, number]
+  return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+}
+
+const extraTrustedOrigins = (env.EXTRA_TRUSTED_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
 const staticTrustedOrigins = [
   'https://oswp.carvallo.io',
   'https://scv-teal.vercel.app',
   ...(env.VERCEL_URL ? [`https://${env.VERCEL_URL}`] : []),
   ...(env.VERCEL_BRANCH_URL ? [`https://${env.VERCEL_BRANCH_URL}`] : []),
+  ...extraTrustedOrigins,
   new URL(appBaseUrl).origin,
 ]
 
@@ -30,7 +50,10 @@ export function resolveTrustedOrigins(requestUrl?: string): string[] {
   if (requestUrl) {
     try {
       const requestOrigin = new URL(requestUrl)
-      if (localTrustedHostnames.has(requestOrigin.hostname)) {
+      if (
+        localTrustedHostnames.has(requestOrigin.hostname) ||
+        isPrivateNetworkHostname(requestOrigin.hostname)
+      ) {
         origins.add(requestOrigin.origin)
       }
     } catch {
