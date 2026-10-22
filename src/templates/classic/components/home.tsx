@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
@@ -6,7 +7,8 @@ import { ClassicNavbar } from '~/templates/classic/components/navbar'
 import { ClassicSections } from '~/templates/classic/components/sections'
 import type { TemplateSurfaceProps } from '~/templates/types'
 
-export function ClassicHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+export async function ClassicHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+  const t = await getTranslations('template')
   const { website } = weddingData
 
   return (
@@ -17,10 +19,10 @@ export function ClassicHome({ weddingData, path, introText }: Readonly<TemplateS
           {weddingData.brideFirstName} & {weddingData.groomFirstName}
         </h1>
         <span className='text-lg'>
-          {weddingData.date?.standardFormat ?? 'Date To Be Announced'}
+          {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
         </span>
         {weddingData.daysRemaining > 0 && (
-          <p className='text-lg'>{weddingData.daysRemaining} Days To Go!</p>
+          <p className='text-lg'>{t('classic.daysToGo', { days: weddingData.daysRemaining })}</p>
         )}
         <ClassicNavbar path={path} isRsvpEnabled={website.isRsvpEnabled} />
         {website.isRsvpEnabled && (
@@ -28,7 +30,7 @@ export function ClassicHome({ weddingData, path, introText }: Readonly<TemplateS
             href={`${path}/rsvp`}
             className='rounded-sm bg-primary px-6 py-3 text-primary-foreground tracking-widest hover:bg-pink-500 hover:underline'
           >
-            RSVP
+            {t('common.rsvp')}
           </Link>
         )}
       </div>
@@ -41,7 +43,7 @@ export function ClassicHome({ weddingData, path, introText }: Readonly<TemplateS
             sizes='(max-width: 768px) 100vw, 80vw'
             priority
             className='object-contain'
-            alt='Website Cover Photo'
+            alt={t('common.websiteCoverAlt')}
           />
         </div>
       )}
@@ -76,7 +78,7 @@ export function ClassicHome({ weddingData, path, introText }: Readonly<TemplateS
           {weddingData.brideFirstName?.[0] ?? 'B'} & {weddingData.groomFirstName?.[0] ?? 'G'}
         </h2>
         <p className='mt-4 text-lg tracking-widest'>
-          {weddingData.date.numberFormat?.toString() ?? 'Date To Be Announced'}
+          {weddingData.date.numberFormat?.toString() ?? t('common.dateToBeAnnounced')}
         </p>
       </div>
     </main>

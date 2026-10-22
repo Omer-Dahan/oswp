@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
@@ -8,7 +9,8 @@ import type { TemplateSurfaceProps } from '~/templates/types'
 
 const headingFont = 'font-[family-name:var(--tpl-heading-font)]'
 
-export function AureliaHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+export async function AureliaHome({ weddingData, path, introText }: Readonly<TemplateSurfaceProps>) {
+  const t = await getTranslations('template')
   const { website } = weddingData
 
   return (
@@ -24,7 +26,7 @@ export function AureliaHome({ weddingData, path, introText }: Readonly<TemplateS
           className='absolute top-10 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/15 to-accent/15 blur-3xl'
         />
         <p className='text-[0.7rem] text-accent uppercase tracking-[0.45em]'>
-          We're getting married
+          {t('common.gettingMarried')}
         </p>
         <h1 className={`${headingFont} text-6xl text-foreground italic leading-tight sm:text-7xl`}>
           {weddingData.brideFirstName}
@@ -34,13 +36,13 @@ export function AureliaHome({ weddingData, path, introText }: Readonly<TemplateS
         <div className='flex items-center gap-4 text-muted-foreground'>
           <span className='h-px w-12 bg-border' />
           <span className='text-sm uppercase tracking-[0.3em]'>
-            {weddingData.date?.standardFormat ?? 'Date To Be Announced'}
+            {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
           </span>
           <span className='h-px w-12 bg-border' />
         </div>
         {weddingData.daysRemaining > 0 && (
           <p className='text-muted-foreground text-sm tracking-[0.2em]'>
-            {weddingData.daysRemaining} days to go
+            {t('aurelia.daysToGo', { days: weddingData.daysRemaining })}
           </p>
         )}
         <AureliaNavbar path={path} isRsvpEnabled={website.isRsvpEnabled} />
@@ -49,7 +51,7 @@ export function AureliaHome({ weddingData, path, introText }: Readonly<TemplateS
             href={`${path}/rsvp`}
             className='mt-2 rounded-full bg-primary px-9 py-3 text-[0.72rem] text-primary-foreground uppercase tracking-[0.3em] shadow-sm transition-colors hover:bg-accent'
           >
-            RSVP
+            {t('common.rsvp')}
           </Link>
         )}
       </section>
@@ -62,7 +64,7 @@ export function AureliaHome({ weddingData, path, introText }: Readonly<TemplateS
             sizes='(max-width: 768px) 100vw, 80vw'
             priority
             className='object-cover'
-            alt='Website Cover Photo'
+            alt={t('common.websiteCoverAlt')}
           />
         </div>
       )}
@@ -112,7 +114,7 @@ export function AureliaHome({ weddingData, path, introText }: Readonly<TemplateS
         </p>
         <span className='h-px w-16 bg-border' />
         <p className='text-muted-foreground text-sm tracking-[0.3em]'>
-          {weddingData.date.numberFormat?.toString() ?? 'Date To Be Announced'}
+          {weddingData.date.numberFormat?.toString() ?? t('common.dateToBeAnnounced')}
         </p>
       </section>
     </main>

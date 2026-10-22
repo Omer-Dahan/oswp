@@ -4,12 +4,14 @@
  * Aurelia's soft, rounded, bordered styling.
  */
 
+import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 
-export function AureliaHeaderImage({ url }: { url: string | null }) {
+export async function AureliaHeaderImage({ url }: { url: string | null }) {
   if (!url) {
     return null
   }
+  const t = await getTranslations('template')
   return (
     <div className='relative aspect-[3/1] w-full max-w-4xl overflow-hidden rounded-[28px] border border-border shadow-sm'>
       <Image
@@ -18,16 +20,17 @@ export function AureliaHeaderImage({ url }: { url: string | null }) {
         priority
         sizes='(max-width: 768px) 100vw, 80vw'
         className='object-cover object-center'
-        alt='Wedding header'
+        alt={t('common.weddingHeaderAlt')}
       />
     </div>
   )
 }
 
-export function AureliaCoupleGallery({ urls }: { urls: string[] }) {
+export async function AureliaCoupleGallery({ urls }: { urls: string[] }) {
   if (urls.length === 0) {
     return null
   }
+  const t = await getTranslations('template')
   return (
     <section className='grid w-full max-w-4xl gap-4 sm:grid-cols-3'>
       {urls.map((url) => (
@@ -40,7 +43,7 @@ export function AureliaCoupleGallery({ urls }: { urls: string[] }) {
             fill
             sizes='(max-width: 768px) 50vw, 33vw'
             className='object-cover'
-            alt='The couple'
+            alt={t('common.theCoupleAlt')}
           />
         </div>
       ))}

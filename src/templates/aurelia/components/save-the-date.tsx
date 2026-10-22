@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { AddToCalendarButtons } from '~/components/website/add-to-calendar-buttons'
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
@@ -6,7 +7,8 @@ import type { TemplateSurfaceProps } from '~/templates/types'
 
 const headingFont = 'font-[family-name:var(--tpl-heading-font)]'
 
-export function AureliaSaveTheDate({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+export async function AureliaSaveTheDate({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+  const t = await getTranslations('template')
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
   const venue = weddingEvent?.venue
   const copy = weddingData.saveTheDate
@@ -26,7 +28,7 @@ export function AureliaSaveTheDate({ weddingData, path }: Readonly<TemplateSurfa
       />
       <AureliaHeaderImage url={weddingData.website.headerImageUrl} />
       <p className='text-[0.7rem] text-accent uppercase tracking-[0.45em]'>
-        {copy?.eyebrow ?? 'Save the Date'}
+        {copy?.eyebrow ?? t('common.saveTheDateLabel')}
       </p>
       <h1 className={`${headingFont} text-6xl text-foreground italic sm:text-7xl`}>
         {weddingData.brideFirstName}
@@ -36,14 +38,14 @@ export function AureliaSaveTheDate({ weddingData, path }: Readonly<TemplateSurfa
       <div className='flex items-center gap-4 text-muted-foreground'>
         <span className='h-px w-12 bg-border' />
         <span className='text-sm uppercase tracking-[0.3em]'>
-          {weddingData.date?.standardFormat ?? 'Date To Be Announced'}
+          {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
         </span>
         <span className='h-px w-12 bg-border' />
       </div>
       {venue ? <p className='text-foreground text-sm uppercase tracking-[0.3em]'>{venue}</p> : null}
       {weddingData.daysRemaining > 0 && (
         <p className='text-muted-foreground text-sm tracking-[0.2em]'>
-          {weddingData.daysRemaining} days to go
+          {t('aurelia.daysToGo', { days: weddingData.daysRemaining })}
         </p>
       )}
       {copy?.message ? (
@@ -52,14 +54,14 @@ export function AureliaSaveTheDate({ weddingData, path }: Readonly<TemplateSurfa
         </p>
       ) : null}
       <p className='text-muted-foreground text-sm'>
-        {copy?.footnote ?? 'Formal invitation to follow.'}
+        {copy?.footnote ?? t('common.formalInvitationNote')}
       </p>
       {calendarLinks ? <AddToCalendarButtons {...calendarLinks} /> : null}
       <Link
         href={path}
         className='text-[0.72rem] text-primary uppercase tracking-[0.3em] underline-offset-4 hover:underline'
       >
-        Visit our website
+        {t('common.visitWebsite')}
       </Link>
     </main>
   )

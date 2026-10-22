@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
 import { AureliaHeaderImage } from '~/templates/aurelia/components/media'
@@ -5,7 +6,8 @@ import type { TemplateSurfaceProps } from '~/templates/types'
 
 const headingFont = 'font-[family-name:var(--tpl-heading-font)]'
 
-export function AureliaInvitation({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+export async function AureliaInvitation({ weddingData, path }: Readonly<TemplateSurfaceProps>) {
+  const t = await getTranslations('template')
   const { website } = weddingData
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
   const copy = weddingData.invitation
@@ -15,17 +17,17 @@ export function AureliaInvitation({ weddingData, path }: Readonly<TemplateSurfac
       <AureliaHeaderImage url={website.headerImageUrl} />
       <div className='flex w-full max-w-xl flex-col items-center gap-6 rounded-[28px] border border-border bg-card px-10 py-16 text-center text-card-foreground shadow-sm'>
         <p className='text-muted-foreground text-sm'>
-          {copy?.preface ?? 'Together with their families'}
+          {copy?.preface ?? t('common.together')}
         </p>
         <h1 className={`${headingFont} text-4xl text-foreground italic sm:text-5xl`}>
           {weddingData.brideFirstName} {weddingData.brideLastName}
         </h1>
-        <p className='text-muted-foreground text-xl italic'>and</p>
+        <p className='text-muted-foreground text-xl italic'>{t('common.and')}</p>
         <h1 className={`${headingFont} text-4xl text-foreground italic sm:text-5xl`}>
           {weddingData.groomFirstName} {weddingData.groomLastName}
         </h1>
         <p className='mt-2 text-muted-foreground text-sm'>
-          {copy?.invitationLine ?? 'request the pleasure of your company'}
+          {copy?.invitationLine ?? t('common.invitationLine')}
         </p>
         {copy?.message ? (
           <p className='whitespace-pre-line text-muted-foreground text-sm leading-7'>
@@ -37,7 +39,7 @@ export function AureliaInvitation({ weddingData, path }: Readonly<TemplateSurfac
 
         <div className='flex flex-col gap-2'>
           <p className='text-foreground text-lg uppercase tracking-[0.2em]'>
-            {weddingData.date?.standardFormat ?? 'Date To Be Announced'}
+            {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
           </p>
           {weddingEvent?.date && (
             <p className='text-muted-foreground text-sm'>{formatDateStandard(weddingEvent.date)}</p>
@@ -60,7 +62,7 @@ export function AureliaInvitation({ weddingData, path }: Readonly<TemplateSurfac
             href={`${path}/rsvp`}
             className='mt-6 rounded-full bg-primary px-9 py-3 text-[0.72rem] text-primary-foreground uppercase tracking-[0.3em] transition-colors hover:bg-accent'
           >
-            RSVP
+            {t('common.rsvp')}
           </Link>
         )}
       </div>
