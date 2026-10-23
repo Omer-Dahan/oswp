@@ -32,7 +32,7 @@ export async function AureliaSaveTheDate({ weddingData, path }: Readonly<Templat
       </p>
       <h1 className={`${headingFont} text-6xl text-foreground italic sm:text-7xl`}>
         {weddingData.brideFirstName}
-        <span className='mx-3 font-light text-primary not-italic'>&</span>
+        <span className='mx-3 inline-block -translate-y-[0.08em] align-middle font-light text-[0.83em] text-primary not-italic'>&</span>
         {weddingData.groomFirstName}
       </h1>
       <div className='flex items-center gap-4 text-muted-foreground'>

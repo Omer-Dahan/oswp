@@ -9,16 +9,15 @@
  */
 
 import {
-  Assistant,
   Cormorant_Garamond,
   Crimson_Text,
   EB_Garamond,
-  Frank_Ruhl_Libre,
   Great_Vibes,
   Jost,
   Mulish,
   Playfair_Display,
 } from 'next/font/google'
+import localFont from 'next/font/local'
 
 /** Classic template — warm editorial serif (matches the original hardcoded site). */
 export const classicSerif = Crimson_Text({
@@ -83,18 +82,37 @@ export const voyageScript = Great_Vibes({
   display: 'swap',
 })
 
-/** Hebrew guest site — editorial serif for headings. */
-export const hebrewSerif = Frank_Ruhl_Libre({
-  subsets: ['hebrew'],
-  weight: ['400', '500', '700'],
+/**
+ * Hebrew guest site — Fontbit typefaces (local .otf, Hebrew + Latin, regular weight).
+ * `hebrewSerif` is the display face for headings, `hebrewSans` the reading face for
+ * body copy and forms, and `hebrewAlt` is kept wired so the couple can switch the
+ * display or text face in one place without touching any component.
+ */
+export const hebrewSerif = localFont({
+  src: './fonts/FbPlonter-Regular.otf',
+  weight: '400',
   variable: '--tpl-hebrew-serif',
   display: 'swap',
 })
 
-/** Hebrew guest site — clean sans for body copy and forms. */
-export const hebrewSans = Assistant({
-  subsets: ['hebrew'],
-  weight: ['300', '400', '600'],
+export const hebrewSans = localFont({
+  src: './fonts/FbMesheq-Regular.otf',
+  weight: '400',
   variable: '--tpl-hebrew-sans',
+  display: 'swap',
+})
+
+export const hebrewAlt = localFont({
+  src: './fonts/FbMaarav-Regular.otf',
+  weight: '400',
+  variable: '--tpl-hebrew-alt',
+  display: 'swap',
+})
+
+/** Light display face (BarLev AAA Light) — an airier alternative for large headings. */
+export const hebrewLight = localFont({
+  src: './fonts/BarLevAAA-Light.otf',
+  weight: '300',
+  variable: '--tpl-hebrew-light',
   display: 'swap',
 })

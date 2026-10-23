@@ -33,13 +33,13 @@ export function WebsitePasswordCard({ initialIsPasswordEnabled }: WebsitePasswor
       setIsEnabled(website.isPasswordEnabled)
       setPassword('')
       toast.success(
-        website.isPasswordEnabled ? 'Password protection is on' : 'Password protection is off'
+        website.isPasswordEnabled ? 'הגנת הסיסמה הופעלה' : 'הגנת הסיסמה כובתה'
       )
       router.refresh()
     },
     onError: (error) => {
-      toast.error('Could not update password protection', {
-        description: error.message ?? 'Please try again later.',
+      toast.error('לא ניתן לעדכן את הגנת הסיסמה', {
+        description: error.message ?? 'נסו שוב מאוחר יותר.',
       })
     },
   })
@@ -59,7 +59,7 @@ export function WebsitePasswordCard({ initialIsPasswordEnabled }: WebsitePasswor
   const handleSavePassword = () => {
     const trimmed = password.trim()
     if (!trimmed) {
-      toast.error('Choose a password to protect your site')
+      toast.error('בחרו סיסמה כדי להגן על האתר')
       return
     }
     updateWebsite.mutate({ isPasswordEnabled: true, password: trimmed })
@@ -69,21 +69,21 @@ export function WebsitePasswordCard({ initialIsPasswordEnabled }: WebsitePasswor
     <Card className='border-border/80 bg-card/80'>
       <CardHeader className='space-y-3'>
         <p className='font-mono text-[0.62rem] text-foreground/45 uppercase tracking-[0.18em]'>
-          Privacy
+          פרטיות
         </p>
         <CardTitle className='flex items-center gap-2 font-serif text-2xl text-foreground'>
           <Lock aria-hidden='true' className='h-5 w-5' />
-          Password protection
+          הגנת סיסמה
         </CardTitle>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          Require a password before guests can view your main wedding page. Guests who open their
-          save-the-date or invite link are recognised automatically and won&apos;t be asked for it.
+          דרשו סיסמה לפני שאורחים יוכלו לצפות בעמוד החתונה הראשי. אורחים שפותחים את קישור
+          ״שמרו את התאריך״ או ההזמנה שלהם מזוהים אוטומטית ולא יתבקשו להזין אותה.
         </p>
       </CardHeader>
       <CardContent className='space-y-5'>
         <div className='flex items-center justify-between gap-4'>
           <Label htmlFor='website-password-toggle' className='font-medium text-foreground text-sm'>
-            Require a password
+            נדרשת סיסמה
           </Label>
           <Switch
             id='website-password-toggle'
@@ -96,7 +96,7 @@ export function WebsitePasswordCard({ initialIsPasswordEnabled }: WebsitePasswor
         {isEnabled ? (
           <div className='space-y-2'>
             <Label htmlFor='website-password-input' className='text-foreground/80 text-sm'>
-              {initialIsPasswordEnabled ? 'Update guest password' : 'Set a guest password'}
+              {initialIsPasswordEnabled ? 'עדכון סיסמת האורחים' : 'הגדרת סיסמת אורחים'}
             </Label>
             <div className='flex flex-wrap items-center gap-2'>
               <Input
@@ -104,25 +104,25 @@ export function WebsitePasswordCard({ initialIsPasswordEnabled }: WebsitePasswor
                 type='text'
                 autoComplete='off'
                 spellCheck={false}
-                placeholder='e.g. ForeverTogether'
+                placeholder='למשל ForeverTogether'
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className='max-w-xs'
               />
               <Button type='button' onClick={handleSavePassword} disabled={isSaving}>
-                {isSaving ? 'Saving…' : 'Save password'}
+                {isSaving ? 'שומר…' : 'שמירת סיסמה'}
               </Button>
             </div>
             <p className='font-mono text-[0.58rem] text-foreground/45 tracking-wider'>
-              Pick something easy for guests to remember and for you to share.
+              בחרו סיסמה שקל לאורחים לזכור ולכם לשתף.
               {initialIsPasswordEnabled
-                ? ' Saving a new password replaces the old one for everyone.'
+                ? ' שמירת סיסמה חדשה מחליפה את הישנה עבור כולם.'
                 : ''}
             </p>
           </div>
         ) : (
           <p className='font-sans text-muted-foreground text-sm'>
-            Anyone with the link can currently view your site.
+            כרגע כל מי שיש לו את הקישור יכול לצפות באתר.
           </p>
         )}
       </CardContent>

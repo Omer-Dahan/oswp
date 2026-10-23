@@ -23,8 +23,8 @@ export default function EditUrlView({ setShowEditUrlView, websiteUrl }: EditUrlV
       router.refresh()
     },
     onError: (err) => {
-      toast.error('Failed to update website URL', {
-        description: err.message ?? 'Please try again later.',
+      toast.error('עדכון כתובת האתר נכשל', {
+        description: err.message ?? 'נסו שוב מאוחר יותר.',
       })
     },
   })
@@ -74,7 +74,7 @@ export default function EditUrlView({ setShowEditUrlView, websiteUrl }: EditUrlV
             })
           }
         >
-          {updateWebsite.isPending ? 'Processing...' : 'Save'}
+          {updateWebsite.isPending ? 'מעבד...' : 'שמירה'}
         </button>
       </div>
     </div>

@@ -41,7 +41,7 @@ export function UpcomingPayments({ categories, currency }: Readonly<UpcomingPaym
         <h2 className='font-serif text-foreground text-lg'>תשלומים קרובים</h2>
         {overdueCount > 0 ? (
           <Badge variant='outline' className='border-destructive/40 text-[0.6rem] text-destructive'>
-            {overdueCount} overdue
+            {overdueCount} באיחור
           </Badge>
         ) : null}
       </div>
@@ -62,7 +62,7 @@ export function UpcomingPayments({ categories, currency }: Readonly<UpcomingPaym
               <span
                 className={`text-xs ${payment.overdue ? 'text-destructive' : 'text-muted-foreground'}`}
               >
-                {payment.overdue ? 'Overdue · ' : 'Due '}
+                {payment.overdue ? 'באיחור · ' : 'לתשלום עד '}
                 {payment.dueAt.toLocaleDateString()}
               </span>
             </div>
@@ -76,7 +76,7 @@ export function UpcomingPayments({ categories, currency }: Readonly<UpcomingPaym
           onClick={() => setShowAll((prev) => !prev)}
           className='mt-3 font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest transition-colors hover:text-foreground'
         >
-          {showAll ? 'Show less' : `+${payments.length - MAX_VISIBLE} more — show all`}
+          {showAll ? 'הצגת פחות' : `+${payments.length - MAX_VISIBLE} נוספים — הצגת הכול`}
         </button>
       ) : null}
     </section>

@@ -16,7 +16,7 @@ function GuestCardsListComponent({
   households,
   onSelectHousehold,
   selectedHouseholdId,
-  emptyMessage = 'No households yet',
+  emptyMessage = 'אין משקי בית עדיין',
   allTags = [],
 }: Readonly<GuestCardsListProps>) {
   if (households.length === 0) {

@@ -22,11 +22,11 @@ export function TemplatePicker({ templates, currentTemplateId }: TemplatePickerP
   const updateTemplate = api.website.updateTemplate.useMutation({
     onError: () => {
       setSelectedId(currentTemplateId ?? DEFAULT_TEMPLATE_ID)
-      toast.error('Unable to update your website template.')
+      toast.error('לא ניתן לעדכן את תבנית האתר.')
     },
     onSuccess: (updatedWebsite) => {
       setSelectedId(updatedWebsite.templateId ?? DEFAULT_TEMPLATE_ID)
-      toast.success('Website template updated')
+      toast.success('תבנית האתר עודכנה')
       router.refresh()
     },
   })
@@ -43,14 +43,14 @@ export function TemplatePicker({ templates, currentTemplateId }: TemplatePickerP
     <Card className='border-border/80 bg-card/80'>
       <CardHeader className='space-y-3'>
         <p className='font-mono text-[0.62rem] text-foreground/45 uppercase tracking-[0.18em]'>
-          Template
+          תבנית
         </p>
         <CardTitle className='font-serif text-2xl text-foreground'>
-          Choose a look for your wedding
+          בחרו מראה לחתונה שלכם
         </CardTitle>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          A template styles your whole guest experience — website, save the date, invitation, and
-          RSVP — with one coherent palette and typography. Switch any time.
+          התבנית מעצבת את כל חוויית האורחים — אתר, ״שמרו את התאריך״, הזמנה ואישור הגעה — בפלטת
+          צבעים וטיפוגרפיה אחידות. אפשר להחליף בכל עת.
         </p>
       </CardHeader>
       <CardContent>
@@ -93,7 +93,7 @@ export function TemplatePicker({ templates, currentTemplateId }: TemplatePickerP
                   </p>
                 </div>
                 <span className='font-mono text-[0.58rem] text-foreground/45 uppercase tracking-[0.18em]'>
-                  {isSelected ? 'Selected' : 'Select'}
+                  {isSelected ? 'נבחרה' : 'בחירה'}
                 </span>
               </button>
             )

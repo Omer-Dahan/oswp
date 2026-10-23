@@ -35,7 +35,7 @@ export function VoyageSaveTheDate({ weddingData, path }: Readonly<TemplateSurfac
           <Eyebrow className='text-[#D3BD8A]'>{copy?.eyebrow ?? 'Save the Date'}</Eyebrow>
           <h1 className={`${headingFont} font-light text-5xl italic sm:text-7xl`}>
             {weddingData.brideFirstName}
-            <span className='mx-3 text-[#D1B879] not-italic'>&amp;</span>
+            <span className='mx-3 inline-block -translate-y-[0.08em] align-middle text-[0.83em] text-[#D1B879] not-italic'>&amp;</span>
             {weddingData.groomFirstName}
           </h1>
           <GoldRule className='bg-[#D3BD8A]/70' />

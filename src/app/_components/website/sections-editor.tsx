@@ -52,11 +52,11 @@ export function SectionsEditor({ initialSections }: SectionsEditorProps) {
   return (
     <Card className='border-border/80 bg-card/80'>
       <CardHeader className='space-y-2'>
-        <p className={labelClass}>Sections</p>
-        <h3 className='font-serif text-2xl text-foreground'>Build out your wedding website</h3>
+        <p className={labelClass}>מקטעים</p>
+        <h3 className='font-serif text-2xl text-foreground'>בנו את אתר החתונה שלכם</h3>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          Add the sections guests care about. Each one is styled automatically by your selected
-          template. Enable a section to publish it on your public page.
+          הוסיפו את המקטעים שחשובים לאורחים. כל מקטע מעוצב אוטומטית לפי התבנית שבחרתם. הפעילו
+          מקטע כדי לפרסם אותו בעמוד הציבורי.
         </p>
       </CardHeader>
       <CardContent className='space-y-4'>
@@ -90,10 +90,10 @@ function SectionCard({ entry, initialContent, initialEnabled }: SectionCardProps
 
   const upsertSection = api.websiteSection.upsertSection.useMutation({
     onError: (error) => {
-      toast.error(error.message || `Unable to save the ${entry.label} section.`)
+      toast.error(error.message || `לא ניתן לשמור את המקטע ${entry.label}.`)
     },
     onSuccess: () => {
-      toast.success(`${entry.label} saved`)
+      toast.success(`המקטע ${entry.label} נשמר`)
       setBaseline(JSON.stringify({ initialContent: content, initialEnabled: isEnabled }))
       router.refresh()
     },
@@ -118,9 +118,9 @@ function SectionCard({ entry, initialContent, initialEnabled }: SectionCardProps
           <p className='font-sans text-muted-foreground text-sm leading-6'>{entry.description}</p>
         </div>
         <div className='flex shrink-0 items-center gap-2'>
-          <span className={labelClass}>{isEnabled ? 'On' : 'Off'}</span>
+          <span className={labelClass}>{isEnabled ? 'פעיל' : 'כבוי'}</span>
           <Switch
-            aria-label={`Enable ${entry.label} section`}
+            aria-label={`הפעלת המקטע ${entry.label}`}
             checked={isEnabled}
             onCheckedChange={setIsEnabled}
           />
@@ -131,7 +131,7 @@ function SectionCard({ entry, initialContent, initialEnabled }: SectionCardProps
 
       <div className='flex justify-end'>
         <Button disabled={!hasChanges || upsertSection.isPending} onClick={save} size='sm'>
-          {upsertSection.isPending ? 'Saving…' : 'Save'}
+          {upsertSection.isPending ? 'שומר…' : 'שמירה'}
         </Button>
       </div>
     </div>
@@ -182,12 +182,12 @@ function SectionFields({ type, content, onChange }: SectionFieldsProps) {
 function HeadingField({ value, onChange }: { value: string; onChange: (heading: string) => void }) {
   return (
     <div className='space-y-1.5'>
-      <span className={labelClass}>Heading</span>
+      <span className={labelClass}>כותרת</span>
       <Input
         maxLength={120}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder='Section heading'
+        placeholder='כותרת המקטע'
       />
     </div>
   )
@@ -207,13 +207,13 @@ function ProseFields({
         onChange={(heading) => onChange({ ...content, heading })}
       />
       <div className='space-y-1.5'>
-        <span className={labelClass}>Body</span>
+        <span className={labelClass}>תוכן</span>
         <Textarea
           maxLength={4000}
           rows={5}
           value={content.body}
           onChange={(event) => onChange({ ...content, body: event.target.value })}
-          placeholder='Write a few paragraphs. Separate paragraphs with a blank line.'
+          placeholder='כתבו כמה פסקאות. הפרידו בין פסקאות בשורה ריקה.'
         />
       </div>
     </div>
@@ -252,17 +252,17 @@ function WeddingPartyFields({
               <Input
                 value={member.name}
                 maxLength={120}
-                placeholder='Name'
+                placeholder='שם'
                 onChange={(event) => updateMember(index, 'name', event.target.value)}
               />
               <Input
                 value={member.role}
                 maxLength={120}
-                placeholder='Role (e.g. Maid of Honor)'
+                placeholder='תפקיד (למשל שושבינה ראשית)'
                 onChange={(event) => updateMember(index, 'role', event.target.value)}
               />
               <RemoveRowButton
-                label='Remove member'
+                label='הסרת חבר'
                 onClick={() =>
                   onChange({
                     ...content,
@@ -272,26 +272,26 @@ function WeddingPartyFields({
               />
             </div>
             <div className='space-y-1.5'>
-              <span className={labelClass}>Photo (optional)</span>
+              <span className={labelClass}>תמונה (אופציונלי)</span>
               <SingleImageUpload
                 value={member.imageUrl ?? null}
                 onChange={(url) => updateMember(index, 'imageUrl', url ?? undefined)}
                 aspectClassName='aspect-square max-w-[8rem]'
-                label='Add photo'
+                label='הוסיפו תמונה'
               />
             </div>
             <Textarea
               value={member.blurb ?? ''}
               maxLength={1000}
               rows={3}
-              placeholder='A short blurb about them and their relationship to the couple (optional)'
+              placeholder='כמה מילים עליהם ועל הקשר שלהם לזוג (אופציונלי)'
               onChange={(event) => updateMember(index, 'blurb', event.target.value || undefined)}
             />
           </div>
         ))}
       </div>
       <AddRowButton
-        label='Add member'
+        label='הוסיפו חבר'
         disabled={content.members.length >= 30}
         onClick={() =>
           onChange({ ...content, members: [...content.members, { name: '', role: '' }] })
@@ -329,11 +329,11 @@ function FaqFields({
               <Input
                 value={item.question}
                 maxLength={300}
-                placeholder='Question'
+                placeholder='שאלה'
                 onChange={(event) => updateItem(index, 'question', event.target.value)}
               />
               <RemoveRowButton
-                label='Remove question'
+                label='הסרת שאלה'
                 onClick={() =>
                   onChange({ ...content, items: content.items.filter((_, i) => i !== index) })
                 }
@@ -343,14 +343,14 @@ function FaqFields({
               value={item.answer}
               maxLength={2000}
               rows={2}
-              placeholder='Answer'
+              placeholder='תשובה'
               onChange={(event) => updateItem(index, 'answer', event.target.value)}
             />
           </div>
         ))}
       </div>
       <AddRowButton
-        label='Add question'
+        label='הוסיפו שאלה'
         disabled={content.items.length >= 30}
         onClick={() =>
           onChange({ ...content, items: [...content.items, { question: '', answer: '' }] })
@@ -378,13 +378,13 @@ function RegistryFields({
         onChange={(heading) => onChange({ ...content, heading })}
       />
       <div className='space-y-1.5'>
-        <span className={labelClass}>Note</span>
+        <span className={labelClass}>הערה</span>
         <Textarea
           maxLength={2000}
           rows={3}
           value={content.body}
           onChange={(event) => onChange({ ...content, body: event.target.value })}
-          placeholder='A short note about gifts or registries.'
+          placeholder='הערה קצרה על מתנות או רשימות מתנות.'
         />
       </div>
       <div className='space-y-2'>
@@ -397,7 +397,7 @@ function RegistryFields({
             <Input
               value={link.label}
               maxLength={120}
-              placeholder='Label (e.g. Amazon)'
+              placeholder='תווית (למשל Amazon)'
               onChange={(event) => updateLink(index, 'label', event.target.value)}
             />
             <Input
@@ -407,7 +407,7 @@ function RegistryFields({
               onChange={(event) => updateLink(index, 'url', event.target.value)}
             />
             <RemoveRowButton
-              label='Remove link'
+              label='הסרת קישור'
               onClick={() =>
                 onChange({ ...content, links: content.links.filter((_, i) => i !== index) })
               }
@@ -416,7 +416,7 @@ function RegistryFields({
         ))}
       </div>
       <AddRowButton
-        label='Add link'
+        label='הוסיפו קישור'
         disabled={content.links.length >= 20}
         onClick={() => onChange({ ...content, links: [...content.links, { label: '', url: '' }] })}
       />
@@ -468,10 +468,10 @@ function TimelineFields({
   return (
     <div className='space-y-3'>
       <TextField
-        label='Eyebrow (optional)'
+        label='כותרת משנה עליונה (אופציונלי)'
         value={content.eyebrow ?? ''}
         maxLength={60}
-        placeholder='Our Story'
+        placeholder='הסיפור שלנו'
         onChange={(eyebrow) => onChange({ ...content, eyebrow: eyebrow || undefined })}
       />
       <HeadingField
@@ -495,19 +495,19 @@ function TimelineFields({
             <Input
               value={milestone.title}
               maxLength={120}
-              placeholder='First Meeting'
+              placeholder='הפגישה הראשונה'
               onChange={(event) => updateMilestone(index, 'title', event.target.value)}
             />
             <Input
               value={milestone.location ?? ''}
               maxLength={120}
-              placeholder='New York, USA'
+              placeholder='ניו יורק, ארה״ב'
               onChange={(event) =>
                 updateMilestone(index, 'location', event.target.value || undefined)
               }
             />
             <RemoveRowButton
-              label='Remove milestone'
+              label='הסרת אבן דרך'
               onClick={() =>
                 onChange({
                   ...content,
@@ -519,7 +519,7 @@ function TimelineFields({
         ))}
       </div>
       <AddRowButton
-        label='Add milestone'
+        label='הוסיפו אבן דרך'
         disabled={content.milestones.length >= 12}
         onClick={() =>
           onChange({
@@ -542,10 +542,10 @@ function DestinationFields({
   return (
     <div className='space-y-3'>
       <TextField
-        label='Eyebrow (optional)'
+        label='כותרת משנה עליונה (אופציונלי)'
         value={content.eyebrow ?? ''}
         maxLength={60}
-        placeholder='The Destination'
+        placeholder='היעד'
         onChange={(eyebrow) => onChange({ ...content, eyebrow: eyebrow || undefined })}
       />
       <HeadingField
@@ -553,46 +553,46 @@ function DestinationFields({
         onChange={(heading) => onChange({ ...content, heading })}
       />
       <div className='space-y-1.5'>
-        <span className={labelClass}>Description</span>
+        <span className={labelClass}>תיאור</span>
         <Textarea
           maxLength={2000}
           rows={4}
           value={content.body}
           onChange={(event) => onChange({ ...content, body: event.target.value })}
-          placeholder='A few lines about the city, culture, and why you chose it.'
+          placeholder='כמה שורות על העיר, התרבות ולמה בחרתם בה.'
         />
       </div>
       <TextField
-        label='Location (optional)'
+        label='מיקום (אופציונלי)'
         value={content.location ?? ''}
         maxLength={120}
-        placeholder='Puebla, Mexico'
+        placeholder='פואבלה, מקסיקו'
         onChange={(location) => onChange({ ...content, location: location || undefined })}
       />
       <TextField
-        label='Venue name (optional)'
+        label='שם המקום (אופציונלי)'
         value={content.venueName ?? ''}
         maxLength={160}
         placeholder='Hacienda San José Actipan'
         onChange={(venueName) => onChange({ ...content, venueName: venueName || undefined })}
       />
       <TextField
-        label='Venue note (optional)'
+        label='הערה על המקום (אופציונלי)'
         value={content.venueNote ?? ''}
         maxLength={200}
-        placeholder='Historic charm & exclusive experience.'
+        placeholder='קסם היסטורי וחוויה בלעדית.'
         onChange={(venueNote) => onChange({ ...content, venueNote: venueNote || undefined })}
       />
       <div className='flex gap-2'>
         <TextField
-          label='Button label (optional)'
+          label='טקסט הכפתור (אופציונלי)'
           value={content.ctaLabel ?? ''}
           maxLength={60}
-          placeholder='Discover Puebla'
+          placeholder='גלו את פואבלה'
           onChange={(ctaLabel) => onChange({ ...content, ctaLabel: ctaLabel || undefined })}
         />
         <TextField
-          label='Button URL (optional)'
+          label='קישור הכפתור (אופציונלי)'
           value={content.ctaUrl ?? ''}
           maxLength={1000}
           placeholder='https://…'
@@ -600,12 +600,12 @@ function DestinationFields({
         />
       </div>
       <div className='space-y-1.5'>
-        <span className={labelClass}>Feature image (optional)</span>
+        <span className={labelClass}>תמונה מרכזית (אופציונלי)</span>
         <SingleImageUpload
           value={content.imageUrl ?? null}
           onChange={(url) => onChange({ ...content, imageUrl: url ?? undefined })}
           aspectClassName='aspect-[4/3] max-w-[18rem]'
-          label='Add image'
+          label='הוסיפו תמונה'
         />
       </div>
     </div>
@@ -630,10 +630,10 @@ function ExperiencesFields({
   return (
     <div className='space-y-3'>
       <TextField
-        label='Eyebrow (optional)'
+        label='כותרת משנה עליונה (אופציונלי)'
         value={content.eyebrow ?? ''}
         maxLength={60}
-        placeholder='Curated Experiences'
+        placeholder='חוויות נבחרות'
         onChange={(eyebrow) => onChange({ ...content, eyebrow: eyebrow || undefined })}
       />
       <HeadingField
@@ -651,11 +651,11 @@ function ExperiencesFields({
               <Input
                 value={item.title}
                 maxLength={120}
-                placeholder='The Ceremony'
+                placeholder='הטקס'
                 onChange={(event) => updateItem(index, 'title', event.target.value)}
               />
               <RemoveRowButton
-                label='Remove experience'
+                label='הסרת חוויה'
                 onClick={() =>
                   onChange({ ...content, items: content.items.filter((_, i) => i !== index) })
                 }
@@ -664,25 +664,25 @@ function ExperiencesFields({
             <Input
               value={item.description ?? ''}
               maxLength={300}
-              placeholder='A moment we’ll never forget'
+              placeholder='רגע שלא נשכח לעולם'
               onChange={(event) =>
                 updateItem(index, 'description', event.target.value || undefined)
               }
             />
             <div className='space-y-1.5'>
-              <span className={labelClass}>Image (optional)</span>
+              <span className={labelClass}>תמונה (אופציונלי)</span>
               <SingleImageUpload
                 value={item.imageUrl ?? null}
                 onChange={(url) => updateItem(index, 'imageUrl', url ?? undefined)}
                 aspectClassName='aspect-[4/3] max-w-[12rem]'
-                label='Add image'
+                label='הוסיפו תמונה'
               />
             </div>
           </div>
         ))}
       </div>
       <AddRowButton
-        label='Add experience'
+        label='הוסיפו חוויה'
         disabled={content.items.length >= 12}
         onClick={() => onChange({ ...content, items: [...content.items, { title: '' }] })}
       />
@@ -719,18 +719,18 @@ function TravelFields({
         onChange={(heading) => onChange({ ...content, heading })}
       />
       <div className='space-y-1.5'>
-        <span className={labelClass}>Intro</span>
+        <span className={labelClass}>פתיח</span>
         <Textarea
           maxLength={4000}
           rows={4}
           value={content.body}
           onChange={(event) => onChange({ ...content, body: event.target.value })}
-          placeholder='Travel notes for guests. Separate paragraphs with a blank line.'
+          placeholder='מידע על ההגעה לאורחים. הפרידו בין פסקאות בשורה ריקה.'
         />
       </div>
 
       <div className='space-y-2'>
-        <span className={labelClass}>Services (optional)</span>
+        <span className={labelClass}>שירותים (אופציונלי)</span>
         {services.map((service, index) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: positional editable rows; field values are controlled by state
@@ -740,18 +740,18 @@ function TravelFields({
             <Input
               value={service.title}
               maxLength={120}
-              placeholder='Private Transfers'
+              placeholder='הסעות פרטיות'
               className='max-w-[12rem]'
               onChange={(event) => updateService(index, 'title', event.target.value)}
             />
             <Input
               value={service.description}
               maxLength={300}
-              placeholder='Airport transfers throughout the weekend.'
+              placeholder='הסעות משדה התעופה לאורך כל סוף השבוע.'
               onChange={(event) => updateService(index, 'description', event.target.value)}
             />
             <RemoveRowButton
-              label='Remove service'
+              label='הסרת שירות'
               onClick={() =>
                 onChange({ ...content, services: services.filter((_, i) => i !== index) })
               }
@@ -759,7 +759,7 @@ function TravelFields({
           </div>
         ))}
         <AddRowButton
-          label='Add service'
+          label='הוסיפו שירות'
           disabled={services.length >= 8}
           onClick={() =>
             onChange({ ...content, services: [...services, { title: '', description: '' }] })
@@ -768,7 +768,7 @@ function TravelFields({
       </div>
 
       <div className='space-y-2'>
-        <span className={labelClass}>Recommended stays (optional)</span>
+        <span className={labelClass}>מקומות לינה מומלצים (אופציונלי)</span>
         {stays.map((stay, index) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: positional editable rows; field values are controlled by state
@@ -783,32 +783,32 @@ function TravelFields({
                 onChange={(event) => updateStay(index, 'name', event.target.value)}
               />
               <RemoveRowButton
-                label='Remove stay'
+                label='הסרת מקום לינה'
                 onClick={() => onChange({ ...content, stays: stays.filter((_, i) => i !== index) })}
               />
             </div>
             <Input
               value={stay.description ?? ''}
               maxLength={300}
-              placeholder='Colonial elegance & modern comfort'
+              placeholder='אלגנטיות קולוניאלית ונוחות מודרנית'
               onChange={(event) =>
                 updateStay(index, 'description', event.target.value || undefined)
               }
             />
             <div className='space-y-1.5'>
-              <span className={labelClass}>Photo (optional)</span>
+              <span className={labelClass}>תמונה (אופציונלי)</span>
               <SingleImageUpload
                 value={stay.imageUrl ?? null}
                 onChange={(url) => updateStay(index, 'imageUrl', url ?? undefined)}
                 aspectClassName='aspect-[4/3] max-w-[12rem]'
-                label='Add photo'
+                label='הוסיפו תמונה'
               />
             </div>
             <Textarea
               value={stay.blurb ?? ''}
               maxLength={1000}
               rows={3}
-              placeholder='A longer blurb shown when guests click the card, e.g. why you recommend this stay (optional)'
+              placeholder='תיאור מורחב שמוצג כשהאורחים לוחצים על הכרטיס, למשל למה אתם ממליצים על המקום (אופציונלי)'
               onChange={(event) => updateStay(index, 'blurb', event.target.value || undefined)}
             />
             <div className='flex items-center gap-2'>
@@ -821,7 +821,7 @@ function TravelFields({
               <Input
                 value={stay.buttonLabel ?? ''}
                 maxLength={60}
-                placeholder='Button text (e.g. Visit Website)'
+                placeholder='טקסט הכפתור (למשל לאתר המלון)'
                 onChange={(event) =>
                   updateStay(index, 'buttonLabel', event.target.value || undefined)
                 }
@@ -830,7 +830,7 @@ function TravelFields({
           </div>
         ))}
         <AddRowButton
-          label='Add stay'
+          label='הוסיפו מקום לינה'
           disabled={stays.length >= 8}
           onClick={() => onChange({ ...content, stays: [...stays, { name: '' }] })}
         />
@@ -849,27 +849,27 @@ function SaveTheDateFields({
   return (
     <div className='space-y-3'>
       <TextField
-        label='Label (optional)'
+        label='תווית (אופציונלי)'
         value={content.eyebrow ?? ''}
         maxLength={60}
-        placeholder='Save the Date'
+        placeholder='שמרו את התאריך'
         onChange={(eyebrow) => onChange({ ...content, eyebrow: eyebrow || undefined })}
       />
       <div className='space-y-1.5'>
-        <span className={labelClass}>Message (optional)</span>
+        <span className={labelClass}>הודעה (אופציונלי)</span>
         <Textarea
           maxLength={600}
           rows={3}
           value={content.message ?? ''}
           onChange={(event) => onChange({ ...content, message: event.target.value || undefined })}
-          placeholder="A short note to your guests, e.g. “We can't wait to celebrate with you.”"
+          placeholder="הודעה קצרה לאורחים, למשל ״מחכים לחגוג איתכם.״"
         />
       </div>
       <TextField
-        label='Footnote (optional)'
+        label='הערת שוליים (אופציונלי)'
         value={content.footnote ?? ''}
         maxLength={160}
-        placeholder='Formal invitation to follow.'
+        placeholder='הזמנה רשמית תישלח בהמשך.'
         onChange={(footnote) => onChange({ ...content, footnote: footnote || undefined })}
       />
     </div>
@@ -886,29 +886,29 @@ function InvitationFields({
   return (
     <div className='space-y-3'>
       <TextField
-        label='Opening line (optional)'
+        label='שורת פתיחה (אופציונלי)'
         value={content.preface ?? ''}
         maxLength={160}
-        placeholder='Together with their families'
+        placeholder='יחד עם משפחותיהם'
         onChange={(preface) => onChange({ ...content, preface: preface || undefined })}
       />
       <TextField
-        label='Invitation line (optional)'
+        label='שורת ההזמנה (אופציונלי)'
         value={content.invitationLine ?? ''}
         maxLength={200}
-        placeholder='request the pleasure of your company'
+        placeholder='שמחים להזמינכם'
         onChange={(invitationLine) =>
           onChange({ ...content, invitationLine: invitationLine || undefined })
         }
       />
       <div className='space-y-1.5'>
-        <span className={labelClass}>Message (optional)</span>
+        <span className={labelClass}>הודעה (אופציונלי)</span>
         <Textarea
           maxLength={600}
           rows={3}
           value={content.message ?? ''}
           onChange={(event) => onChange({ ...content, message: event.target.value || undefined })}
-          placeholder='An optional closing note shown above the RSVP button.'
+          placeholder='הערת סיום אופציונלית שמוצגת מעל כפתור אישור ההגעה.'
         />
       </div>
     </div>

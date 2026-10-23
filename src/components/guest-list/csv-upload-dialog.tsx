@@ -42,7 +42,7 @@ function PreviewTable({ rows }: PreviewTableProps) {
       <table className='w-full text-sm'>
         <thead className='sticky top-0 bg-muted'>
           <tr>
-            {['#', 'First Name', 'Last Name', 'Email', 'Phone', 'Age Group', 'Status'].map((h) => (
+            {['#', 'שם פרטי', 'שם משפחה', 'דוא״ל', 'טלפון', 'קבוצת גיל', 'סטטוס'].map((h) => (
               <th key={h} className='px-3 py-2 text-left font-medium text-muted-foreground'>
                 {h}
               </th>
@@ -114,16 +114,16 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
     onSuccess: ({ created, failed }) => {
       if (failed > 0) {
         toast.warning(
-          `Imported ${created} guest${created === 1 ? '' : 's'}, ${failed} skipped due to errors.`
+          `הייבוא הושלם: ${created} ${created === 1 ? 'אורח' : 'אורחים'}, ${failed} דולגו בגלל שגיאות.`
         )
       } else {
-        toast.success(`Successfully imported ${created} guest${created === 1 ? '' : 's'}!`)
+        toast.success(`${created} ${created === 1 ? 'אורח יובא' : 'אורחים יובאו'} בהצלחה!`)
       }
       router.refresh()
       onOpenChange(false)
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to import guests. Please try again.')
+      toast.error(error.message || 'ייבוא האורחים נכשל. נסו שוב.')
     },
   })
 
@@ -139,7 +139,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
       setParsedRows(rows)
       setStep('preview')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to parse CSV file'
+      const message = err instanceof Error ? err.message : 'קריאת קובץ ה-CSV נכשלה'
       toast.error(message)
     } finally {
       setIsParsing(false)
@@ -183,7 +183,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
               <DialogDescription>
                 העלו קובץ CSV כדי להוסיף אורחים בכמות. כל שורה הופכת למשק בית אחד.
                 <span className='block'>
-                  Phone must be E.164 format (for example: +12025550123).
+                  מספר הטלפון חייב להיות בפורמט E.164 (לדוגמה: +12025550123).
                 </span>
               </DialogDescription>
             </DialogHeader>
@@ -192,7 +192,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
               onFile={handleFile}
               accept={{ 'text/csv': ['.csv'] }}
               label='גררו ושחררו קובץ CSV, או לחצו לבחירה'
-              sublabel='.csv files only'
+              sublabel='קובצי .csv בלבד'
               disabled={isParsing}
             />
 
@@ -210,12 +210,13 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
             <DialogHeader>
               <DialogTitle>תצוגה מקדימה של ייבוא</DialogTitle>
               <DialogDescription>
-                {fileName} &mdash; {validRows.length} valid row{validRows.length !== 1 ? 's' : ''}
+                {fileName} &mdash; {validRows.length}{' '}
+                {validRows.length !== 1 ? 'שורות תקינות' : 'שורה תקינה'}
                 {invalidCount > 0 && (
                   <span className='text-destructive'>
                     {' '}
-                    &middot; {invalidCount} row{invalidCount !== 1 ? 's' : ''} with errors (will be
-                    skipped)
+                    &middot; {invalidCount} {invalidCount !== 1 ? 'שורות' : 'שורה'} עם שגיאות
+                    (ידולגו)
                   </span>
                 )}
               </DialogDescription>
@@ -248,8 +249,8 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
                   disabled={validRows.length === 0 || bulkCreateMutation.isPending}
                 >
                   {bulkCreateMutation.isPending
-                    ? 'Importing…'
-                    : `Import ${validRows.length} Guest${validRows.length !== 1 ? 's' : ''}`}
+                    ? 'מייבא…'
+                    : `ייבוא ${validRows.length} ${validRows.length !== 1 ? 'אורחים' : 'אורח'}`}
                 </Button>
               </div>
             </DialogFooter>

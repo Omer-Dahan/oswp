@@ -24,18 +24,18 @@ const OVERRIDE_OPTIONS: ReadonlyArray<{
 }> = [
   {
     value: 'attested',
-    label: 'Mark as done',
-    description: 'Attest that this milestone is complete.',
+    label: 'סימון כהושלם',
+    description: 'אשרו שאבן הדרך הזו הושלמה.',
   },
   {
     value: 'dismissed',
-    label: 'Mark as not done',
-    description: 'Force the milestone back to pending.',
+    label: 'סימון כלא הושלם',
+    description: 'החזירו את אבן הדרך למצב ממתין.',
   },
   {
     value: 'system',
-    label: 'Use system status',
-    description: 'Let the milestone follow the live wedding data again.',
+    label: 'שימוש בסטטוס המערכת',
+    description: 'אפשרו לאבן הדרך לעקוב שוב אחר נתוני החתונה העדכניים.',
   },
 ]
 
@@ -121,10 +121,10 @@ function MilestoneDetailContent({
 
       <div className='rounded-lg border border-border/70 bg-card px-4 py-3'>
         <p className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-[0.12em]'>
-          Effective status: {milestone.effectiveStatus}
+          סטטוס בפועל: {milestone.effectiveStatus}
         </p>
         <p className='mt-2 font-serif text-foreground/75 text-sm'>
-          System status: {milestone.derivedStatus}
+          סטטוס מערכת: {milestone.derivedStatus}
         </p>
       </div>
 

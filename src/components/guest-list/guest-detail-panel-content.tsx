@@ -175,14 +175,14 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
       const copied = await copyToClipboard(result.url)
       setCopiedInviteLink(true)
       setTimeout(() => setCopiedInviteLink(false), 2000)
-      toast.success(copied ? 'Save-the-date link copied' : 'Save-the-date link ready to copy', {
+      toast.success(copied ? 'קישור ׳שמרו את התאריך׳ הועתק' : 'קישור ׳שמרו את התאריך׳ מוכן להעתקה', {
         description: copied ? undefined : result.url,
       })
     } catch (error) {
       const message =
         error instanceof Error && error.message
           ? error.message
-          : 'Failed to copy save-the-date link'
+          : 'העתקת קישור ׳שמרו את התאריך׳ נכשלה'
       toast.error(message)
     }
   }
@@ -201,7 +201,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
           <div>
             <p className='font-medium text-sm'>סטטוס RSVP</p>
             <p className='font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>
-              {selectedEventId === 'all' ? 'Across all invitations' : 'For selected event'}
+              {selectedEventId === 'all' ? 'בכל ההזמנות' : 'לאירוע שנבחר'}
             </p>
           </div>
         </div>
@@ -282,13 +282,13 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
               ) : (
                 <Copy className='h-3.5 w-3.5' aria-hidden='true' />
               )}
-              Copy link
+              העתקת קישור
             </button>
           }
         >
           {isWebsiteMissing ? (
             <p className='text-foreground/75 text-sm leading-relaxed'>
-              Publish your wedding website first to share save-the-date links.{' '}
+              פרסמו קודם את אתר החתונה כדי לשתף קישורי ׳שמרו את התאריך׳.{' '}
               <Link href='/website' className='text-primary underline underline-offset-2'>
                 פרסמו את האתר שלכם
               </Link>
@@ -296,8 +296,8 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
             </p>
           ) : (
             <p className='text-foreground/75 text-sm leading-relaxed'>
-              Share a household-specific link that opens the save-the-date and lets this party
-              update their mailing details.
+              שתפו קישור ייעודי למשק הבית שפותח את ׳שמרו את התאריך׳ ומאפשר לבני הבית לעדכן את
+              כתובת הדואר שלהם.
             </p>
           )}
         </GuestDetailSection>
@@ -401,7 +401,7 @@ function EventInvitationsSection(props: Readonly<EventInvitationsSectionProps>) 
                         <InvitationRsvpSelect
                           guestId={guest.id}
                           eventId={event.id}
-                          rsvp={invitation.rsvp ?? 'לא הוזמן'}
+                          rsvp={invitation.rsvp ?? 'Not Invited'}
                         />
                       ) : (
                         <Badge variant='outline' className={getRsvpBadgeClassName('לא הוזמן')}>
@@ -552,7 +552,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </label>
           <label className='space-y-1 sm:col-span-2'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              Address 1
+              כתובת 1
             </span>
             <input
               name='address1'
@@ -565,7 +565,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </label>
           <label className='space-y-1 sm:col-span-2'>
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
-              Address 2
+              כתובת 2
             </span>
             <input
               name='address2'
@@ -653,13 +653,13 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
             דוא״ל
           </dt>
-          <dd className='text-foreground/85'>{primaryContactEmail ?? 'Not provided'}</dd>
+          <dd className='text-foreground/85'>{primaryContactEmail ?? 'לא צוין'}</dd>
         </div>
         <div>
           <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
             טלפון
           </dt>
-          <dd className='text-foreground/85'>{primaryContactPhone ?? 'Not provided'}</dd>
+          <dd className='text-foreground/85'>{primaryContactPhone ?? 'לא צוין'}</dd>
         </div>
         <div className='sm:col-span-2'>
           <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
@@ -667,7 +667,7 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
           </dt>
           <dd className='text-foreground/85'>
             {addressFields.filter((value): value is string => Boolean(value)).join(', ') ||
-              'Not provided'}
+              'לא צוין'}
           </dd>
         </div>
       </dl>
@@ -810,7 +810,7 @@ function CommunicationLogSection(props: Readonly<CommunicationLogSectionProps>) 
                   </p>
                   {entry.type === 'NOTE' && (
                     <span className='font-mono text-[0.55rem] text-foreground/40 uppercase tracking-wider'>
-                      {entry.actorType === 'etta' ? 'Etta' : 'You'}
+                      {entry.actorType === 'etta' ? 'Etta' : 'אתם'}
                     </span>
                   )}
                   {entry.type === 'NOTE' && onDeleteNote && (

@@ -14,7 +14,7 @@ export default function EventsError({ error, reset }: Readonly<EventsErrorProps>
       </p>
       {error.digest ? (
         <p className='mt-3 rounded border border-border bg-muted px-3 py-2 font-mono text-xs'>
-          Error ID: {error.digest}
+          מזהה שגיאה: {error.digest}
         </p>
       ) : null}
       <button

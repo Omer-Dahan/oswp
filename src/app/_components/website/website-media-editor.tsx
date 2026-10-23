@@ -35,17 +35,17 @@ export function WebsiteMediaEditor({
   const [coupleImageUrls, setCoupleImageUrls] = useState(initialCoupleImageUrls)
 
   const updateHeaderImage = api.website.updateHeaderImage.useMutation({
-    onError: () => toast.error('Unable to save the header image.'),
+    onError: () => toast.error('לא ניתן לשמור את תמונת הכותרת.'),
     onSuccess: () => {
-      toast.success('Header image saved')
+      toast.success('תמונת הכותרת נשמרה')
       router.refresh()
     },
   })
 
   const updateCoupleImages = api.website.updateCoupleImages.useMutation({
-    onError: () => toast.error('Unable to save your couple photos.'),
+    onError: () => toast.error('לא ניתן לשמור את תמונות הזוג.'),
     onSuccess: () => {
-      toast.success('Couple photos saved')
+      toast.success('תמונות הזוג נשמרו')
       router.refresh()
     },
   })
@@ -56,21 +56,21 @@ export function WebsiteMediaEditor({
   return (
     <Card className='border-border/80 bg-card/80'>
       <CardHeader className='space-y-2'>
-        <p className={labelClass}>Photos</p>
-        <h3 className='font-serif text-2xl text-foreground'>Add your photos</h3>
+        <p className={labelClass}>תמונות</p>
+        <h3 className='font-serif text-2xl text-foreground'>הוסיפו את התמונות שלכם</h3>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          The header image appears at the top of every page guests visit. Couple photos appear on
-          your home page. Your selected template styles them automatically.
+          תמונת הכותרת מופיעה בראש כל עמוד שהאורחים מבקרים בו. תמונות הזוג מופיעות בעמוד
+          הבית. התבנית שבחרתם מעצבת אותן אוטומטית.
         </p>
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='space-y-2'>
-          <span className={labelClass}>Header image</span>
+          <span className={labelClass}>תמונת כותרת</span>
           <SingleImageUpload
             value={headerImageUrl}
             onChange={setHeaderImageUrl}
             aspectClassName='aspect-[21/9]'
-            label='Upload header image'
+            label='העלאת תמונת כותרת'
             disabled={updateHeaderImage.isPending}
           />
           <div className='flex justify-end'>
@@ -79,13 +79,13 @@ export function WebsiteMediaEditor({
               disabled={!headerChanged || updateHeaderImage.isPending}
               onClick={() => updateHeaderImage.mutate({ headerImageUrl })}
             >
-              {updateHeaderImage.isPending ? 'Saving…' : 'Save header'}
+              {updateHeaderImage.isPending ? 'שומר…' : 'שמירת כותרת'}
             </Button>
           </div>
         </div>
 
         <div className='space-y-2'>
-          <span className={labelClass}>Couple photos</span>
+          <span className={labelClass}>תמונות הזוג</span>
           <ImageGalleryUpload
             values={coupleImageUrls}
             onChange={setCoupleImageUrls}
@@ -98,7 +98,7 @@ export function WebsiteMediaEditor({
               disabled={!galleryChanged || updateCoupleImages.isPending}
               onClick={() => updateCoupleImages.mutate({ coupleImageUrls })}
             >
-              {updateCoupleImages.isPending ? 'Saving…' : 'Save photos'}
+              {updateCoupleImages.isPending ? 'שומר…' : 'שמירת תמונות'}
             </Button>
           </div>
         </div>

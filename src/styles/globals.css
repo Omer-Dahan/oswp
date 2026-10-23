@@ -446,3 +446,10 @@ th {
     }
   }
 }
+
+/* Hebrew guest site: every rem-based size scales up ~12% so Hebrew (which has no
+   ascender/descender relief and reads smaller than Latin at the same px) does not
+   look cramped next to the Latin-tuned design. Scoped to the guest template only. */
+html:has([data-guest-surface][dir='rtl']) {
+  font-size: 18px;
+}

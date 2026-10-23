@@ -57,7 +57,7 @@ export function ManageEventQuestionsDialog({
       await utils.event.getAllByUserIdWithStats.refetch()
     },
     onError: (error) => {
-      toast.error('Failed to delete question', {
+      toast.error('מחיקת השאלה נכשלה', {
         description: error.message,
       })
     },
@@ -78,7 +78,7 @@ export function ManageEventQuestionsDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-2xl'>
           <DialogHeader>
-            <DialogTitle>RSVP Questions — {event.name}</DialogTitle>
+            <DialogTitle>שאלות אישור הגעה — {event.name}</DialogTitle>
             <DialogDescription>
               נהלו שאלות ספציפיות לאירוע שאורחים רואים כשהם מאשרים הגעה לאירוע זה.
             </DialogDescription>
@@ -93,7 +93,7 @@ export function ManageEventQuestionsDialog({
           <div className='space-y-3'>
             <div className='flex items-center justify-between'>
               <p className='text-muted-foreground text-sm'>
-                {questions.length} {questions.length === 1 ? 'question' : 'questions'}
+                {questions.length} {questions.length === 1 ? 'שאלה' : 'שאלות'}
               </p>
               <Button
                 type='button'
@@ -106,8 +106,8 @@ export function ManageEventQuestionsDialog({
               </Button>
             </div>
             <p className='text-muted-foreground text-xs'>
-              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> write-in
-              answer in public RSVP.
+              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> תשובת כתיבה
+              באישור הגעה ציבורי.
             </p>
 
             {questions.length === 0 ? (
@@ -125,12 +125,12 @@ export function ManageEventQuestionsDialog({
                       <p className='font-medium text-sm'>{question.text}</p>
                       <div className='mt-1 flex flex-wrap items-center gap-2'>
                         <Badge variant='outline'>
-                          {question.type === 'Option' ? 'Multiple choice' : 'Short answer'}
+                          {question.type === 'Option' ? 'בחירה מרובה' : 'תשובה קצרה'}
                         </Badge>
                         {question.type === 'Option' ? (
                           <>
                             <span className='text-muted-foreground text-xs'>
-                              {question.options?.length ?? 0} options
+                              {question.options?.length ?? 0} אפשרויות
                             </span>
                             {question.allowOther ? (
                               <Badge variant='secondary'>אחר מופעל</Badge>
@@ -145,7 +145,7 @@ export function ManageEventQuestionsDialog({
                         size='icon'
                         variant='ghost'
                         onClick={() => openEditForm(question)}
-                        aria-label={`Edit question ${question.text}`}
+                        aria-label={`עריכת השאלה ${question.text}`}
                       >
                         <Pencil className='h-4 w-4' />
                       </Button>
@@ -154,7 +154,7 @@ export function ManageEventQuestionsDialog({
                         size='icon'
                         variant='ghost'
                         onClick={() => setDeletingQuestion(question)}
-                        aria-label={`Delete question ${question.text}`}
+                        aria-label={`מחיקת השאלה ${question.text}`}
                       >
                         <Trash2 className='h-4 w-4 text-destructive' />
                       </Button>
@@ -189,7 +189,7 @@ export function ManageEventQuestionsDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>למחוק שאלת אישור הגעה?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete “{deletingQuestion?.text}” and any collected answers.
+              פעולה זו תמחק לצמיתות את ״{deletingQuestion?.text}״ ואת כל התשובות שנאספו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -204,7 +204,7 @@ export function ManageEventQuestionsDialog({
               }}
             >
               {deleteQuestion.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-              Delete
+              מחיקה
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

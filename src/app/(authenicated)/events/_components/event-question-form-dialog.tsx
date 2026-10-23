@@ -83,12 +83,12 @@ export function EventQuestionFormDialog({
 
   const upsertQuestion = api.question.upsert.useMutation({
     onSuccess: async () => {
-      toast.success(isEditMode ? 'Question updated' : 'Question added')
+      toast.success(isEditMode ? 'השאלה עודכנה' : 'השאלה נוספה')
       await onSaved()
       onOpenChange(false)
     },
     onError: (error) => {
-      toast.error('Failed to save question', {
+      toast.error('שמירת השאלה נכשלה', {
         description: error.message,
       })
     },
@@ -163,7 +163,7 @@ export function EventQuestionFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-xl'>
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit RSVP Question' : 'Add RSVP Question'}</DialogTitle>
+          <DialogTitle>{isEditMode ? 'עריכת שאלת אישור הגעה' : 'הוספת שאלת אישור הגעה'}</DialogTitle>
           <DialogDescription>
             שאלה זו מוצגת רק עבור אירוע זה כאשר מוזמנים מאשרים הגעה.
           </DialogDescription>
@@ -214,8 +214,8 @@ export function EventQuestionFormDialog({
                 מוזמנים חייבים לענות על שאלות בחירה מרובה.
               </p>
               <p className='text-muted-foreground text-xs'>
-                הפעלה <strong>אחר</strong> when guests should be able to write in a custom answer
-                in public RSVP.
+                הפעילו <strong>אחר</strong> כאשר מוזמנים צריכים להיות מסוגלים לכתוב תשובה מותאמת אישית
+                באישור הגעה ציבורי.
               </p>
               <label
                 htmlFor='event-question-allow-other'
@@ -276,7 +276,7 @@ export function EventQuestionFormDialog({
             disabled={upsertQuestion.isPending || !isQuestionValid}
           >
             {upsertQuestion.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-            {isEditMode ? 'Save changes' : 'Add question'}
+            {isEditMode ? 'שמירת שינויים' : 'הוסיפו שאלה'}
           </Button>
         </DialogFooter>
       </DialogContent>

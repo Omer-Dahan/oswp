@@ -16,10 +16,10 @@ export default function SidebarPanel({ setShowWebsiteSettings }: SidebarPanelPro
           <div className='mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10'>
             <Palette className='h-4 w-4 text-primary' />
           </div>
-          <h2 className='font-semibold text-foreground'>Your Theme</h2>
-          <p className='mt-1 text-muted-foreground text-xs'>Customise your website appearance</p>
+          <h2 className='font-semibold text-foreground'>ערכת העיצוב שלכם</h2>
+          <p className='mt-1 text-muted-foreground text-xs'>התאימו את מראה האתר שלכם</p>
           <button type='button' className='mt-3 text-primary text-sm hover:underline'>
-            Browse Themes →
+            עיון בערכות עיצוב →
           </button>
         </CardContent>
       </Card>
@@ -29,10 +29,10 @@ export default function SidebarPanel({ setShowWebsiteSettings }: SidebarPanelPro
           <div className='mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10'>
             <Users className='h-4 w-4 text-primary' />
           </div>
-          <h2 className='font-semibold text-foreground'>Guest List</h2>
-          <p className='mt-1 text-muted-foreground text-xs'>Manage households and RSVPs</p>
+          <h2 className='font-semibold text-foreground'>רשימת אורחים</h2>
+          <p className='mt-1 text-muted-foreground text-xs'>נהלו משקי בית ואישורי הגעה</p>
           <Link href='/guest-list' className='mt-3 block text-primary text-sm hover:underline'>
-            Manage →
+            ניהול →
           </Link>
         </CardContent>
       </Card>
@@ -42,14 +42,14 @@ export default function SidebarPanel({ setShowWebsiteSettings }: SidebarPanelPro
           <div className='mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10'>
             <Lock className='h-4 w-4 text-primary' />
           </div>
-          <h2 className='font-semibold text-foreground'>Privacy Settings</h2>
-          <p className='mt-1 text-muted-foreground text-xs'>Control website access</p>
+          <h2 className='font-semibold text-foreground'>הגדרות פרטיות</h2>
+          <p className='mt-1 text-muted-foreground text-xs'>שלטו בגישה לאתר</p>
           <button
             type='button'
             className='mt-3 text-primary text-sm hover:underline'
             onClick={() => setShowWebsiteSettings(true)}
           >
-            Manage →
+            ניהול →
           </button>
         </CardContent>
       </Card>

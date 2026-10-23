@@ -1,7 +1,7 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import { LocaleToggle } from '~/components/locale-toggle'
-import { hebrewSans, hebrewSerif } from '~/templates/fonts'
+import { hebrewAlt, hebrewLight, hebrewSans, hebrewSerif } from '~/templates/fonts'
 
 export default async function WeddingWebsiteLayout({
   children,
@@ -18,7 +18,7 @@ export default async function WeddingWebsiteLayout({
         data-guest-surface-he={isHebrew ? '' : undefined}
         dir={isHebrew ? 'rtl' : 'ltr'}
         lang={locale}
-        className={`contents ${hebrewSerif.variable} ${hebrewSans.variable}`}
+        className={`contents ${hebrewSerif.variable} ${hebrewSans.variable} ${hebrewAlt.variable} ${hebrewLight.variable}`}
       >
         <div className='fixed top-3 right-3 z-50'>
           <LocaleToggle />

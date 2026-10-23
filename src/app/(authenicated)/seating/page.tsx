@@ -12,8 +12,8 @@ import { getRequiredWedding } from '~/server/application/authenticated-route/aut
 import { api } from '~/trpc/server'
 
 export const metadata: Metadata = {
-  title: 'Seating Chart | Your Wedding Website',
-  description: 'Arrange tables and seat your guests',
+  title: 'תרשים הושבה | אתר החתונה שלכם',
+  description: 'סדרו שולחנות והושיבו את האורחים שלכם',
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
 

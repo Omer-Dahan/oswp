@@ -47,8 +47,8 @@ export function ListToolbar({
     totalUnfilteredHouseholds !== undefined && totalUnfilteredHouseholds > totalHouseholds
 
   const householdCountLabel = isFiltered
-    ? `${totalHouseholds} of ${totalUnfilteredHouseholds} households`
-    : `${totalHouseholds} ${totalHouseholds === 1 ? 'household' : 'households'}`
+    ? `${totalHouseholds} מתוך ${totalUnfilteredHouseholds} משקי בית`
+    : `${totalHouseholds} ${totalHouseholds === 1 ? 'משק בית' : 'משקי בית'}`
 
   return (
     <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
@@ -58,7 +58,7 @@ export function ListToolbar({
           <span>{householdCountLabel}</span>
         </div>
         {sortStateLabel ? (
-          <span className='text-muted-foreground text-xs'>Sorted by {sortStateLabel}</span>
+          <span className='text-muted-foreground text-xs'>ממוין לפי {sortStateLabel}</span>
         ) : null}
       </div>
 

@@ -603,10 +603,10 @@ export default function GuestsView({
   }, [selectedEventId])
 
   const sortStateLabel = useMemo(() => {
-    if (nameSort === 'ascending') return 'Name (A-Z)'
-    if (nameSort === 'descending') return 'Name (Z-A)'
-    if (partySort === 'ascending') return 'Party Size (Low-High)'
-    if (partySort === 'descending') return 'Party Size (High-Low)'
+    if (nameSort === 'ascending') return 'שם (א-ת)'
+    if (nameSort === 'descending') return 'שם (ת-א)'
+    if (partySort === 'ascending') return 'גודל קבוצה (מהקטן לגדול)'
+    if (partySort === 'descending') return 'גודל קבוצה (מהגדול לקטן)'
     return undefined
   }, [nameSort, partySort])
 
@@ -685,7 +685,7 @@ export default function GuestsView({
           activeSort={activeSort}
         />
         {sortedHouseholds.length === 0 ? (
-          <AsyncState isEmpty emptyText='No households yet' />
+          <AsyncState isEmpty emptyText='אין משקי בית עדיין' />
         ) : workflowMode === 'personAudit' || viewMode === 'table' ? (
           <GuestIndividualTable
             households={sortedHouseholds}
@@ -710,9 +710,9 @@ export default function GuestsView({
         title={
           selectedHousehold?.guests[0]
             ? `${selectedHousehold.guests[0].firstName} ${selectedHousehold.guests[0].lastName}`
-            : 'Guest details'
+            : 'פרטי אורח'
         }
-        subtitle={selectedEventId === 'all' ? 'Across all events' : selectedEvent?.name}
+        subtitle={selectedEventId === 'all' ? 'בכל האירועים' : selectedEvent?.name}
         headerMeta={
           <div className='flex flex-wrap gap-1.5'>
             {isDrawerDirty ? (
@@ -819,13 +819,13 @@ export default function GuestsView({
                   selectedCanonicalHousehold?.guests[0]
                 const name = primary
                   ? `${primary.firstName} ${primary.lastName}`.trim()
-                  : 'this party'
-                return `Delete "${name}"?`
+                  : 'קבוצה זו'
+                return `למחוק את ״${name}״?`
               })()}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this party and all associated guests. This action cannot
-              be undone.
+              פעולה זו תמחק לצמיתות את הקבוצה ואת כל האורחים המשויכים אליה. לא ניתן לבטל פעולה
+              זו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -840,7 +840,7 @@ export default function GuestsView({
               disabled={deleteHouseholdMutation.isPending}
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
-              {deleteHouseholdMutation.isPending ? 'Deleting...' : 'Delete Party'}
+              {deleteHouseholdMutation.isPending ? 'מוחק...' : 'מחיקת מפלגה'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -867,7 +867,7 @@ const DefaultTableHeader = ({
       <div className='flex flex-wrap items-center gap-4 md:gap-6'>
         <div>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            Total Households:{' '}
+            סה״כ משקי בית:{' '}
           </span>
           <span className='font-semibold text-foreground text-sm md:text-base'>
             {households.length}
@@ -876,14 +876,14 @@ const DefaultTableHeader = ({
         <div className='hidden h-4 w-px bg-border md:block' />
         <div>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            Total Guests:{' '}
+            סה״כ אורחים:{' '}
           </span>
           <span className='font-semibold text-foreground text-sm md:text-base'>
             {totalGuests}
             {totalTagAlongs > 0 && (
               <span className='font-normal text-foreground/55'>
                 {' '}
-                + {totalTagAlongs} tag-along{totalTagAlongs !== 1 ? 's' : ''}
+                + {totalTagAlongs} {totalTagAlongs !== 1 ? 'נלווים' : 'נלווה'}
               </span>
             )}
           </span>
@@ -891,7 +891,7 @@ const DefaultTableHeader = ({
         <div className='hidden h-4 w-px bg-border md:block' />
         <div>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            Total Events:{' '}
+            סה״כ אירועים:{' '}
           </span>
           <span className='font-semibold text-foreground text-sm md:text-base'>{numEvents}</span>
         </div>
@@ -929,10 +929,10 @@ const SelectedEventTableHeader = ({
         )
         if (!matchingInvitation) return
         switch (matchingInvitation.rsvp) {
-          case 'מגיעים':
+          case 'Attending':
             guestResponses.attending += 1
             break
-          case 'לא מגיעים':
+          case 'Declined':
             guestResponses.declined += 1
             break
           default:
@@ -978,7 +978,7 @@ const SelectedEventTableHeader = ({
         </button>
       </div>
       <div className='flex flex-wrap items-center gap-4 md:gap-6'>
-        <span className='font-semibold text-foreground'>{totalGuests} Guests Invited:</span>
+        <span className='font-semibold text-foreground'>{totalGuests} אורחים הוזמנו:</span>
         <div className='flex items-center gap-1.5'>
           <span className='h-1.5 w-1.5 rounded-full bg-success' />
           <span className='font-medium'>{guestResponses.attending}</span>

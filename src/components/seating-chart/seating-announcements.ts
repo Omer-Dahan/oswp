@@ -7,8 +7,8 @@ type TableInfo = { name: string; capacity: number; guestIds: readonly number[] }
 
 export const SEATING_SCREEN_READER_INSTRUCTIONS: ScreenReaderInstructions = {
   draggable:
-    'To pick up a guest, household or table, press Space. Use the arrow keys to move it, ' +
-    'Space to drop, and Escape to cancel. Press Enter instead to open details.',
+    'כדי להרים אורח, משק בית או שולחן, לחצו על מקש הרווח. השתמשו במקשי החצים כדי להזיז, ' +
+    'במקש הרווח כדי לשחרר וב-Escape כדי לבטל. לחילופין, לחצו על Enter כדי לפתוח פרטים.',
 }
 
 /**
@@ -25,8 +25,8 @@ export const createSeatingAnnouncements = (
 
   const nameOf = (data: DragData | undefined) => {
     if (data?.type === 'guests') return data.label
-    if (data?.type === 'table') return getTable(data.tableId)?.name ?? 'table'
-    return 'item'
+    if (data?.type === 'table') return getTable(data.tableId)?.name ?? 'שולחן'
+    return 'פריט'
   }
 
   const tableFor = (drop: DropData | undefined) =>
@@ -35,36 +35,36 @@ export const createSeatingAnnouncements = (
   return {
     onDragStart: ({ active }) => {
       const data = dragOf(active)
-      const how = data?.type === 'table' ? 'move it' : 'move onto a table'
-      return `Picked up ${nameOf(data)}. Use the arrow keys to ${how}, Space to drop, Escape to cancel.`
+      const how = data?.type === 'table' ? 'להזיז אותו' : 'להעביר אותו לשולחן'
+      return `${nameOf(data)} נבחר. השתמשו במקשי החצים כדי ${how}, במקש הרווח כדי לשחרר וב-Escape כדי לבטל.`
     },
     onDragOver: ({ active, over }) => {
       const data = dragOf(active)
       if (data?.type !== 'guests') return undefined
       const drop = dropOf(over)
-      if (drop?.type === 'unassigned') return `${data.label} is over the unseated guests list.`
+      if (drop?.type === 'unassigned') return `${data.label} מעל רשימת האורחים ללא הושבה.`
       const table = tableFor(drop)
-      if (!table) return `${data.label} is not over a table.`
+      if (!table) return `${data.label} לא מעל שולחן.`
       if (!tableHasRoom(table, data.guestIds)) {
-        return `${data.label} is over ${table.name}, not enough seats.`
+        return `${data.label} מעל ${table.name}, אין מספיק מקומות.`
       }
       const open = getOpenSeats(table)
-      return `${data.label} is over ${table.name}, ${open} open seat${open === 1 ? '' : 's'}.`
+      return `${data.label} מעל ${table.name}, ${open === 1 ? 'מקום פנוי אחד' : `${open} מקומות פנויים`}.`
     },
     onDragEnd: ({ active, over }) => {
       const data = dragOf(active)
       // Neutral wording: dnd-kit does not pass the drag distance here, so a
       // table dropped in place cannot be told apart from one that moved
-      if (data?.type !== 'guests') return `${nameOf(data)} dropped.`
+      if (data?.type !== 'guests') return `${nameOf(data)} שוחרר.`
       const drop = dropOf(over)
-      if (drop?.type === 'unassigned') return `${data.label} moved to unseated guests.`
+      if (drop?.type === 'unassigned') return `${data.label} הועבר לרשימת האורחים ללא הושבה.`
       const table = tableFor(drop)
-      if (!table) return `${data.label} was not dropped on a table and was not moved.`
+      if (!table) return `${data.label} לא שוחרר על שולחן ולא הועבר.`
       if (!tableHasRoom(table, data.guestIds)) {
-        return `Not enough seats at ${table.name}. ${data.label} was not moved.`
+        return `אין מספיק מקומות ב-${table.name}. ${data.label} לא הועבר.`
       }
-      return `${data.label} seated at ${table.name}.`
+      return `${data.label} הושב ב-${table.name}.`
     },
-    onDragCancel: ({ active }) => `Moving ${nameOf(dragOf(active))} was cancelled.`,
+    onDragCancel: ({ active }) => `העברת ${nameOf(dragOf(active))} בוטלה.`,
   }
 }

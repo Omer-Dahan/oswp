@@ -79,7 +79,7 @@ function EventCardBase({
               </label>
               <Switch
                 id={`${event.id}-collect-rsvp-toggle`}
-                aria-label={`Toggle RSVP collection for ${event.name}`}
+                aria-label={`הפעלה או כיבוי של איסוף אישורי הגעה עבור ${event.name}`}
                 checked={event.collectRsvp}
                 onCheckedChange={(checked) => onToggleCollectRsvp(event.id, checked)}
                 disabled={isTogglingCollectRsvp}
@@ -112,7 +112,7 @@ function EventCardBase({
           {totalGuests > 0 && (
             <div className='rounded-md border bg-muted/50 p-2'>
               <div className='font-medium text-muted-foreground text-xs'>
-                {totalInvited} of {totalGuests} guests invited
+                {totalInvited} מתוך {totalGuests} אורחים הוזמנו
               </div>
               {event.collectRsvp && totalInvited > 0 && (
                 <div className='mt-1.5 flex gap-3 text-xs'>
@@ -138,7 +138,7 @@ function EventCardBase({
                   <div className='h-2 w-2 rounded-full bg-muted-foreground/60' />
                   <span className='font-medium'>~{event.estimatedAttendance}</span>
                   <span className='text-muted-foreground'>
-                    of {totalInvited} estimated to attend
+                    מתוך {totalInvited} צפויים להגיע
                   </span>
                 </div>
               )}
@@ -162,7 +162,7 @@ function EventCardBase({
                   variant='ghost'
                   size='sm'
                   className='h-8 w-8 p-0'
-                  aria-label={`Event actions for ${event.name}`}
+                  aria-label={`פעולות אירוע עבור ${event.name}`}
                 >
                   <MoreHorizontal className='h-4 w-4' />
                   <span className='sr-only'>פעולות אירוע</span>

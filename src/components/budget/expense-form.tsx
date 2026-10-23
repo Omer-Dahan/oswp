@@ -52,7 +52,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
       toast.success('ההוצאה נוספה')
       onSuccess()
     },
-    onError: (err) => toast.error(err.message || 'Could not add expense'),
+    onError: (err) => toast.error(err.message || 'לא ניתן להוסיף את ההוצאה'),
   })
 
   const updateExpense = api.budget.updateExpense.useMutation({
@@ -61,7 +61,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
       toast.success('ההוצאה עודכנה')
       onSuccess()
     },
-    onError: (err) => toast.error(err.message || 'Could not update expense'),
+    onError: (err) => toast.error(err.message || 'לא ניתן לעדכן את ההוצאה'),
   })
 
   const isPending = createExpense.isPending || updateExpense.isPending
@@ -127,7 +127,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
 
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
-          <Label htmlFor='expense-estimated'>Estimated ({currency})</Label>
+          <Label htmlFor='expense-estimated'>משוער ({currency})</Label>
           <Input
             id='expense-estimated'
             type='number'
@@ -140,7 +140,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
           />
         </div>
         <div className='space-y-1.5'>
-          <Label htmlFor='expense-amount'>Actual paid ({currency})</Label>
+          <Label htmlFor='expense-amount'>שולם בפועל ({currency})</Label>
           <Input
             id='expense-amount'
             type='number'
@@ -250,7 +250,7 @@ export function ExpenseForm(props: Readonly<ExpenseFormProps>) {
           ביטול
         </Button>
         <Button type='submit' disabled={isPending}>
-          {isPending ? 'Saving...' : isEditing ? 'Save changes' : 'Add expense'}
+          {isPending ? 'שומר...' : isEditing ? 'שמירת שינויים' : 'הוספת הוצאה'}
         </Button>
       </div>
     </form>

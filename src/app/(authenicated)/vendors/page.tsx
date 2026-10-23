@@ -7,8 +7,8 @@ import { getRequiredWedding } from '~/server/application/authenticated-route/aut
 import { api } from '~/trpc/server'
 
 export const metadata: Metadata = {
-  title: 'Vendors | Your Wedding Website',
-  description: 'Manage your wedding vendors',
+  title: 'ספקים | אתר החתונה שלכם',
+  description: 'נהלו את ספקי החתונה שלכם',
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
 
