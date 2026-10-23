@@ -22,6 +22,13 @@ const ROLLING_WINDOW_MS = 24 * 60 * 60 * 1000
 
 export type HouseholdMatch = { guestId: number; householdId: string }
 
+export type PendingInboundRow = WhatsAppInbound & {
+  guest: { firstName: string; lastName: string } | null
+  household: {
+    guests: Array<{ firstName: string; lastName: string; isPrimaryContact: boolean }>
+  } | null
+}
+
 export type SendContext = {
   outbound: WhatsAppOutbound
   account: WhatsAppAccount | null
@@ -112,6 +119,44 @@ export class WhatsAppRepository {
   async findUnresolvedInbound(weddingId: string): Promise<WhatsAppInbound[]> {
     return this.db.whatsAppInbound.findMany({
       where: { weddingId, handledAt: null, householdId: null },
+    })
+  }
+
+  /** Every unhandled inbound row for the review screen, newest first, with the names needed to render it. */
+  async findPendingInbound(weddingId: string, limit = 50): Promise<PendingInboundRow[]> {
+    return this.db.whatsAppInbound.findMany({
+      where: { weddingId, handledAt: null },
+      orderBy: { receivedAt: 'desc' },
+      take: limit,
+      include: {
+        guest: { select: { firstName: true, lastName: true } },
+        household: {
+          select: {
+            guests: { select: { firstName: true, lastName: true, isPrimaryContact: true } },
+          },
+        },
+      },
+    })
+  }
+
+  /** A single inbound row, scoped to the wedding, for the review screen's apply/dismiss actions. */
+  async findInboundById(weddingId: string, inboundId: string): Promise<WhatsAppInbound | null> {
+    return this.db.whatsAppInbound.findFirst({ where: { id: inboundId, weddingId } })
+  }
+
+  /** Dismisses an inbound row from the review queue without touching any invitation. */
+  async markInboundHandled(weddingId: string, inboundId: string): Promise<void> {
+    await this.db.whatsAppInbound.updateMany({
+      where: { id: inboundId, weddingId },
+      data: { handledAt: new Date() },
+    })
+  }
+
+  /** Assigns a household to an inbound row whose phone didn't match one automatically. */
+  async setInboundHousehold(weddingId: string, inboundId: string, householdId: string): Promise<void> {
+    await this.db.whatsAppInbound.updateMany({
+      where: { id: inboundId, weddingId },
+      data: { householdId },
     })
   }
 

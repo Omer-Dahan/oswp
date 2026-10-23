@@ -46,3 +46,16 @@ export const composePreviewSchema = z.object({
 })
 
 export type ComposePreviewInput = z.infer<typeof composePreviewSchema>
+
+export const listPendingInboundSchema = z.object({
+  limit: z.number().int().positive().max(100).optional(),
+})
+
+export type ListPendingInboundInput = z.infer<typeof listPendingInboundSchema>
+
+export const resolveInboundSchema = z.object({
+  inboundId: z.string().min(1),
+  decision: z.enum(['attending', 'declined', 'dismissed']),
+})
+
+export type ResolveInboundInput = z.infer<typeof resolveInboundSchema>
