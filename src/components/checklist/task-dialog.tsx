@@ -28,24 +28,24 @@ import type { EventWithStats } from '~/server/domains/event'
 import type { Task } from '~/server/domains/task'
 
 const taskDialogSchema = z.object({
-  title: z.string().trim().min(1, 'Task title is required').max(200),
+  title: z.string().trim().min(1, 'יש להזין כותרת למשימה').max(200),
   category: z.enum(TASK_CATEGORIES),
-  eventId: z.string().min(1, 'Event is required'),
+  eventId: z.string().min(1, 'יש לבחור אירוע'),
   monthsBeforeWedding: z
     .string()
     .trim()
-    .min(1, 'Months before wedding is required')
+    .min(1, 'יש להזין מספר חודשים לפני החתונה')
     .refine(
       (value) => value.length === 0 || /^-?\d+$/.test(value),
-      'Months before wedding must be a whole number'
+      'מספר החודשים לפני החתונה חייב להיות מספר שלם'
     )
     .refine(
       (value) => value.length === 0 || Number(value) >= -1,
-      'Months before wedding must be -1 or greater'
+      'מספר החודשים לפני החתונה חייב להיות -1 ומעלה'
     ),
   dueDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'השתמשו בפורמט YYYY-MM-DD')
     .or(z.literal(''))
     .optional(),
   description: z.string().max(5000).or(z.literal('')).optional(),
@@ -125,7 +125,7 @@ export function TaskDialog({
       <DialogContent className='sm:max-w-2xl'>
         <DialogHeader>
           <DialogTitle className='font-display text-2xl italic'>
-            {mode === 'create' ? 'Add task' : 'Edit task'}
+            {mode === 'create' ? 'הוסיפו משימה' : 'עריכת משימה'}
           </DialogTitle>
           <DialogDescription>
             שמרו על רשימת המשימות ממוקדת במה שבאמת צריך לקרות עכשיו.
@@ -247,7 +247,7 @@ export function TaskDialog({
               ביטול
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {mode === 'create' ? 'Save task' : 'Save changes'}
+              {mode === 'create' ? 'שמירת משימה' : 'שמירת שינויים'}
             </Button>
           </DialogFooter>
         </form>

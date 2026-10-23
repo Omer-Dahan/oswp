@@ -47,7 +47,7 @@ export default function EventsTabs({ events, selectedEventId }: EventsTabsProps)
           className='text-primary'
           onClick={() => toggleEventForm()}
         >
-          + New Event
+          + אירוע חדש
         </Button>
       </ul>
       <div className='border-border border-t' />

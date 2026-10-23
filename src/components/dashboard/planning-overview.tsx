@@ -77,16 +77,16 @@ function EmptyNote({ children }: { children: React.ReactNode }) {
 }
 
 function getCountdownHeading(days: number): { lead: string; tail: string } {
-  if (days === 0) return { lead: "It's your", tail: 'wedding day' }
-  if (days === 1) return { lead: '1 day', tail: 'to go' }
-  return { lead: `${days} days`, tail: 'to go' }
+  if (days === 0) return { lead: 'היום', tail: 'החתונה שלכם' }
+  if (days === 1) return { lead: 'יום אחד', tail: 'עד החתונה' }
+  return { lead: `${days} ימים`, tail: 'עד החתונה' }
 }
 
 function TodayHero({ dashboardData }: { dashboardData: DashboardData | null }) {
   const weddingData = dashboardData?.weddingData
   const bride = weddingData?.brideFirstName ?? ''
   const groom = weddingData?.groomFirstName ?? ''
-  const coupleName = bride && groom ? `${bride} & ${groom}` : bride || groom || 'Your Wedding'
+  const coupleName = bride && groom ? `${bride} & ${groom}` : bride || groom || 'החתונה שלכם'
   const hasDate = weddingData?.daysRemaining != null && weddingData.daysRemaining >= 0
   const dateLabel = weddingData?.date?.standardFormat ?? ''
   const location = weddingData?.location ?? ''
@@ -117,10 +117,10 @@ function TodayHero({ dashboardData }: { dashboardData: DashboardData | null }) {
       )}
       {!hasDate && (
         <p className='text-muted-foreground text-sm'>
-          <span>{isPastDate ? 'This date has passed' : 'No date set'}</span>
+          <span>{isPastDate ? 'התאריך הזה כבר עבר' : 'לא נקבע תאריך'}</span>
           {' · '}
           <Link href='/settings' className='text-primary underline underline-offset-2'>
-            {isPastDate ? 'Update it in Settings' : 'Add it in Settings'}
+            {isPastDate ? 'עדכנו אותו בהגדרות' : 'הוסיפו אותו בהגדרות'}
           </Link>
         </p>
       )}
@@ -128,11 +128,11 @@ function TodayHero({ dashboardData }: { dashboardData: DashboardData | null }) {
         <div
           className='h-1.5 w-40 overflow-hidden rounded-full bg-secondary'
           role='img'
-          aria-label={`${planningPct}% of planning complete`}
+          aria-label={`${planningPct}% מהתכנון הושלם`}
         >
           <div className='h-full rounded-full bg-primary' style={{ width: `${planningPct}%` }} />
         </div>
-        <p className='text-muted-foreground text-sm'>{planningPct}% of planning complete</p>
+        <p className='text-muted-foreground text-sm'>{planningPct}% מהתכנון הושלם</p>
       </div>
     </div>
   )
@@ -182,7 +182,7 @@ function UpNextCard({
           </Button>
         )}
         <Link href='/checklist' className={outlineLinkClass}>
-          {task ? 'Open checklist' : 'Go to checklist →'}
+          {task ? 'פתחו את רשימת המשימות' : 'לרשימת המשימות →'}
         </Link>
       </div>
     </section>
@@ -204,9 +204,9 @@ function ComingUpCard({
     <Panel
       id='coming-up'
       title='בקרוב'
-      action='View all →'
+      action='הצגת הכול →'
       actionHref='/checklist'
-      aside={<span className='text-muted-foreground text-sm'>{dueThisMonth} due this month</span>}
+      aside={<span className='text-muted-foreground text-sm'>{dueThisMonth} לביצוע החודש</span>}
     >
       {tasks.length > 0 ? (
         <div className='-mx-2 flex flex-col'>
@@ -218,7 +218,7 @@ function ComingUpCard({
         <EmptyNote>אין דברים נוספים לביצוע כרגע.</EmptyNote>
       )}
       <p className='mt-3 text-muted-foreground text-xs'>
-        {tasks.length + 1} of {totalActive} active tasks shown
+        מוצגות {tasks.length + 1} מתוך {totalActive} משימות פעילות
       </p>
     </Panel>
   )
@@ -250,7 +250,7 @@ function RsvpCard({ dashboardData }: { dashboardData: DashboardData | null }) {
             הפעילו איסוף אישורי הגעה באחד האירועים שלכם כדי להתחיל לעקוב אחר תגובות
           </EmptyNote>
           <Link href='/events' className={`${outlineLinkClass} self-start`}>
-            Set up RSVPs →
+            הגדירו אישורי הגעה →
           </Link>
         </div>
       </Panel>
@@ -271,18 +271,18 @@ function RsvpCard({ dashboardData }: { dashboardData: DashboardData | null }) {
         <div
           className='flex h-1.5 overflow-hidden rounded-full bg-secondary'
           role='img'
-          aria-label={`RSVP breakdown: ${Math.round(confirmedPct)}% confirmed, ${Math.round(pendingPct)}% pending, ${Math.round(declinedPct)}% declined`}
+          aria-label={`פילוח אישורי הגעה: ${Math.round(confirmedPct)}% אישרו, ${Math.round(pendingPct)}% ממתינים, ${Math.round(declinedPct)}% לא מגיעים`}
         >
           <div className='bg-primary' style={{ width: `${confirmedPct}%` }} />
           <div className='bg-gold/60' style={{ width: `${pendingPct}%` }} />
           <div className='bg-foreground/25' style={{ width: `${declinedPct}%` }} />
         </div>
         <p className='text-muted-foreground text-sm'>
-          {pending > 0 ? `${pending} still to reply` : 'Everyone has replied'}
-          {declined > 0 ? ` · ${declined} declined` : ''}
+          {pending > 0 ? `${pending} טרם השיבו` : 'כולם השיבו'}
+          {declined > 0 ? ` · ${declined} לא מגיעים` : ''}
         </p>
         <Link href='/guest-list' className={`${outlineLinkClass} self-start`}>
-          Manage RSVPs →
+          ניהול אישורי הגעה →
         </Link>
       </div>
     </Panel>
@@ -294,7 +294,7 @@ function BudgetCard() {
 
   if (isLoading) {
     return (
-      <Panel id='budget' title='תקציב' action='Manage →' actionHref='/budget'>
+      <Panel id='budget' title='תקציב' action='ניהול →' actionHref='/budget'>
         <div className='flex flex-col gap-3'>
           <Skeleton className='h-10 w-32' />
           <Skeleton className='h-1.5 w-full' />
@@ -310,12 +310,12 @@ function BudgetCard() {
 
   if (!hasBudget) {
     return (
-      <Panel id='budget' title='תקציב' action='Manage →' actionHref='/budget'>
+      <Panel id='budget' title='תקציב' action='ניהול →' actionHref='/budget'>
         <div className='flex flex-col gap-3'>
           <p className='font-medium text-foreground text-sm'>לא הוגדר תקציב עדיין</p>
           <EmptyNote>עקבו אחר ההוצאות לחתונה מול תקציב יעד</EmptyNote>
           <Link href='/budget' className={`${outlineLinkClass} self-start`}>
-            Set up your budget →
+            הגדירו את התקציב שלכם →
           </Link>
         </div>
       </Panel>
@@ -330,19 +330,19 @@ function BudgetCard() {
   const overBudget = target > 0 && netSpend > target
 
   return (
-    <Panel id='budget' title='תקציב' action='Manage →' actionHref='/budget'>
+    <Panel id='budget' title='תקציב' action='ניהול →' actionHref='/budget'>
       <div className='flex flex-col gap-3'>
         <p className='font-display text-[2.75rem] text-foreground leading-none'>
           {formatCurrency(netSpend, currency)}
           <span className='text-muted-foreground text-xl'>
-            {target > 0 ? ` / ${formatCurrency(target, currency)}` : ' net spend'}
+            {target > 0 ? ` / ${formatCurrency(target, currency)}` : ' הוצאה נטו'}
           </span>
         </p>
         {target > 0 && (
           <div
             className='h-1.5 overflow-hidden rounded-full bg-secondary'
             role='img'
-            aria-label={`${pct}% of budget used`}
+            aria-label={`${pct}% מהתקציב נוצל`}
           >
             <div
               className={`h-full rounded-full transition-all ${overBudget ? 'bg-destructive' : 'bg-gold'}`}
@@ -351,10 +351,10 @@ function BudgetCard() {
           </div>
         )}
         <p className={`text-sm ${overBudget ? 'text-destructive' : 'text-muted-foreground'}`}>
-          {formatCurrency(actualSpend, currency)} spent ·{' '}
+          {formatCurrency(actualSpend, currency)} הוצאו ·{' '}
           {target > 0
-            ? `${formatCurrency(remaining, currency)} remaining`
-            : `${categoryCount} section${categoryCount !== 1 ? 's' : ''}`}
+            ? `${formatCurrency(remaining, currency)} נותרו`
+            : `${categoryCount} ${categoryCount !== 1 ? 'סעיפים' : 'סעיף'}`}
         </p>
       </div>
     </Panel>
@@ -372,12 +372,12 @@ function VendorsCard() {
 
   if (vendorCount === 0) {
     return (
-      <Panel id='vendors' title='ספקים' action='Manage →' actionHref='/vendors'>
+      <Panel id='vendors' title='ספקים' action='ניהול →' actionHref='/vendors'>
         <div className='flex flex-col gap-3'>
           <p className='font-medium text-foreground text-sm'>לא נוספו ספקים עדיין</p>
           <EmptyNote>נהלו הצעות מחיר, אנשי קשר וחוזים במקום אחד</EmptyNote>
           <Link href='/vendors' className={`${outlineLinkClass} self-start`}>
-            Add your first vendor →
+            הוסיפו את הספק הראשון שלכם →
           </Link>
         </div>
       </Panel>
@@ -385,21 +385,21 @@ function VendorsCard() {
   }
 
   return (
-    <Panel id='vendors' title='ספקים' action='Manage →' actionHref='/vendors'>
+    <Panel id='vendors' title='ספקים' action='ניהול →' actionHref='/vendors'>
       <div className='flex flex-col gap-3'>
         <p className='flex items-baseline gap-2'>
           <span className='font-display text-[2.75rem] text-foreground leading-none'>
             {vendorCount}
           </span>
           <span className='text-muted-foreground text-sm'>
-            vendor{vendorCount !== 1 ? 's' : ''} tracked
+            {vendorCount !== 1 ? 'ספקים במעקב' : 'ספק במעקב'}
           </span>
         </p>
         <div className='flex flex-col'>
           {[
-            { val: selected, label: 'Selected' },
-            { val: inProgress, label: 'In Progress' },
-            { val: inReview, label: 'In Review' },
+            { val: selected, label: 'נבחרו' },
+            { val: inProgress, label: 'בתהליך' },
+            { val: inReview, label: 'בבדיקה' },
           ].map((s) => (
             <div
               key={s.label}
@@ -435,7 +435,7 @@ function MilestonesCard({ dashboardData }: { dashboardData: DashboardData | null
   }
 
   return (
-    <Panel id='milestones' title='אבני דרך' action='Full timeline →' actionHref='/checklist'>
+    <Panel id='milestones' title='אבני דרך' action='ציר הזמן המלא →' actionHref='/checklist'>
       {visibleMilestones.length === 0 && (
         <EmptyNote>אבני דרך יופיעו כאן ככל שתתכננו ותסמנו פריטים ברשימת המשימות.</EmptyNote>
       )}
@@ -453,10 +453,10 @@ function MilestonesCard({ dashboardData }: { dashboardData: DashboardData | null
                     timeZone: 'UTC',
                   }).format(new Date(milestone.targetDate))
                 : status === 'done'
-                  ? 'Completed'
+                  ? 'הושלם'
                   : status === 'today'
-                    ? 'Current milestone'
-                    : 'Upcoming'
+                    ? 'אבן הדרך הנוכחית'
+                    : 'בהמשך'
 
           return (
             <div key={milestone.id} className='relative flex gap-3 pb-4 last:pb-0'>

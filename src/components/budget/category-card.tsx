@@ -41,7 +41,7 @@ function TimingLine({ expense }: { expense: BudgetExpense }) {
   if (expense.paidAt) {
     return (
       <p className='font-mono text-success text-xs'>
-        Paid {new Date(expense.paidAt).toLocaleDateString()}
+        שולם ב-{new Date(expense.paidAt).toLocaleDateString()}
       </p>
     )
   }
@@ -51,7 +51,7 @@ function TimingLine({ expense }: { expense: BudgetExpense }) {
     const overdue = new Date(expense.dueAt) < today
     return (
       <p className={`font-mono text-xs ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
-        {overdue ? 'Overdue · ' : 'Due '}
+        {overdue ? 'באיחור · ' : 'לתשלום עד '}
         {new Date(expense.dueAt).toLocaleDateString()}
       </p>
     )
@@ -75,7 +75,7 @@ function ExpenseTable({
   return (
     <div className='relative min-w-0 overflow-x-auto'>
       <table className='w-full min-w-[580px] border-collapse text-sm'>
-        <caption className='sr-only'>Expenses for {category.name}</caption>
+        <caption className='sr-only'>הוצאות עבור {category.name}</caption>
         <thead>
           <tr className='border-border/60 border-b bg-muted/40 text-left font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
             <th scope='col' className='px-5 py-4 font-normal'>
@@ -121,7 +121,7 @@ function ExpenseTable({
                         variant='outline'
                         className='border-success/40 text-[0.55rem] text-success'
                       >
-                        {expense.refundedAt ? 'Refunded' : 'Refundable'}
+                        {expense.refundedAt ? 'הוחזר' : 'ניתן להחזר'}
                       </Badge>
                     ) : null}
                   </div>
@@ -147,7 +147,7 @@ function ExpenseTable({
                         type='button'
                         variant='ghost'
                         size='icon'
-                        aria-label={`Actions for ${expense.description}`}
+                        aria-label={`פעולות עבור ${expense.description}`}
                       >
                         <MoreHorizontal className='h-4 w-4' aria-hidden='true' />
                       </Button>
@@ -196,7 +196,7 @@ function ExpenseTable({
               {formatCurrency(category.totals.actualSpend, currency)}
             </td>
             <td colSpan={2} className='px-3 py-5 text-success'>
-              {formatCurrency(category.totals.netSpend, currency)} net spend
+              {formatCurrency(category.totals.netSpend, currency)} הוצאה נטו
             </td>
           </tr>
         </tfoot>
@@ -221,7 +221,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
       toast.success('הסעיף נמחק')
       setConfirmDeleteCategory(false)
     },
-    onError: (err) => toast.error(err.message || 'Could not delete section'),
+    onError: (err) => toast.error(err.message || 'לא ניתן למחוק את הסעיף'),
   })
 
   const deleteExpense = api.budget.deleteExpense.useMutation({
@@ -230,7 +230,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
       toast.success('ההוצאה נמחקה')
       setDeleteExpenseId(null)
     },
-    onError: (err) => toast.error(err.message || 'Could not delete expense'),
+    onError: (err) => toast.error(err.message || 'לא ניתן למחוק את ההוצאה'),
   })
 
   const { totals } = category
@@ -259,8 +259,8 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
               {category.name}
             </h3>
             <p className='mt-1 text-muted-foreground text-xs'>
-              {category.expenses.length} {category.expenses.length === 1 ? 'expense' : 'expenses'} ·{' '}
-              {formatCurrency(totals.actualSpend, currency)} paid so far
+              {category.expenses.length} {category.expenses.length === 1 ? 'הוצאה' : 'הוצאות'} ·{' '}
+              {formatCurrency(totals.actualSpend, currency)} שולמו עד כה
             </p>
           </div>
           <div className='flex gap-2'>
@@ -287,14 +287,14 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
           <div className='mb-2 flex flex-wrap justify-between gap-2 font-mono text-xs'>
             <span className='text-muted-foreground'>
               {hasPlanned
-                ? `${formatCurrency(totals.netSpend, currency)} net of ${formatCurrency(totals.plannedAmount, currency)}`
-                : `${formatCurrency(totals.netSpend, currency)} net spend · no budget set`}
+                ? `${formatCurrency(totals.netSpend, currency)} נטו מתוך ${formatCurrency(totals.plannedAmount, currency)}`
+                : `${formatCurrency(totals.netSpend, currency)} הוצאה נטו · לא הוגדר תקציב`}
             </span>
             {hasPlanned ? (
               <span className={overBudget ? 'text-destructive' : 'text-success'}>
                 {overBudget
-                  ? `${formatCurrency(totals.netSpend - totals.plannedAmount, currency)} over`
-                  : `${formatCurrency(totals.remaining, currency)} left`}
+                  ? `חריגה של ${formatCurrency(totals.netSpend - totals.plannedAmount, currency)}`
+                  : `נותרו ${formatCurrency(totals.remaining, currency)}`}
               </span>
             ) : null}
           </div>
@@ -309,10 +309,10 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
         </div>
         {totals.refundableDeposits > 0 ? (
           <p className='mt-4 text-muted-foreground text-xs'>
-            {formatCurrency(totals.refundableDeposits, currency)} refundable deposits excluded from
-            net spend
+            {formatCurrency(totals.refundableDeposits, currency)} בפיקדונות הניתנים להחזר אינם נכללים
+            בהוצאה נטו
             {totals.outstandingDeposits > 0
-              ? ` · ${formatCurrency(totals.outstandingDeposits, currency)} still to return`
+              ? ` · ${formatCurrency(totals.outstandingDeposits, currency)} טרם הוחזרו`
               : ''}
           </p>
         ) : null}
@@ -329,7 +329,7 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
         <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
             <DialogTitle className='font-display text-xl italic'>
-              Add expense · {category.name}
+              הוספת הוצאה · {category.name}
             </DialogTitle>
           </DialogHeader>
           <ExpenseForm
@@ -380,10 +380,10 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
       <AlertDialog open={confirmDeleteCategory} onOpenChange={setConfirmDeleteCategory}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete “{category.name}”?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק את “{category.name}”?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the section and its {category.expenses.length}{' '}
-              {category.expenses.length === 1 ? 'expense' : 'expenses'}. This cannot be undone.
+              פעולה זו תמחק את הסעיף יחד עם {category.expenses.length}{' '}
+              {category.expenses.length === 1 ? 'הוצאה' : 'הוצאות'}. לא ניתן לבטל פעולה זו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

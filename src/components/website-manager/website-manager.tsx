@@ -44,7 +44,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to publish website. Please try again.')
+      toast.error(error.message || 'פרסום האתר נכשל. נסו שוב.')
     },
   })
 
@@ -55,7 +55,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
       const didCopy = await copyToClipboard(liveUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-      toast.success(didCopy ? 'Website link copied' : 'Website link ready to copy', {
+      toast.success(didCopy ? 'הקישור לאתר הועתק' : 'הקישור לאתר מוכן להעתקה', {
         description: didCopy ? undefined : liveUrl,
       })
     }
@@ -67,8 +67,8 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
           פורסם
         </span>
         <p className='mt-3 text-foreground/75 text-sm leading-relaxed'>
-          Your wedding website is live. Share this link with guests, or use the save-the-date links
-          on the guest list to invite each household.
+          אתר החתונה שלכם באוויר. שתפו את הקישור עם האורחים, או השתמשו בקישורי ״שמרו את התאריך״
+          ברשימת האורחים כדי להזמין כל משק בית.
         </p>
         <div className='mt-4 flex flex-wrap items-center gap-2'>
           <code className='flex-1 break-all rounded-sm border border-border/70 bg-muted/40 px-3 py-2 font-mono text-foreground/80 text-xs'>
@@ -80,7 +80,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
             ) : (
               <Copy className='h-3.5 w-3.5' aria-hidden='true' />
             )}
-            Copy link
+            העתקת קישור
           </Button>
           <Button asChild variant='outline' size='sm'>
             <a href={liveUrl} target='_blank' rel='noreferrer'>
@@ -112,8 +112,8 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
         לא פורסם
       </span>
       <p className='mt-3 text-foreground/75 text-sm leading-relaxed'>
-        Publish your wedding website to get a public page for your guests. You&apos;ll need a
-        published website before you can share save-the-date links from the guest list.
+        פרסמו את אתר החתונה כדי לקבל עמוד ציבורי לאורחים. נדרש אתר מפורסם לפני שתוכלו לשתף
+        קישורי ״שמרו את התאריך״ מרשימת האורחים.
       </p>
 
       <div className='mt-4 space-y-1.5'>
@@ -154,8 +154,8 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
             className='flex items-center gap-1.5 rounded-sm border border-destructive/40 bg-destructive/10 px-2.5 py-1.5 font-medium text-destructive text-xs'
           >
             <AlertCircle className='h-3.5 w-3.5 shrink-0' aria-hidden='true' />
-            Use letters, numbers, dashes, and underscores only — no spaces or other special
-            characters.
+            השתמשו באותיות, מספרים, מקפים וקווים תחתונים בלבד, ללא רווחים או תווים מיוחדים
+            אחרים.
           </p>
         )}
       </div>
@@ -166,7 +166,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
           disabled={publishWebsite.isPending || !isSubUrlValid}
           onClick={handlePublish}
         >
-          {publishWebsite.isPending ? 'Publishing…' : 'Publish website'}
+          {publishWebsite.isPending ? 'מפרסם…' : 'פרסום האתר'}
         </Button>
       </div>
     </div>

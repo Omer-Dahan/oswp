@@ -71,8 +71,8 @@ const Main = ({
       router.refresh()
     },
     onError: (err) => {
-      toast.error('Failed to update website settings', {
-        description: err.message ?? 'Please try again later.',
+      toast.error('עדכון הגדרות האתר נכשל', {
+        description: err.message ?? 'נסו שוב מאוחר יותר.',
       })
     },
   })
@@ -104,7 +104,7 @@ const Main = ({
         <h2 className='my-4 font-bold text-2xl'>נראות</h2>
         <div className='flex items-center justify-between pb-3'>
           <Label htmlFor='search-engine-toggle' className='text-md'>
-            Appear in Search Engines
+            להופיע במנועי חיפוש
           </Label>
           <Switch
             id='search-engine-toggle'
@@ -114,15 +114,15 @@ const Main = ({
         </div>
         <p className='font-thin'>
           {appearInSearchEngines
-            ? "A link to your site doesn't currently show up in search engine results. This could keep some guests from finding your site."
-            : 'A link to your site currently appears in search engines. This way guests can find your site without needing to memorize your URL.'}
+            ? 'קישור לאתר שלכם אינו מופיע כרגע בתוצאות של מנועי חיפוש. כך ייתכן שחלק מהאורחים לא יצליחו למצוא את האתר.'
+            : 'קישור לאתר שלכם מופיע כרגע במנועי חיפוש. כך האורחים יכולים למצוא את האתר בלי לזכור את הכתובת שלו.'}
         </p>
       </div>
       <div className='px-8 pb-5'>
         <h2 className='my-4 font-bold text-2xl'>פרטיות</h2>
         <div className='flex items-center justify-between pb-3'>
           <Label htmlFor='password-toggle' className='text-md'>
-            Require a Password
+            נדרש סיסמה
           </Label>
           {updateWebsite.isPending ? (
             <LoadingSpinner size={20} />
@@ -136,8 +136,8 @@ const Main = ({
         </div>
         <p className='font-thin'>
           {website?.isPasswordEnabled
-            ? 'Guests will be asked to enter a password before they may view your site.'
-            : 'Anyone with a link to your site may view it.'}
+            ? 'האורחים יתבקשו להזין סיסמה לפני שיוכלו לצפות באתר שלכם.'
+            : 'כל מי שיש לו קישור לאתר שלכם יכול לצפות בו.'}
         </p>
         {website?.isPasswordEnabled && (
           <div className='pt-5'>
@@ -148,7 +148,7 @@ const Main = ({
                 className={`text-${sharedStyles.primaryColor}`}
                 onClick={() => setShowPasswordView(true)}
               >
-                Edit Password
+                ערכו סיסמה
               </button>
             </div>
             <span className='font-thin'>{website?.password}</span>
@@ -163,7 +163,7 @@ const Main = ({
             className={`text-${sharedStyles.primaryColor}`}
             onClick={() => setShowEditUrlView(true)}
           >
-            Edit URL
+            ערכו כתובת אינטרנט
           </button>
         </div>
         <span>{website?.subUrl ? computePublicWebsiteUrl(website.subUrl) : ''}</span>

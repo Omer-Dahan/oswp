@@ -14,7 +14,7 @@ export default function BudgetError({ error, reset }: Readonly<BudgetErrorProps>
       </p>
       {error.digest ? (
         <p className='rounded border border-border bg-muted px-3 py-2 font-mono text-xs'>
-          Error ID: {error.digest}
+          מזהה שגיאה: {error.digest}
         </p>
       ) : null}
       <button

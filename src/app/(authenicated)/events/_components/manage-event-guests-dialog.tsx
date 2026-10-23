@@ -132,13 +132,13 @@ export function ManageEventGuestsDialog({
     onSuccess: async () => {
       await utils.dashboard.getForActiveWorkspace.invalidate()
       await utils.event.getAllByUserIdWithStats.invalidate()
-      toast.success('Guest list updated', {
-        description: `Updated ${changedInvitations.length} invitation${changedInvitations.length === 1 ? '' : 's'} for ${event.name}.`,
+      toast.success('רשימת המוזמנים עודכנה', {
+        description: `${changedInvitations.length === 1 ? 'הזמנה אחת עודכנה' : `${changedInvitations.length} הזמנות עודכנו`} עבור ${event.name}.`,
       })
       handleOpenChange(false)
     },
     onError: (error) => {
-      toast.error('Failed to update guest list', {
+      toast.error('עדכון רשימת המוזמנים נכשל', {
         description: error.message,
       })
     },
@@ -167,7 +167,7 @@ export function ManageEventGuestsDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className='max-h-[80vh] sm:max-w-lg'>
         <DialogHeader>
-          <DialogTitle>Manage Guests — {event.name}</DialogTitle>
+          <DialogTitle>ניהול מוזמנים — {event.name}</DialogTitle>
           <DialogDescription>
             בחרו אילו אורחים להוסיף לאירוע זה. פעולה זו אינה שולחת הזמנות.
           </DialogDescription>
@@ -186,7 +186,7 @@ export function ManageEventGuestsDialog({
 
           <div className='flex flex-wrap items-center justify-between gap-2 text-sm'>
             <span className='text-muted-foreground text-xs sm:text-sm'>
-              {invitedCount} of {guestStates.size} invited
+              {invitedCount} מתוך {guestStates.size} הוזמנו
             </span>
             <div className='flex gap-1.5'>
               <Button
@@ -215,7 +215,7 @@ export function ManageEventGuestsDialog({
               </div>
             ) : filteredGuests.length === 0 ? (
               <p className='py-4 text-center text-muted-foreground text-sm'>
-                {search ? 'No guests match your search.' : 'No guests added yet.'}
+                {search ? 'אין אורחים שתואמים את החיפוש.' : 'עדיין לא נוספו אורחים.'}
               </p>
             ) : (
               filteredGuests.map((guest) => {
@@ -257,8 +257,8 @@ export function ManageEventGuestsDialog({
           >
             {bulkUpdate.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
             {changedInvitations.length > 0
-              ? `Save (${changedInvitations.length} change${changedInvitations.length === 1 ? '' : 's'})`
-              : 'Save'}
+              ? `שמירה (${changedInvitations.length === 1 ? 'שינוי אחד' : `${changedInvitations.length} שינויים`})`
+              : 'שמירה'}
           </Button>
         </DialogFooter>
       </DialogContent>

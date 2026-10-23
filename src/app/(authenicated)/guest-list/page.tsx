@@ -6,8 +6,8 @@ import { GuestListSkeleton } from '~/components/guest-list/guest-list-skeleton'
 import { getRequiredDashboardOverview } from '~/server/application/authenticated-route/authenticated-route-data'
 
 export const metadata: Metadata = {
-  title: 'Guest List | Your Wedding Website',
-  description: 'Manage guests, households, and RSVP details',
+  title: 'רשימת אורחים | אתר החתונה שלכם',
+  description: 'ניהול אורחים, משקי בית ופרטי אישורי הגעה',
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
 

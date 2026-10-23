@@ -134,14 +134,14 @@ const GuestTableRow = memo(function GuestTableRow({
         <span
           className={contactComplete ? 'font-medium text-success' : 'font-medium text-destructive'}
         >
-          {contactComplete ? 'Complete' : 'Missing'}
+          {contactComplete ? 'מלא' : 'חסר'}
         </span>
       </td>
       <td className='px-4 py-3'>
         <span
           className={locationComplete ? 'font-medium text-success' : 'font-medium text-destructive'}
         >
-          {locationComplete ? 'Complete' : 'Missing'}
+          {locationComplete ? 'מלא' : 'חסר'}
         </span>
       </td>
     </tr>

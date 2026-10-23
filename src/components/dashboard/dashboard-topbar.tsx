@@ -14,7 +14,7 @@ type DashboardTopbarProps = {
 }
 
 export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
-  const { title = 'Dashboard', showManagementActions = true, onMenuToggle, onAddTask } = props
+  const { title = 'לוח בקרה', showManagementActions = true, onMenuToggle, onAddTask } = props
   const { openSidebar } = useAuthenticatedSidebar()
   const [today, setToday] = useState('')
 
@@ -70,7 +70,7 @@ export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
             onClick={onAddTask ?? dispatchDashboardAddTaskEvent}
             className='flex min-h-[40px] items-center gap-1.5 rounded-[10px] bg-primary px-4 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
-            + Add task
+            + הוסיפו משימה
           </button>
         )}
       </div>

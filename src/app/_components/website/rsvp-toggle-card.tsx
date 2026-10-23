@@ -21,13 +21,13 @@ export function RsvpToggleCard({ websiteId, initialIsRsvpEnabled }: RsvpToggleCa
 
   const updateIsRsvpEnabled = api.website.updateIsRsvpEnabled.useMutation({
     onSuccess: () => {
-      toast.success(isRsvpEnabled ? 'RSVPs are now being accepted' : 'RSVPs are now disabled')
+      toast.success(isRsvpEnabled ? 'אישורי הגעה מתקבלים כעת' : 'אישורי ההגעה הושבתו')
       router.refresh()
     },
     onError: (error) => {
       setIsRsvpEnabled(!isRsvpEnabled)
-      toast.error('Could not update RSVP setting', {
-        description: error.message ?? 'Please try again later.',
+      toast.error('לא ניתן לעדכן את הגדרת אישור ההגעה', {
+        description: error.message ?? 'נסו שוב מאוחר יותר.',
       })
     },
   })
@@ -46,21 +46,21 @@ export function RsvpToggleCard({ websiteId, initialIsRsvpEnabled }: RsvpToggleCa
     <Card className='border-border/80 bg-card/80'>
       <CardHeader className='space-y-3'>
         <p className='font-mono text-[0.62rem] text-foreground/45 uppercase tracking-[0.18em]'>
-          Guest Responses
+          תגובות האורחים
         </p>
         <CardTitle className='flex items-center gap-2 font-serif text-2xl text-foreground'>
           <CheckCircle aria-hidden='true' className='h-5 w-5' />
-          RSVP buttons
+          כפתורי אישור הגעה
         </CardTitle>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          Allow guests to submit RSVPs. When disabled, RSVP buttons remain visible on your templates
-          but guests will see a message that you&apos;re not yet accepting responses.
+          אפשרו לאורחים לשלוח אישורי הגעה. כשהאפשרות כבויה, כפתורי אישור ההגעה נשארים גלויים
+          בתבניות, אבל האורחים יראו הודעה שעדיין אינכם מקבלים תגובות.
         </p>
       </CardHeader>
       <CardContent className='space-y-3'>
         <div className='flex items-center justify-between gap-4'>
           <Label htmlFor='rsvp-toggle' className='font-medium text-foreground text-sm'>
-            Enable RSVP buttons
+            הפעלת כפתורי אישור הגעה
           </Label>
           <Switch
             id='rsvp-toggle'
@@ -72,8 +72,8 @@ export function RsvpToggleCard({ websiteId, initialIsRsvpEnabled }: RsvpToggleCa
 
         <p className='font-sans text-muted-foreground text-sm'>
           {isRsvpEnabled
-            ? 'Guests can submit RSVPs on your website and invitations.'
-            : 'Guests will see RSVP buttons but cannot submit responses yet.'}
+            ? 'האורחים יכולים לשלוח אישורי הגעה באתר ובהזמנות.'
+            : 'האורחים יראו את כפתורי אישור ההגעה אך עדיין לא יוכלו לשלוח תגובות.'}
         </p>
       </CardContent>
     </Card>

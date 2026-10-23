@@ -27,13 +27,13 @@ export type TaskBucket = {
 }
 
 const TASK_BUCKET_ORDER: Array<Pick<TaskBucket, 'key' | 'title'>> = [
-  { key: 'this-week', title: 'This week' },
-  { key: 'this-month', title: 'This month' },
-  { key: 'three-months', title: '3 months' },
-  { key: 'six-months', title: '6 months' },
-  { key: 'nine-plus-months', title: '9+ months' },
-  { key: 'day-of', title: 'Day of' },
-  { key: 'done', title: 'Done' },
+  { key: 'this-week', title: 'השבוע' },
+  { key: 'this-month', title: 'החודש' },
+  { key: 'three-months', title: '3 חודשים' },
+  { key: 'six-months', title: '6 חודשים' },
+  { key: 'nine-plus-months', title: '9+ חודשים' },
+  { key: 'day-of', title: 'ביום האירוע' },
+  { key: 'done', title: 'הושלם' },
 ]
 
 export function getChecklistFiltersFromSearchParams(
@@ -106,17 +106,17 @@ const HORIZON_BUCKETS: Array<{
   hint: string
   bucketKeys: TaskBucketKey[]
 }> = [
-  { key: 'now', title: 'Now', hint: 'This month', bucketKeys: ['this-week', 'this-month'] },
-  { key: 'next', title: 'Next', hint: 'Within 3 months', bucketKeys: ['three-months'] },
+  { key: 'now', title: 'עכשיו', hint: 'החודש', bucketKeys: ['this-week', 'this-month'] },
+  { key: 'next', title: 'בקרוב', hint: 'בתוך 3 חודשים', bucketKeys: ['three-months'] },
   {
     key: 'later',
-    title: 'Later',
-    hint: '3 months and beyond',
+    title: 'בהמשך',
+    hint: '3 חודשים ומעלה',
     bucketKeys: ['six-months', 'nine-plus-months', 'day-of'],
   },
 ]
 
-const EMPTY_DONE_BUCKET: TaskBucket = { key: 'done', title: 'Done', tasks: [] }
+const EMPTY_DONE_BUCKET: TaskBucket = { key: 'done', title: 'הושלם', tasks: [] }
 
 export function groupBucketsIntoHorizons(buckets: TaskBucket[]): {
   horizons: TaskHorizon[]

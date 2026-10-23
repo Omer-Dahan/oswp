@@ -28,10 +28,10 @@ const seatingTableFormSchema = z.object({
   shape: seatingTableShapeSchema,
   // Same bounds as the server, with wording for the form field
   capacity: z
-    .number({ error: 'Enter how many seats this table has' })
-    .int('Seats must be a whole number')
-    .min(MIN_TABLE_CAPACITY, `At least ${MIN_TABLE_CAPACITY} seat`)
-    .max(MAX_TABLE_CAPACITY, `At most ${MAX_TABLE_CAPACITY} seats`),
+    .number({ error: 'הזינו כמה מקומות יש בשולחן הזה' })
+    .int('מספר המקומות חייב להיות מספר שלם')
+    .min(MIN_TABLE_CAPACITY, `נדרש לפחות ${MIN_TABLE_CAPACITY} מקום`)
+    .max(MAX_TABLE_CAPACITY, `לכל היותר ${MAX_TABLE_CAPACITY} מקומות`),
 })
 
 export type SeatingTableFormValues = z.infer<typeof seatingTableFormSchema>
@@ -51,8 +51,8 @@ type SeatingTableDialogProps = {
 }
 
 const SHAPE_OPTIONS = [
-  { value: 'ROUND', label: 'Round' },
-  { value: 'RECTANGULAR', label: 'Rectangular' },
+  { value: 'ROUND', label: 'עגול' },
+  { value: 'RECTANGULAR', label: 'מלבני' },
 ] as const
 
 export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
@@ -98,7 +98,7 @@ export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
     // Only a seat count the planner changed is checked against who is seated now
     if (changed.capacity !== undefined && changed.capacity < minCapacity) {
       setError('capacity', {
-        message: `${minCapacity} guests are seated here. Move guests before reducing seats.`,
+        message: `${minCapacity} אורחים יושבים כאן. העבירו אורחים לפני הקטנת מספר המקומות.`,
       })
       return
     }
@@ -110,7 +110,7 @@ export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
       <DialogContent className='sm:max-w-md' onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle className='font-display text-2xl italic'>
-            {mode === 'create' ? 'Add table' : 'Edit table'}
+            {mode === 'create' ? 'הוסיפו שולחן' : 'עריכת שולחן'}
           </DialogTitle>
           <DialogDescription>בחרו צורה וכמה אורחים היא מכילה.</DialogDescription>
         </DialogHeader>
@@ -178,7 +178,7 @@ export function SeatingTableDialog(props: Readonly<SeatingTableDialogProps>) {
               <span />
             )}
             <Button type='submit' disabled={isSubmitting}>
-              {mode === 'create' ? 'Add table' : 'Save'}
+              {mode === 'create' ? 'הוסיפו שולחן' : 'שמירה'}
             </Button>
           </DialogFooter>
         </form>

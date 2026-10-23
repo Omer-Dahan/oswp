@@ -36,7 +36,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
       toast.success('הסעיף נוסף')
       onSuccess()
     },
-    onError: (err) => toast.error(err.message || 'Could not add section'),
+    onError: (err) => toast.error(err.message || 'לא ניתן להוסיף את הסעיף'),
   })
 
   const updateCategory = api.budget.updateCategory.useMutation({
@@ -45,7 +45,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
       toast.success('הסעיף עודכן')
       onSuccess()
     },
-    onError: (err) => toast.error(err.message || 'Could not update section'),
+    onError: (err) => toast.error(err.message || 'לא ניתן לעדכן את הסעיף'),
   })
 
   const isPending = createCategory.isPending || updateCategory.isPending
@@ -83,7 +83,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
         />
       </div>
       <div className='space-y-1.5'>
-        <Label htmlFor='category-planned'>Planned budget ({currency})</Label>
+        <Label htmlFor='category-planned'>תקציב מתוכנן ({currency})</Label>
         <Input
           id='category-planned'
           type='number'
@@ -100,7 +100,7 @@ export function CategoryForm(props: Readonly<CategoryFormProps>) {
           ביטול
         </Button>
         <Button type='submit' disabled={isPending}>
-          {isPending ? 'Saving...' : isEditing ? 'Save changes' : 'Add section'}
+          {isPending ? 'שומר...' : isEditing ? 'שמירת שינויים' : 'הוספת שלב'}
         </Button>
       </div>
     </form>

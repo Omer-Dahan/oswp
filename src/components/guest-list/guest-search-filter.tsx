@@ -308,7 +308,7 @@ export default function GuestSearchFilter({
               className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
               onClick={() => filterHouseholdsBySearch('')}
             >
-              Search: {searchInput} ×
+              חיפוש: {searchInput} ×
             </button>
           ) : null}
           {selectedRsvpFilter ? (
@@ -333,7 +333,7 @@ export default function GuestSearchFilter({
                 filterHouseholds(searchInput, selectedRsvpFilter, null, selectedCountryFilter)
               }}
             >
-              Tag: {selectedTagName ?? selectedTagFilter} ×
+              תגית: {selectedTagName ?? selectedTagFilter} ×
             </button>
           ) : null}
           {selectedCountryFilter ? (
@@ -345,7 +345,7 @@ export default function GuestSearchFilter({
                 filterHouseholds(searchInput, selectedRsvpFilter, selectedTagFilter, null)
               }}
             >
-              Country: {selectedCountryFilter} ×
+              ארץ: {selectedCountryFilter} ×
             </button>
           ) : null}
         </div>

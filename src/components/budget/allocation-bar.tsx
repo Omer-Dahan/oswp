@@ -42,7 +42,7 @@ export function AllocationBar({ categories, currency }: Readonly<AllocationBarPr
     <section className='mb-8 rounded-lg border border-border/70 bg-card p-4 md:p-5'>
       <div className='mb-3 flex items-center justify-between'>
         <p className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
-          {hasSpend ? 'Where it’s going' : 'Planned allocation'}
+          {hasSpend ? 'לאן הכסף הולך' : 'חלוקה מתוכננת'}
         </p>
         {total > 0 ? (
           <p className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>

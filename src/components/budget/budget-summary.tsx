@@ -98,7 +98,7 @@ function BudgetSettingsDialog({
       toast.success('הגדרות התקציב עודכנו')
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not update budget settings')
+      toast.error(err instanceof Error ? err.message : 'לא ניתן לעדכן את הגדרות התקציב')
     }
   }
 
@@ -117,7 +117,7 @@ function BudgetSettingsDialog({
           variant='outline'
           className='font-mono text-[0.62rem] uppercase tracking-widest'
         >
-          {currentTarget > 0 ? 'הגדרות תקציב' : 'Set budget'}
+          {currentTarget > 0 ? 'הגדרות תקציב' : 'הגדרת תקציב'}
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-sm'>
@@ -140,12 +140,12 @@ function BudgetSettingsDialog({
               </SelectContent>
             </Select>
             <p className='text-muted-foreground text-xs'>
-              All targets, section budgets, and expenses are tracked in this currency. Changing it
-              does not convert existing amounts.
+              כל היעדים, תקציבי הסעיפים וההוצאות נמדדים במטבע זה. שינוי המטבע
+              לא ימיר סכומים קיימים.
             </p>
           </div>
           <div className='space-y-1.5'>
-            <Label htmlFor='target-total'>Overall target ({currency})</Label>
+            <Label htmlFor='target-total'>יעד כולל ({currency})</Label>
             <Input
               id='target-total'
               type='number'
@@ -167,7 +167,7 @@ function BudgetSettingsDialog({
               ביטול
             </Button>
             <Button type='submit' disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'שומר...' : 'שמירה'}
             </Button>
           </div>
         </form>
@@ -200,7 +200,7 @@ export function BudgetSummary({ summary, currency }: Readonly<BudgetSummaryProps
         <div className='mb-5'>
           <div className='mb-1.5 flex items-center justify-between font-mono text-[0.62rem] text-muted-foreground uppercase tracking-widest'>
             <span>
-              {formatCurrency(netSpend, currency)} of {formatCurrency(targetTotal, currency)}
+              {formatCurrency(netSpend, currency)} מתוך {formatCurrency(targetTotal, currency)}
             </span>
             <span className={overBudget ? 'text-destructive' : undefined}>{pctOfTarget}%</span>
           </div>
@@ -219,20 +219,20 @@ export function BudgetSummary({ summary, currency }: Readonly<BudgetSummaryProps
         <StatTile
           label='תקציב יעד'
           value={targetTotal > 0 ? formatCurrency(targetTotal, currency) : '—'}
-          hint={`Planned across sections: ${formatCurrency(totalPlanned, currency)}`}
+          hint={`מתוכנן בכל הסעיפים: ${formatCurrency(totalPlanned, currency)}`}
         />
         <StatTile
           label='הוצאה בפועל'
           value={formatCurrency(actualSpend, currency)}
-          hint='Gross of all payments'
+          hint='סך כל התשלומים, ברוטו'
         />
         <StatTile
           label='הוצאה נטו'
           value={formatCurrency(netSpend, currency)}
           hint={
             outstandingDeposits > 0
-              ? `${formatCurrency(outstandingDeposits, currency)} in deposits still to return`
-              : 'After refundable deposits'
+              ? `${formatCurrency(outstandingDeposits, currency)} בפיקדונות שטרם הוחזרו`
+              : 'בניכוי פיקדונות הניתנים להחזר'
           }
         />
         <StatTile
@@ -242,9 +242,9 @@ export function BudgetSummary({ summary, currency }: Readonly<BudgetSummaryProps
           hint={
             targetTotal > 0
               ? remaining < 0
-                ? 'Over target budget'
-                : 'Left under target'
-              : 'Set a target to track remaining'
+                ? 'חריגה מתקציב היעד'
+                : 'נותר מתחת ליעד'
+              : 'הגדירו יעד כדי לעקוב אחר היתרה'
           }
         />
       </div>

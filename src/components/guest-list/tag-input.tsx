@@ -80,7 +80,7 @@ export function TagInput({
         onToggle(created.id)
         setQuery('')
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to create tag'
+        const message = error instanceof Error ? error.message : 'יצירת התגית נכשלה'
         toast.error(message)
       }
     }
@@ -146,7 +146,7 @@ export function TagInput({
                 onToggle(tag.id)
               }}
               className='ml-0.5 hover:text-destructive'
-              aria-label={`Remove ${tag.name}`}
+              aria-label={`הסרת ${tag.name}`}
             >
               <FiX className='h-3 w-3' />
             </button>
@@ -162,7 +162,7 @@ export function TagInput({
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder={selectedTags.length === 0 ? 'Type to search or create tags...' : ''}
+          placeholder={selectedTags.length === 0 ? 'הקלידו לחיפוש או ליצירת תגיות...' : ''}
           disabled={isMaxReached && !query}
           className='min-w-[80px] flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed'
           aria-label={ariaLabel}

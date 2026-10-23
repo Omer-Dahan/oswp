@@ -29,8 +29,8 @@ function BudgetEmptyState({ onAdd }: { onAdd: () => void }) {
       <div className='max-w-sm'>
         <p className='font-serif text-foreground text-xl'>התחילו את התקציב</p>
         <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
-          Set a target, break it into sections like venue and catering, then track every payment —
-          including refundable deposits that come back after the event.
+          הגדירו יעד, חלקו אותו לסעיפים כמו אולם וקייטרינג, ועקבו אחר כל תשלום —
+          כולל פיקדונות הניתנים להחזר לאחר האירוע.
         </p>
       </div>
       <Button
@@ -81,7 +81,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
           <UpcomingPayments categories={categories} currency={currency} />
           <div className='mb-3 flex items-center gap-3'>
             <h2 className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-widest'>
-              Budget sections · {categories.length}
+              סעיפי תקציב · {categories.length}
             </h2>
             <div className='h-px flex-1 bg-border/70' />
           </div>
@@ -120,7 +120,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
                         </span>
                         <span className='mt-1 block font-mono text-[0.6rem] text-muted-foreground uppercase tracking-wider'>
                           {category.expenses.length}{' '}
-                          {category.expenses.length === 1 ? 'expense' : 'expenses'}
+                          {category.expenses.length === 1 ? 'הוצאה' : 'הוצאות'}
                         </span>
                       </span>
                       <span className='shrink-0 font-mono text-foreground text-xs tabular-nums'>

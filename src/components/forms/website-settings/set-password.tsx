@@ -23,8 +23,8 @@ export default function SetPasswordView({ setShowPasswordView, password }: SetPa
       router.refresh()
     },
     onError: (err) => {
-      toast.error('Failed to update website password', {
-        description: err.message ?? 'Please try again later.',
+      toast.error('עדכון סיסמת האתר נכשל', {
+        description: err.message ?? 'נסו שוב מאוחר יותר.',
       })
     },
   })
@@ -46,8 +46,8 @@ export default function SetPasswordView({ setShowPasswordView, password }: SetPa
       </div>
       <div className='px-5 py-7'>
         <p className='mb-5 font-thin tracking-tight'>
-          Know who&apos;s in on your wedding plans by adding a password to your site. Make sure
-          it&apos;s easy for guests to remember (and for you to share!).
+          הוסיפו סיסמה לאתר כדי לדעת מי שותף לתוכניות החתונה שלכם. בחרו סיסמה שקל לאורחים
+          לזכור (ולכם לשתף!).
         </p>
         <input
           placeholder='סיסמת אורחים'
@@ -73,7 +73,7 @@ export default function SetPasswordView({ setShowPasswordView, password }: SetPa
             })
           }
         >
-          {updateWebsite.isPending ? 'Processing...' : 'Save Changes'}
+          {updateWebsite.isPending ? 'מעבד...' : 'שמירת שינויים'}
         </button>
       </div>
     </div>

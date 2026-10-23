@@ -51,7 +51,7 @@ const getTaskTag = (
   now: Date
 ): string => {
   if (completed) {
-    return 'Done'
+    return 'הושלם'
   }
 
   if (dueDate) {
@@ -66,23 +66,23 @@ const getTaskTag = (
     }
   }
 
-  return TASK_CATEGORY_LABELS[category] ?? 'Task'
+  return TASK_CATEGORY_LABELS[category] ?? 'משימה'
 }
 
 const getTaskDueLabel = (task: Task, now: Date): string => {
   if (task.completed) {
-    return 'Done'
+    return 'הושלם'
   }
 
   if (task.dueDate) {
     const today = startOfUtcDay(now)
     const normalizedDueDate = startOfUtcDay(task.dueDate)
     if (normalizedDueDate < today) {
-      return 'Overdue'
+      return 'באיחור'
     }
 
     if (normalizedDueDate <= endOfUtcWeek(today)) {
-      return 'This week'
+      return 'השבוע'
     }
 
     return new Intl.DateTimeFormat('en-US', {
@@ -93,10 +93,10 @@ const getTaskDueLabel = (task: Task, now: Date): string => {
   }
 
   if (task.monthsBeforeWedding === 0) {
-    return 'Day of'
+    return 'ביום החתונה'
   }
 
-  return `${task.monthsBeforeWedding} mo`
+  return `${task.monthsBeforeWedding} חוד׳`
 }
 
 const isUrgentTask = (task: Task, now: Date): boolean => {

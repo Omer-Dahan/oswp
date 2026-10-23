@@ -31,7 +31,7 @@ const getLocationLabel = (household: HouseholdWithGuests): string => {
     (value): value is string => Boolean(value)
   )
 
-  if (locationParts.length === 0) return 'Location not set'
+  if (locationParts.length === 0) return 'לא הוגדר מיקום'
 
   return locationParts.join(', ')
 }
@@ -88,7 +88,7 @@ const getPrimaryGuestName = (household: HouseholdWithGuests): string => {
   const primaryGuest =
     household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
 
-  if (primaryGuest === undefined) return 'Unnamed household'
+  if (primaryGuest === undefined) return 'משק בית ללא שם'
 
   return `${primaryGuest.firstName} ${primaryGuest.lastName}`
 }
@@ -120,7 +120,7 @@ function GuestCardComponent({
     <button
       type='button'
       className='w-full text-left'
-      aria-label={`Select ${primaryGuestName} household`}
+      aria-label={`בחירת משק הבית של ${primaryGuestName}`}
       onClick={handleSelect}
     >
       <Card
@@ -149,7 +149,7 @@ function GuestCardComponent({
               variant='secondary'
               className='shrink-0 font-mono text-[0.54rem] uppercase tracking-wider'
             >
-              Party of {invitedGuests.length}
+              קבוצה של {invitedGuests.length}
               {tagAlongCount > 0 && ` +${tagAlongCount}`}
             </Badge>
           </div>
@@ -160,7 +160,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-success/35 bg-success/12 font-normal text-success'
               >
-                {rsvpSummary.attending} attending
+                {rsvpSummary.attending} מגיעים
               </Badge>
             )}
             {rsvpSummary.invited > 0 && (
@@ -168,7 +168,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-foreground/20 bg-gold/12 font-normal text-foreground/80'
               >
-                {rsvpSummary.invited} invited
+                {rsvpSummary.invited} הוזמנו
               </Badge>
             )}
             {rsvpSummary.declined > 0 && (
@@ -176,7 +176,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-destructive/30 bg-destructive/10 font-normal text-destructive'
               >
-                {rsvpSummary.declined} declined
+                {rsvpSummary.declined} לא מגיעים
               </Badge>
             )}
             {visibleTags.map((tag) => (
@@ -193,7 +193,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-foreground/15 bg-foreground/[0.04] font-normal text-foreground/70'
               >
-                +{hiddenTagCount} tags
+                +{hiddenTagCount} תגיות
               </Badge>
             )}
             {rsvpSummary.attending === 0 &&
@@ -205,7 +205,7 @@ function GuestCardComponent({
 
           <div className='flex items-center justify-end border-border/80 border-t pt-2'>
             <span className='font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>
-              View details →
+              צפייה בפרטים →
             </span>
           </div>
         </CardContent>

@@ -39,8 +39,8 @@ import type { Task } from '~/server/domains/task'
 import { api } from '~/trpc/react'
 
 const STATUS_FILTER_OPTIONS = [
-  { label: 'Active', value: 'active' },
-  { label: 'Completed', value: 'completed' },
+  { label: 'פעיל', value: 'active' },
+  { label: 'הושלם', value: 'completed' },
   { label: 'הכל', value: 'all' },
 ] as const
 
@@ -215,14 +215,14 @@ export function ChecklistPageClient({
             <div
               className='h-1.5 w-40 overflow-hidden rounded-full bg-secondary'
               role='img'
-              aria-label={`${completionPercent}% of tasks done`}
+              aria-label={`${completionPercent}% מהמשימות הושלמו`}
             >
               <div
                 className='h-full rounded-full bg-primary'
                 style={{ width: `${completionPercent}%` }}
               />
             </div>
-            <p className='text-muted-foreground text-sm'>{completionPercent}% of tasks done</p>
+            <p className='text-muted-foreground text-sm'>{completionPercent}% מהמשימות הושלמו</p>
           </div>
         </div>
         <Button type='button' onClick={() => setIsCreateDialogOpen(true)}>
@@ -284,7 +284,7 @@ export function ChecklistPageClient({
           description='כל משימה שייכת לאירוע, לכן התחילו ביצירת הטקס או האירוע המרכזי.'
           action={{
             href: '/events',
-            label: 'Go to events',
+            label: 'מעבר לאירועים',
           }}
         />
       ) : tasks.length === 0 && hasDefaultFilters ? (
@@ -310,13 +310,13 @@ export function ChecklistPageClient({
           title='אין עדיין דבר בתצוגה זו'
           description={
             hasDefaultFilters
-              ? 'Adjust the filters or add a task to start shaping the checklist.'
-              : 'No tasks match the current filters.'
+              ? 'שנו את הסינון או הוסיפו משימה כדי להתחיל לבנות את רשימת המשימות.'
+              : 'אין משימות שתואמות את הסינון הנוכחי.'
           }
           action={
             hasDefaultFilters
               ? undefined
-              : { label: 'Clear filters', onClick: () => router.replace(pathname) }
+              : { label: 'ניקוי סינון', onClick: () => router.replace(pathname) }
           }
         />
       ) : (
@@ -373,7 +373,7 @@ export function ChecklistPageClient({
                 <h2 className='font-semibold text-foreground text-sm'>הושלם</h2>
                 <span className='h-px flex-1 bg-border' />
                 <span className='text-muted-foreground text-sm'>
-                  {done.tasks.length} · {collapsedBuckets.has('done') ? 'Show' : 'Hide'}
+                  {done.tasks.length} · {collapsedBuckets.has('done') ? 'הצגה' : 'הסתרה'}
                 </span>
               </button>
               {collapsedBuckets.has('done') ? null : (
@@ -418,11 +418,11 @@ export function ChecklistPageClient({
                         }`}
                       />
                       <span className='text-muted-foreground text-xs'>
-                        {milestone.effectiveStatus === 'done' ? 'הושלם' : 'Pending'}
+                        {milestone.effectiveStatus === 'done' ? 'הושלם' : 'ממתין'}
                       </span>
                       {hasMilestoneOverrideDivergence(milestone) ? (
                         <Badge variant='secondary' className='ml-auto text-[0.65rem]'>
-                          ⚠ override
+                          ⚠ עקיפה
                         </Badge>
                       ) : null}
                     </span>
@@ -469,7 +469,7 @@ export function ChecklistPageClient({
           <AlertDialogHeader>
             <AlertDialogTitle>למחוק משימה?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes &quot;{deletingTask?.title ?? 'this task'}&quot; from the checklist.
+              פעולה זו תסיר את &quot;{deletingTask?.title ?? 'משימה זו'}&quot; מרשימת המשימות.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -586,7 +586,7 @@ function TaskRow({
     <div className='flex items-start gap-3 rounded-xl bg-card p-3 shadow-sm'>
       <Checkbox
         className='mt-0.5 rounded-full'
-        aria-label={`Toggle task ${task.title}`}
+        aria-label={`סימון המשימה ${task.title}`}
         checked={task.completed}
         onCheckedChange={(checked) => onToggle(checked === true)}
       />
@@ -604,7 +604,7 @@ function TaskRow({
           </span>
           {dueLabel && (
             <span className='rounded-md bg-secondary px-2 py-0.5 text-secondary-foreground'>
-              Due {dueLabel}
+              יעד: {dueLabel}
             </span>
           )}
         </span>
@@ -614,7 +614,7 @@ function TaskRow({
         variant='ghost'
         size='sm'
         className='h-8 px-2 text-muted-foreground'
-        aria-label={`Edit task ${task.title}`}
+        aria-label={`עריכת המשימה ${task.title}`}
         onClick={onEdit}
       >
         עריכה

@@ -18,8 +18,8 @@ import { listTemplateSummaries } from '~/templates/catalog'
 import { api } from '~/trpc/server'
 
 export const metadata: Metadata = {
-  title: 'Website | Your Wedding Website',
-  description: 'Publish and manage your wedding website',
+  title: 'אתר | אתר החתונה שלכם',
+  description: 'פרסום וניהול אתר החתונה שלכם',
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
 

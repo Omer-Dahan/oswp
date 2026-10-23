@@ -30,23 +30,23 @@ export async function AureliaHome({
           aria-hidden
           className='absolute top-10 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/15 to-accent/15 blur-3xl'
         />
-        <p className='text-[0.7rem] text-accent uppercase tracking-[0.45em]'>
+        <p className='text-[1.05rem] text-accent uppercase tracking-[0.38em]'>
           {t('common.gettingMarried')}
         </p>
-        <h1 className={`${headingFont} text-6xl text-foreground italic leading-tight sm:text-7xl`}>
+        <h1 className={`${headingFont} text-6xl text-foreground leading-tight sm:text-7xl ${locale === 'he' ? '' : 'italic'}`}>
           {weddingData.brideFirstName}
-          <span className='mx-3 font-light text-primary not-italic'>&</span>
+          <span className='mx-3 inline-block -translate-y-[0.08em] align-middle font-light text-[0.83em] text-primary not-italic'>&</span>
           {weddingData.groomFirstName}
         </h1>
         <div className='flex items-center gap-4 text-muted-foreground'>
           <span className='h-px w-12 bg-border' />
-          <span className='text-sm uppercase tracking-[0.3em]'>
+          <span className='text-xl uppercase tracking-[0.22em]'>
             {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
           </span>
           <span className='h-px w-12 bg-border' />
         </div>
         {weddingData.daysRemaining > 0 && (
-          <p className='text-muted-foreground text-sm tracking-[0.2em]'>
+          <p className='text-muted-foreground text-xl tracking-[0.16em]'>
             {t('aurelia.daysToGo', { days: weddingData.daysRemaining })}
           </p>
         )}
@@ -54,7 +54,7 @@ export async function AureliaHome({
         {website.isRsvpEnabled && (
           <Link
             href={`${path}/rsvp`}
-            className='mt-2 rounded-full bg-primary px-9 py-3 text-[0.72rem] text-primary-foreground uppercase tracking-[0.3em] shadow-sm transition-colors hover:bg-accent'
+            className='mt-2 rounded-full bg-primary px-12 py-4 text-base text-primary-foreground uppercase tracking-[0.22em] shadow-sm transition-colors hover:bg-accent'
           >
             {t('common.rsvp')}
           </Link>
@@ -89,20 +89,20 @@ export async function AureliaHome({
               key={event.id}
               className='flex flex-col items-center gap-3 rounded-[20px] border border-border bg-card px-8 py-10 text-center text-card-foreground'
             >
-              <h3 className={`${headingFont} text-3xl text-primary italic`}>{event.name}</h3>
+              <h3 className={`${headingFont} text-4xl text-primary ${locale === 'he' ? '' : 'italic'}`}>{event.name}</h3>
               {!!event.date && (
-                <span className='text-muted-foreground text-sm uppercase tracking-[0.2em]'>
+                <span className='text-muted-foreground text-lg uppercase tracking-[0.14em]'>
                   {formatDateStandard(event.date, locale)}
                 </span>
               )}
               {!!event.startTime && (
-                <span className='text-muted-foreground text-sm'>
+                <span className='text-muted-foreground text-xl'>
                   {event.startTime}
                   {!!event.endTime && ` – ${event.endTime}`}
                 </span>
               )}
               {!!event.venue && (
-                <span className='text-foreground text-sm uppercase tracking-[0.18em]'>
+                <span className='text-foreground text-lg uppercase tracking-[0.12em]'>
                   {event.venue}
                 </span>
               )}
@@ -114,11 +114,11 @@ export async function AureliaHome({
       <AureliaSections sections={weddingData.sections} />
 
       <section className='flex flex-col items-center gap-3 text-center'>
-        <p className={`${headingFont} text-5xl text-foreground italic`}>
+        <p className={`${headingFont} text-5xl text-foreground ${locale === 'he' ? '' : 'italic'}`}>
           {weddingData.brideFirstName?.[0] ?? 'B'} &amp; {weddingData.groomFirstName?.[0] ?? 'G'}
         </p>
         <span className='h-px w-16 bg-border' />
-        <p className='text-muted-foreground text-sm tracking-[0.3em]'>
+        <p className='text-muted-foreground text-xl tracking-[0.22em]'>
           {weddingData.date.numberFormat?.toString() ?? t('common.dateToBeAnnounced')}
         </p>
       </section>

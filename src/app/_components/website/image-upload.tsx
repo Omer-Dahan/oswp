@@ -24,11 +24,11 @@ const ACCEPT_ATTR = ACCEPTED_IMAGE_TYPES.join(',')
 
 function isAcceptableImage(file: File): boolean {
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    toast.error('Please choose a JPG, PNG, WebP, or GIF image.')
+    toast.error('בחרו תמונה בפורמט JPG, PNG, WebP או GIF.')
     return false
   }
   if (file.size > MAX_FILE_SIZE) {
-    toast.error('Images must be 8 MB or smaller.')
+    toast.error('גודל התמונה חייב להיות עד 8MB.')
     return false
   }
   return true
@@ -56,7 +56,7 @@ export function SingleImageUpload({
   value,
   onChange,
   aspectClassName = 'aspect-[16/9]',
-  label = 'Upload image',
+  label = 'העלאת תמונה',
   disabled = false,
 }: SingleImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -71,7 +71,7 @@ export function SingleImageUpload({
       const url = await uploadImage(file)
       onChange(url)
     } catch {
-      toast.error('Upload failed. Please try again.')
+      toast.error('ההעלאה נכשלה. נסו שוב.')
     } finally {
       setIsUploading(false)
       if (inputRef.current) {
@@ -102,7 +102,7 @@ export function SingleImageUpload({
           />
           <button
             type='button'
-            aria-label='Remove image'
+            aria-label='הסרת תמונה'
             disabled={disabled || isUploading}
             onClick={() => onChange(null)}
             className='absolute top-2 right-2 rounded-full bg-background/85 p-1.5 text-foreground shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground'
@@ -122,7 +122,7 @@ export function SingleImageUpload({
           ) : (
             <ImagePlus aria-hidden='true' className='h-6 w-6' />
           )}
-          <span className='font-sans text-sm'>{isUploading ? 'Uploading…' : label}</span>
+          <span className='font-sans text-sm'>{isUploading ? 'מעלה…' : label}</span>
         </button>
       )}
       {value ? (
@@ -133,7 +133,7 @@ export function SingleImageUpload({
           disabled={disabled || isUploading}
           onClick={() => inputRef.current?.click()}
         >
-          {isUploading ? 'Uploading…' : 'Replace image'}
+          {isUploading ? 'מעלה…' : 'החלפת תמונה'}
         </Button>
       ) : null}
     </div>
@@ -173,7 +173,7 @@ export function ImageGalleryUpload({
       const uploaded = await Promise.all(files.map(uploadImage))
       onChange([...values, ...uploaded])
     } catch {
-      toast.error('One or more uploads failed. Please try again.')
+      toast.error('העלאה אחת או יותר נכשלה. נסו שוב.')
     } finally {
       setIsUploading(false)
       if (inputRef.current) {
@@ -207,7 +207,7 @@ export function ImageGalleryUpload({
               <Image src={url} alt='' fill className='object-cover' sizes='200px' />
               <button
                 type='button'
-                aria-label='Remove photo'
+                aria-label='הסרת תמונה'
                 disabled={disabled || isUploading}
                 onClick={() => removeAt(index)}
                 className='absolute top-1.5 right-1.5 rounded-full bg-background/85 p-1 text-foreground shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground'
@@ -230,10 +230,10 @@ export function ImageGalleryUpload({
         ) : (
           <ImagePlus aria-hidden='true' className='h-4 w-4' />
         )}
-        {atCapacity ? 'Gallery full' : isUploading ? 'Uploading…' : 'Add photos'}
+        {atCapacity ? 'הגלריה מלאה' : isUploading ? 'מעלה…' : 'הוספת תמונות'}
       </Button>
       <p className='font-mono text-[0.58rem] text-foreground/45 tracking-wider'>
-        {values.length}/{maxImages} photos
+        {values.length}/{maxImages} תמונות
       </p>
     </div>
   )

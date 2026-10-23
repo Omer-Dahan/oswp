@@ -8,19 +8,19 @@ export function WebsiteDisabledCallout() {
     <Card className='border-border/80 border-dashed bg-card/80'>
       <CardHeader className='space-y-3'>
         <p className='font-mono text-[0.62rem] text-foreground/45 uppercase tracking-[0.18em]'>
-          Website Builder Disabled
+          בונה האתרים כבוי
         </p>
         <CardTitle className='font-display text-3xl text-foreground'>
-          Turn on the public wedding website plugin to start editing.
+          הפעילו את תוסף אתר החתונה הציבורי כדי להתחיל לערוך.
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-5'>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          Once enabled, this workspace will get a dedicated wedding website editor and a shareable
-          guest-facing URL.
+          לאחר ההפעלה, סביבת העבודה תקבל עורך ייעודי לאתר החתונה וכתובת ציבורית לאורחים שאפשר
+          לשתף.
         </p>
         <Button asChild>
-          <Link href='/settings#plugins'>Open Plugins Settings</Link>
+          <Link href='/settings#plugins'>פתיחת הגדרות התוספים</Link>
         </Button>
       </CardContent>
     </Card>

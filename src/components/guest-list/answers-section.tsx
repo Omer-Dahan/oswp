@@ -18,7 +18,7 @@ export function AnswersSection({ answers, isLoading = false }: Readonly<AnswersS
         <p className='text-foreground/60 text-sm'>טוען תשובות…</p>
       ) : answers.length === 0 ? (
         <p className='text-foreground/60 text-sm leading-relaxed'>
-          This household hasn&apos;t answered any RSVP questions yet.
+          משק בית זה עדיין לא ענה על שאלות אישור ההגעה.
         </p>
       ) : (
         <ul className='space-y-3'>

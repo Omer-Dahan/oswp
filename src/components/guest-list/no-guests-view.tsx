@@ -21,8 +21,8 @@ export default function NoGuestsView({ setPrefillHousehold, onImportClick }: NoG
       <div className='max-w-sm'>
         <p className='font-serif text-xl text-foreground'>אין אורחים עדיין</p>
         <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
-          Add guests one by one or import from a CSV. Track RSVPs, contact details, and household
-          information all in one place.
+          הוסיפו אורחים אחד אחד או ייבאו מקובץ CSV. עקבו אחר אישורי הגעה, פרטי קשר ומידע על
+          משקי הבית, הכול במקום אחד.
         </p>
       </div>
       <div className='flex flex-wrap items-center justify-center gap-3'>

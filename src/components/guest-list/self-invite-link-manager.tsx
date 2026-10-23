@@ -49,7 +49,7 @@ export function SelfInviteLinkManager() {
   }
 
   if (isLoading) {
-    return <AsyncState isLoading loadingText='Loading invite link...' />
+    return <AsyncState isLoading loadingText='טוען קישור הזמנה...' />
   }
 
   if (error) {
@@ -60,7 +60,7 @@ export function SelfInviteLinkManager() {
         </p>
       )
     }
-    return <AsyncState error='Unable to load invite link.' />
+    return <AsyncState error='לא ניתן לטעון את קישור ההזמנה.' />
   }
 
   if (!tokenData?.token) {
@@ -89,7 +89,7 @@ export function SelfInviteLinkManager() {
           variant='outline'
           size='sm'
           onClick={handleCopy}
-          aria-label={copied ? 'Copied!' : 'Copy invite link'}
+          aria-label={copied ? 'הועתק!' : 'העתקת קישור ההזמנה'}
         >
           {copied ? (
             <Check className='h-4 w-4 text-green-600' aria-hidden='true' />
@@ -104,7 +104,7 @@ export function SelfInviteLinkManager() {
           onClick={() => generateToken.mutate({})}
           disabled={generateToken.isPending}
           aria-label='איפוס קישור הזמנה'
-          title='Reset link (old link stops working)'
+          title='איפוס קישור (הקישור הישן יפסיק לעבוד)'
         >
           <RefreshCw
             className={`h-4 w-4 ${generateToken.isPending ? 'animate-spin' : ''}`}
@@ -126,7 +126,7 @@ export function SelfInviteLinkManager() {
       </div>
       {tokenData.expiresAt && (
         <p className='text-muted-foreground text-xs'>
-          Link expires {new Date(tokenData.expiresAt).toLocaleDateString()}
+          תוקף הקישור יפוג ב-{new Date(tokenData.expiresAt).toLocaleDateString()}
         </p>
       )}
       {tokenData.expiresAt &&

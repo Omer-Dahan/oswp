@@ -45,7 +45,7 @@ const getMemberName = (member: HouseholdMemberDraft) => {
   const first = member.firstName.trim()
   const last = member.lastName.trim()
   const full = `${first} ${last}`.trim()
-  return full.length > 0 ? full : 'Unnamed guest'
+  return full.length > 0 ? full : 'אורח ללא שם'
 }
 
 export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps>) {
@@ -76,11 +76,11 @@ export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps
 
   const validationMessage = useMemo(() => {
     if (draftMembers.length === 0) {
-      return 'A household must include at least one member.'
+      return 'משק בית חייב לכלול לפחות חבר אחד.'
     }
 
     if (draftMembers.every((member) => member.isTagAlong)) {
-      return 'A household must include at least one non-tag-along member.'
+      return 'משק בית חייב לכלול לפחות חבר אחד שאינו נלווה.'
     }
 
     if (
@@ -88,11 +88,11 @@ export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps
         (member) => member.firstName.trim().length === 0 || member.lastName.trim().length === 0
       )
     ) {
-      return 'Each household member must include a first and last name.'
+      return 'לכל חבר במשק הבית יש להזין שם פרטי ושם משפחה.'
     }
 
     if (primaryCount !== 1) {
-      return 'Choose exactly one primary household member.'
+      return 'בחרו בדיוק חבר ראשי אחד במשק הבית.'
     }
 
     return null
@@ -224,11 +224,11 @@ export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps
                   return
                 }
 
-                setSaveError('Unable to save members. Please try again.')
+                setSaveError('לא ניתן לשמור את החברים. נסו שוב.')
               }}
               disabled={isSaving || validationMessage !== null}
             >
-              {isSaving ? 'Saving...' : 'Save members'}
+              {isSaving ? 'שומר...' : 'שמירת חברים'}
             </Button>
           </div>
         </DialogFooter>
@@ -277,7 +277,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             variant={member.isTagAlong ? 'default' : 'outline'}
             size='sm'
             onClick={() => onToggleTagAlong(index)}
-            aria-label={`Toggle tag-along for ${memberName}`}
+            aria-label={`סימון ${memberName} כנלווה`}
           >
             נלווה
           </Button>
@@ -287,7 +287,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             size='sm'
             onClick={() => onSetPrimary(index)}
             disabled={member.isPrimaryContact || member.isTagAlong}
-            aria-label={`Set ${memberName} as primary`}
+            aria-label={`הגדרת ${memberName} כראשי`}
           >
             הגדרה כראשי
           </Button>
@@ -297,7 +297,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             size='sm'
             onClick={() => onRemove(index)}
             disabled={removeDisabled}
-            aria-label={`Remove ${memberName}`}
+            aria-label={`הסרת ${memberName}`}
           >
             הסרה
           </Button>
@@ -307,11 +307,11 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <label className='space-y-1'>
           <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-wider'>
-            First name (member {index + 1})
+            שם פרטי (חבר {index + 1})
           </span>
           <input
             type='text'
-            aria-label={`First name (member ${index + 1})`}
+            aria-label={`שם פרטי (חבר ${index + 1})`}
             value={member.firstName}
             onChange={(e) => onUpdate(index, { firstName: e.target.value })}
             className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
@@ -320,11 +320,11 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
 
         <label className='space-y-1'>
           <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-wider'>
-            Last name (member {index + 1})
+            שם משפחה (חבר {index + 1})
           </span>
           <input
             type='text'
-            aria-label={`Last name (member ${index + 1})`}
+            aria-label={`שם משפחה (חבר ${index + 1})`}
             value={member.lastName}
             onChange={(e) => onUpdate(index, { lastName: e.target.value })}
             className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
@@ -341,7 +341,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
               onUpdate(index, { ageGroup: value as HouseholdMemberDraft['ageGroup'] })
             }
           >
-            <SelectTrigger className='h-9' aria-label={`Age group for ${memberName}`}>
+            <SelectTrigger className='h-9' aria-label={`קבוצת גיל עבור ${memberName}`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -363,7 +363,7 @@ const MemberRow = memo(function MemberRow(props: Readonly<MemberRowProps>) {
             tags={tags}
             onToggle={(tagId) => onToggleTag(index, tagId)}
             onTagCreated={(tagId) => onTagCreated(tagId)}
-            ariaLabel={`Tags for ${memberName}`}
+            ariaLabel={`תגיות עבור ${memberName}`}
           />
         </div>
       </div>

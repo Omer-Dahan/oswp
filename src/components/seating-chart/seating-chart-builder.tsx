@@ -394,7 +394,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
       editingTable
         ? { name: editingTable.name, shape: editingTable.shape, capacity: editingTable.capacity }
         : {
-            name: `Table ${(chart?.tables.length ?? 0) + 1}`,
+            name: `שולחן ${(chart?.tables.length ?? 0) + 1}`,
             shape: 'ROUND',
             capacity: DEFAULT_CAPACITY,
           },
@@ -466,7 +466,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   }
 
   if (events.length === 0) {
-    return <AsyncState isEmpty emptyText='Create an event first, then come back to seat guests.' />
+    return <AsyncState isEmpty emptyText='צרו קודם אירוע, ואז חזרו לכאן כדי להושיב אורחים.' />
   }
 
   return (
@@ -504,7 +504,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         <AsyncState
           isLoading={chartQuery.isLoading}
           error={chartQuery.error?.message ?? null}
-          loadingText='Loading seating chart...'
+          loadingText='טוען את תרשים ההושבה...'
         />
       ) : (
         <DndContext
@@ -540,8 +540,8 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
               >
                 {chart.tables.length === 0 ? (
                   <p className='absolute top-10 left-10 max-w-xs text-muted-foreground text-sm'>
-                    Add a table to start your floor plan. Drag tables to arrange the room, then drag
-                    guests or whole households onto them.
+                    הוסיפו שולחן כדי להתחיל את תוכנית המקומות. גררו שולחנות כדי לסדר את האולם, ואז
+                    גררו אורחים או משקי בית שלמים אליהם.
                   </p>
                 ) : null}
                 {chart.tables.map((table) => (

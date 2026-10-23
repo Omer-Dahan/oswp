@@ -21,7 +21,7 @@ export async function AureliaNavbar({ path, isRsvpEnabled }: Readonly<AureliaNav
   const t = await getTranslations('template')
   return (
     <nav aria-label='Wedding website' className='w-full'>
-      <ul className='flex flex-col items-center justify-center gap-1 text-[0.72rem] uppercase tracking-[0.32em] sm:flex-row sm:gap-9'>
+      <ul className='flex flex-col items-center justify-center gap-2 text-[1.05rem] uppercase tracking-[0.2em] sm:flex-row sm:gap-9'>
         {getNavLinks(isRsvpEnabled, t)
           .filter((link) => link.isVisible)
           .map((link) => (

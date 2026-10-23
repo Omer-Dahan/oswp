@@ -68,13 +68,13 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
     onSuccess: async () => {
       // Wait for data to refetch before closing dialog
       await utils.event.getAllByUserIdWithStats.invalidate()
-      toast.success('Event created', {
-        description: 'Your event has been created successfully.',
+      toast.success('האירוע נוצר', {
+        description: 'האירוע שלכם נוצר בהצלחה.',
       })
       setIsCreateDialogOpen(false)
     },
     onError: (error) => {
-      toast.error('Error creating event', {
+      toast.error('יצירת האירוע נכשלה', {
         description: error.message,
       })
     },
@@ -95,13 +95,13 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
         })
       })
 
-      toast.success('Event updated', {
-        description: 'Your event has been updated successfully.',
+      toast.success('האירוע עודכן', {
+        description: 'האירוע שלכם עודכן בהצלחה.',
       })
       setEditingEvent(undefined)
     },
     onError: (error) => {
-      toast.error('Error updating event', {
+      toast.error('עדכון האירוע נכשל', {
         description: error.message,
       })
     },
@@ -115,13 +115,13 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
         return previousEvents.filter((event) => event.id !== deletedEventId)
       })
 
-      toast.success('Event deleted', {
-        description: 'Your event has been deleted successfully.',
+      toast.success('האירוע נמחק', {
+        description: 'האירוע שלכם נמחק בהצלחה.',
       })
       setDeletingEvent(undefined)
     },
     onError: (error) => {
-      toast.error('Error deleting event', {
+      toast.error('מחיקת האירוע נכשלה', {
         description: error.message,
       })
     },
@@ -146,7 +146,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
     },
     onError: (error) => {
       setTogglingRsvpEventId(null)
-      toast.error('Error updating RSVP settings', {
+      toast.error('עדכון הגדרות אישור ההגעה נכשל', {
         description: error.message,
       })
     },
@@ -255,8 +255,8 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           <div className='max-w-sm'>
             <p className='font-serif text-xl text-foreground'>אין אירועים עדיין</p>
             <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
-              Get started by creating your first wedding event. Add ceremonies, receptions,
-              rehearsal dinners, and more.
+              התחילו ביצירת אירוע החתונה הראשון שלכם. הוסיפו טקסים, קבלות פנים,
+              ארוחות חזרה ועוד.
             </p>
           </div>
           <div className='flex flex-wrap items-center justify-center gap-2'>
@@ -303,13 +303,13 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
       {initialRsvpEventId !== undefined ? (
         <div className='mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm md:mb-6'>
           {rsvpFocusEvent
-            ? `Managing RSVPs for "${rsvpFocusEvent.name}" — find the event card below.`
-            : 'Select an event below to manage RSVPs.'}
+            ? `ניהול אישורי הגעה עבור ״${rsvpFocusEvent.name}״ — כרטיס האירוע מופיע למטה.`
+            : 'בחרו אירוע למטה כדי לנהל אישורי הגעה.'}
         </div>
       ) : null}
       <div className='mb-4 flex items-center justify-between md:mb-6'>
         <p className='text-muted-foreground text-sm'>
-          {events.length} {events.length === 1 ? 'event' : 'events'}
+          {events.length} {events.length === 1 ? 'אירוע' : 'אירועים'}
         </p>
         <div className='flex items-center gap-2'>
           {generalQuestionsButton}
@@ -364,8 +364,8 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           <AlertDialogHeader>
             <AlertDialogTitle>למחוק אירוע?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingEvent?.name}&quot; and all associated
-              invitations, questions, and responses. This action cannot be undone.
+              פעולה זו תמחק לצמיתות את ״{deletingEvent?.name}״ ואת כל ההזמנות, השאלות
+              והתשובות המשויכות אליו. לא ניתן לבטל פעולה זו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -381,7 +381,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
               className='flex items-center gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
               {deleteEvent.isPending && <Loader2 className='h-4 w-4 animate-spin' />}
-              {deleteEvent.isPending ? 'Deleting...' : 'Delete Event'}
+              {deleteEvent.isPending ? 'מוחק...' : 'מחיקת אירוע'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
