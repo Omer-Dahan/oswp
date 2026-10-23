@@ -12,9 +12,9 @@ export default async function AuthPage({ params }: { params: Promise<{ path: str
 
         {isSignInPath && showDemoAccounts ? (
           <section className='rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm'>
-            <h2 className='font-medium text-sm'>Demo Accounts</h2>
+            <h2 className='font-medium text-sm'>חשבונות הדגמה</h2>
             <p className='mt-1 text-muted-foreground text-xs'>
-              Try the seeded wedding demo data with one of these accounts.
+              התחברו לאחד מהחשבונות הבאים כדי לנסות את נתוני ההדגמה של החתונה.
             </p>
             <ul className='mt-2 list-disc space-y-1 pl-5 text-xs'>
               <li>
@@ -27,7 +27,7 @@ export default async function AuthPage({ params }: { params: Promise<{ path: str
                 <span className='font-medium'>queen.lillian@swamp.wed</span>
               </li>
             </ul>
-            <p className='mt-2 text-xs'>Password: password123</p>
+            <p className='mt-2 text-xs'>סיסמה: password123</p>
           </section>
         ) : null}
       </div>

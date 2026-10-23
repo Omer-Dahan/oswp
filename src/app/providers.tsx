@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 import { ThemeProvider } from '~/components/theme-provider'
 import { PostHogProvider } from '~/lib/analytics/posthog-client'
 import { authClient } from '~/lib/auth-client'
+import { authHebrewLocalization } from '~/lib/auth-localization'
 import { authUiCustomOrganizationRoles } from '~/lib/organization-roles'
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -25,6 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
           }}
           Link={Link}
           emailOTP
+          localization={authHebrewLocalization}
           organization={{
             customRoles: authUiCustomOrganizationRoles,
           }}
