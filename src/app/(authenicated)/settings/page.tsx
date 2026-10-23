@@ -4,6 +4,7 @@ import WeddingSettingsForm from '~/components/forms/wedding-settings-form'
 import { OrganizationMembersSettingsCard } from '~/components/settings/organization-members-settings-card'
 import { OrganizationOutstandingInvitesCard } from '~/components/settings/organization-outstanding-invites-card'
 import { TelegramConnectCard } from '~/components/settings/telegram-connect-card'
+import { WhatsappConnectionCard } from '~/components/settings/whatsapp-connection-card'
 import { getRequiredWedding } from '~/server/application/authenticated-route/authenticated-route-data'
 import { api } from '~/trpc/server'
 
@@ -81,6 +82,7 @@ export default async function SettingsPage() {
                 </p>
               </div>
               <TelegramConnectCard />
+              <WhatsappConnectionCard />
             </div>
           </div>
         </div>
