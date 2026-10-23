@@ -50,6 +50,7 @@ export class WhatsAppService {
         phoneNumberId: null,
         wabaId: null,
         accessTokenMasked: null,
+        appSecretMasked: null,
         displayPhoneNumber: null,
         verifiedName: null,
         status: 'UNCONFIGURED',
@@ -64,6 +65,9 @@ export class WhatsAppService {
       wabaId: account.wabaId,
       accessTokenMasked: account.accessTokenEnc
         ? maskSecret(decryptSecret(account.accessTokenEnc))
+        : null,
+      appSecretMasked: account.appSecretEnc
+        ? maskSecret(decryptSecret(account.appSecretEnc))
         : null,
       displayPhoneNumber: account.displayPhoneNumber,
       verifiedName: account.verifiedName,
@@ -85,6 +89,7 @@ export class WhatsAppService {
       wabaId: input.wabaId,
       accessTokenEnc: encryptSecret(input.accessToken),
       verifyToken: input.verifyToken,
+      appSecretEnc: input.appSecret ? encryptSecret(input.appSecret) : undefined,
     })
 
     return {
@@ -92,6 +97,7 @@ export class WhatsAppService {
       phoneNumberId: account.phoneNumberId,
       wabaId: account.wabaId,
       accessTokenMasked: maskSecret(input.accessToken),
+      appSecretMasked: account.appSecretEnc ? maskSecret(decryptSecret(account.appSecretEnc)) : null,
       displayPhoneNumber: account.displayPhoneNumber,
       verifiedName: account.verifiedName,
       status: account.status,

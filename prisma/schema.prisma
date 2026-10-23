@@ -1208,6 +1208,7 @@ model WhatsAppAccount {
   phoneNumberId      String?               @map("phone_number_id")
   wabaId             String?               @map("waba_id")
   accessTokenEnc     String?               @map("access_token_enc")
+  appSecretEnc       String?               @map("app_secret_enc")
   verifyToken        String?               @map("verify_token")
   displayPhoneNumber String?               @map("display_phone_number")
   verifiedName       String?               @map("verified_name")

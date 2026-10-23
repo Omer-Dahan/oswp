@@ -50,6 +50,7 @@ export function WhatsappConnectionCard() {
       wabaId: account.data?.wabaId ?? '',
       accessToken: '',
       verifyToken: '',
+      appSecret: '',
     },
     values: account.data
       ? {
@@ -57,6 +58,7 @@ export function WhatsappConnectionCard() {
           wabaId: account.data.wabaId ?? '',
           accessToken: '',
           verifyToken: '',
+          appSecret: '',
         }
       : undefined,
   })
@@ -66,6 +68,7 @@ export function WhatsappConnectionCard() {
 
   const status = account.data?.status ?? 'UNCONFIGURED'
   const tokenPlaceholder = account.data?.accessTokenMasked ?? 'הדביקו את ה-Access Token'
+  const appSecretPlaceholder = account.data?.appSecretMasked ?? 'הדביקו את ה-App Secret'
 
   return (
     <div className='space-y-4 rounded-lg border border-border p-4'>
@@ -143,6 +146,20 @@ export function WhatsappConnectionCard() {
               />
               {errors.verifyToken && (
                 <p className='text-destructive text-sm'>{errors.verifyToken.message}</p>
+              )}
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='wa-appSecret'>App Secret</Label>
+              <Input
+                id='wa-appSecret'
+                type='password'
+                placeholder={appSecretPlaceholder}
+                {...register('appSecret')}
+                disabled={isSubmitting}
+              />
+              {errors.appSecret && (
+                <p className='text-destructive text-sm'>{errors.appSecret.message}</p>
               )}
             </div>
 

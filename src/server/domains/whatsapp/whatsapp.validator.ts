@@ -9,9 +9,10 @@ export const saveAccountSchema = z.object({
   wabaId: z.string().regex(/^\d+$/, 'WABA ID must contain digits only'),
   accessToken: z.string().min(20, 'Access token looks too short'),
   verifyToken: z.string().min(8, 'Verify token must be at least 8 characters'),
-  // Accepted for forward-compat with webhook signature verification; the
-  // current schema does not yet persist it.
-  appSecret: z.string().min(20, 'App secret looks too short').optional(),
+  appSecret: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().min(8, 'App secret must be at least 8 characters').optional()
+  ),
 })
 
 export type SaveAccountInput = z.infer<typeof saveAccountSchema>
