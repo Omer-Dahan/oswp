@@ -87,7 +87,7 @@ export default function NamesForm() {
             {createWedding.isError && (
               <div className='mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive'>
                 <p className='font-semibold'>שגיאה ביצירת החתונה</p>
-                <p className='text-sm'>{createWedding.error?.message ?? 'Please try again'}</p>
+                <p className='text-sm'>{createWedding.error?.message ?? 'נסו שוב'}</p>
               </div>
             )}
             <form
@@ -103,7 +103,7 @@ export default function NamesForm() {
               <div className='grid gap-6 md:grid-cols-2'>
                 {/* Groom's Section */}
                 <div className='space-y-4 rounded-lg border bg-muted/50 p-6'>
-                  <h3 className='font-semibold text-lg'>Groom&apos;s Information</h3>
+                  <h3 className='font-semibold text-lg'>פרטי החתן</h3>
                   <div className='space-y-4'>
                     <div className='space-y-2'>
                       <Label htmlFor='groomFirstName'>שם פרטי</Label>
@@ -118,7 +118,7 @@ export default function NamesForm() {
                       )}
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='groomMiddleName'>Middle Name (Optional)</Label>
+                      <Label htmlFor='groomMiddleName'>שם אמצעי (לא חובה)</Label>
                       <Input
                         id='groomMiddleName'
                         placeholder='הזינו שם אמצעי'
@@ -143,7 +143,7 @@ export default function NamesForm() {
 
                 {/* Bride's Section */}
                 <div className='space-y-4 rounded-lg border bg-muted/50 p-6'>
-                  <h3 className='font-semibold text-lg'>Bride&apos;s Information</h3>
+                  <h3 className='font-semibold text-lg'>פרטי הכלה</h3>
                   <div className='space-y-4'>
                     <div className='space-y-2'>
                       <Label htmlFor='brideFirstName'>שם פרטי</Label>
@@ -158,7 +158,7 @@ export default function NamesForm() {
                       )}
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='brideMiddleName'>Middle Name (Optional)</Label>
+                      <Label htmlFor='brideMiddleName'>שם אמצעי (לא חובה)</Label>
                       <Input
                         id='brideMiddleName'
                         placeholder='הזינו שם אמצעי'
@@ -225,7 +225,7 @@ export default function NamesForm() {
                           >
                             <CalendarIcon className='mr-2 h-4 w-4' />
                             {weddingDate ? (
-                              weddingDate.toLocaleDateString('en-US', {
+                              weddingDate.toLocaleDateString('he-IL', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
@@ -264,7 +264,7 @@ export default function NamesForm() {
 
               {/* Submit Button */}
               <Button type='submit' disabled={isSubmitting} className='w-full' size='lg'>
-                {isSubmitting ? 'Creating plan…' : 'Get Started'}
+                {isSubmitting ? 'יוצרים את התוכנית…' : 'בואו נתחיל'}
               </Button>
             </form>
           </CardContent>
