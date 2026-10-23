@@ -10,9 +10,6 @@ on:
       - "package-lock.json"
       - "tsconfig.json"
       - "jest.config.ts"
-  push:
-    branches: [main, development]
-
   schedule:
     - cron: "0 0 * * 0" # weekly
   workflow_call:
