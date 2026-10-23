@@ -17,6 +17,11 @@ type MilestoneDetailProps = Readonly<{
 
 type MilestoneOverrideChoice = 'attested' | 'dismissed' | 'system'
 
+const EFFECTIVE_STATUS_LABELS: Record<MilestoneWithEffectiveStatus['effectiveStatus'], string> = {
+  done: 'הושלם',
+  pending: 'ממתין',
+}
+
 const OVERRIDE_OPTIONS: ReadonlyArray<{
   value: MilestoneOverrideChoice
   label: string
@@ -121,10 +126,10 @@ function MilestoneDetailContent({
 
       <div className='rounded-lg border border-border/70 bg-card px-4 py-3'>
         <p className='font-mono text-[0.62rem] text-muted-foreground uppercase tracking-[0.12em]'>
-          סטטוס בפועל: {milestone.effectiveStatus}
+          סטטוס בפועל: {EFFECTIVE_STATUS_LABELS[milestone.effectiveStatus]}
         </p>
         <p className='mt-2 font-serif text-foreground/75 text-sm'>
-          סטטוס מערכת: {milestone.derivedStatus}
+          סטטוס מערכת: {EFFECTIVE_STATUS_LABELS[milestone.derivedStatus]}
         </p>
       </div>
 

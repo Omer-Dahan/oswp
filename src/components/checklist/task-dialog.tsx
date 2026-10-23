@@ -22,7 +22,11 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
-import { TASK_CATEGORIES, type TaskCategoryValue } from '~/lib/constants/task-categories'
+import {
+  TASK_CATEGORIES,
+  TASK_CATEGORY_LABELS,
+  type TaskCategoryValue,
+} from '~/lib/constants/task-categories'
 import { zodFormResolver } from '~/lib/forms/zod-form-resolver'
 import type { EventWithStats } from '~/server/domains/event'
 import type { Task } from '~/server/domains/task'
@@ -159,7 +163,7 @@ export function TaskDialog({
                     <SelectContent>
                       {TASK_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
-                          {category}
+                          {TASK_CATEGORY_LABELS[category]}
                         </SelectItem>
                       ))}
                     </SelectContent>
