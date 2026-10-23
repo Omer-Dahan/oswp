@@ -60,6 +60,9 @@ export const env = createEnv({
     // Optional: comma-separated list of extra Better Auth trusted origins
     // (reverse proxy domain, custom domain, LAN host) beyond the static list.
     EXTRA_TRUSTED_ORIGINS: z.string().min(1).optional(),
+    // AES-256-GCM key (base64, 32 bytes) for encrypting messaging provider
+    // secrets at rest (e.g. WhatsApp Cloud API access tokens).
+    MESSAGING_SECRET: z.string().min(1).optional(),
   },
 
   /**
@@ -137,6 +140,7 @@ export const env = createEnv({
     POSTHOG_KEY: process.env.POSTHOG_KEY,
     POSTHOG_HOST: process.env.POSTHOG_HOST,
     EXTRA_TRUSTED_ORIGINS: process.env.EXTRA_TRUSTED_ORIGINS,
+    MESSAGING_SECRET: process.env.MESSAGING_SECRET,
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_OTEL_SAMPLE_RATE: process.env.NEXT_PUBLIC_OTEL_SAMPLE_RATE,

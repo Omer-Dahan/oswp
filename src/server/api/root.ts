@@ -25,6 +25,7 @@ import { vendorRouter } from '~/server/domains/vendor/vendor.router'
 import { websiteRouter } from '~/server/domains/website/website.router'
 import { websiteSectionRouter } from '~/server/domains/website-section/website-section.router'
 import { weddingRouter } from '~/server/domains/wedding/wedding.router'
+import { whatsappRouter } from '~/server/domains/whatsapp/whatsapp.router'
 
 /**
  * This is the primary router for your server.
@@ -79,6 +80,9 @@ export const appRouter = createTRPCRouter({
 
   // Messaging (Telegram couple-bot)
   messaging: messagingRouter,
+
+  // WhatsApp Cloud API (account setup, connection test)
+  whatsapp: whatsappRouter,
 })
 
 // export type definition of API

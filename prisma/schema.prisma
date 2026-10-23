@@ -49,21 +49,27 @@ model Wedding {
   budgetExpenses   BudgetExpense[]
 
   // Etta AI agent
-  ettaActor       EttaActor?
-  ettaSuggestions EttaSuggestion[]
-  ettaMemories    EttaMemory[]
-  auditLogs       AuditLog[]
-  guestQuestions  GuestQuestion[]
-  faqs            Faq[]
-  notifications   Notification[]
-  householdNotes  HouseholdNote[]
-  vendorNotes     VendorNote[]
+  ettaActor             EttaActor?
+  ettaSuggestions       EttaSuggestion[]
+  ettaMemories          EttaMemory[]
+  auditLogs             AuditLog[]
+  guestQuestions        GuestQuestion[]
+  faqs                  Faq[]
+  notifications         Notification[]
+  householdNotes        HouseholdNote[]
+  vendorNotes           VendorNote[]
   vendorCategoryConfigs VendorCategoryConfig[]
 
   // Messaging (Telegram bot, future: WhatsApp)
   messagingIdentities    MessagingIdentity[]
   messagingPairingTokens MessagingPairingToken[]
   chatMessages           ChatMessage[]
+
+  // WhatsApp Cloud API
+  whatsAppAccount   WhatsAppAccount?
+  whatsAppTemplates WhatsAppTemplate[]
+  whatsAppOutbound  WhatsAppOutbound[]
+  whatsAppInbound   WhatsAppInbound[]
 
   @@index([selfFillToken, selfFillTokenGeneratedAt])
 }
@@ -92,21 +98,21 @@ model UserWedding {
 
 // Add-on: Website (guest-facing wedding website)
 model Website {
-  id                String     @id @default(uuid())
-  weddingId         String     @unique
-  wedding           Wedding    @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  subUrl            String     @unique
+  id                String           @id @default(uuid())
+  weddingId         String           @unique
+  wedding           Wedding          @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  subUrl            String           @unique
   templateId        String?
-  isPasswordEnabled Boolean    @default(false)
+  isPasswordEnabled Boolean          @default(false)
   password          String?
-  isRsvpEnabled     Boolean    @default(true)
+  isRsvpEnabled     Boolean          @default(true)
   coverPhotoUrl     String?
   headerImageUrl    String?
-  coupleImageUrls   String[]   @default([])
-  generalQuestions  Question[] @relation(name: "Website_Questions")
+  coupleImageUrls   String[]         @default([])
+  generalQuestions  Question[]       @relation(name: "Website_Questions")
   websiteSections   WebsiteSection[]
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@index([weddingId])
 }
@@ -183,7 +189,7 @@ model User {
   userWeddings                UserWedding[]
   members                     Member[]
   sentOrganizationInvitations OrganizationInvitation[] @relation("OrganizationInvitationInviter")
-  vendorRatings  VendorRating[]
+  vendorRatings               VendorRating[]
 }
 
 model Session {
@@ -306,15 +312,17 @@ model Household {
   // "js-4f9k2c". Looked up directly instead of verifying a signed token so the
   // link stays short; nullable because a code is only assigned the first time
   // an invite link is generated.
-  inviteCode           String?   @unique
-  inviteCodeExpiresAt  DateTime?
+  inviteCode          String?   @unique
+  inviteCodeExpiresAt DateTime?
 
   // Relations
-  guests         Guest[]          @relation(name: "Household_Guests")
-  gifts          Gift[]           @relation(name: "Household_Gifts")
-  answers        Answer[]         @relation(name: "Household_Answers")
-  optionReponses OptionResponse[] @relation(name: "Household_OptionResponses")
-  householdNotes HouseholdNote[]
+  guests           Guest[]            @relation(name: "Household_Guests")
+  gifts            Gift[]             @relation(name: "Household_Gifts")
+  answers          Answer[]           @relation(name: "Household_Answers")
+  optionReponses   OptionResponse[]   @relation(name: "Household_OptionResponses")
+  householdNotes   HouseholdNote[]
+  whatsAppOutbound WhatsAppOutbound[] @relation(name: "Household_WhatsAppOutbound")
+  whatsAppInbound  WhatsAppInbound[]  @relation(name: "Household_WhatsAppInbound")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -364,11 +372,13 @@ model Guest {
   guestTagAssignments GuestTagAssignment[] @relation(name: "Guest_GuestTagAssignments")
 
   // Relations
-  invitations     Invitation[]     @relation(name: "Guest_Invitations")
-  optionResponses OptionResponse[] @relation(name: "Guest_OptionResponses")
-  answers         Answer[]         @relation(name: "Guest_Answers")
-  guestQuestions  GuestQuestion[]
-  seatAssignments SeatAssignment[]
+  invitations      Invitation[]       @relation(name: "Guest_Invitations")
+  optionResponses  OptionResponse[]   @relation(name: "Guest_OptionResponses")
+  answers          Answer[]           @relation(name: "Guest_Answers")
+  guestQuestions   GuestQuestion[]
+  seatAssignments  SeatAssignment[]
+  whatsAppOutbound WhatsAppOutbound[] @relation(name: "Guest_WhatsAppOutbound")
+  whatsAppInbound  WhatsAppInbound[]  @relation(name: "Guest_WhatsAppInbound")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -403,8 +413,9 @@ model Event {
   questions   Question[]   @relation(name: "Event_Questions")
   tasks       Task[]
 
-  seatingTables   SeatingTable[]
-  seatAssignments SeatAssignment[]
+  seatingTables    SeatingTable[]
+  seatAssignments  SeatAssignment[]
+  whatsAppOutbound WhatsAppOutbound[] @relation(name: "Event_WhatsAppOutbound")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -774,14 +785,14 @@ model Task {
 
 // Per-user star rating for a vendor (nullable presence: missing row == unrated)
 model VendorRating {
-  id        String   @id @default(uuid())
-  vendorId  String
-  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid())
+  vendorId String
+  vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Star value: integer 1-5 enforced via DB CHECK constraint and app validators
-  stars     Int
+  stars Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -882,12 +893,12 @@ model VendorImage {
 // Categories and expenses are tracked separately so the target can differ
 // from the sum of per-section budgets.
 model Budget {
-  id          String  @id @default(uuid())
-  weddingId   String  @unique @map("wedding_id")
-  wedding     Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  id        String  @id @default(uuid())
+  weddingId String  @unique @map("wedding_id")
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 
   // Overall target budget for the whole wedding
-  targetTotal Decimal @default(0) @db.Decimal(12, 2) @map("target_total")
+  targetTotal Decimal @default(0) @map("target_total") @db.Decimal(12, 2)
 
   // ISO 4217 currency code every amount on this wedding is tracked in.
   // No conversion is supported yet.
@@ -908,7 +919,7 @@ model BudgetCategory {
   wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
 
   name          String
-  plannedAmount Decimal @default(0) @db.Decimal(12, 2) @map("planned_amount")
+  plannedAmount Decimal @default(0) @map("planned_amount") @db.Decimal(12, 2)
   position      Int     @default(0)
 
   expenses BudgetExpense[]
@@ -931,11 +942,11 @@ model BudgetExpense {
   categoryId String         @map("category_id")
   category   BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  description String
+  description     String
   // Estimated/quoted cost for this line, used for planning before it is paid.
-  estimatedAmount Decimal @default(0) @db.Decimal(12, 2) @map("estimated_amount")
+  estimatedAmount Decimal @default(0) @map("estimated_amount") @db.Decimal(12, 2)
   // Amount actually paid (money out of pocket)
-  amount     Decimal @default(0) @db.Decimal(12, 2)
+  amount          Decimal @default(0) @db.Decimal(12, 2)
 
   // Deposit tracking. A refundable deposit is expected back after the event;
   // refundedAt is set once the refund has been received.
@@ -944,8 +955,8 @@ model BudgetExpense {
   refundedAt   DateTime? @map("refunded_at")
 
   // When this payment is due (drives the upcoming-payments schedule).
-  dueAt  DateTime? @db.Date @map("due_at")
-  paidAt DateTime? @db.Date @map("paid_at")
+  dueAt  DateTime? @map("due_at") @db.Date
+  paidAt DateTime? @map("paid_at") @db.Date
   notes  String?
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -1152,6 +1163,131 @@ model ChatMessage {
   @@index([identityId, summarizedAt])
   @@index([weddingId])
   @@map("chat_messages")
+}
+
+// WhatsApp Cloud API
+
+enum WhatsAppProvider {
+  WHATSAPP_CLOUD
+  SMS
+}
+
+enum WhatsAppAccountStatus {
+  UNCONFIGURED
+  ACTIVE
+  ERROR
+}
+
+enum WhatsAppTemplateCategory {
+  MARKETING
+  UTILITY
+}
+
+enum WhatsAppOutboundKind {
+  INVITE
+  REMINDER
+  CUSTOM
+}
+
+enum WhatsAppOutboundStatus {
+  QUEUED
+  SENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// One WhatsApp/SMS sender configuration per wedding. accessTokenEnc is
+// AES-256-GCM encrypted at rest and never returned to the client.
+model WhatsAppAccount {
+  id                 String                @id @default(uuid())
+  weddingId          String                @unique @map("wedding_id")
+  wedding            Wedding               @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  provider           WhatsAppProvider      @default(WHATSAPP_CLOUD)
+  phoneNumberId      String?               @map("phone_number_id")
+  wabaId             String?               @map("waba_id")
+  accessTokenEnc     String?               @map("access_token_enc")
+  verifyToken        String?               @map("verify_token")
+  displayPhoneNumber String?               @map("display_phone_number")
+  verifiedName       String?               @map("verified_name")
+  status             WhatsAppAccountStatus @default(UNCONFIGURED)
+  lastCheckedAt      DateTime?             @map("last_checked_at")
+  lastError          String?               @map("last_error")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  @@map("whatsapp_accounts")
+}
+
+model WhatsAppTemplate {
+  id           String                   @id @default(uuid())
+  weddingId    String                   @map("wedding_id")
+  wedding      Wedding                  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  provider     WhatsAppProvider         @default(WHATSAPP_CLOUD)
+  name         String
+  language     String                   @default("he")
+  category     WhatsAppTemplateCategory
+  bodyPreview  String?                  @map("body_preview")
+  status       String?
+  lastSyncedAt DateTime?                @map("last_synced_at")
+  createdAt    DateTime                 @default(now()) @map("created_at")
+  updatedAt    DateTime                 @updatedAt @map("updated_at")
+
+  @@unique([weddingId, provider, name, language])
+  @@index([weddingId])
+  @@map("whatsapp_templates")
+}
+
+model WhatsAppOutbound {
+  id                String                 @id @default(uuid())
+  weddingId         String                 @map("wedding_id")
+  wedding           Wedding                @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  householdId       String?                @map("household_id")
+  household         Household?             @relation(name: "Household_WhatsAppOutbound", fields: [householdId], references: [id], onDelete: SetNull)
+  guestId           Int?                   @map("guest_id")
+  guest             Guest?                 @relation(name: "Guest_WhatsAppOutbound", fields: [guestId], references: [id], onDelete: SetNull)
+  eventId           String?                @map("event_id")
+  event             Event?                 @relation(name: "Event_WhatsAppOutbound", fields: [eventId], references: [id], onDelete: SetNull)
+  kind              WhatsAppOutboundKind
+  templateName      String                 @map("template_name")
+  toPhone           String                 @map("to_phone")
+  status            WhatsAppOutboundStatus @default(QUEUED)
+  providerMessageId String?                @map("provider_message_id")
+  error             String?
+  queuedAt          DateTime               @default(now()) @map("queued_at")
+  sentAt            DateTime?              @map("sent_at")
+  deliveredAt       DateTime?              @map("delivered_at")
+  readAt            DateTime?              @map("read_at")
+
+  @@index([weddingId, status])
+  @@index([householdId])
+  @@index([guestId])
+  @@index([eventId])
+  @@map("whatsapp_outbound")
+}
+
+model WhatsAppInbound {
+  id                String     @id @default(uuid())
+  weddingId         String     @map("wedding_id")
+  wedding           Wedding    @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  waId              String     @map("wa_id")
+  fromPhone         String     @map("from_phone")
+  profileName       String?    @map("profile_name")
+  text              String?
+  receivedAt        DateTime   @default(now()) @map("received_at")
+  guestId           Int?       @map("guest_id")
+  guest             Guest?     @relation(name: "Guest_WhatsAppInbound", fields: [guestId], references: [id], onDelete: SetNull)
+  householdId       String?    @map("household_id")
+  household         Household? @relation(name: "Household_WhatsAppInbound", fields: [householdId], references: [id], onDelete: SetNull)
+  parsed            Json?
+  providerMessageId String?    @unique @map("provider_message_id")
+  handledAt         DateTime?  @map("handled_at")
+
+  @@index([weddingId])
+  @@index([guestId])
+  @@index([householdId])
+  @@map("whatsapp_inbound")
 }
 
 // Simple Postgres-backed rolling rate limit bucket (shared by all channels).
