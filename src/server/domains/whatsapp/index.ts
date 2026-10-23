@@ -34,6 +34,8 @@ export type {
   WhatsAppTestConnectionResult,
 } from '~/server/domains/whatsapp/whatsapp.types'
 export {
+  type LinkInboundInput,
+  linkInboundSchema,
   type ListPendingInboundInput,
   listPendingInboundSchema,
   type ProcessQueueInput,

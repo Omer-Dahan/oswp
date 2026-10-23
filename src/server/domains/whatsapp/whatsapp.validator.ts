@@ -59,3 +59,11 @@ export const resolveInboundSchema = z.object({
 })
 
 export type ResolveInboundInput = z.infer<typeof resolveInboundSchema>
+
+export const linkInboundSchema = z.object({
+  inboundId: z.string().min(1),
+  guestId: z.number().int().positive(),
+  replacePhone: z.boolean().optional(),
+})
+
+export type LinkInboundInput = z.infer<typeof linkInboundSchema>

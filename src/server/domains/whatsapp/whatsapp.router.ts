@@ -7,6 +7,7 @@ import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { inboundReviewService, whatsAppService } from '~/server/domains/whatsapp'
 import {
   composePreviewSchema,
+  linkInboundSchema,
   listPendingInboundSchema,
   listRecentOutboundSchema,
   processQueueSchema,
@@ -81,4 +82,11 @@ export const whatsappRouter = createTRPCRouter({
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return inboundReviewService.resolveInbound(ctx.authz, weddingId, input)
   }),
+
+  linkInboundToHousehold: protectedProcedure
+    .input(linkInboundSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return inboundReviewService.linkInboundToHousehold(ctx.authz, weddingId, input)
+    }),
 })
