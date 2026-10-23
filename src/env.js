@@ -34,6 +34,13 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     // Optional: Vercel Blob storage (for vendor quote file uploads)
     BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
+    // File storage driver: 'local' (self-hosted disk), 'blob' (Vercel Blob), or 's3'.
+    // Defaults to 'blob' when BLOB_READ_WRITE_TOKEN is set, otherwise 'local'.
+    STORAGE_DRIVER: z.enum(['local', 'blob', 's3']).optional(),
+    // Directory for the local storage driver. Defaults to '<repo>/uploads'.
+    UPLOADS_DIR: z.string().min(1).optional(),
+    // Max upload size in bytes for the local storage driver. Defaults to 10MB.
+    MAX_UPLOAD_BYTES: z.coerce.number().int().positive().optional(),
     // Optional: Resend email service (required for OTP login, password reset, email verification)
     RESEND_API_KEY: z.string().min(1).optional(),
     EMAIL_FROM: z.string().min(1).default('noreply@oswp.app'),
@@ -122,6 +129,9 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    STORAGE_DRIVER: process.env.STORAGE_DRIVER,
+    UPLOADS_DIR: process.env.UPLOADS_DIR,
+    MAX_UPLOAD_BYTES: process.env.MAX_UPLOAD_BYTES,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
     AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,

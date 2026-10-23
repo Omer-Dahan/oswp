@@ -1,5 +1,4 @@
-import { del } from '@vercel/blob'
-import { upload } from '@vercel/blob/client'
+import { deleteUploadedFiles, uploadFile } from '~/lib/upload-client'
 
 export type BlobUploadResult = {
   url: string
@@ -9,28 +8,15 @@ export type BlobUploadResult = {
 }
 
 /**
- * Upload files to Vercel Blob via client upload.
+ * Upload files via the server-mediated `/api/uploads` endpoint.
  *
  * Uploads run concurrently (Promise.allSettled) for better performance.
- * If any uploads fail, already-uploaded blobs are cleaned up to avoid orphans.
+ * If any uploads fail, already-uploaded files are cleaned up to avoid orphans.
  */
 export async function uploadFiles(files: File[]): Promise<BlobUploadResult[]> {
   if (files.length === 0) return []
 
-  const results = await Promise.allSettled(
-    files.map(async (file) => {
-      const blob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/blob/upload',
-      })
-      return {
-        url: blob.url,
-        pathname: blob.pathname,
-        name: file.name,
-        size: file.size,
-      }
-    })
-  )
+  const results = await Promise.allSettled(files.map(uploadFile))
 
   const fulfilled: BlobUploadResult[] = []
   const failed: string[] = []
@@ -44,13 +30,8 @@ export async function uploadFiles(files: File[]): Promise<BlobUploadResult[]> {
   }
 
   if (failed.length > 0) {
-    // Clean up already-uploaded blobs to avoid orphans
     if (fulfilled.length > 0) {
-      try {
-        await del(fulfilled.map((r) => r.url))
-      } catch {
-        // Best-effort cleanup — orphaned blobs are preferable to crashing here
-      }
+      await deleteUploadedFiles(fulfilled.map((r) => r.url))
     }
     throw new Error(`Failed to upload: ${failed.join(', ')}`)
   }

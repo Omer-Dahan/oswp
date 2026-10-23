@@ -36,6 +36,9 @@ next-env.d.ts
 # production
 /build
 
+# local storage driver uploads
+/uploads
+
 # misc
 .DS_Store
 *.pem

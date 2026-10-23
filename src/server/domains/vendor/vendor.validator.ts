@@ -10,7 +10,7 @@ import { z } from 'zod'
 
 import { optionalPhoneSchemaNotNull } from '~/lib/phone/phone-validator'
 import {
-  BLOB_URL_PATTERN,
+  isValidUploadUrl,
   MAX_FILES_PER_QUOTE,
   MAX_IMAGES_PER_VENDOR,
   sanitizeFilename,
@@ -186,8 +186,8 @@ const quoteFileSchema = z.object({
     .refine((v) => v.length > 0, 'File name is invalid'),
   url: z
     .string()
-    .url('Must be a valid URL')
-    .refine((v) => BLOB_URL_PATTERN.test(v), 'URL must be a Vercel Blob storage URL'),
+    .min(1, 'Must be a valid URL')
+    .refine(isValidUploadUrl, 'URL must be a valid storage URL'),
   key: z.string().min(1, 'File key is required'),
   size: z.number().int().positive('File size must be positive'),
 })
@@ -215,8 +215,8 @@ const vendorImageFileSchema = z.object({
     .refine((v) => v.length > 0, 'File name is invalid'),
   url: z
     .string()
-    .url('Must be a valid URL')
-    .refine((v) => BLOB_URL_PATTERN.test(v), 'URL must be a Vercel Blob storage URL'),
+    .min(1, 'Must be a valid URL')
+    .refine(isValidUploadUrl, 'URL must be a valid storage URL'),
   key: z.string().min(1, 'File key is required'),
   size: z.number().int().positive('File size must be positive'),
   source: z.enum(['manual', 'website']).default('manual'),
