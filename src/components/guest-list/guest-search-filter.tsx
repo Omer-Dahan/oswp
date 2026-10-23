@@ -6,6 +6,7 @@ import type { Event } from '~/app/utils/shared-types'
 import { useOuterClick } from '~/components/hooks'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { RSVP_STATUS_LABELS, type RsvpStatus } from '~/lib/constants/rsvp'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
@@ -382,7 +383,7 @@ const InvitationOption = ({
     >
       <div className='flex items-center gap-1.5'>
         <span className={`h-1.5 w-1.5 rounded-full ${sharedStyles.getRSVPcolor(rsvpValue)}`} />
-        <span>{rsvpValue}</span>
+        <span>{RSVP_STATUS_LABELS[rsvpValue as RsvpStatus] ?? rsvpValue}</span>
       </div>
       {isSelected && <IoMdCheckmark size={16} className='text-primary' />}
     </button>

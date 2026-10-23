@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useMemo } from 'react'
 import { Badge } from '~/components/ui/badge'
+import { RSVP_STATUS_LABELS } from '~/lib/constants/rsvp'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 type TagMap = Map<string, { id: string; name: string; color?: string | null }>
@@ -35,7 +36,7 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
             <th className={thClass}>משק בית</th>
             <th className={thClass}>דוא״ל</th>
             <th className={thClass}>תגיות</th>
-            <th className={thClass}>RSVP</th>
+            <th className={thClass}>אישור הגעה</th>
             <th className={thClass}>פרטי קשר מלאים</th>
             <th className={thClass}>מיקום מלא</th>
           </tr>
@@ -128,7 +129,7 @@ const GuestTableRow = memo(function GuestTableRow({
         )}
       </td>
       <td className='px-4 py-3'>
-        <Badge variant='outline'>{rsvpSummary}</Badge>
+        <Badge variant='outline'>{RSVP_STATUS_LABELS[rsvpSummary]}</Badge>
       </td>
       <td className='px-4 py-3'>
         <span
