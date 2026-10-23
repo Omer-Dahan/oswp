@@ -29,7 +29,7 @@ export default function DeleteConfirmation({
               isLoading: isProcessing,
             })} w-1/2 ${isProcessing ? 'text-pink-200' : `text-${sharedStyles.primaryColor}`}`}
           >
-            No
+            לא
           </button>
           <button
             type='button'
@@ -40,7 +40,7 @@ export default function DeleteConfirmation({
             })}`}
             onClick={() => yesHandler()}
           >
-            {isProcessing ? 'Processing...' : 'Yes'}
+            {isProcessing ? 'מעבד...' : 'כן'}
           </button>
         </div>
       </div>

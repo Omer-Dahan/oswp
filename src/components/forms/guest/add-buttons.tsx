@@ -27,7 +27,7 @@ export default function AddFormButtons({
           className='w-full sm:flex-1'
         >
           {isCreatingGuests && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-          {isCreatingGuests ? 'Saving...' : 'Save & Close'}
+          {isCreatingGuests ? 'שומר...' : 'שמירה וסגירה'}
         </Button>
         <Button
           id='save-household-another'
@@ -37,7 +37,7 @@ export default function AddFormButtons({
           className='w-full sm:flex-1'
         >
           {isCreatingGuests && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-          {isCreatingGuests ? 'Saving...' : 'Save & Add Another Party'}
+          {isCreatingGuests ? 'שומר...' : 'שמירה והוספת משפחה נוספת'}
         </Button>
       </div>
       <Button
@@ -47,7 +47,7 @@ export default function AddFormButtons({
         disabled={isCreatingGuests}
         className='w-full'
       >
-        Cancel
+        ביטול
       </Button>
     </div>
   )

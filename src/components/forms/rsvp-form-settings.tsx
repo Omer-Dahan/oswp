@@ -51,9 +51,9 @@ export default function RsvpFormSettings({
         <div className='mt-10 flex items-center gap-2 bg-blue-50 p-4'>
           <TiEyeOutline size={30} color='blue' />
           <p>
-            This form is <b>visible</b> on your Website. Guests on your Guest List can RVSP{' '}
+            הטופס הזה <b>גלוי</b> באתר שלכם. אורחים ברשימת האורחים יכולים לאשר הגעה{' '}
             <button type='button' className='underline' onClick={toggleEditRsvpSettingsForm}>
-              View Settings
+              צפייה בהגדרות
             </button>
           </p>
         </div>
@@ -108,7 +108,7 @@ const EventRsvpSection = ({ event, numGuests }: EventRsvpSectionProps) => {
       router.refresh()
     },
     onError: (err) => {
-      setFeedbackError(getMutationErrorMessage(err, 'Failed to update event. Please try again.'))
+      setFeedbackError(getMutationErrorMessage(err, 'עדכון האירוע נכשל. אנא נסו שוב.'))
     },
   })
 

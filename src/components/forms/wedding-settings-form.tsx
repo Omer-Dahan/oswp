@@ -182,10 +182,10 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
       <Button type='submit' disabled={isSubmitting || updateDetails.isPending} className='w-full'>
         {updateDetails.isPending ? (
           <span className='flex items-center gap-2'>
-            <LoadingSpinner size={16} /> Saving...
+            <LoadingSpinner size={16} /> שומר...
           </span>
         ) : (
-          'Save Changes'
+          'שמירת שינויים'
         )}
       </Button>
     </form>

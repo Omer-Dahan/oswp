@@ -20,7 +20,7 @@ export function PluginsSettingsCard({ enabledAddOns }: PluginsSettingsCardProps)
   const toggleAddOn = api.wedding.toggleAddOn.useMutation({
     onError: () => {
       setIsEnabled((current) => !current)
-      toast.error('Unable to update the Public Wedding Website plugin.')
+      toast.error('לא ניתן לעדכן את תוסף אתר החתונה הציבורי.')
     },
     onSuccess: (updatedWedding) => {
       setIsEnabled(updatedWedding.enabledAddOns.includes('website_builder'))
@@ -44,16 +44,16 @@ export function PluginsSettingsCard({ enabledAddOns }: PluginsSettingsCardProps)
         <div className='flex items-start justify-between gap-4 px-6 py-5'>
           <div className='space-y-1.5'>
             <p className='font-mono text-[0.62rem] text-foreground/45 uppercase tracking-[0.18em]'>
-              Public Wedding Website
+              אתר חתונה ציבורי
             </p>
-            <h4 className='font-serif text-foreground text-lg'>Share a guest-facing website</h4>
+            <h4 className='font-serif text-foreground text-lg'>שתפו אתר מול האורחים</h4>
             <p className='max-w-xl font-sans text-muted-foreground text-sm leading-6'>
-              Enable the wedding website builder, unlock the `/website` editor, and publish a
-              shareable page for your guests. RSVP remains available separately.
+              הפעילו את בונה אתר החתונה, פתחו את עורך `/website`, ופרסמו דף לשיתוף עם האורחים
+              שלכם. אישור הגעה ימשיך להיות זמין בנפרד.
             </p>
           </div>
           <Switch
-            aria-label='Toggle Public Wedding Website plugin'
+            aria-label='הפעלת תוסף אתר חתונה ציבורי'
             checked={isEnabled}
             disabled={toggleAddOn.isPending || isPending}
             onCheckedChange={handleCheckedChange}
