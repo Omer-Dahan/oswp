@@ -16,16 +16,16 @@ export const TASK_CATEGORIES = [
 export type TaskCategoryValue = (typeof TASK_CATEGORIES)[number]
 
 export const TASK_CATEGORY_LABELS: Record<TaskCategoryValue, string> = {
-  VENUE: 'Venue',
-  VENDORS: 'Vendor',
-  ATTIRE: 'Attire',
-  STATIONERY: 'Stationery',
-  GUESTS: 'Guests',
-  LEGAL: 'Legal',
-  CEREMONY: 'Ceremony',
-  RECEPTION: 'Reception',
-  BEAUTY: 'Beauty',
-  HONEYMOON: 'Honeymoon',
-  BUDGET: 'Budget',
-  OTHER: 'Other',
+  VENUE: 'אולם',
+  VENDORS: 'ספק',
+  ATTIRE: 'לבוש',
+  STATIONERY: 'הדפסות',
+  GUESTS: 'מוזמנים',
+  LEGAL: 'עניינים משפטיים',
+  CEREMONY: 'טקס',
+  RECEPTION: 'קבלה',
+  BEAUTY: 'יופי',
+  HONEYMOON: 'ירח דבש',
+  BUDGET: 'תקציב',
+  OTHER: 'אחר',
 }
