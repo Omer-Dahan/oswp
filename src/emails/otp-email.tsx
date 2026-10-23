@@ -8,9 +8,9 @@ interface OtpEmailProps {
 }
 
 const subjectMap = {
-  'sign-in': 'Your sign-in code',
-  'email-verification': 'Verify your email',
-  'forget-password': 'Reset your password',
+  'sign-in': 'קוד הכניסה שלכם',
+  'email-verification': 'אימות כתובת האימייל שלכם',
+  'forget-password': 'איפוס הסיסמה שלכם',
 }
 
 export function OtpEmail({ otp, type }: OtpEmailProps) {
@@ -26,7 +26,7 @@ export function OtpEmail({ otp, type }: OtpEmailProps) {
         <Container style={emailStyles.container}>
           <Heading style={emailStyles.heading}>{subject}</Heading>
           <Text style={emailStyles.bodyText}>
-            Use the code below to continue. It expires in 10 minutes.
+            השתמשו בקוד שלהלן כדי להמשיך. הוא בתוקף ל-10 דקות.
           </Text>
           <Section
             style={{
@@ -49,7 +49,7 @@ export function OtpEmail({ otp, type }: OtpEmailProps) {
             </Text>
           </Section>
           <Text style={emailStyles.footerText}>
-            If you didn&apos;t request this, you can safely ignore this email.
+            אם לא ביקשתם את זה, אפשר להתעלם מהמייל הזה בבטחה.
           </Text>
         </Container>
       </Body>

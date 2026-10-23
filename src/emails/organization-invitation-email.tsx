@@ -16,20 +16,20 @@ export function OrganizationInvitationEmail({
   memberRole,
 }: OrganizationInvitationEmailProps) {
   const inviterLead = invitedByName
-    ? `${invitedByName} invited you to collaborate on ${organizationName}.`
-    : `You've been invited to collaborate on ${organizationName}.`
+    ? `${invitedByName} הזמינו אתכם לשתף פעולה ב${organizationName}.`
+    : `הוזמנתם לשתף פעולה ב${organizationName}.`
 
   return (
     <html lang='en'>
       <Head />
-      <Preview>Join {organizationName} on OSWP</Preview>
+      <Preview>הצטרפו ל{organizationName} ב-OSWP</Preview>
       <Body style={emailStyles.body}>
         <Container style={emailStyles.container}>
-          <Heading style={emailStyles.heading}>Join this wedding workspace</Heading>
+          <Heading style={emailStyles.heading}>הצטרפו לסביבת העבודה של החתונה</Heading>
           <Text style={emailStyles.bodyText}>{inviterLead}</Text>
           <Text style={emailStyles.bodyText}>
-            You&apos;ve been assigned the <strong>{memberRole}</strong> role. Accept the invitation
-            to access planning, guest, and website tools for this wedding.
+            הוקצה לכם תפקיד <strong>{memberRole}</strong>. אשרו את ההזמנה כדי לגשת לכלי התכנון,
+            האורחים והאתר של החתונה הזו.
           </Text>
           <Button
             href={inviteUrl}
@@ -42,10 +42,10 @@ export function OrganizationInvitationEmail({
               display: 'inline-block',
             }}
           >
-            Accept Invitation
+            אישור ההזמנה
           </Button>
           <Text style={emailStyles.footerText}>
-            If you weren&apos;t expecting this invitation, you can safely ignore this email.
+            אם לא ציפיתם להזמנה הזו, אפשר להתעלם מהמייל הזה בבטחה.
           </Text>
         </Container>
       </Body>
