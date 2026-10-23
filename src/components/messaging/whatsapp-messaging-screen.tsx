@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-
+import { WhatsappReviewPanel } from '~/components/messaging/whatsapp-review-panel'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { DAILY_RECIPIENT_CAP } from '~/server/domains/whatsapp/whatsapp.rules'
 import { api } from '~/trpc/react'
 
@@ -69,7 +70,8 @@ function templateStatusLabel(status: string | null): string {
 }
 
 const sectionLabelClass = 'font-mono text-[0.62rem] text-foreground/55 uppercase tracking-[0.1em]'
-const thClass = 'px-3 py-2 text-right font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
+const thClass =
+  'px-3 py-2 text-right font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
 
 export function WhatsappMessagingScreen() {
   const utils = api.useUtils()
@@ -190,297 +192,320 @@ export function WhatsappMessagingScreen() {
     <div className='mx-auto max-w-4xl space-y-6'>
       <ConnectionBanner account={account.data} isLoading={account.isLoading} />
 
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0'>
-          <CardTitle className='font-serif text-xl'>תבניות</CardTitle>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={() => syncTemplates.mutate()}
-            disabled={!account.data?.configured || syncTemplates.isPending}
-          >
-            {syncTemplates.isPending ? 'מסנכרן…' : 'רענון תבניות'}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {templates.isLoading ? (
-            <p className='text-muted-foreground text-sm'>טוען תבניות…</p>
-          ) : (templates.data ?? []).length === 0 ? (
-            <p className='text-muted-foreground text-sm'>
-              אין עדיין תבניות מסונכרנות. לחצו על "רענון תבניות" כדי לייבא תבניות מאושרות מ-Meta.
-            </p>
-          ) : (
-            <ul className='divide-y divide-border'>
-              {(templates.data ?? []).map((template) => (
-                <li key={template.id} className='flex items-center justify-between gap-3 py-3'>
-                  <div className='min-w-0'>
-                    <p className='truncate font-medium text-foreground text-sm'>{template.name}</p>
-                    {template.bodyPreview && (
-                      <p className='mt-0.5 truncate text-muted-foreground text-xs'>
-                        {template.bodyPreview}
+      {account.data?.status === 'ACTIVE' && (
+        <Tabs defaultValue='send' className='space-y-6'>
+          <TabsList>
+            <TabsTrigger value='send'>שליחה</TabsTrigger>
+            <TabsTrigger value='review'>סקירת תשובות</TabsTrigger>
+          </TabsList>
+          <TabsContent value='send' className='space-y-6'>
+            <Card>
+              <CardHeader className='flex flex-row items-center justify-between space-y-0'>
+                <CardTitle className='font-serif text-xl'>תבניות</CardTitle>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => syncTemplates.mutate()}
+                  disabled={!account.data?.configured || syncTemplates.isPending}
+                >
+                  {syncTemplates.isPending ? 'מסנכרן…' : 'רענון תבניות'}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {templates.isLoading ? (
+                  <p className='text-muted-foreground text-sm'>טוען תבניות…</p>
+                ) : (templates.data ?? []).length === 0 ? (
+                  <p className='text-muted-foreground text-sm'>
+                    אין עדיין תבניות מסונכרנות. לחצו על "רענון תבניות" כדי לייבא תבניות מאושרות
+                    מ-Meta.
+                  </p>
+                ) : (
+                  <ul className='divide-y divide-border'>
+                    {(templates.data ?? []).map((template) => (
+                      <li
+                        key={template.id}
+                        className='flex items-center justify-between gap-3 py-3'
+                      >
+                        <div className='min-w-0'>
+                          <p className='truncate font-medium text-foreground text-sm'>
+                            {template.name}
+                          </p>
+                          {template.bodyPreview && (
+                            <p className='mt-0.5 truncate text-muted-foreground text-xs'>
+                              {template.bodyPreview}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant={templateStatusVariant(template.status)}>
+                          {templateStatusLabel(template.status)}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className='font-serif text-xl'>שליחת הודעות</CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-5'>
+                <div className='space-y-2'>
+                  <p className={sectionLabelClass}>נמענים</p>
+                  <div className='flex flex-wrap gap-2'>
+                    {(
+                      [
+                        ['all', 'כל משקי הבית'],
+                        ['event', 'לפי אירוע'],
+                        ['tag', 'לפי תגית'],
+                      ] as const
+                    ).map(([mode, label]) => (
+                      <button
+                        key={mode}
+                        type='button'
+                        onClick={() => setAudienceMode(mode)}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                          audienceMode === mode
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-input bg-background text-foreground hover:bg-accent'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {audienceMode === 'event' && (
+                    <Select value={eventId} onValueChange={setEventId}>
+                      <SelectTrigger className='mt-2'>
+                        <SelectValue placeholder='בחרו אירוע' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(events.data ?? []).map((event) => (
+                          <SelectItem key={event.id} value={event.id}>
+                            {event.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  {audienceMode === 'tag' && (
+                    <Select value={tagId} onValueChange={setTagId}>
+                      <SelectTrigger className='mt-2'>
+                        <SelectValue placeholder='בחרו תגית' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(tags.data ?? []).map((tag) => (
+                          <SelectItem key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className='grid gap-4 sm:grid-cols-2'>
+                  <div className='space-y-2'>
+                    <p className={sectionLabelClass}>תבנית</p>
+                    <Select value={templateName} onValueChange={setTemplateName}>
+                      <SelectTrigger>
+                        <SelectValue placeholder='בחרו תבנית' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(templates.data ?? [])
+                          .filter((t) => t.status === 'APPROVED')
+                          .map((template) => (
+                            <SelectItem key={template.id} value={template.name}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className='space-y-2'>
+                    <p className={sectionLabelClass}>סוג הודעה</p>
+                    <Select value={kind} onValueChange={(value) => setKind(value as OutboundKind)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(KIND_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className='flex items-center gap-2'>
+                  <Checkbox
+                    id='resend'
+                    checked={resend}
+                    onCheckedChange={(checked) => setResend(checked === true)}
+                  />
+                  <Label htmlFor='resend' className='text-muted-foreground text-sm'>
+                    שליחה חוזרת גם למי שכבר קיבל הודעה מהתבנית הזו
+                  </Label>
+                </div>
+
+                {previewEnabled && (
+                  <div className='rounded-md border border-border/60 bg-muted/20 p-3'>
+                    <p className={sectionLabelClass}>תצוגה מקדימה</p>
+                    {preview.isLoading ? (
+                      <p className='mt-1 text-muted-foreground text-sm'>טוען…</p>
+                    ) : preview.data && preview.data.recipientCount > 0 ? (
+                      <>
+                        <p className='mt-1 whitespace-pre-wrap text-foreground text-sm'>
+                          {preview.data.previewText || 'לתבנית זו אין תוכן מסונכרן לתצוגה מקדימה'}
+                        </p>
+                        <p className='mt-2 text-muted-foreground text-xs'>
+                          {preview.data.recipientCount} נמענים מתאימים לבחירה זו
+                        </p>
+                      </>
+                    ) : (
+                      <p className='mt-1 text-muted-foreground text-sm'>
+                        לא נמצאו נמענים עם מספר טלפון עבור הבחירה הזו
                       </p>
                     )}
                   </div>
-                  <Badge variant={templateStatusVariant(template.status)}>
-                    {templateStatusLabel(template.status)}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className='font-serif text-xl'>שליחת הודעות</CardTitle>
-        </CardHeader>
-        <CardContent className='space-y-5'>
-          <div className='space-y-2'>
-            <p className={sectionLabelClass}>נמענים</p>
-            <div className='flex flex-wrap gap-2'>
-              {(
-                [
-                  ['all', 'כל משקי הבית'],
-                  ['event', 'לפי אירוע'],
-                  ['tag', 'לפי תגית'],
-                ] as const
-              ).map(([mode, label]) => (
-                <button
-                  key={mode}
+                {queueSummary && (
+                  <p className='text-foreground text-sm'>
+                    יישלחו {queueSummary.queued} · ידולגו {queueSummary.skipped} (כבר נשלחו) ·{' '}
+                    {queueSummary.overCap} חורגות מהתקרה
+                  </p>
+                )}
+
+                <Button
                   type='button'
-                  onClick={() => setAudienceMode(mode)}
-                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                    audienceMode === mode
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-input bg-background text-foreground hover:bg-accent'
-                  }`}
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={
+                    !previewEnabled ||
+                    account.data?.status !== 'ACTIVE' ||
+                    queueBatch.isPending ||
+                    (preview.data?.recipientCount ?? 0) === 0
+                  }
                 >
-                  {label}
-                </button>
-              ))}
-            </div>
+                  תזמון שליחה
+                </Button>
+                <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>לתזמן את השליחה?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        התקרה היומית היא {DAILY_RECIPIENT_CAP} נמענים ייחודיים בוואטסאפ בכל 24 שעות;
+                        נמענים שחורגים מהתקרה לא יתווספו לתור.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>ביטול</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleQueue}>תזמנו שליחה</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
 
-            {audienceMode === 'event' && (
-              <Select value={eventId} onValueChange={setEventId}>
-                <SelectTrigger className='mt-2'>
-                  <SelectValue placeholder='בחרו אירוע' />
-                </SelectTrigger>
-                <SelectContent>
-                  {(events.data ?? []).map((event) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {audienceMode === 'tag' && (
-              <Select value={tagId} onValueChange={setTagId}>
-                <SelectTrigger className='mt-2'>
-                  <SelectValue placeholder='בחרו תגית' />
-                </SelectTrigger>
-                <SelectContent>
-                  {(tags.data ?? []).map((tag) => (
-                    <SelectItem key={tag.id} value={tag.id}>
-                      {tag.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <div className='space-y-2'>
-              <p className={sectionLabelClass}>תבנית</p>
-              <Select value={templateName} onValueChange={setTemplateName}>
-                <SelectTrigger>
-                  <SelectValue placeholder='בחרו תבנית' />
-                </SelectTrigger>
-                <SelectContent>
-                  {(templates.data ?? [])
-                    .filter((t) => t.status === 'APPROVED')
-                    .map((template) => (
-                      <SelectItem key={template.id} value={template.name}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className='space-y-2'>
-              <p className={sectionLabelClass}>סוג הודעה</p>
-              <Select value={kind} onValueChange={(value) => setKind(value as OutboundKind)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(KIND_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className='flex items-center gap-2'>
-            <Checkbox
-              id='resend'
-              checked={resend}
-              onCheckedChange={(checked) => setResend(checked === true)}
-            />
-            <Label htmlFor='resend' className='text-muted-foreground text-sm'>
-              שליחה חוזרת גם למי שכבר קיבל הודעה מהתבנית הזו
-            </Label>
-          </div>
-
-          {previewEnabled && (
-            <div className='rounded-md border border-border/60 bg-muted/20 p-3'>
-              <p className={sectionLabelClass}>תצוגה מקדימה</p>
-              {preview.isLoading ? (
-                <p className='mt-1 text-muted-foreground text-sm'>טוען…</p>
-              ) : preview.data && preview.data.recipientCount > 0 ? (
-                <>
-                  <p className='mt-1 whitespace-pre-wrap text-foreground text-sm'>
-                    {preview.data.previewText || 'לתבנית זו אין תוכן מסונכרן לתצוגה מקדימה'}
+            {(isDraining || drainTotals.sent > 0 || drainTotals.failed > 0) && (
+              <Card>
+                <CardHeader className='flex flex-row items-center justify-between space-y-0'>
+                  <CardTitle className='font-serif text-xl'>התקדמות שליחה</CardTitle>
+                  {isDraining && (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={() => cancelQueue.mutate()}
+                      disabled={cancelQueue.isPending}
+                    >
+                      עצור
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <p className='text-foreground text-sm'>
+                    נשלחו {drainTotals.sent} · נכשלו {drainTotals.failed} · נותרו {remaining}
                   </p>
-                  <p className='mt-2 text-muted-foreground text-xs'>
-                    {preview.data.recipientCount} נמענים מתאימים לבחירה זו
-                  </p>
-                </>
-              ) : (
-                <p className='mt-1 text-muted-foreground text-sm'>
-                  לא נמצאו נמענים עם מספר טלפון עבור הבחירה הזו
-                </p>
-              )}
-            </div>
-          )}
-
-          {queueSummary && (
-            <p className='text-foreground text-sm'>
-              יישלחו {queueSummary.queued} · ידולגו {queueSummary.skipped} (כבר נשלחו) ·{' '}
-              {queueSummary.overCap} חורגות מהתקרה
-            </p>
-          )}
-
-          <Button
-            type='button'
-            onClick={() => setConfirmOpen(true)}
-            disabled={
-              !previewEnabled ||
-              account.data?.status !== 'ACTIVE' ||
-              queueBatch.isPending ||
-              (preview.data?.recipientCount ?? 0) === 0
-            }
-          >
-            תזמון שליחה
-          </Button>
-          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>לתזמן את השליחה?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  התקרה היומית היא {DAILY_RECIPIENT_CAP} נמענים ייחודיים בוואטסאפ בכל 24 שעות;
-                  נמענים שחורגים מהתקרה לא יתווספו לתור.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>ביטול</AlertDialogCancel>
-                <AlertDialogAction onClick={handleQueue}>תזמנו שליחה</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
-
-      {(isDraining || drainTotals.sent > 0 || drainTotals.failed > 0) && (
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0'>
-            <CardTitle className='font-serif text-xl'>התקדמות שליחה</CardTitle>
-            {isDraining && (
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => cancelQueue.mutate()}
-                disabled={cancelQueue.isPending}
-              >
-                עצור
-              </Button>
+                  {!isDraining && remaining === 0 && (
+                    <p className='mt-1 text-muted-foreground text-xs'>השליחה הסתיימה</p>
+                  )}
+                </CardContent>
+              </Card>
             )}
-          </CardHeader>
-          <CardContent>
-            <p className='text-foreground text-sm'>
-              נשלחו {drainTotals.sent} · נכשלו {drainTotals.failed} · נותרו {remaining}
-            </p>
-            {!isDraining && remaining === 0 && (
-              <p className='mt-1 text-muted-foreground text-xs'>השליחה הסתיימה</p>
-            )}
-          </CardContent>
-        </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className='font-serif text-xl'>שליחות אחרונות</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {recentOutbound.isLoading ? (
+                  <p className='text-muted-foreground text-sm'>טוען…</p>
+                ) : (recentOutbound.data ?? []).length === 0 ? (
+                  <p className='text-muted-foreground text-sm'>אין עדיין הודעות שנשלחו</p>
+                ) : (
+                  <div className='overflow-x-auto rounded-md border border-border'>
+                    <table className='w-full text-sm'>
+                      <thead>
+                        <tr className='border-border border-b bg-muted/40'>
+                          <th className={thClass}>תבנית</th>
+                          <th className={thClass}>סוג</th>
+                          <th className={thClass}>סטטוס</th>
+                          <th className={thClass}>תאריך</th>
+                          <th className={thClass}>שגיאה</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(recentOutbound.data ?? []).map((row) => (
+                          <tr key={row.id} className='border-border border-b last:border-0'>
+                            <td className='px-3 py-2'>{row.templateName}</td>
+                            <td className='px-3 py-2 text-muted-foreground'>
+                              {KIND_LABELS[row.kind as OutboundKind] ?? row.kind}
+                            </td>
+                            <td className='px-3 py-2'>
+                              <Badge variant={outboundStatusVariant(row.status)}>
+                                {OUTBOUND_STATUS_LABELS[row.status] ?? row.status}
+                              </Badge>
+                            </td>
+                            <td className='px-3 py-2 text-muted-foreground'>
+                              {new Date(row.sentAt ?? row.queuedAt).toLocaleString('he-IL')}
+                            </td>
+                            <td className='px-3 py-2 text-destructive text-xs'>
+                              {row.error ?? ''}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value='review'>
+            <WhatsappReviewPanel />
+          </TabsContent>
+        </Tabs>
       )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className='font-serif text-xl'>שליחות אחרונות</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentOutbound.isLoading ? (
-            <p className='text-muted-foreground text-sm'>טוען…</p>
-          ) : (recentOutbound.data ?? []).length === 0 ? (
-            <p className='text-muted-foreground text-sm'>אין עדיין הודעות שנשלחו</p>
-          ) : (
-            <div className='overflow-x-auto rounded-md border border-border'>
-              <table className='w-full text-sm'>
-                <thead>
-                  <tr className='border-border border-b bg-muted/40'>
-                    <th className={thClass}>תבנית</th>
-                    <th className={thClass}>סוג</th>
-                    <th className={thClass}>סטטוס</th>
-                    <th className={thClass}>תאריך</th>
-                    <th className={thClass}>שגיאה</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(recentOutbound.data ?? []).map((row) => (
-                    <tr key={row.id} className='border-border border-b last:border-0'>
-                      <td className='px-3 py-2'>{row.templateName}</td>
-                      <td className='px-3 py-2 text-muted-foreground'>
-                        {KIND_LABELS[row.kind as OutboundKind] ?? row.kind}
-                      </td>
-                      <td className='px-3 py-2'>
-                        <Badge variant={outboundStatusVariant(row.status)}>
-                          {OUTBOUND_STATUS_LABELS[row.status] ?? row.status}
-                        </Badge>
-                      </td>
-                      <td className='px-3 py-2 text-muted-foreground'>
-                        {new Date(row.sentAt ?? row.queuedAt).toLocaleString('he-IL')}
-                      </td>
-                      <td className='px-3 py-2 text-destructive text-xs'>{row.error ?? ''}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }
 
-type AccountView = {
-  status: 'ACTIVE' | 'ERROR' | 'UNCONFIGURED'
-  verifiedName: string | null
-  displayPhoneNumber: string | null
-  lastError: string | null
-} | undefined
+type AccountView =
+  | {
+      status: 'ACTIVE' | 'ERROR' | 'UNCONFIGURED'
+      verifiedName: string | null
+      displayPhoneNumber: string | null
+      lastError: string | null
+    }
+  | undefined
 
 function ConnectionBanner({ account, isLoading }: { account: AccountView; isLoading: boolean }) {
   if (isLoading || !account) {
@@ -502,7 +527,9 @@ function ConnectionBanner({ account, isLoading }: { account: AccountView; isLoad
     return (
       <div className='rounded-md border border-destructive/30 bg-destructive/10 p-4'>
         <p className='font-medium text-destructive text-sm'>החיבור לוואטסאפ נכשל</p>
-        {account.lastError && <p className='mt-1 text-destructive/80 text-xs'>{account.lastError}</p>}
+        {account.lastError && (
+          <p className='mt-1 text-destructive/80 text-xs'>{account.lastError}</p>
+        )}
       </div>
     )
   }

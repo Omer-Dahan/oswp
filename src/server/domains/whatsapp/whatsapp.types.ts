@@ -25,3 +25,21 @@ export type WhatsAppTestConnectionResult = {
   verifiedName: string | null
   error: string | null
 }
+
+export type PendingInboundParsed = {
+  intent?: 'attending' | 'declined' | 'unknown'
+  headcount?: number | null
+  confidence?: 'high' | 'low'
+  reason?: string
+}
+
+export type PendingInboundView = {
+  id: string
+  receivedAt: Date
+  fromPhone: string
+  text: string | null
+  parsed: PendingInboundParsed | null
+  guestName: string | null
+  householdLabel: string | null
+  householdUnmatched: boolean
+}
