@@ -7,15 +7,18 @@ import type { WhatsAppOutbound, WhatsAppOutboundKind, WhatsAppTemplate, WhatsApp
 
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
+import { env } from '~/env'
 import {
   decryptSecret,
   encryptSecret,
   maskSecret,
 } from '~/server/infrastructure/crypto/secrets'
 import type { MessagingSender } from '~/server/domains/whatsapp/messaging-sender'
+import { renderTemplatePreview, resolveTemplateVariables } from '~/server/domains/whatsapp/messaging-sender'
 import type { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
 import { allocateWithinDailyCap, dailyCapErrorMessage, partitionAlreadyMessaged } from '~/server/domains/whatsapp/whatsapp.rules'
 import type {
+  ComposePreviewInput,
   ProcessQueueInput,
   QueueBatchInput,
   SaveAccountInput,
@@ -292,6 +295,56 @@ export class WhatsAppService {
     requirePermission(ctx, { wedding: ['update'] })
     const cancelled = await this.repo.cancelQueued(weddingId)
     return { cancelled }
+  }
+
+  /** Cached templates (no Meta call); use syncTemplates to refresh. */
+  async listTemplates(ctx: AuthzContext, weddingId: string): Promise<WhatsAppTemplate[]> {
+    requirePermission(ctx, { wedding: ['read'] })
+    return this.repo.listTemplates(weddingId)
+  }
+
+  /** Renders the selected template with the first matching household's real data, for the compose preview. */
+  async getComposePreview(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: ComposePreviewInput
+  ): Promise<{ recipientCount: number; previewText: string | null }> {
+    requirePermission(ctx, { wedding: ['read'] })
+
+    const candidates = await this.repo.resolveRecipientCandidates(weddingId, {
+      eventId: input.eventId,
+      tagId: input.tagId,
+      householdIds: input.householdIds,
+    })
+
+    if (candidates.length === 0) {
+      return { recipientCount: 0, previewText: null }
+    }
+
+    const templates = await this.repo.listTemplates(weddingId)
+    const template = templates.find((t) => t.name === input.templateName) ?? null
+
+    const first = candidates[0]
+    if (!first) {
+      return { recipientCount: 0, previewText: null }
+    }
+    const context = await this.repo.findPreviewContext(weddingId, first, input.eventId)
+
+    const inviteUrl =
+      context.household?.inviteCode && context.websiteSubUrl
+        ? `${env.NEXT_PUBLIC_APP_URL}/w/${context.websiteSubUrl}/save-the-date/${context.household.inviteCode}`
+        : null
+
+    const vars = resolveTemplateVariables({
+      firstName: context.guest?.firstName ?? '',
+      event: context.event,
+      inviteUrl,
+    })
+
+    return {
+      recipientCount: candidates.length,
+      previewText: template ? renderTemplatePreview(template.bodyPreview, vars) : null,
+    }
   }
 
   async listRecentOutbound(
