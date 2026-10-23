@@ -285,4 +285,30 @@ export class WhatsAppRepository {
   async listTemplates(weddingId: string): Promise<WhatsAppTemplate[]> {
     return this.db.whatsAppTemplate.findMany({ where: { weddingId }, orderBy: { name: 'asc' } })
   }
+
+  /** Everything the compose preview needs to render one candidate's template variables. */
+  async findPreviewContext(
+    weddingId: string,
+    candidate: RecipientCandidate,
+    eventId?: string
+  ): Promise<{
+    guest: { firstName: string } | null
+    household: { inviteCode: string | null } | null
+    websiteSubUrl: string | null
+    event: { name: string; date: Date | null } | null
+  }> {
+    const [guest, household, website, event] = await Promise.all([
+      this.db.guest.findUnique({ where: { id: candidate.guestId }, select: { firstName: true } }),
+      this.db.household.findUnique({
+        where: { id: candidate.householdId },
+        select: { inviteCode: true },
+      }),
+      this.db.website.findUnique({ where: { weddingId }, select: { subUrl: true } }),
+      eventId
+        ? this.db.event.findUnique({ where: { id: eventId }, select: { name: true, date: true } })
+        : Promise.resolve(null),
+    ])
+
+    return { guest, household, websiteSubUrl: website?.subUrl ?? null, event }
+  }
 }

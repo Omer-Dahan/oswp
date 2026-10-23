@@ -11,6 +11,7 @@ export const RESERVED_WEBSITE_ROOT_SEGMENTS = [
   'events',
   'guest-list',
   'join',
+  'messaging',
   'old_dashboard',
   'seating',
   'settings',

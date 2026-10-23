@@ -6,6 +6,7 @@ import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { whatsAppService } from '~/server/domains/whatsapp'
 import {
+  composePreviewSchema,
   listRecentOutboundSchema,
   processQueueSchema,
   queueBatchSchema,
@@ -53,5 +54,17 @@ export const whatsappRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
       return whatsAppService.listRecentOutbound(ctx.authz, weddingId, input.limit)
+    }),
+
+  listTemplates: protectedProcedure.query(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return whatsAppService.listTemplates(ctx.authz, weddingId)
+  }),
+
+  getComposePreview: protectedProcedure
+    .input(composePreviewSchema)
+    .query(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return whatsAppService.getComposePreview(ctx.authz, weddingId, input)
     }),
 })
