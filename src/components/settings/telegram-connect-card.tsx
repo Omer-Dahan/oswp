@@ -20,7 +20,7 @@ export function TelegramConnectCard() {
       toast.success('פתחו את Telegram והקישו על התחלה כדי לסיים את ההתאמה.')
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create pairing link')
+      toast.error(error.message || 'יצירת קישור ההתאמה נכשלה')
     },
   })
 
@@ -40,8 +40,8 @@ export function TelegramConnectCard() {
         <div>
           <h4 className='font-medium text-foreground'>Telegram</h4>
           <p className='mt-1 text-muted-foreground text-xs'>
-            Message Etta from Telegram. Forward vendor quote PDFs and she&apos;ll extract the
-            details. Approve changes from the web dashboard.
+            שלחו הודעה ל-Etta בטלגרם. העבירו קבצי PDF של הצעות מחיר מספקים והיא תחלץ את
+            הפרטים. אשרו שינויים מלוח הבקרה באתר.
           </p>
         </div>
         <Button
@@ -52,18 +52,18 @@ export function TelegramConnectCard() {
           disabled={createPairingToken.isPending}
         >
           <Link2 className='mr-2 h-3.5 w-3.5' aria-hidden='true' />
-          Connect Telegram
+          חיבור ל-Telegram
         </Button>
       </div>
 
       {pendingDeepLink && (
         <div className='rounded-md border border-border bg-muted/40 p-3 text-xs'>
           <p className='flex items-center gap-1.5 text-foreground'>
-            <Check className='h-3.5 w-3.5 text-green-600' aria-hidden='true' /> Pairing link opened
-            in a new tab.
+            <Check className='h-3.5 w-3.5 text-green-600' aria-hidden='true' /> קישור ההתאמה נפתח
+            בכרטיסייה חדשה.
           </p>
           <p className='mt-1 text-muted-foreground'>
-            Link expires in 15 minutes. Tap <strong>התחלה</strong> inside Telegram to finish.
+            הקישור בתוקף ל-15 דקות. הקישו על <strong>התחלה</strong> בטלגרם כדי לסיים.
           </p>
           <a
             href={pendingDeepLink}
@@ -78,7 +78,7 @@ export function TelegramConnectCard() {
 
       <div className='space-y-2'>
         <p className='font-mono text-[0.62rem] text-foreground/55 uppercase tracking-wider'>
-          Connected chats
+          צ&apos;אטים מקושרים
         </p>
         {linkedChats.isLoading ? (
           <p className='text-muted-foreground text-xs'>טוען…</p>
@@ -91,10 +91,10 @@ export function TelegramConnectCard() {
               >
                 <div>
                   <p className='font-medium text-foreground'>
-                    {chat.displayName ?? `Chat ${chat.externalChatId}`}
+                    {chat.displayName ?? `צ׳אט ${chat.externalChatId}`}
                   </p>
                   <p className='text-muted-foreground'>
-                    Linked {new Date(chat.linkedAt).toLocaleDateString()}
+                    חובר בתאריך {new Date(chat.linkedAt).toLocaleDateString()}
                   </p>
                 </div>
                 <Button
@@ -103,7 +103,7 @@ export function TelegramConnectCard() {
                   size='sm'
                   onClick={() => revokeIdentity.mutate({ identityId: chat.id })}
                   disabled={revokeIdentity.isPending}
-                  aria-label={`Unlink ${chat.displayName ?? chat.externalChatId}`}
+                  aria-label={`ניתוק ${chat.displayName ?? chat.externalChatId}`}
                   className='text-destructive hover:text-destructive'
                 >
                   <Trash2 className='h-3.5 w-3.5' aria-hidden='true' />

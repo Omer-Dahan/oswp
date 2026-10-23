@@ -141,11 +141,11 @@ async function authPost<T>(
 async function fetchOrganizationState(): Promise<Omit<OrganizationState, 'error' | 'isLoading'>> {
   const organization = await authGet<FullOrganizationResponse>(
     '/organization/get-full-organization',
-    'Unable to load organization.'
+    'לא ניתן לטעון את הארגון.'
   )
 
   if (!organization?.id) {
-    throw new Error('No active organization found.')
+    throw new Error('לא נמצא ארגון פעיל.')
   }
 
   const [invitePermissionResult, updateMemberPermissionResult] = await Promise.all([
@@ -157,7 +157,7 @@ async function fetchOrganizationState(): Promise<Omit<OrganizationState, 'error'
           invitation: ['create'],
         },
       },
-      'Unable to load invitation permissions.'
+      'לא ניתן לטעון הרשאות הזמנה.'
     ),
     authPost<HasPermissionResponse>(
       '/organization/has-permission',
@@ -167,7 +167,7 @@ async function fetchOrganizationState(): Promise<Omit<OrganizationState, 'error'
           member: ['update'],
         },
       },
-      'Unable to load member permissions.'
+      'לא ניתן לטעון הרשאות חבר.'
     ),
   ])
 
@@ -175,7 +175,7 @@ async function fetchOrganizationState(): Promise<Omit<OrganizationState, 'error'
   try {
     const invitations = await authGet<Invitation[]>(
       '/organization/list-invitations',
-      'Unable to load organization invitations.'
+      'לא ניתן לטעון הזמנות הארגון.'
     )
     pendingInvitations = invitations.filter((invitation) => invitation.status === 'pending')
   } catch {
@@ -242,7 +242,7 @@ export function OrganizationMembersSettingsCard() {
             <div className='space-y-1'>
               <CardTitle className='font-serif text-foreground text-xl'>חברים</CardTitle>
               <CardDescription className='text-foreground/70'>
-                Invite collaborators and manage who can access this wedding workspace.
+                הזמינו משתפי פעולה ונהלו מי יכול לגשת לסביבת העבודה של החתונה הזו.
               </CardDescription>
             </div>
             <div className='flex items-center gap-2'>
@@ -255,7 +255,7 @@ export function OrganizationMembersSettingsCard() {
                   variant='outline'
                 >
                   <RefreshCw className='h-4 w-4' />
-                  Retry
+                  ניסיון חוזר
                 </Button>
               ) : null}
               <Button
@@ -266,7 +266,7 @@ export function OrganizationMembersSettingsCard() {
                 type='button'
               >
                 <MailPlus className='h-4 w-4' />
-                Invite Member
+                הזמנת חבר
               </Button>
             </div>
           </div>
@@ -293,13 +293,13 @@ export function OrganizationMembersSettingsCard() {
                         memberIdOrEmail: member.id,
                         organizationId: state.organization.id,
                       },
-                      'Unable to remove member.'
+                      'לא ניתן להסיר את החבר.'
                     )
                     toast.success('החבר הוסר')
                     loadOrganizationState()
                     return true
                   } catch (error) {
-                    toast.error(error instanceof Error ? error.message : 'Unable to remove member.')
+                    toast.error(error instanceof Error ? error.message : 'לא ניתן להסיר את החבר.')
                     return false
                   }
                 }}
@@ -312,13 +312,13 @@ export function OrganizationMembersSettingsCard() {
                     await authPost(
                       '/organization/cancel-invitation',
                       { invitationId },
-                      'Unable to cancel invitation.'
+                      'לא ניתן לבטל את ההזמנה.'
                     )
                     toast.success('ההזמנה בוטלה')
                     loadOrganizationState()
                   } catch (error) {
                     toast.error(
-                      error instanceof Error ? error.message : 'Unable to cancel invitation.'
+                      error instanceof Error ? error.message : 'לא ניתן לבטל את ההזמנה.'
                     )
                   }
                 }}
@@ -370,7 +370,7 @@ function OrganizationMembersLoadingState() {
     >
       <div className='flex items-center gap-2 text-foreground/70 text-sm'>
         <Loader2 className='h-4 w-4 animate-spin' />
-        Loading organization members...
+        טוען חברי ארגון...
       </div>
     </div>
   )
@@ -385,7 +385,7 @@ function OrganizationMembersErrorState({ error, onRetry }: { error: string; onRe
           <p>לא ניתן לטעון את חברי הארגון.</p>
           <p className='text-foreground/60'>{error}</p>
           <Button onClick={onRetry} size='sm' type='button' variant='outline'>
-            Retry
+            ניסיון חוזר
           </Button>
         </div>
       </div>
@@ -415,7 +415,7 @@ function OrganizationMembersList({
   if (members.length === 0) {
     return (
       <div className='rounded-lg border border-border/70 border-dashed bg-background/40 p-4 text-foreground/65 text-sm'>
-        No organization members found yet.
+        לא נמצאו חברי ארגון עדיין.
       </div>
     )
   }
@@ -439,21 +439,21 @@ function OrganizationMembersList({
             </div>
             <div className='min-w-0 flex-1'>
               <p className='truncate font-medium text-foreground text-sm'>
-                {member.user?.name || member.user?.email || 'Unknown member'}
+                {member.user?.name || member.user?.email || 'חבר לא ידוע'}
               </p>
               <p className='truncate text-foreground/60 text-sm'>
-                {member.user?.email || 'No email address'}
+                {member.user?.email || 'אין כתובת אימייל'}
               </p>
             </div>
             <Badge variant='outline'>{getRoleLabel(member.role)}</Badge>
             {canUpdateMembers ? (
               <Button onClick={() => onEditRole(member)} size='sm' type='button' variant='outline'>
-                Edit Role
+                עריכת תפקיד
               </Button>
             ) : null}
             {canRemoveMembers ? (
               <Button
-                aria-label={`Remove ${member.user?.name || member.user?.email || 'member'}`}
+                aria-label={`הסרת ${member.user?.name || member.user?.email || 'חבר'}`}
                 className='h-8 w-8'
                 disabled={removingMemberId === member.id}
                 onClick={() => {
@@ -486,10 +486,10 @@ function OrganizationMembersList({
           <DialogHeader>
             <DialogTitle>אישור הסרת חבר</DialogTitle>
             <DialogDescription>
-              Type delete to confirm removing{' '}
+              הקלידו delete כדי לאשר הסרת{' '}
               {memberPendingRemoval?.user?.name ||
                 memberPendingRemoval?.user?.email ||
-                'this member'}
+                'חבר זה'}
               .
             </DialogDescription>
           </DialogHeader>
@@ -498,7 +498,7 @@ function OrganizationMembersList({
               className='font-medium text-foreground text-sm'
               htmlFor='remove-member-confirmation'
             >
-              Confirmation
+              אישור
             </label>
             <Input
               id='remove-member-confirmation'
@@ -516,7 +516,7 @@ function OrganizationMembersList({
               type='button'
               variant='outline'
             >
-              Cancel
+              ביטול
             </Button>
             <Button
               disabled={!canConfirmRemoval || !memberPendingRemoval || !!removingMemberId}
@@ -539,7 +539,7 @@ function OrganizationMembersList({
               type='button'
               variant='destructive'
             >
-              Delete Member
+              הסרת חבר
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -566,7 +566,7 @@ function PendingInvitationsList({
   return (
     <div className='space-y-2 rounded-lg border border-border/70 bg-background/35 p-3'>
       <p className='font-mono text-[0.62rem] text-foreground/60 uppercase tracking-wider'>
-        Pending Invitations
+        הזמנות בהמתנה
       </p>
       <div className='space-y-2'>
         {invitations.map((invitation) => (
@@ -575,12 +575,12 @@ function PendingInvitationsList({
             key={invitation.id}
           >
             <div className='min-w-0 flex-1'>
-              <p className='truncate font-medium text-sm'>{invitation.email || 'Unknown email'}</p>
+              <p className='truncate font-medium text-sm'>{invitation.email || 'אימייל לא ידוע'}</p>
               <p className='text-foreground/60 text-xs'>
-                Expires{' '}
+                פג תוקף{' '}
                 {invitation.expiresAt
                   ? new Date(invitation.expiresAt).toLocaleDateString()
-                  : 'soon'}
+                  : 'בקרוב'}
               </p>
             </div>
             <Badge variant='outline'>{getRoleLabel(invitation.role || 'member')}</Badge>
@@ -603,12 +603,12 @@ function PendingInvitationsList({
                 {cancelingInvitationId === invitation.id ? (
                   <>
                     <Loader2 className='h-4 w-4 animate-spin' />
-                    Canceling...
+                    מבטל...
                   </>
                 ) : (
                   <>
                     <X className='h-4 w-4' />
-                    Cancel Invite
+                    ביטול הזמנה
                   </>
                 )}
               </Button>
@@ -634,7 +634,7 @@ function OrganizationPermissionsHint({
   if (!canInvite && !canUpdateMembers) {
     return (
       <p className='text-foreground/60 text-sm'>
-        Your role cannot manage organization members or send member invitations.
+        התפקיד שלכם אינו מאפשר לנהל חברי ארגון או לשלוח הזמנות לחברים.
       </p>
     )
   }
@@ -642,14 +642,14 @@ function OrganizationPermissionsHint({
   if (!canInvite) {
     return (
       <p className='text-foreground/60 text-sm'>
-        Your role can edit members but cannot send member invitations.
+        התפקיד שלכם מאפשר לערוך חברים אך לא לשלוח הזמנות לחברים.
       </p>
     )
   }
 
   return (
     <p className='text-foreground/60 text-sm'>
-      Your role can invite members but cannot change existing member roles.
+      התפקיד שלכם מאפשר להזמין חברים אך לא לשנות תפקידים קיימים.
     </p>
   )
 }
@@ -700,14 +700,14 @@ function InviteMemberDialog({
           organizationId,
           role,
         },
-        'Unable to send invitation.'
+        'לא ניתן לשלוח את ההזמנה.'
       )
 
       toast.success('ההזמנה נשלחה בהצלחה')
       onInviteSent()
       handleOpenChange(false)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to send invitation.')
+      toast.error(error instanceof Error ? error.message : 'לא ניתן לשלוח את ההזמנה.')
       setIsSubmitting(false)
     }
   }, [canSubmit, email, handleOpenChange, onInviteSent, organizationId, role])
@@ -718,7 +718,7 @@ function InviteMemberDialog({
         <DialogHeader>
           <DialogTitle>הזמינו חבר</DialogTitle>
           <DialogDescription>
-            Send an organization invitation without reloading the page.
+            שלחו הזמנה לארגון בלי לרענן את הדף.
           </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
@@ -727,7 +727,7 @@ function InviteMemberDialog({
               className='font-medium text-foreground text-sm'
               htmlFor='organization-invite-email'
             >
-              Email
+              אימייל
             </label>
             <Input
               autoComplete='email'
@@ -743,7 +743,7 @@ function InviteMemberDialog({
               className='font-medium text-foreground text-sm'
               htmlFor='organization-invite-role'
             >
-              Role
+              תפקיד
             </label>
             <Select
               value={role}
@@ -763,16 +763,16 @@ function InviteMemberDialog({
           </div>
           <div className='flex justify-end gap-2'>
             <Button onClick={() => handleOpenChange(false)} type='button' variant='outline'>
-              Cancel
+              ביטול
             </Button>
             <Button disabled={!canSubmit} onClick={() => void handleSubmit()} type='button'>
               {isSubmitting ? (
                 <>
                   <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Sending...
+                  שולח...
                 </>
               ) : (
-                'Send Invite'
+                'שליחת הזמנה'
               )}
             </Button>
           </div>
@@ -816,14 +816,14 @@ function EditMemberRoleDialog({
           organizationId,
           role,
         },
-        'Unable to update member role.'
+        'לא ניתן לעדכן את תפקיד החבר.'
       )
 
       toast.success('תפקיד החבר עודכן')
       onRoleUpdated()
       onOpenChange(false)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to update member role.')
+      toast.error(error instanceof Error ? error.message : 'לא ניתן לעדכן את תפקיד החבר.')
       setIsSubmitting(false)
     }
   }, [member.id, onOpenChange, onRoleUpdated, organizationId, role])
@@ -834,8 +834,8 @@ function EditMemberRoleDialog({
         <DialogHeader>
           <DialogTitle>ערכו תפקיד</DialogTitle>
           <DialogDescription>
-            Update the organization role for{' '}
-            {member.user?.name || member.user?.email || 'this member'}.
+            עדכנו את התפקיד בארגון עבור{' '}
+            {member.user?.name || member.user?.email || 'חבר זה'}.
           </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
@@ -844,7 +844,7 @@ function EditMemberRoleDialog({
               className='font-medium text-foreground text-sm'
               htmlFor='organization-member-role'
             >
-              Member Role
+              תפקיד החבר
             </label>
             <Select
               value={role}
@@ -864,16 +864,16 @@ function EditMemberRoleDialog({
           </div>
           <div className='flex justify-end gap-2'>
             <Button onClick={() => onOpenChange(false)} type='button' variant='outline'>
-              Cancel
+              ביטול
             </Button>
             <Button disabled={isSubmitting} onClick={() => void handleSubmit()} type='button'>
               {isSubmitting ? (
                 <>
                   <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Saving...
+                  שומר...
                 </>
               ) : (
-                'Save Role'
+                'שמירת תפקיד'
               )}
             </Button>
           </div>

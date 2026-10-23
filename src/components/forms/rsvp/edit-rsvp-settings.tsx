@@ -28,8 +28,8 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
       toggleEditRsvpSettingsForm()
     },
     onError: (err) => {
-      toast.error('Failed to update RSVP settings', {
-        description: err.message ?? 'Please refresh the page and try again.',
+      toast.error('עדכון הגדרות אישור ההגעה נכשל', {
+        description: err.message ?? 'רפרשו את הדף וניסו שוב.',
       })
     },
   })
@@ -64,7 +64,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                   checked={pageIsVisible}
                   onClick={() => setPageIsVisible((prev) => !prev)}
                 />
-                <span>{pageIsVisible ? 'Visible' : 'Hidden'}</span>
+                <span>{pageIsVisible ? 'גלוי' : 'מוסתר'}</span>
               </div>
             </div>
             <p>אף אחד לא יוכל לאשר הגעה מהאתר שלכם עד שדף זה יהיה גלוי</p>
@@ -83,7 +83,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                   onClick={() => setRsvpAccess('Private')}
                 />
                 <label htmlFor='guest-list-only'>
-                  Guest List Only (recommended)
+                  רשימת מוזמנים בלבד (מומלץ)
                   <p>רק מוזמנים ברשימת המוזמנים יכולים לאשר הגעה.</p>
                 </label>
               </div>
@@ -98,7 +98,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                   onClick={() => setRsvpAccess('Public')}
                 />
                 <label htmlFor='public-rsvp'>
-                  Public RSVP (not recommended)
+                  אישור הגעה ציבורי (לא מומלץ)
                   <p>כל מי שיש לו קישור לאתר החתונה יכול לאשר הגעה.</p>
                 </label>
               </div>
@@ -117,7 +117,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
               onChange={() => setGuestListIsVisible((prev) => !prev)}
             />
             <label htmlFor='guest-list-visibility'>
-              Allow anybody who RSVPs &apos;Yes!&apos; to see who&apos;s attending each event
+              אפשרו לכל מי שאישר הגעה לראות מי מגיע לכל אירוע
             </label>
           </div>
         </section>
@@ -135,7 +135,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                 isLoading: updateIsRsvpEnabled.isPending,
               })}`}
             >
-              Cancel
+              ביטול
             </button>
             <button
               id='edit-save'
@@ -148,7 +148,7 @@ export default function EditRsvpSettingsForm({ website }: EditRsvpSettingsFormPr
                 isLoading: updateIsRsvpEnabled.isPending,
               })}`}
             >
-              {updateIsRsvpEnabled.isPending ? 'Processing...' : 'Save'}
+              {updateIsRsvpEnabled.isPending ? 'מעבד...' : 'שמירה'}
             </button>
           </div>
         </div>

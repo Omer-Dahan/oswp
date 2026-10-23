@@ -82,11 +82,11 @@ async function fetchOutstandingInvitesState(): Promise<
 > {
   const organization = await authGet<FullOrganizationResponse>(
     '/organization/get-full-organization',
-    'Unable to load organization.'
+    'לא ניתן לטעון את הארגון.'
   )
 
   if (!organization.id) {
-    throw new Error('No active organization found.')
+    throw new Error('לא נמצא ארגון פעיל.')
   }
 
   const [createPermission, cancelPermission] = await Promise.all([
@@ -98,7 +98,7 @@ async function fetchOutstandingInvitesState(): Promise<
           invitation: ['create'],
         },
       },
-      'Unable to load invitation permissions.'
+      'לא ניתן לטעון הרשאות הזמנה.'
     ),
     authPost<HasPermissionResponse>(
       '/organization/has-permission',
@@ -108,7 +108,7 @@ async function fetchOutstandingInvitesState(): Promise<
           invitation: ['cancel'],
         },
       },
-      'Unable to load invitation permissions.'
+      'לא ניתן לטעון הרשאות הזמנה.'
     ),
   ])
 
@@ -203,12 +203,12 @@ export function OrganizationOutstandingInvitesCard() {
             resend: true,
             role: invitation.role,
           },
-          'Unable to resend invitation.'
+          'לא ניתן לשלוח את ההזמנה מחדש.'
         )
         toast.success('ההזמנה נשלחה מחדש.')
         loadState()
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Unable to resend invitation.')
+        toast.error(error instanceof Error ? error.message : 'לא ניתן לשלוח את ההזמנה מחדש.')
       } finally {
         setResendingId(null)
       }
@@ -228,12 +228,12 @@ export function OrganizationOutstandingInvitesCard() {
           {
             invitationId,
           },
-          'Unable to cancel invitation.'
+          'לא ניתן לבטל את ההזמנה.'
         )
         toast.success('ההזמנה בוטלה.')
         loadState()
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Unable to cancel invitation.')
+        toast.error(error instanceof Error ? error.message : 'לא ניתן לבטל את ההזמנה.')
       } finally {
         setCancelingId(null)
       }
@@ -259,15 +259,15 @@ export function OrganizationOutstandingInvitesCard() {
           <div className='flex items-start justify-between gap-3'>
             <div className='space-y-1'>
               <CardTitle className='font-serif text-foreground text-xl'>
-                Outstanding Invites
+                הזמנות פתוחות
               </CardTitle>
               <CardDescription className='text-foreground/70'>
-                Pending organization invitations that are still active.
+                הזמנות ארגון שעדיין בהמתנה ופעילות.
               </CardDescription>
             </div>
             <Button className='gap-2' onClick={loadState} size='sm' type='button' variant='outline'>
               <RefreshCw className='h-4 w-4' />
-              Refresh
+              רענון
             </Button>
           </div>
         </CardHeader>
@@ -279,7 +279,7 @@ export function OrganizationOutstandingInvitesCard() {
             >
               <div className='flex items-center gap-2 text-foreground/70 text-sm'>
                 <Loader2 className='h-4 w-4 animate-spin' />
-                Loading outstanding invitations...
+                טוען הזמנות פתוחות...
               </div>
             </div>
           ) : null}
@@ -309,7 +309,7 @@ export function OrganizationOutstandingInvitesCard() {
                         {invitation.email}
                       </p>
                       <p className='text-foreground/60 text-xs'>
-                        Sent {formatTimestamp(invitation.createdAt)} • Expires{' '}
+                        נשלחה {formatTimestamp(invitation.createdAt)} • בתוקף עד{' '}
                         {formatTimestamp(invitation.expiresAt)}
                       </p>
                     </div>
@@ -324,10 +324,10 @@ export function OrganizationOutstandingInvitesCard() {
                       {resendingId === invitation.id ? (
                         <>
                           <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                          Resending...
+                          שולח מחדש...
                         </>
                       ) : (
-                        'Resend'
+                        'שליחה מחדש'
                       )}
                     </Button>
                     <Button
@@ -340,23 +340,23 @@ export function OrganizationOutstandingInvitesCard() {
                       {cancelingId === invitation.id ? (
                         <>
                           <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                          Canceling...
+                          מבטל...
                         </>
                       ) : (
-                        'Cancel'
+                        'ביטול'
                       )}
                     </Button>
                   </div>
                 ))}
                 {!state.canCancel ? (
                   <p className='text-foreground/60 text-sm'>
-                    Your role can resend invitations but cannot cancel them.
+                    התפקיד שלכם מאפשר לשלוח הזמנות מחדש אך לא לבטל אותן.
                   </p>
                 ) : null}
               </div>
             ) : (
               <div className='rounded-lg border border-border/70 border-dashed bg-background/40 p-4 text-foreground/65 text-sm'>
-                No outstanding organization invitations.
+                אין הזמנות ארגון פתוחות.
               </div>
             )
           ) : null}

@@ -35,9 +35,9 @@ export default function TimeSelections({
           <span
             className={`absolute start-1 top-2 left-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 ${showStartTimes && 'text-primary'}`}
           >
-            Start Time
+            שעת התחלה
           </span>
-          <span>{startTime ?? 'Select Time'}</span>
+          <span>{startTime ?? 'בחרו שעה'}</span>
           {showStartTimes ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           {showStartTimes && (
             <TimeDropdown
@@ -59,9 +59,9 @@ export default function TimeSelections({
           <span
             className={`absolute start-1 top-2 left-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 ${showEndTimes && 'text-primary'}`}
           >
-            End Time
+            שעת סיום
           </span>
-          <span>{endTime ?? 'Select Time'}</span>
+          <span>{endTime ?? 'בחרו שעה'}</span>
           {showEndTimes ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           {showEndTimes && (
             <TimeDropdown

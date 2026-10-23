@@ -158,7 +158,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
   })
 
   const getTitle = () => {
-    if (!isEditMode || !prefillFormData) return 'Add Party'
+    if (!isEditMode || !prefillFormData) return 'הוספת משפחה'
     const primaryContact = prefillFormData.guestParty.find((guest) => guest.isPrimaryContact)
     const numGuests = prefillFormData.guestParty.length
     const primaryContactName = `${primaryContact?.firstName} ${primaryContact?.lastName}`
@@ -391,7 +391,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
               className='flex items-center gap-2 bg-red-600 hover:bg-red-700'
             >
               {deleteMutation.isPending && <Loader2 className='h-4 w-4 animate-spin' />}
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete Party'}
+              {deleteMutation.isPending ? 'מוחק...' : 'מחיקת משפחה'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

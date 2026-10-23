@@ -70,7 +70,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
       <DeleteConfirmation
         isProcessing={isProcessing}
         disclaimerText={
-          'Deleting this event will remove it from your website, and also erase any guest lists, RSVPs, and meals associated with it.'
+          'מחיקת האירוע תסיר אותו מהאתר שלכם, ותמחק גם את רשימות האורחים, אישורי ההגעה והארוחות המשויכים אליו.'
         }
         noHandler={() => setShowDeleteConfirmation(false)}
         yesHandler={() => deleteEvent({ eventId: eventFormData.eventId })}
@@ -87,7 +87,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
         }}
       >
         <div className='flex justify-between border-b p-5'>
-          <h1 className='font-semibold text-xl'>{isEditMode ? 'Edit Event' : 'Add Event'}</h1>
+          <h1 className='font-semibold text-xl'>{isEditMode ? 'עריכת אירוע' : 'הוספת אירוע'}</h1>
           <button
             type='button'
             aria-label='סגירת טופס אירוע'
@@ -104,7 +104,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
               id='event-name'
               inputValue={eventFormData.eventName}
               fieldName='eventName'
-              labelText='Event Name*'
+              labelText='שם האירוע*'
               required={true}
               handleOnChange={handleOnChange}
             />
@@ -118,21 +118,21 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
               id='event-venue'
               inputValue={eventFormData.venue ?? ''}
               fieldName='venue'
-              labelText='Venue Name'
+              labelText='שם המקום'
               handleOnChange={handleOnChange}
             />
             <AnimatedInputLabel
               id='event-attire'
               inputValue={eventFormData.attire ?? ''}
               fieldName='attire'
-              labelText='Attire'
+              labelText='קוד לבוש'
               handleOnChange={handleOnChange}
             />
             <AnimatedInputLabel
               id='event-description'
               inputValue={eventFormData.description ?? ''}
               fieldName='description'
-              labelText='Description'
+              labelText='תיאור'
               handleOnChange={handleOnChange}
             />
           </div>
@@ -155,7 +155,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
             <div>
               <span className='font-medium text-sm'>אפשרו הזמנת מלווים</span>
               <p className='text-muted-foreground text-xs'>
-                Tag-alongs (babies, children, etc.) can be invited and RSVP for this event
+                מלווים (תינוקות, ילדים וכו') יכולים להיות מוזמנים ולאשר הגעה לאירוע הזה
               </p>
             </div>
           </label>
@@ -173,7 +173,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
                 isLoading: isProcessing,
               })} w-1/2 ${isProcessing ? 'text-pink-200' : `text-${sharedStyles.primaryColor}`}`}
             >
-              Cancel
+              ביטול
             </button>
             <button
               id='save-event'
@@ -185,7 +185,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
                 isLoading: isProcessing,
               })}`}
             >
-              {isProcessing ? 'Processing...' : 'Save & Close'}
+              {isProcessing ? 'מעבד...' : 'שמירה וסגירה'}
             </button>
           </div>
           {isEditMode && (
@@ -199,7 +199,7 @@ export default function EventForm({ prefillFormData }: EventFormProps) {
                   : `text-${sharedStyles.primaryColor} hover:underline`
               }`}
             >
-              Remove Event
+              הסרת אירוע
             </button>
           )}
         </div>

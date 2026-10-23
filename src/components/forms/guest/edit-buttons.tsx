@@ -25,7 +25,7 @@ export default function EditFormButtons({
           onClick={() => toggleGuestForm()}
           className='w-full sm:flex-1'
         >
-          Cancel
+          ביטול
         </Button>
         <Button
           id='edit-save'
@@ -34,7 +34,7 @@ export default function EditFormButtons({
           className='w-full sm:flex-1'
         >
           {isUpdatingHousehold && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-          {isUpdatingHousehold ? 'Saving...' : 'Save Changes'}
+          {isUpdatingHousehold ? 'שומר...' : 'שמירת שינויים'}
         </Button>
       </div>
       <Button
@@ -47,7 +47,7 @@ export default function EditFormButtons({
         }}
         className='w-full text-destructive hover:bg-destructive/10 hover:text-destructive'
       >
-        Delete Party
+        מחיקת משפחה
       </Button>
     </div>
   )

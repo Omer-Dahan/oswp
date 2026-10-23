@@ -67,7 +67,7 @@ export default function QuestionForm({
       router.refresh()
     },
     onError: (err) => {
-      setFormError(getMutationErrorMessage(err, 'Failed to update question. Please try again.'))
+      setFormError(getMutationErrorMessage(err, 'עדכון השאלה נכשל. אנא נסו שוב.'))
     },
   })
 
@@ -78,7 +78,7 @@ export default function QuestionForm({
       router.refresh()
     },
     onError: (err) => {
-      setFormError(getMutationErrorMessage(err, 'Failed to delete question. Please try again.'))
+      setFormError(getMutationErrorMessage(err, 'מחיקת השאלה נכשלה. אנא נסו שוב.'))
     },
   })
 
@@ -113,7 +113,7 @@ export default function QuestionForm({
       <DeleteConfirmation
         isProcessing={deleteQuestion.isPending}
         disclaimerText={
-          "This will permanently delete the question and any answers you've already received."
+          'פעולה זו תמחק לצמיתות את השאלה ואת כל התשובות שכבר התקבלו עבורה.'
         }
         noHandler={() => setShowDeleteConfirmation(false)}
         yesHandler={() =>
@@ -146,9 +146,9 @@ export default function QuestionForm({
           </button>
         </div>
         <div className='bg-pink-100 px-5 py-3'>
-          <b>FYI: </b>
+          <b>לידיעתכם: </b>
           <span>
-            Guests can only skip short-answer questions. They must answer multiple-choice questions.
+            אורחים יכולים לדלג רק על שאלות תשובה קצרה. עליהם לענות על שאלות בחירה מרובה.
           </span>
         </div>
         <AsyncState error={formError} className='mt-5 px-5' />
@@ -156,7 +156,7 @@ export default function QuestionForm({
           <AnimatedInputLabel
             id='question-input'
             inputValue={questionInput}
-            labelText='Question Prompt*'
+            labelText='נוסח השאלה*'
             required={true}
             handleOnChange={handleOnChange}
           />
@@ -194,7 +194,7 @@ export default function QuestionForm({
                   onChange={(event) => setAllowOther(event.target.checked)}
                   className='h-4 w-4'
                 />
-                Allow Other write-in answer
+                אפשרו תשובה חופשית "אחר"
               </label>
             </div>
             <QuestionOptionsForm
@@ -240,7 +240,7 @@ const Buttons = ({
             isLoading: isProcessing,
           })}`}
         >
-          Cancel
+          ביטול
         </button>
         <button
           type='submit'
@@ -251,7 +251,7 @@ const Buttons = ({
             isLoading: isProcessing,
           })}`}
         >
-          {isProcessing ? 'Processing...' : 'Save'}
+          {isProcessing ? 'מעבד...' : 'שמירה'}
         </button>
       </div>
       {isEditMode && (
@@ -267,7 +267,7 @@ const Buttons = ({
               : `${sharedStyles.primaryText} hover:underline`
           }`}
         >
-          {isProcessing ? 'Processing...' : 'Delete Question'}
+          {isProcessing ? 'מעבד...' : 'מחיקת שאלה'}
         </button>
       )}
     </div>

@@ -55,7 +55,7 @@ export default function ContactForm({ register, errors }: ContactFormProps) {
           <Input
             id='household-state'
             {...register('state')}
-            placeholder='CA'
+            placeholder='מרכז'
             className={errors.state ? 'border-destructive' : ''}
           />
           {errors.state && <p className='text-destructive text-sm'>{errors.state.message}</p>}

@@ -121,12 +121,12 @@ export function ModernEventForm({
       <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle className='text-xl md:text-2xl'>
-            {isEditMode ? 'Edit Event' : 'Create Event'}
+            {isEditMode ? 'עריכת אירוע' : 'יצירת אירוע'}
           </DialogTitle>
           <DialogDescription className='text-sm'>
             {isEditMode
-              ? 'Update the details for your wedding event.'
-              : 'Add a new event like ceremony, reception, or rehearsal dinner.'}
+              ? 'עדכנו את הפרטים של אירוע החתונה שלכם.'
+              : 'הוסיפו אירוע חדש כמו טקס, קבלת פנים או ארוחת חזרה.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -134,7 +134,7 @@ export function ModernEventForm({
           {/* Event Name */}
           <div className='space-y-2'>
             <Label htmlFor='eventName' className='text-sm md:text-base'>
-              Event Name <span className='text-destructive'>*</span>
+              שם האירוע <span className='text-destructive'>*</span>
             </Label>
             <Input
               id='eventName'
@@ -151,7 +151,7 @@ export function ModernEventForm({
           {/* Date */}
           <div className='space-y-2'>
             <Label htmlFor='date' className='text-sm md:text-base'>
-              Date
+              תאריך
             </Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -193,7 +193,7 @@ export function ModernEventForm({
           <div className='grid gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
               <Label htmlFor='startTime' className='text-sm md:text-base'>
-                Start Time
+                שעת התחלה
               </Label>
               <div className='relative'>
                 <Clock className='pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
@@ -212,7 +212,7 @@ export function ModernEventForm({
 
             <div className='space-y-2'>
               <Label htmlFor='endTime' className='text-sm md:text-base'>
-                End Time
+                שעת סיום
               </Label>
               <div className='relative'>
                 <Clock className='pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
@@ -233,12 +233,12 @@ export function ModernEventForm({
           {/* Venue */}
           <div className='space-y-2'>
             <Label htmlFor='venue' className='text-sm md:text-base'>
-              Venue
+              מקום
             </Label>
             <Input
               id='venue'
               {...register('venue')}
-              placeholder="e.g., St. Mary's Church"
+              placeholder='לדוגמה: אולמי הגן'
               disabled={isSubmitting}
               className={cn(errors.venue && 'border-destructive')}
             />
@@ -250,7 +250,7 @@ export function ModernEventForm({
           {/* Attire */}
           <div className='space-y-2'>
             <Label htmlFor='attire' className='text-sm md:text-base'>
-              Attire
+              קוד לבוש
             </Label>
             <Input
               id='attire'
@@ -267,7 +267,7 @@ export function ModernEventForm({
           {/* Description */}
           <div className='space-y-2'>
             <Label htmlFor='description' className='text-sm md:text-base'>
-              Description
+              תיאור
             </Label>
             <Textarea
               id='description'
@@ -286,10 +286,10 @@ export function ModernEventForm({
           <div className='flex items-center justify-between rounded-lg border bg-muted/50 p-4'>
             <div className='space-y-0.5'>
               <Label htmlFor='collectRsvp' className='text-sm md:text-base'>
-                Collect RSVPs
+                איסוף אישורי הגעה
               </Label>
               <p className='text-muted-foreground text-xs'>
-                Turn this on to show this event in your public RSVP flow
+                הפעילו כדי להציג את האירוע הזה בתהליך אישור ההגעה הציבורי
               </p>
             </div>
             <Switch
@@ -305,10 +305,10 @@ export function ModernEventForm({
           <div className='flex items-center justify-between rounded-lg border bg-muted/50 p-4'>
             <div className='space-y-0.5'>
               <Label htmlFor='allowTagAlongs' className='text-sm md:text-base'>
-                Allow tag-alongs
+                אפשרו מצטרפים
               </Label>
               <p className='text-muted-foreground text-xs'>
-                Tag-alongs can be invited and RSVP for this event
+                מצטרפים יכולים להיות מוזמנים ולאשר הגעה לאירוע הזה
               </p>
             </div>
             <Switch
@@ -329,14 +329,14 @@ export function ModernEventForm({
               disabled={isSubmitting}
               className='text-xs md:text-sm'
             >
-              Cancel
+              ביטול
             </Button>
             <Button
               type='submit'
               disabled={isSubmitting || !isDirty}
               className='text-xs md:text-sm'
             >
-              {isSubmitting ? 'Saving...' : isEditMode ? 'Update Event' : 'Create Event'}
+              {isSubmitting ? 'שומר...' : isEditMode ? 'עדכון אירוע' : 'יצירת אירוע'}
             </Button>
           </DialogFooter>
         </form>

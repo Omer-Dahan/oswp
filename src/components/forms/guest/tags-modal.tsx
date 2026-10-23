@@ -32,8 +32,8 @@ type TagsModalProps = {
 }
 
 const createTagSchema = z.object({
-  name: z.string().trim().min(1, 'Tag name is required').max(20, 'Max 20 characters'),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color'),
+  name: z.string().trim().min(1, 'שם התגית נדרש').max(20, 'מקסימום 20 תווים'),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'חובה לבחור צבע הקס תקין'),
 })
 
 type CreateTagFormData = z.infer<typeof createTagSchema>
@@ -60,7 +60,7 @@ export function TagsModal({
       setIsCreating(false)
     },
     onError: (error) => {
-      toast.error(error.message ?? 'Failed to create tag')
+      toast.error(error.message ?? 'יצירת התגית נכשלה')
     },
   })
 
@@ -251,7 +251,7 @@ export function TagsModal({
                   disabled={isSubmitting || createTagMutation.isPending}
                   className='flex-1'
                 >
-                  {isSubmitting || createTagMutation.isPending ? 'Creating...' : 'Create Tag'}
+                  {isSubmitting || createTagMutation.isPending ? 'יוצר...' : 'יצירת תגית'}
                 </Button>
                 <Button
                   type='button'
