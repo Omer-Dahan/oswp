@@ -15,8 +15,8 @@ export const pickRandomTagColor = () =>
 export const MAX_TAGS_PER_GUEST = 10
 
 export const AGE_GROUP_OPTIONS = [
-  { value: 'INFANT', label: 'Infant (0-2 years)' },
-  { value: 'CHILD', label: 'Child (3-12 years)' },
-  { value: 'TEEN', label: 'Teen (13-17 years)' },
-  { value: 'ADULT', label: 'Adult (18+ years)' },
+  { value: 'INFANT', label: 'תינוק (0-2 שנים)' },
+  { value: 'CHILD', label: 'ילד (3-12 שנים)' },
+  { value: 'TEEN', label: 'נער (13-17 שנים)' },
+  { value: 'ADULT', label: 'בוגר (18+ שנים)' },
 ] as const

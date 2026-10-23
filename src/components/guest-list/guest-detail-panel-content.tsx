@@ -23,8 +23,8 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Slider } from '~/components/ui/slider'
-import { LIKELIHOOD_LABELS } from '~/lib/constants'
-import { RSVP_STATUS_VALUES } from '~/lib/constants/rsvp'
+import { AGE_GROUP_OPTIONS, LIKELIHOOD_LABELS } from '~/lib/constants'
+import { RSVP_STATUS, RSVP_STATUS_LABELS, RSVP_STATUS_VALUES, type RsvpStatus } from '~/lib/constants/rsvp'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import type { CommunicationLogEntry } from '~/server/domains/communication-log/communication-log.types'
 import { api } from '~/trpc/react'
@@ -57,6 +57,9 @@ export const getRsvpBadgeClassName = (rsvp: string) => {
   return 'border-foreground/20 bg-gold/12 text-foreground/80'
 }
 
+export const getRsvpDisplayLabel = (rsvp: string) =>
+  rsvp === 'Mixed' ? 'תשובות מעורבות' : RSVP_STATUS_LABELS[rsvp as RsvpStatus] ?? rsvp
+
 const getDisplayRsvpForGuest = (
   selectedEventId: string,
   invitations: Array<{ eventId: string; rsvp: string | null }>
@@ -64,11 +67,11 @@ const getDisplayRsvpForGuest = (
   if (selectedEventId !== 'all') {
     return (
       invitations.find((invitation) => invitation.eventId === selectedEventId)?.rsvp ??
-      'לא הוזמן'
+      RSVP_STATUS.NOT_INVITED
     )
   }
 
-  const responses = invitations.map((invitation) => invitation.rsvp ?? 'לא הוזמן')
+  const responses = invitations.map((invitation) => invitation.rsvp ?? RSVP_STATUS.NOT_INVITED)
   const hasAttending = responses.includes('Attending')
   const hasDeclined = responses.includes('Declined')
 
@@ -76,7 +79,7 @@ const getDisplayRsvpForGuest = (
   if (hasAttending) return 'Attending'
   if (hasDeclined) return 'Declined'
   if (responses.includes('Invited')) return 'Invited'
-  return 'לא הוזמן'
+  return RSVP_STATUS.NOT_INVITED
 }
 
 const copyToClipboard = async (value: string) => {
@@ -219,7 +222,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
         />
 
         <GuestDetailSection
-          title='חברי המפלגה'
+          title='בני הבית'
           contentClassName='space-y-2'
           actionClassName='-mr-1'
           action={
@@ -248,7 +251,8 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
                       {guest.firstName} {guest.lastName}
                     </span>
                     <p className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-wider'>
-                      {(guest.ageGroup ?? 'ADULT').toLowerCase()}
+                      {AGE_GROUP_OPTIONS.find((option) => option.value === (guest.ageGroup ?? 'ADULT'))
+                        ?.label ?? guest.ageGroup}
                     </p>
                   </div>
                   <div className='flex items-center gap-1.5'>
@@ -258,7 +262,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
                       </Badge>
                     ) : null}
                     <Badge variant='outline' className={getRsvpBadgeClassName(rsvp)}>
-                      {rsvp}
+                      {getRsvpDisplayLabel(rsvp)}
                     </Badge>
                   </div>
                 </li>
@@ -471,7 +475,7 @@ function InvitationRsvpSelect(props: Readonly<InvitationRsvpSelectProps>) {
       <SelectContent onClick={(clickEvent) => clickEvent.stopPropagation()}>
         {RSVP_STATUS_VALUES.map((status) => (
           <SelectItem key={status} value={status}>
-            {status}
+            {RSVP_STATUS_LABELS[status]}
           </SelectItem>
         ))}
       </SelectContent>

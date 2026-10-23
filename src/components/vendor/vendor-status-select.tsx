@@ -21,12 +21,12 @@ const VENDOR_STATUSES = [
 ] satisfies VendorStatus[]
 
 const STATUS_LABELS: Record<VendorStatus, string> = {
-  NOT_AVAILABLE: 'Not Available',
-  DECLINED: 'Declined',
-  IN_REVIEW: 'In Review',
-  PRE_SELECTED: 'Pre-Selected',
-  IN_NEGOTIATION: 'In Negotiation',
-  SELECTED: 'Selected',
+  NOT_AVAILABLE: 'לא זמין',
+  DECLINED: 'נדחה',
+  IN_REVIEW: 'בבדיקה',
+  PRE_SELECTED: 'במועמדות',
+  IN_NEGOTIATION: 'במשא ומתן',
+  SELECTED: 'נבחר',
 }
 
 const STATUS_COLORS: Record<VendorStatus, string> = {
