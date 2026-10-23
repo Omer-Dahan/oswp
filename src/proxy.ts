@@ -12,7 +12,15 @@ import { isVoyagePage } from '~/templates/voyage/site'
 const isPostHogProxyPath = (pathname: string): boolean =>
   pathname === POSTHOG_PROXY_PATH || pathname.startsWith(`${POSTHOG_PROXY_PATH}/`)
 
-const PUBLIC_PREFIXES = ['/auth', '/api/auth', '/join', '/blog', '/api/webhooks', '/api/cron']
+const PUBLIC_PREFIXES = [
+  '/auth',
+  '/api/auth',
+  '/join',
+  '/blog',
+  '/api/webhooks',
+  '/api/cron',
+  '/api/whatsapp/webhook',
+]
 
 // Guest-facing tRPC procedures that must be reachable without a session. The
 // wedding-website RSVP flow calls these from the browser; gating them would

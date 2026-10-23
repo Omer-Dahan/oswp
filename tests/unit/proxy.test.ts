@@ -233,6 +233,18 @@ describe('proxy', () => {
     expect(response.headers.get('location')).toContain('/auth/sign-in')
   })
 
+  it('allows the WhatsApp webhook without a session, while gating other /api/* paths', async () => {
+    mockGetSessionCookie.mockReturnValue(null)
+
+    const [webhookResponse, trpcResponse] = await Promise.all([
+      proxy(createRequest('/api/whatsapp/webhook', undefined, '?hub.mode=subscribe')),
+      proxy(createRequest('/api/trpc/x')),
+    ])
+
+    expect(webhookResponse.headers.get('location')).toBeNull()
+    expect(trpcResponse.headers.get('location')).toContain('/auth/sign-in')
+  })
+
   it('still gates non-public tRPC procedures behind the session', async () => {
     mockGetSessionCookie.mockReturnValue(null)
 

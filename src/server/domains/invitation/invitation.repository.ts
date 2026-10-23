@@ -159,6 +159,22 @@ export class InvitationRepository {
   }
 
   /**
+   * Move every still-'Invited' invitation of the given guests to a new RSVP
+   * status, recording who submitted it. Used by the WhatsApp inbound resolver
+   * to apply a household-level reply across all of that household's guests.
+   */
+  async updateManyByGuestIds(
+    guestIds: number[],
+    data: { rsvp: string; submittedAt: Date; submittedBy: number }
+  ): Promise<{ count: number }> {
+    if (guestIds.length === 0) return { count: 0 }
+    return this.db.invitation.updateMany({
+      where: { guestId: { in: guestIds }, rsvp: 'Invited' },
+      data: { rsvp: data.rsvp, submittedAt: data.submittedAt, submittedBy: data.submittedBy },
+    })
+  }
+
+  /**
    * Check if all given invitations belong to a wedding (single query)
    */
   async allBelongToWedding(
