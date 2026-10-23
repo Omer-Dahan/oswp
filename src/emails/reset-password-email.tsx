@@ -11,13 +11,13 @@ export function ResetPasswordEmail({ url, userName }: ResetPasswordEmailProps) {
   return (
     <html lang='en'>
       <Head />
-      <Preview>Reset your password</Preview>
+      <Preview>איפוס הסיסמה שלכם</Preview>
       <Body style={emailStyles.body}>
         <Container style={emailStyles.container}>
-          <Heading style={emailStyles.heading}>Reset your password</Heading>
+          <Heading style={emailStyles.heading}>איפוס הסיסמה שלכם</Heading>
           <Text style={emailStyles.bodyText}>
-            {userName ? `Hi ${userName}, c` : 'C'}lick the button below to reset your password. The
-            link expires in 1 hour.
+            {userName ? `הי ${userName}, ` : ''}הקישו על הכפתור שלהלן כדי לאפס את הסיסמה שלכם. הקישור
+            בתוקף לשעה אחת.
           </Text>
           <Button
             href={url}
@@ -30,10 +30,10 @@ export function ResetPasswordEmail({ url, userName }: ResetPasswordEmailProps) {
               display: 'inline-block',
             }}
           >
-            Reset Password
+            איפוס הסיסמה
           </Button>
           <Text style={emailStyles.footerText}>
-            If you didn&apos;t request this, you can safely ignore this email.
+            אם לא ביקשתם את זה, אפשר להתעלם מהמייל הזה בבטחה.
           </Text>
         </Container>
       </Body>
