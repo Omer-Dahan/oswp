@@ -11,6 +11,7 @@ export type WhatsAppAccountView = {
   phoneNumberId: string | null
   wabaId: string | null
   accessTokenMasked: string | null
+  appSecretMasked: string | null
   displayPhoneNumber: string | null
   verifiedName: string | null
   status: PrismaWhatsAppAccount['status']

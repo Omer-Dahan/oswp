@@ -8,6 +8,7 @@ import type {
   WhatsAppAccountStatus,
   WhatsAppOutbound,
   WhatsAppOutboundKind,
+  WhatsAppOutboundStatus,
   WhatsAppTemplate,
   WhatsAppTemplateCategory,
 } from '@prisma/client'
@@ -45,6 +46,8 @@ export class WhatsAppRepository {
       wabaId: string
       accessTokenEnc: string
       verifyToken: string
+      /** Undefined keeps the previously stored app secret untouched. */
+      appSecretEnc?: string
     }
   ): Promise<WhatsAppAccount> {
     return this.db.whatsAppAccount.upsert({
@@ -54,6 +57,7 @@ export class WhatsAppRepository {
         phoneNumberId: data.phoneNumberId,
         wabaId: data.wabaId,
         accessTokenEnc: data.accessTokenEnc,
+        appSecretEnc: data.appSecretEnc ?? null,
         verifyToken: data.verifyToken,
         status: 'UNCONFIGURED',
       },
@@ -61,12 +65,52 @@ export class WhatsAppRepository {
         phoneNumberId: data.phoneNumberId,
         wabaId: data.wabaId,
         accessTokenEnc: data.accessTokenEnc,
+        ...(data.appSecretEnc !== undefined ? { appSecretEnc: data.appSecretEnc } : {}),
         verifyToken: data.verifyToken,
         status: 'UNCONFIGURED',
         displayPhoneNumber: null,
         verifiedName: null,
         lastError: null,
       },
+    })
+  }
+
+  /** Looks up the configured account whose verify token matches (Meta's GET verification handshake). */
+  async findAccountByVerifyToken(verifyToken: string): Promise<WhatsAppAccount | null> {
+    return this.db.whatsAppAccount.findFirst({ where: { verifyToken } })
+  }
+
+  /** Looks up the configured account by its Meta phone_number_id (inbound webhook routing). */
+  async findAccountByPhoneNumberId(phoneNumberId: string): Promise<WhatsAppAccount | null> {
+    return this.db.whatsAppAccount.findFirst({ where: { phoneNumberId } })
+  }
+
+  /** Persists inbound messages; duplicates (same providerMessageId) are skipped for idempotency under Meta retries. */
+  async createInboundMessages(
+    weddingId: string,
+    messages: Array<{
+      waId: string
+      fromPhone: string
+      profileName: string | null
+      text: string | null
+      providerMessageId: string
+    }>
+  ): Promise<void> {
+    if (messages.length === 0) return
+    await this.db.whatsAppInbound.createMany({
+      data: messages.map((m) => ({ weddingId, ...m })),
+      skipDuplicates: true,
+    })
+  }
+
+  /** Applies a delivery-status update to the outbound row with this providerMessageId, if any. */
+  async updateOutboundStatusByProviderMessageId(
+    providerMessageId: string,
+    data: { status: WhatsAppOutboundStatus; sentAt?: Date; deliveredAt?: Date; readAt?: Date; error?: string }
+  ): Promise<void> {
+    await this.db.whatsAppOutbound.updateMany({
+      where: { providerMessageId },
+      data,
     })
   }
 
