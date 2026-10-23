@@ -9,85 +9,85 @@ const features = [
   {
     n: '01',
     icon: '✉',
-    title: 'Smart Invitations',
-    desc: 'Send beautiful, personalised digital invitations with unique guest links, tracking, and automatic follow-ups for non-openers.',
-    tag: 'RSVP Engine',
+    title: 'הזמנות חכמות',
+    desc: 'שלחו הזמנות דיגיטליות מעוצבות עם קישורים אישיים לכל אורח, מעקב פתיחה, ותזכורות אוטומטיות למי שלא פתח.',
+    tag: 'מנוע אישורי הגעה',
   },
   {
     n: '02',
     icon: '◉',
-    title: 'RSVP Management',
-    desc: 'Real-time response tracking with dietary preferences, plus-ones, table assignments, and exportable guest lists.',
-    tag: 'Real-time',
+    title: 'ניהול אישורי הגעה',
+    desc: 'מעקב תגובות בזמן אמת עם העדפות תזונה, מלווים, הושבה, ורשימות אורחים לייצוא.',
+    tag: 'זמן אמת',
   },
   {
     n: '03',
     icon: '◈',
-    title: 'Planning Board',
-    desc: 'Vendor management, task tracking, budget envelopes, and timeline views — all in one unified planning workspace.',
-    tag: 'Timeline',
+    title: 'לוח תכנון',
+    desc: 'ניהול ספקים, מעקב משימות, תקציב ותצוגות ציר זמן — הכול בסביבת תכנון אחת מאוחדת.',
+    tag: 'ציר זמן',
   },
   {
     n: '04',
     icon: '⊹',
-    title: 'Seating & Logistics',
-    desc: 'Drag-and-drop seating arrangements that respect dietary needs, relationships, and family dynamics. Auto-suggest included.',
-    tag: 'Auto-suggest',
+    title: 'הושבה ולוגיסטיקה',
+    desc: 'סידורי הושבה בגרירה ושחרור שמתחשבים בהעדפות תזונה, קשרים ודינמיקות משפחתיות. כולל הצעה אוטומטית.',
+    tag: 'הצעה אוטומטית',
   },
   {
     n: '05',
     icon: '◐',
-    title: 'Vendor Hub',
-    desc: 'Centralise contracts, payments, contact details, and deadlines for every vendor. Get reminded before anything slips.',
-    tag: 'Reminders',
+    title: 'מרכז ספקים',
+    desc: 'ריכזו חוזים, תשלומים, פרטי קשר ומועדים לכל ספק. תקבלו תזכורת לפני שמשהו נשמט.',
+    tag: 'תזכורות',
   },
   {
     n: '06',
     icon: '✦',
-    title: 'Wedding Website',
-    desc: 'Publish a custom RSVP-enabled wedding website in minutes. Themes, custom domains, and a registry integration layer.',
-    tag: 'Custom Domain',
+    title: 'אתר חתונה',
+    desc: 'פרסמו אתר חתונה מותאם עם אישור הגעה בתוך דקות. עיצובים, דומיין מותאם, ושילוב רשימת מתנות.',
+    tag: 'דומיין מותאם',
   },
 ]
 
 const stack = [
   {
-    layer: 'Framework',
+    layer: 'תשתית',
     name: 'Next.js 15 + React 19',
     detail: 'App Router · Server Components · tRPC v11',
   },
   {
-    layer: 'Database',
+    layer: 'מסד נתונים',
     name: 'PostgreSQL · Prisma v7',
-    detail: 'Type-safe ORM · Bring your own host',
+    detail: 'ORM בטוח-טיפוסים · מביאים אירוח משלכם',
   },
-  { layer: 'Etta / AI', name: 'Claude / OpenAI', detail: 'Tool use · Agentic actions · Pluggable' },
+  { layer: 'Etta / בינה מלאכותית', name: 'Claude / OpenAI', detail: 'שימוש בכלים · פעולות אוטונומיות · מתחבר לכל ספק' },
   {
-    layer: 'Email & Invites',
+    layer: 'אימייל והזמנות',
     name: 'Resend · React Email',
-    detail: 'Typed templates · Bring your own sender',
+    detail: 'תבניות בטוחות-טיפוסים · מביאים שולח משלכם',
   },
-  { layer: 'Auth', name: 'Better Auth', detail: 'Guest magic links · Admin OAuth' },
+  { layer: 'אימות', name: 'Better Auth', detail: 'קישורי קסם לאורחים · OAuth למנהלים' },
   {
-    layer: 'Deployment',
-    name: 'Vercel · Docker · Self-hosted',
-    detail: 'One-click deploy · Edge-ready',
+    layer: 'פריסה',
+    name: 'Vercel · Docker · אירוח עצמי',
+    detail: 'פריסה בלחיצה אחת · מוכן ל-Edge',
   },
 ]
 
 const ettaExamples = [
-  '"Who hasn\'t RSVP\'d? Send them a nudge."',
-  '"What\'s left to pay the florist?"',
-  '"Draft a seating plan, keep the exes apart."',
-  '"Summarise all vendor emails from this week."',
-  '"Are we over budget? What can we cut?"',
+  '"מי עוד לא אישר הגעה? שלחי להם תזכורת."',
+  '"מה נשאר לשלם למעצב הפרחים?"',
+  '"הכיני סידור הושבה, תשמרי על בני הזוג לשעבר בנפרד."',
+  '"סכמי את כל האימיילים מהספקים מהשבוע הזה."',
+  '"אנחנו חורגים מהתקציב? מה אפשר לצמצם?"',
 ]
 
 const navLinks = [
-  { href: '#features', label: 'Features' },
+  { href: '#features', label: 'תכונות' },
   { href: '#etta', label: 'Etta AI' },
-  { href: '/blog', label: 'Blog' },
-  { href: '#pricing', label: 'Pricing' },
+  { href: '/blog', label: 'בלוג' },
+  { href: '#pricing', label: 'תמחור' },
   {
     href: 'https://github.com/dccakes/SCV',
     label: 'GitHub ↗',
@@ -158,21 +158,21 @@ export default function NonAuthenticatedView() {
               לנצח שלכם
             </h1>
             <p className='fu fu2 mt-6 max-w-md font-light font-serif text-[1.05rem] text-muted-foreground leading-[1.75]'>
-              A self-hosted platform with everything your wedding needs — invitations, RSVPs,
-              planning, and Etta, your AI wedding planner, thinking with you every step of the way.
+              פלטפורמת אירוח עצמי עם כל מה שהחתונה שלכם צריכה — הזמנות, אישורי הגעה, תכנון,
+              ו-Etta, מתכננת החתונה החכמה שלכם, חושבת איתכם בכל שלב.
             </p>
             <div className='fu fu3 mt-10 flex flex-wrap items-center gap-5'>
               <Link
                 href='/auth/signin'
                 className='inline-flex items-center gap-2 rounded-sm bg-foreground px-6 py-3.5 font-mono text-[0.68rem] text-background uppercase tracking-[.1em] transition-all hover:-translate-y-0.5 hover:bg-primary'
               >
-                ⌘ Get Started
+                ⌘ התחילו עכשיו
               </Link>
               <a
                 href='#features'
                 className='inline-flex items-center gap-1.5 border-transparent border-b font-mono text-[0.68rem] text-muted-foreground uppercase tracking-[.1em] transition-colors hover:border-foreground hover:text-foreground'
               >
-                Explore features →
+                גלו את התכונות →
               </a>
             </div>
           </div>
@@ -195,26 +195,26 @@ export default function NonAuthenticatedView() {
                   <span className='text-[#E5C07B]'>npx</span>{' '}
                   <span className='text-[#98C379]'>create-oswp-app</span>
                 </p>
-                <p className='text-white/55'>{'  '}✦ Scaffolding your event...</p>
-                <p className='text-white/55'>{'  '}✦ Setting up invite engine</p>
-                <p className='text-white/55'>{'  '}✦ Connecting RSVP webhooks</p>
+                <p className='text-white/55'>{'  '}✦ מקימים את האירוע שלכם...</p>
+                <p className='text-white/55'>{'  '}✦ מגדירים את מנוע ההזמנות</p>
+                <p className='text-white/55'>{'  '}✦ מחברים webhooks לאישורי הגעה</p>
                 <p className='mt-2'>
                   <span className='mr-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>oswp</span>{' '}
                   <span className='text-[#98C379]'>invite</span>{' '}
                   <span className='text-[#C678DD]'>--template botanical</span>
                 </p>
-                <p className='text-[#61AFEF]'>{'  '}→ 127 guests added</p>
-                <p className='text-[#61AFEF]'>{'  '}→ Personalised links generated</p>
+                <p className='text-[#61AFEF]'>{'  '}→ נוספו 127 אורחים</p>
+                <p className='text-[#61AFEF]'>{'  '}→ נוצרו קישורים אישיים</p>
                 <p className='mt-2'>
                   <span className='mr-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>etta</span>{' '}
                   <span className='text-[#C678DD]'>״מי עוד לא אישר הגעה?״</span>
                 </p>
-                <p className='text-[#E06C75]'>{'  '}✦ Etta thinking...</p>
-                <p className='text-white/55'>{'  '}23 guests pending — want me</p>
+                <p className='text-[#E06C75]'>{'  '}✦ Etta חושבת...</p>
+                <p className='text-white/55'>{'  '}23 אורחים בהמתנה — רוצים</p>
                 <p className='pb-4 text-white/55'>
-                  {'  '}to send a gentle nudge?
+                  {'  '}שאשלח להם תזכורת עדינה?
                   <span className='cur' />
                 </p>
               </div>
@@ -224,10 +224,10 @@ export default function NonAuthenticatedView() {
           {/* Stats strip */}
           <div className='col-span-full flex flex-wrap border-border border-t'>
             {[
-              { n: '∞', label: 'Guest capacity' },
-              { n: '100%', label: 'Self-hostable' },
-              { n: '0', label: 'Vendor lock-in' },
-              { n: 'FSL', label: 'Source license' },
+              { n: '∞', label: 'קיבולת אורחים' },
+              { n: '100%', label: 'ניתן לאירוח עצמי' },
+              { n: '0', label: 'תלות בספק' },
+              { n: 'FSL', label: 'רישיון קוד פתוח' },
             ].map(({ n, label }, i) => (
               <div
                 key={label}
@@ -296,9 +296,9 @@ export default function NonAuthenticatedView() {
                 <em className='text-gold italic'>החכמה שלכם, Etta</em>
               </h2>
               <p className='mt-6 max-w-md font-light font-serif text-[1rem] text-background/60 leading-[1.75]'>
-                Etta is OSWP's built-in AI wedding planner. She lives inside your planning data,
-                understands your wedding end-to-end, and can actually take actions — not just answer
-                questions.
+                Etta היא מתכננת החתונה המובנית של OSWP, מבוססת בינה מלאכותית. היא חיה בתוך
+                נתוני התכנון שלכם, מכירה את החתונה שלכם מקצה לקצה, ויכולה לבצע פעולות בעצמה —
+                לא רק לענות על שאלות.
               </p>
               <ul className='mt-8 flex flex-col gap-3.5'>
                 {ettaExamples.map((q) => (
@@ -327,44 +327,44 @@ export default function NonAuthenticatedView() {
                 </div>
                 <div className='ml-auto flex items-center gap-1.5 font-mono text-[0.57rem] text-emerald-400'>
                   <span className='status-dot h-1.5 w-1.5 rounded-full bg-emerald-400' />
-                  online
+                  מחוברת
                 </div>
               </div>
 
               <div className='flex flex-col gap-4 p-5'>
                 <div>
                   <div className='ml-auto max-w-[85%] rounded rounded-br-none bg-white/[.07] px-4 py-3 font-serif text-[0.84rem] text-background/80 italic leading-relaxed'>
-                    "We're 3 weeks out. What's most urgent?"
+                    "נשארו 3 שבועות. מה הכי דחוף?"
                   </div>
                   <p className='mt-1 text-right font-mono text-[0.57rem] text-background/25'>
-                    you · just now
+                    אתם · הרגע
                   </p>
                 </div>
                 <div>
                   <div className='mr-auto max-w-[85%] rounded rounded-bl-none border border-gold/20 bg-gold/10 px-4 py-3 font-serif text-[0.84rem] text-background/80 leading-relaxed'>
-                    Looking at your timeline — 3 things need attention: caterer headcount due
-                    Friday, 12 guests haven't RSVP'd, and the rehearsal dinner deposit is 4 days
-                    overdue. Want me to handle any of these?
+                    בוחנת את ציר הזמן שלכם — 3 דברים דורשים התייחסות: כמות המוזמנים לקייטרינג
+                    נדרשת ביום שישי, 12 אורחים לא אישרו הגעה, והמקדמה לארוחת החזרה מאוחרת ב-4
+                    ימים. רוצים שאטפל באחד מהם?
                   </div>
                   <p className='mt-1 font-mono text-[0.57rem] text-background/25'>
-                    Etta · just now
+                    Etta · הרגע
                   </p>
                 </div>
                 <div>
                   <div className='ml-auto max-w-[85%] rounded rounded-br-none bg-white/[.07] px-4 py-3 font-serif text-[0.84rem] text-background/80 italic leading-relaxed'>
-                    "Yes, chase the guests and flag the deposit."
+                    "כן, תזכירי לאורחים ותסמני את המקדמה."
                   </div>
                   <p className='mt-1 text-right font-mono text-[0.57rem] text-background/25'>
-                    you · just now
+                    אתם · הרגע
                   </p>
                 </div>
                 <div>
                   <div className='mr-auto max-w-[85%] rounded rounded-bl-none border border-gold/20 bg-gold/10 px-4 py-3 font-serif text-[0.84rem] text-background/80 leading-relaxed'>
-                    Sent nudges to 12 guests with your custom message. Emailed the Rosewood deposit
-                    reminder — add it to your urgent board?
+                    שלחתי תזכורות ל-12 אורחים עם ההודעה המותאמת שלכם. שלחתי במייל תזכורת למקדמה
+                    של Rosewood — להוסיף אותה ללוח הדחוף שלכם?
                   </div>
                   <p className='mt-1 font-mono text-[0.57rem] text-background/25'>
-                    Etta · just now
+                    Etta · הרגע
                   </p>
                 </div>
               </div>
@@ -402,9 +402,8 @@ export default function NonAuthenticatedView() {
               </h2>
             </div>
             <p className='font-light font-serif text-[0.95rem] text-muted-foreground leading-[1.75]'>
-              OSWP is a self-hosted Next.js 15 application with a type-safe tRPC API. Bring your own
-              database, cloud, and AI provider. Everything is modular, documented, and ready to
-              extend.
+              OSWP היא אפליקציית Next.js 15 לאירוח עצמי עם API מבוסס tRPC בטוח-טיפוסים. מביאים
+              מסד נתונים, ענן וספק בינה מלאכותית משלכם. הכול מודולרי, מתועד, ומוכן להרחבה.
             </p>
           </div>
 
@@ -441,15 +440,15 @@ export default function NonAuthenticatedView() {
             OSWP
           </Link>
           <p className='font-mono text-[0.6rem] text-muted-foreground tracking-[.08em]'>
-            FSL-1.1 License · Made with intention
+            רישיון FSL-1.1 · נבנה בכוונה
           </p>
           <ul className='flex gap-6'>
             {[
-              { label: 'Docs', href: 'https://github.com/dccakes/SCV#readme' },
+              { label: 'תיעוד', href: 'https://github.com/dccakes/SCV#readme' },
               { label: 'GitHub', href: 'https://github.com/dccakes/SCV' },
               { label: 'Discord', href: 'https://github.com/dccakes/SCV/discussions' },
-              { label: 'Blog', href: '/blog' },
-              { label: 'Changelog', href: '/blog?tag=changelog' },
+              { label: 'בלוג', href: '/blog' },
+              { label: 'יומן שינויים', href: '/blog?tag=changelog' },
             ].map(({ label, href }) => (
               <li key={label}>
                 <a
