@@ -10,12 +10,12 @@ jest.mock('~/server/authz/permission-checker', () => ({
 }))
 
 jest.mock('~/server/domains/vendor/vendor.repository')
-jest.mock('@vercel/blob', () => ({
-  del: jest.fn().mockResolvedValue(undefined),
+jest.mock('~/server/infrastructure/storage', () => ({
+  getStorageDriver: jest.fn(),
 }))
 jest.mock('~/server/infrastructure/scraper/website-images')
 
-import { del } from '@vercel/blob'
+import { getStorageDriver } from '~/server/infrastructure/storage'
 
 import { requirePermission } from '~/server/authz/permission-checker'
 // @ts-expect-error - Importing mock functions from mocked module
@@ -83,7 +83,9 @@ const mockFindNotesByVendorIdFn = mockFindNotesByVendorId as jest.Mock
 const mockCreateVendorNoteFn = mockCreateVendorNote as jest.Mock
 const mockFindCategoryConfigFn = mockFindCategoryConfig as jest.Mock
 const mockUpsertCategoryConfigFn = mockUpsertCategoryConfig as jest.Mock
-const mockDel = del as jest.Mock
+const mockDel = jest.fn().mockResolvedValue(undefined)
+const mockGetStorageDriver = getStorageDriver as jest.Mock
+mockGetStorageDriver.mockReturnValue({ del: mockDel })
 const mockSaveImagesFn = mockSaveImages as jest.Mock
 const mockDeleteImageFn = mockDeleteImage as jest.Mock
 const mockSetCoverImageFn = mockSetCoverImage as jest.Mock

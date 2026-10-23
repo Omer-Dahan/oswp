@@ -12,6 +12,9 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { buildNodeOTelConfig } = await import('~/server/infrastructure/observability/node-otel')
     registerOTel(buildNodeOTelConfig())
+
+    const { ensureUploadsDir } = await import('~/server/infrastructure/storage/local-driver')
+    await ensureUploadsDir()
     return
   }
   registerOTel({ serviceName: SERVICE_NAME })

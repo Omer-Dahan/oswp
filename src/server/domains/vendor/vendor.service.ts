@@ -6,9 +6,9 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import { del } from '@vercel/blob'
 import { logger } from '~/lib/observability/logger'
 import { MAX_FILES_PER_QUOTE, MAX_IMAGES_PER_VENDOR } from '~/lib/upload-config'
+import { getStorageDriver } from '~/server/infrastructure/storage'
 
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
@@ -488,7 +488,7 @@ export class VendorService {
   private async deleteBlobsBestEffort(urls: string[]): Promise<void> {
     if (urls.length === 0) return
     try {
-      await del(urls)
+      await getStorageDriver().del(urls)
     } catch (error) {
       logger.error(
         'Failed to delete blob files during cleanup',

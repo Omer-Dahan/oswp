@@ -3,42 +3,38 @@
 /**
  * Image upload primitives for the wedding website editor.
  *
- * Uploads go straight to Vercel Blob from the browser via the
- * `/api/blob/upload` client-upload route (the same route used elsewhere in the
- * app), so large files never pass through the Next.js server. Each primitive is
- * "controlled": it reports the resulting public URL(s) back through `onChange`
- * and leaves persistence to the caller.
+ * Uploads go through the server-mediated `/api/uploads` endpoint, which
+ * sniffs and validates the bytes before handing them to the active storage
+ * driver. Each primitive is "controlled": it reports the resulting public
+ * URL(s) back through `onChange` and leaves persistence to the caller.
  */
 
-import { upload } from '@vercel/blob/client'
 import { ImagePlus, Loader2, X } from 'lucide-react'
 import Image from 'next/image'
 import { useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '~/components/ui/button'
+import { uploadFile } from '~/lib/upload-client'
 import { MAX_FILE_SIZE } from '~/lib/upload-config'
 
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const ACCEPT_ATTR = ACCEPTED_IMAGE_TYPES.join(',')
 
 function isAcceptableImage(file: File): boolean {
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    toast.error('בחרו תמונה בפורמט JPG, PNG, WebP או GIF.')
+    toast.error('בחרו תמונה בפורמט JPG, PNG או WebP.')
     return false
   }
   if (file.size > MAX_FILE_SIZE) {
-    toast.error('גודל התמונה חייב להיות עד 8MB.')
+    toast.error('גודל התמונה חייב להיות עד 10MB.')
     return false
   }
   return true
 }
 
 async function uploadImage(file: File): Promise<string> {
-  const result = await upload(file.name, file, {
-    access: 'public',
-    handleUploadUrl: '/api/blob/upload',
-  })
+  const result = await uploadFile(file)
   return result.url
 }
 
