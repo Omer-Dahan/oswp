@@ -144,9 +144,12 @@ export default async function Home() {
       userId: session.user.id,
     })
 
-    const capabilities = readWorkspaceCapabilities(scope.activeOrganization?.role)
-    if (!capabilities.canViewPlanning) {
-      isSignedIn = false
+    const hasWorkspace = scope.activeOrganization !== null || scope.activeWeddingId !== null
+    if (hasWorkspace) {
+      const capabilities = readWorkspaceCapabilities(scope.activeOrganization?.role)
+      if (!capabilities.canViewPlanning) {
+        isSignedIn = false
+      }
     }
   }
 
