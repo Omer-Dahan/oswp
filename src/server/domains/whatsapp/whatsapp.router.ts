@@ -5,7 +5,12 @@
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { whatsAppService } from '~/server/domains/whatsapp'
-import { saveAccountSchema } from '~/server/domains/whatsapp/whatsapp.validator'
+import {
+  listRecentOutboundSchema,
+  processQueueSchema,
+  queueBatchSchema,
+  saveAccountSchema,
+} from '~/server/domains/whatsapp/whatsapp.validator'
 
 export const whatsappRouter = createTRPCRouter({
   getAccount: protectedProcedure.query(async ({ ctx }) => {
@@ -22,4 +27,31 @@ export const whatsappRouter = createTRPCRouter({
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return whatsAppService.testConnection(ctx.authz, weddingId)
   }),
+
+  syncTemplates: protectedProcedure.mutation(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return whatsAppService.syncTemplates(ctx.authz, weddingId)
+  }),
+
+  queueBatch: protectedProcedure.input(queueBatchSchema).mutation(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return whatsAppService.queueBatch(ctx.authz, weddingId, input)
+  }),
+
+  processQueue: protectedProcedure.input(processQueueSchema).mutation(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return whatsAppService.processQueue(ctx.authz, weddingId, input)
+  }),
+
+  cancelQueue: protectedProcedure.mutation(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return whatsAppService.cancelQueue(ctx.authz, weddingId)
+  }),
+
+  listRecentOutbound: protectedProcedure
+    .input(listRecentOutboundSchema)
+    .query(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return whatsAppService.listRecentOutbound(ctx.authz, weddingId, input.limit)
+    }),
 })

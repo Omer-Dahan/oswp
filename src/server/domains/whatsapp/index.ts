@@ -2,13 +2,16 @@
  * WhatsApp Domain - Barrel Export
  */
 
+import { MessagingSender } from '~/server/domains/whatsapp/messaging-sender'
 import { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
 import { WhatsAppService } from '~/server/domains/whatsapp/whatsapp.service'
 import { db } from '~/server/infrastructure/database'
 
 const whatsAppRepository = new WhatsAppRepository(db)
-export const whatsAppService = new WhatsAppService(whatsAppRepository)
+const messagingSender = new MessagingSender(whatsAppRepository)
+export const whatsAppService = new WhatsAppService(whatsAppRepository, messagingSender)
 
+export { MessagingSender } from '~/server/domains/whatsapp/messaging-sender'
 export { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
 export { WhatsAppService } from '~/server/domains/whatsapp/whatsapp.service'
 export type {
@@ -17,6 +20,11 @@ export type {
   WhatsAppTestConnectionResult,
 } from '~/server/domains/whatsapp/whatsapp.types'
 export {
+  type ProcessQueueInput,
+  processQueueSchema,
+  type QueueBatchInput,
+  queueBatchSchema,
+  listRecentOutboundSchema,
   type SaveAccountInput,
   saveAccountSchema,
 } from '~/server/domains/whatsapp/whatsapp.validator'

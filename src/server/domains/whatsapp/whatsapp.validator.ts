@@ -15,3 +15,24 @@ export const saveAccountSchema = z.object({
 })
 
 export type SaveAccountInput = z.infer<typeof saveAccountSchema>
+
+export const queueBatchSchema = z.object({
+  eventId: z.string().optional(),
+  tagId: z.string().optional(),
+  householdIds: z.array(z.string()).optional(),
+  templateName: z.string().min(1),
+  kind: z.enum(['INVITE', 'REMINDER', 'CUSTOM']),
+  resend: z.boolean().optional(),
+})
+
+export type QueueBatchInput = z.infer<typeof queueBatchSchema>
+
+export const processQueueSchema = z.object({
+  max: z.number().int().positive().max(25).optional(),
+})
+
+export type ProcessQueueInput = z.infer<typeof processQueueSchema>
+
+export const listRecentOutboundSchema = z.object({
+  limit: z.number().int().positive().max(200).optional(),
+})
