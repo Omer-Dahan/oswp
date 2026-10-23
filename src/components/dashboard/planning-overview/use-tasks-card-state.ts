@@ -58,11 +58,11 @@ const getTaskTag = (
     const today = startOfUtcDay(now)
     const normalizedDueDate = startOfUtcDay(dueDate)
     if (normalizedDueDate < today) {
-      return 'Overdue'
+      return 'באיחור'
     }
 
     if (normalizedDueDate <= endOfUtcWeek(today)) {
-      return 'Urgent'
+      return 'דחוף'
     }
   }
 
@@ -85,7 +85,7 @@ const getTaskDueLabel = (task: Task, now: Date): string => {
       return 'השבוע'
     }
 
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat('he-IL', {
       month: 'short',
       day: 'numeric',
       timeZone: 'UTC',

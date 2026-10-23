@@ -175,7 +175,10 @@ export default function GuestSearchFilter({
                       selectedRsvpFilter.rsvpValue
                     )}`}
                   />
-                  <span className='truncate'>{selectedRsvpFilter.rsvpValue}</span>
+                  <span className='truncate'>
+                    {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
+                      selectedRsvpFilter.rsvpValue}
+                  </span>
                 </div>
               )}
               <IoIosArrowDown size={16} />
@@ -321,7 +324,9 @@ export default function GuestSearchFilter({
                 filterHouseholds(searchInput, null, selectedTagFilter, selectedCountryFilter)
               }}
             >
-              RSVP: {selectedRsvpFilter.rsvpValue}
+              סטטוס RSVP:{' '}
+              {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
+                selectedRsvpFilter.rsvpValue}
               {selectedEventName ? ` (${selectedEventName})` : ''} ×
             </button>
           ) : null}

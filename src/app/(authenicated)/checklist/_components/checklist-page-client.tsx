@@ -577,7 +577,7 @@ function TaskRow({
   onEdit: () => void
 }>) {
   const dueLabel = task.dueDate
-    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(
+    ? new Intl.DateTimeFormat('he-IL', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(
         new Date(task.dueDate)
       )
     : null

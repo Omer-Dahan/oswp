@@ -12,8 +12,8 @@ type TaskListItemProps = Readonly<{
 const tagClass: Record<string, string> = {
   Vendor: 'bg-accent text-accent-foreground',
   Admin: 'bg-secondary text-secondary-foreground',
-  Urgent: 'bg-gold/15 text-foreground',
-  Overdue: 'bg-destructive/10 text-destructive',
+  דחוף: 'bg-gold/15 text-foreground',
+  באיחור: 'bg-destructive/10 text-destructive',
 }
 
 function TaskListItemBase({ task, onToggle }: TaskListItemProps) {
