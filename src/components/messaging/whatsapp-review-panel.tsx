@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -15,12 +15,31 @@ import {
 } from '~/components/ui/alert-dialog'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '~/components/ui/dialog'
+import { Input } from '~/components/ui/input'
 import { Skeleton } from '~/components/ui/skeleton'
 import { api } from '~/trpc/react'
 import type { RouterOutputs } from '~/trpc/shared'
 
 type PendingInboundRow = RouterOutputs['whatsapp']['listPendingInbound'][number]
+type HouseholdSearchResult = RouterOutputs['household']['findBySearch'][number]
 type Decision = 'attending' | 'declined' | 'dismissed'
+
+function useDebouncedValue(value: string, delayMs: number): string {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(timeout)
+  }, [value, delayMs])
+  return debounced
+}
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
 
@@ -51,6 +70,151 @@ const DECISION_LABELS: Record<Decision, string> = {
   dismissed: 'התעלם',
 }
 
+function guestOptionLabel(guest: { firstName: string; lastName: string }): string {
+  return `${guest.firstName} ${guest.lastName}`.trim()
+}
+
+type LinkHouseholdDialogProps = {
+  row: PendingInboundRow | null
+  onOpenChange: (open: boolean) => void
+  onLinked: (inboundId: string) => void
+}
+
+function LinkHouseholdDialog({ row, onOpenChange, onLinked }: LinkHouseholdDialogProps) {
+  const [searchText, setSearchText] = useState('')
+  const debouncedSearchText = useDebouncedValue(searchText, 300)
+  const [selectedGuest, setSelectedGuest] = useState<{ id: number; label: string } | null>(null)
+  const [replaceConfirm, setReplaceConfirm] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!row) {
+      setSearchText('')
+      setSelectedGuest(null)
+      setReplaceConfirm(null)
+    }
+  }, [row])
+
+  const search = api.household.findBySearch.useQuery(
+    { searchText: debouncedSearchText },
+    { enabled: debouncedSearchText.trim().length >= 2 }
+  )
+
+  const linkInbound = api.whatsapp.linkInboundToHousehold.useMutation({
+    onSuccess: () => {
+      if (!row) return
+      toast.success('הטלפון שויך למשק הבית')
+      onLinked(row.id)
+    },
+    onError: (error) => {
+      if (error.data?.code === 'CONFLICT') {
+        setReplaceConfirm(error.message)
+        return
+      }
+      toast.error(error.message || 'השיוך נכשל')
+    },
+  })
+
+  const results: HouseholdSearchResult[] = search.data ?? []
+
+  return (
+    <Dialog open={row !== null} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>שייך למשק בית</DialogTitle>
+          <DialogDescription>
+            הטלפון {row?.fromPhone} יישמר על האורח שתבחרו, כדי שתשובות עתידיות יזוהו אוטומטית.
+          </DialogDescription>
+        </DialogHeader>
+
+        {replaceConfirm ? (
+          <div className='space-y-3'>
+            <p className='text-sm'>{replaceConfirm}</p>
+            <DialogFooter>
+              <Button type='button' variant='outline' onClick={() => setReplaceConfirm(null)}>
+                ביטול
+              </Button>
+              <Button
+                type='button'
+                disabled={linkInbound.isPending}
+                onClick={() => {
+                  if (!row || !selectedGuest) return
+                  linkInbound.mutate({
+                    inboundId: row.id,
+                    guestId: selectedGuest.id,
+                    replacePhone: true,
+                  })
+                }}
+              >
+                החלף טלפון ושייך
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className='space-y-3'>
+            <Input
+              placeholder='חיפוש לפי שם משק בית או אורח'
+              value={searchText}
+              onChange={(e) => {
+                setSearchText(e.target.value)
+                setSelectedGuest(null)
+              }}
+            />
+
+            <div className='max-h-64 space-y-1 overflow-y-auto'>
+              {search.isFetching ? (
+                <p className={sectionLabelClass}>מחפש...</p>
+              ) : debouncedSearchText.trim().length < 2 ? (
+                <p className={sectionLabelClass}>הקלידו לפחות 2 תווים לחיפוש</p>
+              ) : results.length === 0 ? (
+                <p className={sectionLabelClass}>לא נמצאו משקי בית מתאימים</p>
+              ) : (
+                results.map((household) => (
+                  <div key={household.id} className='rounded-md border border-border p-2'>
+                    <p className={sectionLabelClass}>משק בית</p>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      {household.guests.map((guest) => {
+                        const label = guestOptionLabel(guest)
+                        const isSelected = selectedGuest?.id === guest.id
+                        return (
+                          <Button
+                            key={guest.id}
+                            type='button'
+                            size='sm'
+                            variant={isSelected ? 'default' : 'outline'}
+                            onClick={() => setSelectedGuest({ id: guest.id, label })}
+                          >
+                            {label}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+                ביטול
+              </Button>
+              <Button
+                type='button'
+                disabled={!selectedGuest || linkInbound.isPending}
+                onClick={() => {
+                  if (!row || !selectedGuest) return
+                  linkInbound.mutate({ inboundId: row.id, guestId: selectedGuest.id })
+                }}
+              >
+                שייך
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function WhatsappReviewPanel() {
   const utils = api.useUtils()
   const pending = api.whatsapp.listPendingInbound.useQuery({ limit: 50 })
@@ -59,6 +223,7 @@ export function WhatsappReviewPanel() {
     row: PendingInboundRow
     decision: Decision
   } | null>(null)
+  const [linkTarget, setLinkTarget] = useState<PendingInboundRow | null>(null)
 
   const resolveInbound = api.whatsapp.resolveInbound.useMutation({
     onSuccess: (_result, variables) => {
@@ -137,7 +302,14 @@ export function WhatsappReviewPanel() {
                   </td>
                   <td className='px-3 py-2'>
                     {row.householdUnmatched ? (
-                      <span className='text-muted-foreground text-xs'>לא ניתן לפעול</span>
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        onClick={() => setLinkTarget(row)}
+                      >
+                        שייך למשק בית
+                      </Button>
                     ) : (
                       <div className='flex flex-wrap gap-2'>
                         <Button
@@ -213,6 +385,15 @@ export function WhatsappReviewPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <LinkHouseholdDialog
+        row={linkTarget}
+        onOpenChange={(open) => !open && setLinkTarget(null)}
+        onLinked={() => {
+          void utils.whatsapp.listPendingInbound.invalidate()
+          setLinkTarget(null)
+        }}
+      />
     </div>
   )
 }

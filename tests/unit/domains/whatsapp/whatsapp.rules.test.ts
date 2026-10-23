@@ -6,6 +6,7 @@ import {
   DAILY_RECIPIENT_CAP,
   allocateWithinDailyCap,
   dailyCapErrorMessage,
+  decideLinkPhoneToGuest,
   partitionAlreadyMessaged,
 } from '~/server/domains/whatsapp/whatsapp.rules'
 
@@ -54,5 +55,26 @@ describe('partitionAlreadyMessaged', () => {
 
     expect(toSend).toHaveLength(2)
     expect(skipped).toHaveLength(0)
+  })
+})
+
+describe('decideLinkPhoneToGuest', () => {
+  it('allows linking when the guest has no phone', () => {
+    expect(decideLinkPhoneToGuest(null, '+972501234567', false)).toEqual({ status: 'allowed' })
+  })
+
+  it('allows linking when the guest phone matches, normalised', () => {
+    const decision = decideLinkPhoneToGuest('050-123-4567', '+972501234567', false)
+    expect(decision).toEqual({ status: 'allowed' })
+  })
+
+  it('requires confirmation when the guest has a different phone and replacePhone is not set', () => {
+    const decision = decideLinkPhoneToGuest('+972509999999', '+972501234567', false)
+    expect(decision).toEqual({ status: 'requiresReplaceConfirmation', existingPhone: '+972509999999' })
+  })
+
+  it('allows overwriting a different phone when replacePhone is true', () => {
+    const decision = decideLinkPhoneToGuest('+972509999999', '+972501234567', true)
+    expect(decision).toEqual({ status: 'allowed' })
   })
 })

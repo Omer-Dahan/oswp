@@ -160,6 +160,53 @@ export class WhatsAppRepository {
     })
   }
 
+  /** Loads a guest's current phone and household, wedding-scoped, for the manual-link confirmation check. */
+  async findGuestForLink(
+    weddingId: string,
+    guestId: number
+  ): Promise<{ id: number; phone: string | null; householdId: string } | null> {
+    return this.db.guest.findFirst({
+      where: { id: guestId, weddingId },
+      select: { id: true, phone: true, householdId: true },
+    })
+  }
+
+  /**
+   * Manually links an unmatched inbound row to a guest's household, from the
+   * review screen. `overwritePhone` must only be true when the caller has
+   * already confirmed replacing an existing different phone (see
+   * whatsapp.rules.decideLinkPhoneToGuest); otherwise guest.phone is written
+   * only when it was empty. The row stays unhandled - only its guest/household
+   * pointers and parse reason change - since the RSVP decision is still pending.
+   * Returns null when the inbound row or guest isn't found in this wedding.
+   */
+  async linkInboundToHousehold(
+    weddingId: string,
+    inboundId: string,
+    guestId: number,
+    overwritePhone: boolean
+  ): Promise<{ ok: true } | null> {
+    return this.db.$transaction(async (tx) => {
+      const [inbound, guest] = await Promise.all([
+        tx.whatsAppInbound.findFirst({ where: { id: inboundId, weddingId } }),
+        tx.guest.findFirst({ where: { id: guestId, weddingId } }),
+      ])
+      if (!inbound || !guest) return null
+
+      if (!guest.phone || overwritePhone) {
+        await tx.guest.update({ where: { id: guestId }, data: { phone: inbound.fromPhone } })
+      }
+
+      const parsed = { ...(inbound.parsed as Prisma.JsonObject | null), reason: 'manual-link' }
+      await tx.whatsAppInbound.update({
+        where: { id: inboundId },
+        data: { guestId, householdId: guest.householdId, parsed },
+      })
+
+      return { ok: true }
+    })
+  }
+
   /**
    * Matches a raw inbound phone against this wedding's guest list by the
    * last-9-digits key, preferring the household's primary contact when

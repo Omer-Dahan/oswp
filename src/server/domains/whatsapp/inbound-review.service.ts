@@ -14,8 +14,9 @@ import type { Prisma } from '@prisma/client'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import type { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
+import { decideLinkPhoneToGuest } from '~/server/domains/whatsapp/whatsapp.rules'
 import type { PendingInboundView } from '~/server/domains/whatsapp/whatsapp.types'
-import type { ResolveInboundInput } from '~/server/domains/whatsapp/whatsapp.validator'
+import type { LinkInboundInput, ResolveInboundInput } from '~/server/domains/whatsapp/whatsapp.validator'
 
 function guestFullName(guest: { firstName: string; lastName: string } | null): string | null {
   return guest ? `${guest.firstName} ${guest.lastName}`.trim() : null
@@ -74,7 +75,7 @@ export class InboundReviewService {
     if (!row.guestId || !row.householdId) {
       throw new TRPCError({
         code: 'PRECONDITION_FAILED',
-        message: 'אי אפשר לעדכן הזמנה - הטלפון הזה לא משויך למשק בית',
+        message: 'אי אפשר לעדכן הזמנה - הטלפון הזה לא משויך למשק בית. שייכו אותו למשק בית קודם.',
       })
     }
 
@@ -84,6 +85,44 @@ export class InboundReviewService {
       rsvp: input.decision === 'attending' ? 'Attending' : 'Declined',
       parsed: (row.parsed ?? {}) as Prisma.InputJsonValue,
     })
+
+    return { ok: true }
+  }
+
+  async linkInboundToHousehold(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: LinkInboundInput
+  ): Promise<{ ok: true }> {
+    requirePermission(ctx, { wedding: ['update'] })
+
+    const inbound = await this.repo.findInboundById(weddingId, input.inboundId)
+    if (!inbound) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'ההודעה לא נמצאה' })
+    }
+
+    const guest = await this.repo.findGuestForLink(weddingId, input.guestId)
+    if (!guest) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'האורח לא נמצא' })
+    }
+
+    const decision = decideLinkPhoneToGuest(guest.phone, inbound.fromPhone, input.replacePhone ?? false)
+    if (decision.status === 'requiresReplaceConfirmation') {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: `לאורח הזה כבר רשום מספר טלפון אחר (${decision.existingPhone}) - להחליף אותו במספר שממנו הגיעה ההודעה?`,
+      })
+    }
+
+    const result = await this.repo.linkInboundToHousehold(
+      weddingId,
+      input.inboundId,
+      input.guestId,
+      input.replacePhone ?? false
+    )
+    if (!result) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'ההודעה או האורח לא נמצאו' })
+    }
 
     return { ok: true }
   }

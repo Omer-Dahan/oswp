@@ -5,6 +5,8 @@
  * already-sent skip logic can be unit tested without a database.
  */
 
+import { normalisePhone } from '~/server/domains/whatsapp/phone-mapping'
+
 export const DAILY_RECIPIENT_CAP = 250
 
 export type PhoneCandidate = {
@@ -50,6 +52,33 @@ export function allocateWithinDailyCap<T extends PhoneCandidate>(
 /** Hebrew error naming the daily unique-recipient limit, for the queue summary/confirm dialog. */
 export function dailyCapErrorMessage(cap: number = DAILY_RECIPIENT_CAP): string {
   return `לא ניתן לשלוח להם: הגעתם למגבלה של ${cap} נמענים ייחודיים בוואטסאפ בתוך 24 שעות`
+}
+
+export type LinkPhoneDecision =
+  | { status: 'allowed' }
+  | { status: 'requiresReplaceConfirmation'; existingPhone: string }
+
+/**
+ * Decides whether an inbound WhatsApp phone can be written onto a guest.
+ * A guest with no phone, or the same phone (compared via the normalised
+ * last-9-digits key), is a safe write. A guest with a *different* phone
+ * needs explicit confirmation before overwriting it, since the phone may be
+ * shared family contact info rather than a typo.
+ */
+export function decideLinkPhoneToGuest(
+  guestPhone: string | null,
+  inboundPhone: string,
+  replacePhone: boolean
+): LinkPhoneDecision {
+  if (!guestPhone) return { status: 'allowed' }
+
+  const existingKey = normalisePhone(guestPhone)
+  const inboundKey = normalisePhone(inboundPhone)
+  if (existingKey !== null && existingKey === inboundKey) return { status: 'allowed' }
+
+  if (replacePhone) return { status: 'allowed' }
+
+  return { status: 'requiresReplaceConfirmation', existingPhone: guestPhone }
 }
 
 export type HouseholdCandidate = {
