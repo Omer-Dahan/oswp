@@ -7,7 +7,7 @@ import { signOut } from '~/lib/auth-client'
 export function SignInButton() {
   return (
     <Button asChild size='sm'>
-      <Link href='/auth/signin'>Sign In</Link>
+      <Link href='/auth/signin'>התחברות</Link>
     </Button>
   )
 }
@@ -15,7 +15,7 @@ export function SignInButton() {
 export function SignOutButton() {
   return (
     <Button variant='outline' size='sm' onClick={() => signOut()}>
-      Sign Out
+      התנתקות
     </Button>
   )
 }
