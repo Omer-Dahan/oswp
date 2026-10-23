@@ -446,7 +446,7 @@ function MilestonesCard({ dashboardData }: { dashboardData: DashboardData | null
             milestone.key === 'wedding_day' && weddingDateLabel
               ? weddingDateLabel
               : milestone.targetDate
-                ? new Intl.DateTimeFormat('en-US', {
+                ? new Intl.DateTimeFormat('he-IL', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',

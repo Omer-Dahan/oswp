@@ -19,7 +19,7 @@ export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
   const [today, setToday] = useState('')
 
   useEffect(() => {
-    const formattedToday = new Intl.DateTimeFormat(undefined, {
+    const formattedToday = new Intl.DateTimeFormat('he-IL', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',

@@ -44,7 +44,7 @@ export async function AuthenticatedLayoutFrame(props: Readonly<AuthenticatedLayo
     coupleName =
       brideFirstName && groomFirstName ? `${brideFirstName} & ${groomFirstName}` : undefined
     weddingDate = details?.weddingDate
-      ? new Date(details.weddingDate).toLocaleDateString('en-us', {
+      ? new Date(details.weddingDate).toLocaleDateString('he-IL', {
           weekday: 'long',
           year: 'numeric',
           month: 'short',
