@@ -6,6 +6,7 @@ import type {
   Prisma,
   PrismaClient,
   WhatsAppAccountStatus,
+  WhatsAppInbound,
   WhatsAppOutbound,
   WhatsAppOutboundKind,
   WhatsAppOutboundStatus,
@@ -13,9 +14,13 @@ import type {
   WhatsAppTemplateCategory,
 } from '@prisma/client'
 
+import { InvitationRepository } from '~/server/domains/invitation/invitation.repository'
+import { normalisePhone } from '~/server/domains/whatsapp/phone-mapping'
 import type { WhatsAppAccount } from '~/server/domains/whatsapp/whatsapp.types'
 
 const ROLLING_WINDOW_MS = 24 * 60 * 60 * 1000
+
+export type HouseholdMatch = { guestId: number; householdId: string }
 
 export type SendContext = {
   outbound: WhatsAppOutbound
@@ -100,6 +105,81 @@ export class WhatsAppRepository {
     await this.db.whatsAppInbound.createMany({
       data: messages.map((m) => ({ weddingId, ...m })),
       skipDuplicates: true,
+    })
+  }
+
+  /** Inbound rows still waiting for phone resolution and RSVP application. */
+  async findUnresolvedInbound(weddingId: string): Promise<WhatsAppInbound[]> {
+    return this.db.whatsAppInbound.findMany({
+      where: { weddingId, handledAt: null, householdId: null },
+    })
+  }
+
+  /**
+   * Matches a raw inbound phone against this wedding's guest list by the
+   * last-9-digits key, preferring the household's primary contact when
+   * several guests share a phone.
+   */
+  async findHouseholdByPhone(weddingId: string, rawPhone: string): Promise<HouseholdMatch | null> {
+    const key = normalisePhone(rawPhone)
+    if (!key) return null
+
+    const guests = await this.db.guest.findMany({
+      where: { weddingId, phone: { not: null } },
+      select: { id: true, phone: true, householdId: true, isPrimaryContact: true },
+    })
+
+    const matches = guests.filter((guest) => normalisePhone(guest.phone ?? '') === key)
+    if (matches.length === 0) return null
+
+    const match = matches.find((guest) => guest.isPrimaryContact) ?? matches[0]
+    if (!match) return null
+    return { guestId: match.id, householdId: match.householdId }
+  }
+
+  /** Records the parsed intent for an inbound row that could not be auto-applied (no match, or not high confidence). */
+  async recordInboundParseResult(
+    id: string,
+    data: { guestId: number | null; householdId: string | null; parsed: Prisma.InputJsonValue }
+  ): Promise<void> {
+    await this.db.whatsAppInbound.update({
+      where: { id },
+      data: { guestId: data.guestId, householdId: data.householdId, parsed: data.parsed },
+    })
+  }
+
+  /**
+   * High-confidence attending/declined replies: moves every still-'Invited'
+   * invitation of the household's guests to the new RSVP status and marks
+   * the inbound row handled, atomically.
+   */
+  async applyHouseholdRsvp(
+    inboundId: string,
+    params: { guestId: number; householdId: string; rsvp: 'Attending' | 'Declined'; parsed: Prisma.InputJsonValue }
+  ): Promise<void> {
+    await this.db.$transaction(async (tx) => {
+      const householdGuests = await tx.guest.findMany({
+        where: { householdId: params.householdId },
+        select: { id: true },
+      })
+      const guestIds = householdGuests.map((guest) => guest.id)
+
+      const invitationRepository = new InvitationRepository(tx)
+      await invitationRepository.updateManyByGuestIds(guestIds, {
+        rsvp: params.rsvp,
+        submittedAt: new Date(),
+        submittedBy: params.guestId,
+      })
+
+      await tx.whatsAppInbound.update({
+        where: { id: inboundId },
+        data: {
+          guestId: params.guestId,
+          householdId: params.householdId,
+          parsed: params.parsed,
+          handledAt: new Date(),
+        },
+      })
     })
   }
 

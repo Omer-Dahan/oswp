@@ -10,6 +10,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 
 import type { WhatsAppOutboundStatus } from '@prisma/client'
 
+import { parseRsvpReply } from '~/server/domains/whatsapp/rsvp-parser'
 import type { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
 
 type MetaContact = { wa_id?: string; profile?: { name?: string } }
@@ -135,6 +136,58 @@ export class WebhookService {
 
   async ingestMessages(weddingId: string, messages: ParsedInboundMessage[]): Promise<void> {
     await this.repo.createInboundMessages(weddingId, messages)
+    await this.resolveInboundReplies(weddingId)
+  }
+
+  /**
+   * Maps every unresolved inbound row to a household and, when the parsed
+   * reply is unambiguous, applies it to the household's invitations. Never
+   * throws: one bad row is logged and skipped so the rest still resolve.
+   */
+  async resolveInboundReplies(weddingId: string): Promise<void> {
+    const rows = await this.repo.findUnresolvedInbound(weddingId)
+    for (const row of rows) {
+      try {
+        await this.resolveOneInboundReply(weddingId, row.id, row.fromPhone, row.text)
+      } catch (error) {
+        console.error('WhatsApp inbound reply resolution failed', error)
+      }
+    }
+  }
+
+  private async resolveOneInboundReply(
+    weddingId: string,
+    inboundId: string,
+    fromPhone: string,
+    text: string | null
+  ): Promise<void> {
+    const { intent, headcount, confidence } = parseRsvpReply(text)
+    const match = await this.repo.findHouseholdByPhone(weddingId, fromPhone)
+
+    if (!match) {
+      await this.repo.recordInboundParseResult(inboundId, {
+        guestId: null,
+        householdId: null,
+        parsed: { intent, headcount, confidence, reason: 'unmatched-phone' },
+      })
+      return
+    }
+
+    if (confidence === 'high' && (intent === 'attending' || intent === 'declined')) {
+      await this.repo.applyHouseholdRsvp(inboundId, {
+        guestId: match.guestId,
+        householdId: match.householdId,
+        rsvp: intent === 'attending' ? 'Attending' : 'Declined',
+        parsed: { intent, headcount, confidence },
+      })
+      return
+    }
+
+    await this.repo.recordInboundParseResult(inboundId, {
+      guestId: match.guestId,
+      householdId: match.householdId,
+      parsed: { intent, headcount, confidence },
+    })
   }
 
   async ingestStatuses(statuses: ParsedStatusUpdate[]): Promise<void> {
