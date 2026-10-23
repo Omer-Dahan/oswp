@@ -9,6 +9,7 @@ import { TRPCError } from '@trpc/server'
 
 import { provisionEtta } from '~/lib/etta/provision'
 import { logger } from '~/lib/observability/logger'
+import { provisionWeddingWorkspace } from '~/server/application/workspace/provision-wedding-workspace'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import { checklistSeedingService } from '~/server/domains/checklist'
@@ -75,6 +76,21 @@ export class WeddingService {
       brideLastName,
       enabledAddOns: ['tasks'],
     })
+
+    try {
+      await provisionWeddingWorkspace({
+        weddingId: wedding.id,
+        name: `${groomFirstName} & ${brideFirstName}`,
+        userId,
+      })
+    } catch (error) {
+      logger.error(
+        'Workspace provisioning failed on wedding create',
+        { component: 'workspace', wedding_id: wedding.id },
+        error
+      )
+      throw error
+    }
 
     // Seed default tags for the wedding
     await this.guestTagService.seedInitialTags(wedding.id, DEFAULT_TAGS)

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
+import { buildWeddingOrganizationSlug } from '~/server/application/workspace/provision-wedding-workspace'
 import { parseDryRunArgs } from '~/server/scripts/script-args'
 
 type DatabaseClient = Awaited<typeof import('~/server/db')>['db']
@@ -13,9 +14,7 @@ export const mapLegacyRole = (role: string): OrganizationRole => {
   return 'viewer'
 }
 
-export const buildWeddingOrganizationSlug = (weddingId: string): string => {
-  return `wedding-${weddingId}`
-}
+export { buildWeddingOrganizationSlug }
 
 type ParsedArgs = {
   dryRun: boolean
