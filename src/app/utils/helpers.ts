@@ -87,13 +87,11 @@ function calculateDaysRemaining(weddingDate: Date | null | undefined) {
 function generateTimes() {
   const times = []
   for (let i = 720; i <= 2145; i += 15) {
-    let hours = Math.floor(i / 60)
+    let hours: number | string = Math.floor(i / 60) % 24
     let minutes: number | string = i % 60
     if (minutes < 10) minutes = `0${minutes.toString()}`
-    const ampm = hours % 24 < 12 ? 'AM' : 'PM'
-    hours = hours % 12
-    if (hours === 0) hours = 12
-    times.push(`${hours}:${minutes} ${ampm}`)
+    if (hours < 10) hours = `0${hours.toString()}`
+    times.push(`${hours}:${minutes}`)
   }
   return times
 }

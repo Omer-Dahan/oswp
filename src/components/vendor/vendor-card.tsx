@@ -44,7 +44,7 @@ export function VendorCard({
   const deleteVendor = api.vendor.delete.useMutation({
     onSuccess: async () => {
       await utils.vendor.getAll.invalidate()
-      toast.success(`${vendor.name} removed`)
+      toast.success(`${vendor.name} הוסר`)
       onDeleted()
     },
     onError: () => toast.error('מחיקת הספק נכשלה'),

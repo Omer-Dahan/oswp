@@ -36,7 +36,7 @@ type CountryOption = {
 
 const countryDisplayNames =
   typeof Intl !== 'undefined'
-    ? new Intl.DisplayNames(['en'], {
+    ? new Intl.DisplayNames(['he'], {
         type: 'region',
       })
     : null
@@ -86,7 +86,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     {
       value,
       onChange,
-      defaultCountry = 'US',
+      defaultCountry = 'IL',
       id,
       name,
       disabled,

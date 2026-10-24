@@ -15,8 +15,8 @@ const useEventFormActions = () => {
     },
     onError: (err) => {
       const fieldError = err.data?.zodError?.fieldErrors?.eventName?.[0]
-      toast.error('Failed to create event', {
-        description: fieldError ?? err.message ?? 'Please try again later.',
+      toast.error('יצירת האירוע נכשלה', {
+        description: fieldError ?? err.message ?? 'נסו שוב מאוחר יותר',
       })
     },
   })
@@ -28,8 +28,8 @@ const useEventFormActions = () => {
     },
     onError: (err) => {
       const fieldError = err.data?.zodError?.fieldErrors?.eventName?.[0]
-      toast.error('Failed to update event', {
-        description: fieldError ?? err.message ?? 'Please try again later.',
+      toast.error('עדכון האירוע נכשל', {
+        description: fieldError ?? err.message ?? 'נסו שוב מאוחר יותר',
       })
     },
   })
@@ -41,8 +41,8 @@ const useEventFormActions = () => {
     },
     onError: (err) => {
       const fieldError = err.data?.zodError?.fieldErrors?.eventName?.[0]
-      toast.error('Failed to delete event', {
-        description: fieldError ?? err.message ?? 'Please try again later.',
+      toast.error('מחיקת האירוע נכשלה', {
+        description: fieldError ?? err.message ?? 'נסו שוב מאוחר יותר',
       })
     },
   })

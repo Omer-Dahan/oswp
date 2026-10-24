@@ -12,21 +12,20 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'OSWP — The Open Source Wedding Platform',
+    absolute: 'OSWP — פלטפורמת ניהול החתונה שלכם',
   },
   description:
-    'A self-hosted platform with everything your wedding needs — invitations, RSVPs, planning, and Etta, your AI wedding planner. Deploy in minutes, own your data forever.',
+    'פלטפורמה שמספקת את כל מה שהחתונה שלכם צריכה: הזמנות, אישורי הגעה, תכנון ו-Etta, מתכננת החתונה החכמה שלכם.',
   openGraph: {
-    title: 'OSWP — The Open Source Wedding Platform',
+    title: 'OSWP — פלטפורמת ניהול החתונה שלכם',
     description:
-      'Invitations, RSVPs, guest management, seating, vendor tracking, and Etta — your AI wedding planner. Self-host free or let us handle it.',
+      'הזמנות, אישורי הגעה, ניהול אורחים, הושבה, ניהול ספקים ו-Etta, מתכננת החתונה החכמה שלכם.',
     url: siteUrl,
     type: 'website',
   },
   twitter: {
-    title: 'OSWP — The Open Source Wedding Platform',
-    description:
-      'Invitations, RSVPs, guest management, and Etta — your AI wedding planner. Self-host free or let us handle it.',
+    title: 'OSWP — פלטפורמת ניהול החתונה שלכם',
+    description: 'הזמנות, אישורי הגעה, ניהול אורחים ו-Etta, מתכננת החתונה החכמה שלכם.',
   },
   alternates: {
     canonical: siteUrl,

@@ -98,7 +98,7 @@ export function WhatsappConnectionCard() {
             className='space-y-3'
           >
             <div className='space-y-2'>
-              <Label htmlFor='wa-phoneNumberId'>Phone Number ID</Label>
+              <Label htmlFor='wa-phoneNumberId'>מזהה מספר טלפון (Phone Number ID)</Label>
               <Input
                 id='wa-phoneNumberId'
                 placeholder='הזינו את Phone Number ID'
@@ -122,7 +122,7 @@ export function WhatsappConnectionCard() {
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='wa-accessToken'>Access Token</Label>
+              <Label htmlFor='wa-accessToken'>טוקן גישה</Label>
               <Input
                 id='wa-accessToken'
                 type='password'
@@ -136,7 +136,7 @@ export function WhatsappConnectionCard() {
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='wa-verifyToken'>Verify Token</Label>
+              <Label htmlFor='wa-verifyToken'>טוקן אימות</Label>
               <Input
                 id='wa-verifyToken'
                 type='password'
@@ -150,7 +150,7 @@ export function WhatsappConnectionCard() {
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='wa-appSecret'>App Secret</Label>
+              <Label htmlFor='wa-appSecret'>App Secret (סוד האפליקציה)</Label>
               <Input
                 id='wa-appSecret'
                 type='password'

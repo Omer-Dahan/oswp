@@ -79,6 +79,7 @@ function EmptyNote({ children }: { children: React.ReactNode }) {
 function getCountdownHeading(days: number): { lead: string; tail: string } {
   if (days === 0) return { lead: 'היום', tail: 'החתונה שלכם' }
   if (days === 1) return { lead: 'יום אחד', tail: 'עד החתונה' }
+  if (days === 2) return { lead: 'יומיים', tail: 'עד החתונה' }
   return { lead: `${days} ימים`, tail: 'עד החתונה' }
 }
 

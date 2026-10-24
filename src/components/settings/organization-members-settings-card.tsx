@@ -408,7 +408,7 @@ function OrganizationMembersList({
   const [memberPendingRemoval, setMemberPendingRemoval] = useState<Member | null>(null)
   const [removalConfirmation, setRemovalConfirmation] = useState('')
 
-  const canConfirmRemoval = removalConfirmation.trim().toLowerCase() === 'delete'
+  const canConfirmRemoval = removalConfirmation.trim() === 'מחיקה'
 
   if (members.length === 0) {
     return (
@@ -484,7 +484,7 @@ function OrganizationMembersList({
           <DialogHeader>
             <DialogTitle>אישור הסרת חבר</DialogTitle>
             <DialogDescription>
-              הקלידו delete כדי לאשר הסרת{' '}
+              הקלידו מחיקה כדי לאשר הסרת{' '}
               {memberPendingRemoval?.user?.name || memberPendingRemoval?.user?.email || 'חבר זה'}.
             </DialogDescription>
           </DialogHeader>
@@ -498,7 +498,7 @@ function OrganizationMembersList({
             <Input
               id='remove-member-confirmation'
               onChange={(event) => setRemovalConfirmation(event.target.value)}
-              placeholder='delete'
+              placeholder='מחיקה'
               value={removalConfirmation}
             />
           </div>

@@ -166,7 +166,7 @@ function QuoteFileUploader({
     setSelectedFiles((prev) => {
       const combined = [...prev, ...acceptedFiles]
       if (combined.length > MAX_FILES_PER_QUOTE) {
-        toast.error(`Maximum ${MAX_FILES_PER_QUOTE} files per upload`)
+        toast.error(`עד ${MAX_FILES_PER_QUOTE} קבצים להעלאה`)
         return prev
       }
       return combined
@@ -182,7 +182,7 @@ function QuoteFileUploader({
       if (errors?.some((error) => error.code === 'file-too-large')) {
         toast.error('הקובץ חורג ממגבלת 8 MB')
       } else if (errors?.some((error) => error.code === 'file-invalid-type')) {
-        toast.error(`Unsupported file type. Accepted: ${ACCEPTED_TYPES_LABEL}`)
+        toast.error(`סוג קובץ לא נתמך. נתמכים: ${ACCEPTED_TYPES_LABEL}`)
       } else {
         toast.error(errors?.[0]?.message ?? 'File not accepted')
       }

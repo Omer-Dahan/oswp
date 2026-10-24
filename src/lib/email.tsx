@@ -9,10 +9,10 @@ import { ResetPasswordEmail } from '~/emails/reset-password-email'
 import { env } from '~/env'
 
 const OTP_SUBJECTS = {
-  'sign-in': 'Your sign-in code',
-  'email-verification': 'Verify your email',
-  'forget-password': 'Reset your password',
-  'change-email': 'Confirm your new email',
+  'sign-in': 'קוד הכניסה שלכם',
+  'email-verification': 'אימות כתובת המייל',
+  'forget-password': 'איפוס סיסמה',
+  'change-email': 'אישור כתובת מייל חדשה',
 } as const
 
 let _resend: Resend | null = null
@@ -58,7 +58,7 @@ export async function sendResetPasswordEmail({
   await getResend().emails.send({
     from: env.EMAIL_FROM,
     to,
-    subject: 'Reset your password',
+    subject: 'איפוס סיסמה',
     html,
   })
 }
@@ -88,7 +88,7 @@ export async function sendOrganizationInvitationEmail({
   await getResend().emails.send({
     from: env.EMAIL_FROM,
     to,
-    subject: `You've been invited to join ${organizationName} on OSWP`,
+    subject: `הוזמנתם להצטרף ל-${organizationName} ב-OSWP`,
     html,
   })
 }

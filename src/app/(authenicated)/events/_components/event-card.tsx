@@ -1,6 +1,7 @@
 'use client'
 
 import { format } from 'date-fns'
+import { he } from 'date-fns/locale'
 import {
   Calendar,
   ClipboardList,
@@ -60,7 +61,9 @@ function EventCardBase({
             {event.date && (
               <CardDescription className='mt-1.5 flex items-center gap-1.5'>
                 <Calendar className='h-3.5 w-3.5 shrink-0' />
-                <span className='text-xs md:text-sm'>{format(new Date(event.date), 'PPP')}</span>
+                <span className='text-xs md:text-sm'>
+                  {format(new Date(event.date), 'd בMMMM yyyy', { locale: he })}
+                </span>
               </CardDescription>
             )}
           </div>
