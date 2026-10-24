@@ -27,16 +27,3 @@ export async function uploadFile(file: File): Promise<UploadResult> {
   const result = (await response.json()) as Omit<UploadResult, 'name'>
   return { ...result, name: file.name }
 }
-
-export async function deleteUploadedFiles(urls: string[]): Promise<void> {
-  if (urls.length === 0) return
-  try {
-    await fetch('/api/uploads', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ urls }),
-    })
-  } catch {
-    // Best-effort cleanup — orphaned files are preferable to crashing here.
-  }
-}

@@ -1,4 +1,4 @@
-import { deleteUploadedFiles, uploadFile } from '~/lib/upload-client'
+import { uploadFile } from '~/lib/upload-client'
 
 export type BlobUploadResult = {
   url: string
@@ -10,8 +10,12 @@ export type BlobUploadResult = {
 /**
  * Upload files via the server-mediated `/api/uploads` endpoint.
  *
- * Uploads run concurrently (Promise.allSettled) for better performance.
- * If any uploads fail, already-uploaded files are cleaned up to avoid orphans.
+ * Uploads run concurrently (Promise.allSettled) for better performance. If
+ * any upload fails, the ones that succeeded are left in storage rather than
+ * deleted: there is no unauthenticated/unscoped delete endpoint to call them
+ * back through (see `/api/uploads` route), and these files aren't persisted
+ * to any DB row yet, so they're harmless, orphaned blobs rather than a
+ * security exposure.
  */
 export async function uploadFiles(files: File[]): Promise<BlobUploadResult[]> {
   if (files.length === 0) return []
@@ -30,9 +34,6 @@ export async function uploadFiles(files: File[]): Promise<BlobUploadResult[]> {
   }
 
   if (failed.length > 0) {
-    if (fulfilled.length > 0) {
-      await deleteUploadedFiles(fulfilled.map((r) => r.url))
-    }
     throw new Error(`Failed to upload: ${failed.join(', ')}`)
   }
 
