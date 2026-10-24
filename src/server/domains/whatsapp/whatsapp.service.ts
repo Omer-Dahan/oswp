@@ -98,7 +98,7 @@ export class WhatsAppService {
     weddingId: string,
     input: SaveAccountInput
   ): Promise<WhatsAppAccountView> {
-    requirePermission(ctx, { wedding: ['update'] })
+    requirePermission(ctx, { organization: ['update'] })
 
     const account = await this.repo.upsertAccount(weddingId, {
       phoneNumberId: input.phoneNumberId,
@@ -128,7 +128,7 @@ export class WhatsAppService {
     ctx: AuthzContext,
     weddingId: string
   ): Promise<WhatsAppTestConnectionResult> {
-    requirePermission(ctx, { wedding: ['update'] })
+    requirePermission(ctx, { organization: ['update'] })
 
     const account = await this.repo.findAccountByWeddingId(weddingId)
     if (!account?.phoneNumberId || !account.accessTokenEnc) {
@@ -189,7 +189,7 @@ export class WhatsAppService {
 
   /** Pulls the wedding's approved templates from Meta and caches them locally. */
   async syncTemplates(ctx: AuthzContext, weddingId: string): Promise<WhatsAppTemplate[]> {
-    requirePermission(ctx, { wedding: ['update'] })
+    requirePermission(ctx, { organization: ['update'] })
 
     const account = await this.repo.findAccountByWeddingId(weddingId)
     if (!account?.wabaId || !account.accessTokenEnc) {
@@ -273,7 +273,7 @@ export class WhatsAppService {
     weddingId: string,
     input: QueueBatchInput
   ): Promise<{ queued: number; skipped: number; overCap: number }> {
-    requirePermission(ctx, { wedding: ['update'] })
+    requirePermission(ctx, { guest_invitation: ['send'] })
 
     const candidates = await this.repo.resolveRecipientCandidates(weddingId, {
       eventId: input.eventId,
@@ -328,7 +328,7 @@ export class WhatsAppService {
     weddingId: string,
     input: ProcessQueueInput = {}
   ): Promise<{ processed: number; sent: number; failed: number; remaining: number }> {
-    requirePermission(ctx, { wedding: ['update'] })
+    requirePermission(ctx, { guest_invitation: ['send'] })
 
     await this.repo.requeueStuckSending(weddingId, STUCK_SENDING_MS)
 
@@ -360,7 +360,7 @@ export class WhatsAppService {
   }
 
   async cancelQueue(ctx: AuthzContext, weddingId: string): Promise<{ cancelled: number }> {
-    requirePermission(ctx, { wedding: ['update'] })
+    requirePermission(ctx, { guest_invitation: ['send'] })
     const cancelled = await this.repo.cancelQueued(weddingId)
     return { cancelled }
   }
