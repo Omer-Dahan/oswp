@@ -29,20 +29,25 @@ export type TemplateComponent = {
 /**
  * Maps guest/household/event data to the template's body parameters, in the
  * fixed order {{1}} first name, {{2}} event name, {{3}} event date, {{4}}
- * RSVP link. Pure: same input always gives the same output, no I/O.
+ * RSVP link — truncated to `paramCount`, since Meta rejects a message whose
+ * parameter count doesn't exactly match the approved template. A template
+ * with no placeholders (paramCount 0) gets no body component at all.
+ * Pure: same input always gives the same output, no I/O.
  */
-export function buildTemplateComponents(vars: TemplateVariables): TemplateComponent[] {
-  return [
-    {
-      type: 'body',
-      parameters: [
-        { type: 'text', text: vars.firstName },
-        { type: 'text', text: vars.eventName ?? '' },
-        { type: 'text', text: vars.eventDateLabel ?? '' },
-        { type: 'text', text: vars.rsvpLink ?? '' },
-      ],
-    },
+export function buildTemplateComponents(
+  vars: TemplateVariables,
+  paramCount: number
+): TemplateComponent[] {
+  if (paramCount <= 0) return []
+
+  const allParams: Array<{ type: 'text'; text: string }> = [
+    { type: 'text', text: vars.firstName },
+    { type: 'text', text: vars.eventName ?? '' },
+    { type: 'text', text: vars.eventDateLabel ?? '' },
+    { type: 'text', text: vars.rsvpLink ?? '' },
   ]
+
+  return [{ type: 'body', parameters: allParams.slice(0, Math.min(paramCount, allParams.length)) }]
 }
 
 /** Renders a template's {{1}}..{{4}} placeholders with real data, for UI preview only. */
@@ -174,13 +179,18 @@ export class MessagingSender {
       inviteUrl,
     })
 
+    // Fall back to the old fixed shape only if the template was somehow
+    // queued without ever being synced — every normal path has a row here.
+    const language = context.template?.language ?? 'he'
+    const paramCount = context.template?.paramCount ?? 4
+
     const outcome = await postTemplateMessage({
       phoneNumberId: account.phoneNumberId,
       accessToken: decryptSecret(account.accessTokenEnc),
       toPhone: outbound.toPhone,
       templateName: outbound.templateName,
-      languageCode: 'he',
-      components: buildTemplateComponents(vars),
+      languageCode: language,
+      components: buildTemplateComponents(vars, paramCount),
     })
 
     if (outcome.ok) {

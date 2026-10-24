@@ -47,6 +47,11 @@ export const whatsappRouter = createTRPCRouter({
     return whatsAppService.processQueue(ctx.authz, weddingId, input)
   }),
 
+  getQueuedCount: protectedProcedure.query(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return whatsAppService.getQueuedCount(ctx.authz, weddingId)
+  }),
+
   cancelQueue: protectedProcedure.mutation(async ({ ctx }) => {
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return whatsAppService.cancelQueue(ctx.authz, weddingId)

@@ -7,6 +7,7 @@ import type { WhatsAppOutbound, WhatsAppOutboundKind, WhatsAppTemplate, WhatsApp
 
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
+import { householdInviteService } from '~/server/application/household-invite'
 import { env } from '~/env'
 import {
   decryptSecret,
@@ -31,8 +32,17 @@ import type {
 const GRAPH_API_VERSION = 'v23.0'
 const DEFAULT_PROCESS_BATCH = 25
 const SEND_PACE_MS = 1000
+const STUCK_SENDING_MS = 5 * 60_000
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/** Highest {{n}} placeholder index in a template body, so the sender knows exactly how many parameters Meta expects. */
+function countTemplateParams(bodyText: string | null): number {
+  if (!bodyText) return 0
+  const matches = [...bodyText.matchAll(/\{\{(\d+)\}\}/g)]
+  if (matches.length === 0) return 0
+  return Math.max(...matches.map((match) => Number(match[1])))
+}
 
 export class WhatsAppService {
   constructor(
@@ -205,14 +215,20 @@ export class WhatsAppService {
       })
     }
 
-    const rows = (body.data ?? []).map((template) => ({
-      weddingId,
-      name: template.name,
-      language: template.language,
-      category: (template.category === 'UTILITY' ? 'UTILITY' : 'MARKETING') as WhatsAppTemplateCategory,
-      bodyPreview: template.components?.find((c) => c.type === 'BODY')?.text ?? null,
-      status: template.status ?? null,
-    }))
+    const rows = (body.data ?? []).map((template) => {
+      const bodyPreview = template.components?.find((c) => c.type === 'BODY')?.text ?? null
+      return {
+        weddingId,
+        name: template.name,
+        language: template.language,
+        category: (template.category === 'UTILITY'
+          ? 'UTILITY'
+          : 'MARKETING') as WhatsAppTemplateCategory,
+        bodyPreview,
+        paramCount: countTemplateParams(bodyPreview),
+        status: template.status ?? null,
+      }
+    })
 
     await this.repo.upsertTemplates(rows)
     return this.repo.listTemplates(weddingId)
@@ -253,6 +269,14 @@ export class WhatsAppService {
       throw new TRPCError({ code: 'PRECONDITION_FAILED', message: dailyCapErrorMessage() })
     }
 
+    // Mint an invite code for any household about to be messaged that
+    // doesn't have one yet, so a template embedding the RSVP link never sends
+    // it empty.
+    const householdIds = Array.from(new Set(toQueue.map((candidate) => candidate.householdId)))
+    await Promise.all(
+      householdIds.map((householdId) => householdInviteService.ensureInviteCode(householdId))
+    )
+
     await this.repo.createOutboundRows(
       toQueue.map((candidate) => ({
         weddingId,
@@ -276,6 +300,8 @@ export class WhatsAppService {
   ): Promise<{ processed: number; sent: number; failed: number; remaining: number }> {
     requirePermission(ctx, { wedding: ['update'] })
 
+    await this.repo.requeueStuckSending(weddingId, STUCK_SENDING_MS)
+
     const max = Math.min(input.max ?? DEFAULT_PROCESS_BATCH, DEFAULT_PROCESS_BATCH)
     let processed = 0
     let sent = 0
@@ -295,6 +321,12 @@ export class WhatsAppService {
 
     const remaining = await this.repo.countQueued(weddingId)
     return { processed, sent, failed, remaining }
+  }
+
+  /** Rows still waiting to be sent, so the UI can resume draining after a page reload. */
+  async getQueuedCount(ctx: AuthzContext, weddingId: string): Promise<number> {
+    requirePermission(ctx, { wedding: ['read'] })
+    return this.repo.countQueued(weddingId)
   }
 
   async cancelQueue(ctx: AuthzContext, weddingId: string): Promise<{ cancelled: number }> {

@@ -1230,6 +1230,9 @@ model WhatsAppTemplate {
   language     String                   @default("he")
   category     WhatsAppTemplateCategory
   bodyPreview  String?                  @map("body_preview")
+  // Count of {{n}} body placeholders Meta reported for this template, so the
+  // sender passes exactly this many parameters instead of a hardcoded 4.
+  paramCount   Int                      @default(0) @map("param_count")
   status       String?
   lastSyncedAt DateTime?                @map("last_synced_at")
   createdAt    DateTime                 @default(now()) @map("created_at")
@@ -1260,6 +1263,10 @@ model WhatsAppOutbound {
   sentAt            DateTime?              @map("sent_at")
   deliveredAt       DateTime?              @map("delivered_at")
   readAt            DateTime?              @map("read_at")
+  // Bumped on every status change (in particular QUEUED -> SENDING), so a
+  // stuck SENDING row — the sender crashed or the serverless invocation was
+  // killed mid-send — can be detected by age and requeued.
+  updatedAt         DateTime               @updatedAt @map("updated_at")
 
   @@index([weddingId, status])
   @@index([householdId])
