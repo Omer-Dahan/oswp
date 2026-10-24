@@ -114,7 +114,7 @@ const AttendanceChart = ({ event, numInvitedGuests }: AttendanceChartProps) => {
         <div className='flex items-center justify-between gap-7'>
           <div className='relative h-full w-40'>
             <Doughnut data={getChartData(event.guestResponses)} options={chartOptions} />
-            <div className='absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center text-center font-bold leading-tight'>
+            <div className='absolute top-1/2 start-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center text-center font-bold leading-tight'>
               <span className='text-3xl'>
                 {event.guestResponses.attending + event.guestResponses.declined}
               </span>
@@ -123,7 +123,7 @@ const AttendanceChart = ({ event, numInvitedGuests }: AttendanceChartProps) => {
               </div>
             </div>
           </div>
-          <div className='flex w-48 flex-col pr-4'>
+          <div className='flex w-48 flex-col pe-4'>
             <div className='flex items-center justify-between border-b'>
               <div className='flex items-center gap-3 py-3'>
                 <span className={`h-2 w-2 rounded-full bg-green-400`} />
@@ -183,14 +183,14 @@ const TextQuestionCard = ({ question }: { question: Question }) => {
   return (
     <div className='mb-4 flex h-full min-h-60 flex-col rounded-md border p-5'>
       <h5 className='font-semibold text-lg'>{question.text}</h5>
-      <div className='flex grow py-6 pl-5'>
-        <div className='flex items-center border-r text-center'>
-          <div className='flex flex-col pr-7'>
+      <div className='flex grow py-6 ps-5'>
+        <div className='flex items-center border-e text-center'>
+          <div className='flex flex-col pe-7'>
             <span className='text-3xl'>{question._count.answers}</span>
             <span className='text-sm'>Responded</span>
           </div>
         </div>
-        <div className='flex items-center pl-7'>
+        <div className='flex items-center ps-7'>
           {question._count.answers > 0 ? (
             <div className='flex h-full flex-col justify-between'>
               <span className='font-light'>Most Recent</span>
@@ -238,12 +238,12 @@ const OptionQuestionCard = ({ question }: { question: Question }) => {
       <div className='flex items-center justify-between gap-7'>
         <div className='relative h-full w-40'>
           <Doughnut data={getChartData()} options={chartOptions} />
-          <div className='absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center text-center font-bold leading-snug'>
+          <div className='absolute top-1/2 start-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center text-center font-bold leading-snug'>
             <span className='text-3xl'>{questionResponses}</span>
             <span className='text-xs'>responded</span>
           </div>
         </div>
-        <div className='flex w-48 flex-col pr-4'>
+        <div className='flex w-48 flex-col pe-4'>
           {question.options?.map((option, i) => {
             return (
               <div key={option.id} className='flex items-center justify-between border-b'>

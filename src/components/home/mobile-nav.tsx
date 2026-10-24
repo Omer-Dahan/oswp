@@ -56,7 +56,7 @@ export default function MobileNav({ links }: Readonly<MobileNavProps>) {
           role='dialog'
           aria-modal='true'
           aria-label='תפריט ניווט לנייד'
-          className='absolute top-full right-0 left-0 border-border border-b bg-background/98 px-6 py-5 backdrop-blur-md'
+          className='absolute top-full end-0 start-0 border-border border-b bg-background/98 px-6 py-5 backdrop-blur-md'
         >
           <ul className='flex flex-col gap-3'>
             {links.map(({ href, label, external }, index) => (

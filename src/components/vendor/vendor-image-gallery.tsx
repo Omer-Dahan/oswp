@@ -196,7 +196,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
                   sizes='(max-width: 768px) 33vw, 120px'
                 />
                 {image.isPrimary && (
-                  <div className='absolute left-1 top-1'>
+                  <div className='absolute start-1 top-1'>
                     <span className='rounded bg-primary/80 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary-foreground'>
                       שער
                     </span>

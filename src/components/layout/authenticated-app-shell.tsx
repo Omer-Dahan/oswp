@@ -98,7 +98,7 @@ export default function AuthenticatedAppShell(props: Readonly<AuthenticatedAppSh
         <div className='flex min-h-0 flex-1 overflow-hidden'>
           <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>{children}</div>
           {showEttaPanel && weddingId && isEttaPanelOpen && (
-            <aside className='hidden w-80 flex-shrink-0 border-white/10 border-l lg:flex lg:flex-col'>
+            <aside className='hidden w-80 flex-shrink-0 border-white/10 border-s lg:flex lg:flex-col'>
               <EttaChat weddingId={weddingId} persona='planner' isConfigured={isEttaConfigured} />
             </aside>
           )}
@@ -117,7 +117,7 @@ export default function AuthenticatedAppShell(props: Readonly<AuthenticatedAppSh
               onClick={toggleEttaPanel}
               aria-hidden='true'
             />
-            <aside className='relative ml-auto flex h-full w-full max-w-sm flex-col overflow-hidden'>
+            <aside className='relative ms-auto flex h-full w-full max-w-sm flex-col overflow-hidden'>
               <EttaChat
                 weddingId={weddingId}
                 persona='planner'

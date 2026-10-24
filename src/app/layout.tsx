@@ -86,7 +86,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang='en'
+      lang='he'
+      dir='rtl'
       suppressHydrationWarning
       className={`${cormorantGaramond.variable} ${dmMono.variable} ${instrumentSerif.variable} font-serif antialiased`}
     >

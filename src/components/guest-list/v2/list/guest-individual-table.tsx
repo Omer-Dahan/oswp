@@ -16,7 +16,7 @@ type GuestIndividualTableProps = {
 }
 
 const thClass =
-  'px-4 py-3 text-left font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
+  'px-4 py-3 text-start font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
 
 export const GuestIndividualTable = memo(function GuestIndividualTable({
   households,

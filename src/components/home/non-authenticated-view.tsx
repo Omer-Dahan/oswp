@@ -61,7 +61,11 @@ const stack = [
     name: 'PostgreSQL · Prisma v7',
     detail: 'ORM בטוח-טיפוסים · מביאים אירוח משלכם',
   },
-  { layer: 'Etta / בינה מלאכותית', name: 'Claude / OpenAI', detail: 'שימוש בכלים · פעולות אוטונומיות · מתחבר לכל ספק' },
+  {
+    layer: 'Etta / בינה מלאכותית',
+    name: 'Claude / OpenAI',
+    detail: 'שימוש בכלים · פעולות אוטונומיות · מתחבר לכל ספק',
+  },
   {
     layer: 'אימייל והזמנות',
     name: 'Resend · React Email',
@@ -115,13 +119,13 @@ export default function NonAuthenticatedView() {
 
       <div className='overflow-x-hidden bg-background text-foreground'>
         {/* ── NAV ─────────────────────────────────────────────── */}
-        <nav className='fixed top-0 right-0 left-0 z-50 flex items-center justify-between border-border border-b bg-background/90 px-6 py-4 backdrop-blur-md md:px-12'>
+        <nav className='fixed top-0 end-0 start-0 z-50 flex items-center justify-between border-border border-b bg-background/90 px-6 py-4 backdrop-blur-md md:px-12'>
           <Link
             href='/'
             className='flex items-center gap-1 font-medium font-mono text-[0.82rem] text-foreground uppercase tracking-[.2em]'
           >
             OSWP
-            <span className='ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-super' />
+            <span className='ms-0.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-super' />
           </Link>
 
           <ul className='hidden items-center gap-7 md:flex'>
@@ -158,8 +162,8 @@ export default function NonAuthenticatedView() {
               לנצח שלכם
             </h1>
             <p className='fu fu2 mt-6 max-w-md font-light font-serif text-[1.05rem] text-muted-foreground leading-[1.75]'>
-              פלטפורמת אירוח עצמי עם כל מה שהחתונה שלכם צריכה — הזמנות, אישורי הגעה, תכנון,
-              ו-Etta, מתכננת החתונה החכמה שלכם, חושבת איתכם בכל שלב.
+              פלטפורמת אירוח עצמי עם כל מה שהחתונה שלכם צריכה — הזמנות, אישורי הגעה, תכנון, ו-Etta,
+              מתכננת החתונה החכמה שלכם, חושבת איתכם בכל שלב.
             </p>
             <div className='fu fu3 mt-10 flex flex-wrap items-center gap-5'>
               <Link
@@ -191,7 +195,7 @@ export default function NonAuthenticatedView() {
               <div className='px-5 py-5 font-mono text-[0.74rem] leading-[1.9]'>
                 <p className='text-white/25'># פרסו את פלטפורמת החתונה שלכם</p>
                 <p className='mt-2'>
-                  <span className='mr-2 text-white/20'>›</span>
+                  <span className='me-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>npx</span>{' '}
                   <span className='text-[#98C379]'>create-oswp-app</span>
                 </p>
@@ -199,7 +203,7 @@ export default function NonAuthenticatedView() {
                 <p className='text-white/55'>{'  '}✦ מגדירים את מנוע ההזמנות</p>
                 <p className='text-white/55'>{'  '}✦ מחברים webhooks לאישורי הגעה</p>
                 <p className='mt-2'>
-                  <span className='mr-2 text-white/20'>›</span>
+                  <span className='me-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>oswp</span>{' '}
                   <span className='text-[#98C379]'>invite</span>{' '}
                   <span className='text-[#C678DD]'>--template botanical</span>
@@ -207,7 +211,7 @@ export default function NonAuthenticatedView() {
                 <p className='text-[#61AFEF]'>{'  '}→ נוספו 127 אורחים</p>
                 <p className='text-[#61AFEF]'>{'  '}→ נוצרו קישורים אישיים</p>
                 <p className='mt-2'>
-                  <span className='mr-2 text-white/20'>›</span>
+                  <span className='me-2 text-white/20'>›</span>
                   <span className='text-[#E5C07B]'>etta</span>{' '}
                   <span className='text-[#C678DD]'>״מי עוד לא אישר הגעה?״</span>
                 </p>
@@ -231,7 +235,7 @@ export default function NonAuthenticatedView() {
             ].map(({ n, label }, i) => (
               <div
                 key={label}
-                className={`flex flex-1 basis-1/2 items-baseline gap-2.5 px-6 py-6 md:basis-0 ${i < 3 ? 'border-border border-r' : ''}`}
+                className={`flex flex-1 basis-1/2 items-baseline gap-2.5 px-6 py-6 md:basis-0 ${i < 3 ? 'border-border border-e' : ''}`}
               >
                 <span className='font-serif text-[2rem] leading-none'>{n}</span>
                 <span className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-[.12em]'>
@@ -261,7 +265,7 @@ export default function NonAuthenticatedView() {
                   key={f.n}
                   className='group relative overflow-hidden bg-background px-8 py-10 transition-colors hover:bg-muted/50'
                 >
-                  <span className='pointer-events-none absolute top-4 right-5 font-serif text-[4.5rem] text-foreground/[.04] leading-none transition-colors group-hover:text-primary/[.07]'>
+                  <span className='pointer-events-none absolute top-4 end-5 font-serif text-[4.5rem] text-foreground/[.04] leading-none transition-colors group-hover:text-primary/[.07]'>
                     {f.n}
                   </span>
                   <span className='mb-5 block text-[1.35rem]'>{f.icon}</span>
@@ -296,9 +300,9 @@ export default function NonAuthenticatedView() {
                 <em className='text-gold italic'>החכמה שלכם, Etta</em>
               </h2>
               <p className='mt-6 max-w-md font-light font-serif text-[1rem] text-background/60 leading-[1.75]'>
-                Etta היא מתכננת החתונה המובנית של OSWP, מבוססת בינה מלאכותית. היא חיה בתוך
-                נתוני התכנון שלכם, מכירה את החתונה שלכם מקצה לקצה, ויכולה לבצע פעולות בעצמה —
-                לא רק לענות על שאלות.
+                Etta היא מתכננת החתונה המובנית של OSWP, מבוססת בינה מלאכותית. היא חיה בתוך נתוני
+                התכנון שלכם, מכירה את החתונה שלכם מקצה לקצה, ויכולה לבצע פעולות בעצמה — לא רק לענות
+                על שאלות.
               </p>
               <ul className='mt-8 flex flex-col gap-3.5'>
                 {ettaExamples.map((q) => (
@@ -321,11 +325,11 @@ export default function NonAuthenticatedView() {
                 </div>
                 <div>
                   <span className='font-serif text-[0.95rem] text-background/95 italic'>Etta</span>
-                  <span className='ml-1.5 font-mono text-[0.57rem] text-background/35 tracking-[.08em]'>
+                  <span className='ms-1.5 font-mono text-[0.57rem] text-background/35 tracking-[.08em]'>
                     · OSWP AI Planner
                   </span>
                 </div>
-                <div className='ml-auto flex items-center gap-1.5 font-mono text-[0.57rem] text-emerald-400'>
+                <div className='ms-auto flex items-center gap-1.5 font-mono text-[0.57rem] text-emerald-400'>
                   <span className='status-dot h-1.5 w-1.5 rounded-full bg-emerald-400' />
                   מחוברת
                 </div>
@@ -333,39 +337,35 @@ export default function NonAuthenticatedView() {
 
               <div className='flex flex-col gap-4 p-5'>
                 <div>
-                  <div className='ml-auto max-w-[85%] rounded rounded-br-none bg-white/[.07] px-4 py-3 font-serif text-[0.84rem] text-background/80 italic leading-relaxed'>
+                  <div className='ms-auto max-w-[85%] rounded rounded-ee-none bg-white/[.07] px-4 py-3 font-serif text-[0.84rem] text-background/80 italic leading-relaxed'>
                     "נשארו 3 שבועות. מה הכי דחוף?"
                   </div>
-                  <p className='mt-1 text-right font-mono text-[0.57rem] text-background/25'>
+                  <p className='mt-1 text-end font-mono text-[0.57rem] text-background/25'>
                     אתם · הרגע
                   </p>
                 </div>
                 <div>
-                  <div className='mr-auto max-w-[85%] rounded rounded-bl-none border border-gold/20 bg-gold/10 px-4 py-3 font-serif text-[0.84rem] text-background/80 leading-relaxed'>
-                    בוחנת את ציר הזמן שלכם — 3 דברים דורשים התייחסות: כמות המוזמנים לקייטרינג
-                    נדרשת ביום שישי, 12 אורחים לא אישרו הגעה, והמקדמה לארוחת החזרה מאוחרת ב-4
-                    ימים. רוצים שאטפל באחד מהם?
+                  <div className='me-auto max-w-[85%] rounded rounded-es-none border border-gold/20 bg-gold/10 px-4 py-3 font-serif text-[0.84rem] text-background/80 leading-relaxed'>
+                    בוחנת את ציר הזמן שלכם — 3 דברים דורשים התייחסות: כמות המוזמנים לקייטרינג נדרשת
+                    ביום שישי, 12 אורחים לא אישרו הגעה, והמקדמה לארוחת החזרה מאוחרת ב-4 ימים. רוצים
+                    שאטפל באחד מהם?
                   </div>
-                  <p className='mt-1 font-mono text-[0.57rem] text-background/25'>
-                    Etta · הרגע
-                  </p>
+                  <p className='mt-1 font-mono text-[0.57rem] text-background/25'>Etta · הרגע</p>
                 </div>
                 <div>
-                  <div className='ml-auto max-w-[85%] rounded rounded-br-none bg-white/[.07] px-4 py-3 font-serif text-[0.84rem] text-background/80 italic leading-relaxed'>
+                  <div className='ms-auto max-w-[85%] rounded rounded-ee-none bg-white/[.07] px-4 py-3 font-serif text-[0.84rem] text-background/80 italic leading-relaxed'>
                     "כן, תזכירי לאורחים ותסמני את המקדמה."
                   </div>
-                  <p className='mt-1 text-right font-mono text-[0.57rem] text-background/25'>
+                  <p className='mt-1 text-end font-mono text-[0.57rem] text-background/25'>
                     אתם · הרגע
                   </p>
                 </div>
                 <div>
-                  <div className='mr-auto max-w-[85%] rounded rounded-bl-none border border-gold/20 bg-gold/10 px-4 py-3 font-serif text-[0.84rem] text-background/80 leading-relaxed'>
-                    שלחתי תזכורות ל-12 אורחים עם ההודעה המותאמת שלכם. שלחתי במייל תזכורת למקדמה
-                    של Rosewood — להוסיף אותה ללוח הדחוף שלכם?
+                  <div className='me-auto max-w-[85%] rounded rounded-es-none border border-gold/20 bg-gold/10 px-4 py-3 font-serif text-[0.84rem] text-background/80 leading-relaxed'>
+                    שלחתי תזכורות ל-12 אורחים עם ההודעה המותאמת שלכם. שלחתי במייל תזכורת למקדמה של
+                    Rosewood — להוסיף אותה ללוח הדחוף שלכם?
                   </div>
-                  <p className='mt-1 font-mono text-[0.57rem] text-background/25'>
-                    Etta · הרגע
-                  </p>
+                  <p className='mt-1 font-mono text-[0.57rem] text-background/25'>Etta · הרגע</p>
                 </div>
               </div>
 
@@ -402,8 +402,8 @@ export default function NonAuthenticatedView() {
               </h2>
             </div>
             <p className='font-light font-serif text-[0.95rem] text-muted-foreground leading-[1.75]'>
-              OSWP היא אפליקציית Next.js 15 לאירוח עצמי עם API מבוסס tRPC בטוח-טיפוסים. מביאים
-              מסד נתונים, ענן וספק בינה מלאכותית משלכם. הכול מודולרי, מתועד, ומוכן להרחבה.
+              OSWP היא אפליקציית Next.js 15 לאירוח עצמי עם API מבוסס tRPC בטוח-טיפוסים. מביאים מסד
+              נתונים, ענן וספק בינה מלאכותית משלכם. הכול מודולרי, מתועד, ומוכן להרחבה.
             </p>
           </div>
 

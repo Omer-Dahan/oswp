@@ -77,14 +77,14 @@ function ExpenseTable({
       <table className='w-full min-w-[580px] border-collapse text-sm'>
         <caption className='sr-only'>הוצאות עבור {category.name}</caption>
         <thead>
-          <tr className='border-border/60 border-b bg-muted/40 text-left font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
+          <tr className='border-border/60 border-b bg-muted/40 text-start font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest'>
             <th scope='col' className='px-5 py-4 font-normal'>
               הוצאה
             </th>
-            <th scope='col' className='px-3 py-4 text-right font-normal'>
+            <th scope='col' className='px-3 py-4 text-end font-normal'>
               משוער
             </th>
-            <th scope='col' className='px-3 py-4 text-right font-normal'>
+            <th scope='col' className='px-3 py-4 text-end font-normal'>
               בפועל
             </th>
             <th scope='col' className='px-3 py-4 font-normal'>
@@ -131,10 +131,10 @@ function ExpenseTable({
                     </p>
                   ) : null}
                 </td>
-                <td className='whitespace-nowrap px-3 py-5 text-right font-mono text-muted-foreground text-xs tabular-nums'>
+                <td className='whitespace-nowrap px-3 py-5 text-end font-mono text-muted-foreground text-xs tabular-nums'>
                   {formatCurrency(expense.estimatedAmount, currency)}
                 </td>
-                <td className='whitespace-nowrap px-3 py-5 text-right font-mono text-foreground text-xs tabular-nums'>
+                <td className='whitespace-nowrap px-3 py-5 text-end font-mono text-foreground text-xs tabular-nums'>
                   {formatCurrency(expense.amount, currency)}
                 </td>
                 <td className='px-3 py-5'>
@@ -186,13 +186,13 @@ function ExpenseTable({
         </tbody>
         <tfoot>
           <tr className='bg-muted/40 font-mono text-xs'>
-            <th scope='row' className='px-5 py-5 text-left font-normal'>
+            <th scope='row' className='px-5 py-5 text-start font-normal'>
               סה״כ סעיף
             </th>
-            <td className='whitespace-nowrap px-3 py-5 text-right tabular-nums'>
+            <td className='whitespace-nowrap px-3 py-5 text-end tabular-nums'>
               {formatCurrency(category.totals.estimatedTotal, currency)}
             </td>
-            <td className='whitespace-nowrap px-3 py-5 text-right tabular-nums'>
+            <td className='whitespace-nowrap px-3 py-5 text-end tabular-nums'>
               {formatCurrency(category.totals.actualSpend, currency)}
             </td>
             <td colSpan={2} className='px-3 py-5 text-success'>
@@ -309,8 +309,8 @@ export function CategoryCard({ category, currency }: Readonly<CategoryCardProps>
         </div>
         {totals.refundableDeposits > 0 ? (
           <p className='mt-4 text-muted-foreground text-xs'>
-            {formatCurrency(totals.refundableDeposits, currency)} בפיקדונות הניתנים להחזר אינם נכללים
-            בהוצאה נטו
+            {formatCurrency(totals.refundableDeposits, currency)} בפיקדונות הניתנים להחזר אינם
+            נכללים בהוצאה נטו
             {totals.outstandingDeposits > 0
               ? ` · ${formatCurrency(totals.outstandingDeposits, currency)} טרם הוחזרו`
               : ''}

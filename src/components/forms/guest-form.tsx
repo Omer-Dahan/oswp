@@ -245,7 +245,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
       <form className='flex h-full flex-col' onSubmit={handleSubmit(onSubmit)}>
         {/* Header */}
         <div className='flex items-center justify-between border-b bg-background p-6'>
-          <h1 className='mr-4 truncate font-bold text-2xl'>{getTitle()}</h1>
+          <h1 className='me-4 truncate font-bold text-2xl'>{getTitle()}</h1>
           <button
             type='button'
             onClick={handleRequestClose}

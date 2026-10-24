@@ -111,7 +111,7 @@ function SidebarNav({
   userInitials,
 }: SidebarNavProps) {
   return (
-    <div className='flex h-full min-h-0 flex-col overflow-hidden border-sidebar-border border-r bg-sidebar'>
+    <div className='flex h-full min-h-0 flex-col overflow-hidden border-sidebar-border border-e bg-sidebar'>
       {/* Header: logo + collapse toggle */}
       <div
         className={`flex items-center border-sidebar-border border-b py-4 ${
@@ -119,7 +119,7 @@ function SidebarNav({
             ? 'justify-center px-2'
             : showCollapseToggle
               ? 'justify-between px-4'
-              : 'justify-between px-4 pr-14'
+              : 'justify-between px-4 pe-14'
         }`}
       >
         {!isCollapsed && (
@@ -163,7 +163,7 @@ function SidebarNav({
             >
               <svg
                 aria-hidden='true'
-                className='h-4 w-4'
+                className='h-4 w-4 rtl:rotate-180'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -370,7 +370,7 @@ export default function SidebarNavFrame(props: SidebarNavFrameProps) {
               type='button'
               aria-label='Close menu'
               onClick={() => setIsOpen(false)}
-              className='absolute top-2 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-foreground/[0.06] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar'
+              className='absolute top-2 end-3 z-10 flex h-9 w-9 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-foreground/[0.06] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar'
             >
               <svg
                 aria-hidden='true'

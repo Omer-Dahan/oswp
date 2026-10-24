@@ -267,7 +267,7 @@ function QuoteFileUploader({
                   type='button'
                   aria-label={`Remove ${file.name}`}
                   onClick={() => removeFile(index)}
-                  className='ml-2 shrink-0 text-muted-foreground hover:text-destructive'
+                  className='ms-2 shrink-0 text-muted-foreground hover:text-destructive'
                 >
                   ✕
                 </button>
@@ -438,17 +438,17 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
           <DialogPrimitive.Content
             className={cn(
               `fixed inset-0 z-50 flex h-screen w-screen max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden p-0 pb-0 outline-none ${SIDE_PANE_SURFACE_CLASS}`,
-              `md:inset-y-0 md:right-0 md:left-auto md:h-full md:translate-x-0 md:translate-y-0 md:p-6 ${SIDE_PANE_DIALOG_WIDTH_CLASS}`
+              `md:inset-y-0 md:end-0 md:start-auto md:h-full md:translate-x-0 md:translate-y-0 md:p-6 ${SIDE_PANE_DIALOG_WIDTH_CLASS}`
             )}
           >
             <DialogClose
               aria-label='סגירת פרטי הספק'
-              className='absolute top-4 right-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+              className='absolute top-4 end-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             >
               <X className='h-4 w-4' aria-hidden='true' />
             </DialogClose>
 
-            <header className='border-border/80 border-b px-5 py-5 pr-14 md:px-6'>
+            <header className='border-border/80 border-b px-5 py-5 pe-14 md:px-6'>
               <DialogTitle className='font-display text-2xl text-foreground italic leading-tight'>
                 {enrichedVendor.name}
               </DialogTitle>
@@ -758,7 +758,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                                         </p>
                                       ) : null}
                                     </div>
-                                    <div className='ml-4 flex items-center gap-2'>
+                                    <div className='ms-4 flex items-center gap-2'>
                                       <button
                                         type='button'
                                         className='font-mono text-[0.58rem] text-muted-foreground uppercase tracking-wider hover:text-primary'
@@ -793,7 +793,7 @@ export function VendorDetailPanel({ vendor, currency, onClose }: VendorDetailPan
                                                 onClick={() =>
                                                   setViewingPdf({ name: file.name, url: file.url })
                                                 }
-                                                className='min-w-0 flex-1 truncate text-left font-sans text-[0.85rem] text-primary hover:underline'
+                                                className='min-w-0 flex-1 truncate text-start font-sans text-[0.85rem] text-primary hover:underline'
                                               >
                                                 {file.name}
                                               </button>

@@ -137,9 +137,7 @@ function EventCardBase({
                 <div className='mt-1.5 flex items-center gap-1 border-border/50 border-t pt-1.5 text-xs'>
                   <div className='h-2 w-2 rounded-full bg-muted-foreground/60' />
                   <span className='font-medium'>~{event.estimatedAttendance}</span>
-                  <span className='text-muted-foreground'>
-                    מתוך {totalInvited} צפויים להגיע
-                  </span>
+                  <span className='text-muted-foreground'>מתוך {totalInvited} צפויים להגיע</span>
                 </div>
               )}
             </div>
@@ -152,7 +150,7 @@ function EventCardBase({
               className='text-xs md:text-sm'
               onClick={() => onManageGuests(event.id)}
             >
-              <Users className='h-3.5 w-3.5 md:mr-1' />
+              <Users className='h-3.5 w-3.5 md:me-1' />
               <span className='hidden md:inline'>ניהול מוזמנים</span>
               <span className='md:hidden'>מוזמנים</span>
             </Button>
@@ -170,18 +168,18 @@ function EventCardBase({
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end'>
                 <DropdownMenuItem onClick={() => onManageQuestions(event.id)}>
-                  <ClipboardList className='mr-2 h-3.5 w-3.5' />
+                  <ClipboardList className='me-2 h-3.5 w-3.5' />
                   שאלות אישור הגעה
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(event.id)}>
-                  <Pencil className='mr-2 h-3.5 w-3.5' />
+                  <Pencil className='me-2 h-3.5 w-3.5' />
                   עריכה
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className='text-destructive focus:text-destructive'
                   onClick={() => onDelete(event.id)}
                 >
-                  <Trash2 className='mr-2 h-3.5 w-3.5' />
+                  <Trash2 className='me-2 h-3.5 w-3.5' />
                   מחיקה
                 </DropdownMenuItem>
               </DropdownMenuContent>

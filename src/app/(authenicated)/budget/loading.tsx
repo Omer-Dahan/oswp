@@ -34,7 +34,7 @@ export default function BudgetLoading() {
 
         <Skeleton className='mb-8 h-36 w-full rounded-lg' />
         <div className='grid overflow-hidden rounded-lg border border-border/70 bg-card/65 xl:grid-cols-[minmax(245px,30%)_minmax(0,1fr)]'>
-          <div className='border-border/70 border-b p-4 xl:border-r xl:border-b-0'>
+          <div className='border-border/70 border-b p-4 xl:border-e xl:border-b-0'>
             <Skeleton className='mb-5 h-8 w-28' />
             {['a', 'b', 'c'].map((id) => (
               <div key={`budget-category-loading-${id}`} className='border-border/70 border-b'>

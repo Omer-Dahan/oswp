@@ -54,7 +54,7 @@ function ThinkingBlock({ text, state }: { text: string; state?: 'streaming' | 'd
       <button
         type='button'
         onClick={() => setExpanded((v) => !v)}
-        className='flex w-full items-center gap-2 px-2.5 py-1.5 text-left font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest transition-colors hover:text-muted-foreground'
+        className='flex w-full items-center gap-2 px-2.5 py-1.5 text-start font-mono text-[0.6rem] text-muted-foreground uppercase tracking-widest transition-colors hover:text-muted-foreground'
       >
         {isStreaming ? (
           <span className='h-1.5 w-1.5 rounded-full bg-amber-400 motion-safe:animate-pulse' />
@@ -212,8 +212,8 @@ export function EttaChat({ persona, guestToken, isConfigured = true, onClose }: 
             <div
               className={`max-w-[88%] rounded px-3 py-2 font-serif text-[0.82rem] leading-relaxed ${
                 msg.role === 'assistant'
-                  ? 'flex flex-col gap-2 rounded-tl-none bg-sidebar-foreground/[0.08] text-sidebar-foreground'
-                  : 'rounded-tr-none border border-primary/35 bg-primary/25 text-sidebar-foreground italic'
+                  ? 'flex flex-col gap-2 rounded-ss-none bg-sidebar-foreground/[0.08] text-sidebar-foreground'
+                  : 'rounded-se-none border border-primary/35 bg-primary/25 text-sidebar-foreground italic'
               }`}
             >
               {msg.role === 'assistant' ? (
@@ -230,7 +230,7 @@ export function EttaChat({ persona, guestToken, isConfigured = true, onClose }: 
 
         {isLoading && messages.at(-1)?.role !== 'assistant' && (
           <div className='flex items-start'>
-            <div className='rounded rounded-tl-none bg-sidebar-foreground/[0.08] px-3 py-2 font-serif text-[0.82rem] text-sidebar-foreground/80 italic'>
+            <div className='rounded rounded-ss-none bg-sidebar-foreground/[0.08] px-3 py-2 font-serif text-[0.82rem] text-sidebar-foreground/80 italic'>
               <span className='inline-flex gap-1'>
                 <span className='animate-bounce'>·</span>
                 <span className='animate-bounce [animation-delay:150ms]'>·</span>
@@ -249,7 +249,7 @@ export function EttaChat({ persona, guestToken, isConfigured = true, onClose }: 
               key={s}
               type='button'
               onClick={() => handleSuggestionClick(s)}
-              className='min-h-[44px] rounded border border-sidebar-border bg-sidebar-foreground/[0.04] px-3 py-2 text-left font-mono text-[0.58rem] text-muted-foreground tracking-wider transition-all hover:border-primary/30 hover:bg-primary/[0.06] hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar'
+              className='min-h-[44px] rounded border border-sidebar-border bg-sidebar-foreground/[0.04] px-3 py-2 text-start font-mono text-[0.58rem] text-muted-foreground tracking-wider transition-all hover:border-primary/30 hover:bg-primary/[0.06] hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar'
             >
               &ldquo;{s}&rdquo;
             </button>

@@ -9,7 +9,7 @@ export default async function JoinLayout({ children }: { children: React.ReactNo
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <div className='fixed top-4 right-4 z-10'>
+      <div className='fixed top-4 end-4 z-10'>
         <LocaleToggle />
       </div>
       {children}

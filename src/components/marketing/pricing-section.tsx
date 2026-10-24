@@ -51,8 +51,8 @@ export default function PricingSection({ sectionId }: PricingSectionProps) {
         <em className='text-primary italic'>או תנו לנו לטפל בזה.</em>
       </h2>
       <p className='mt-5 max-w-xl font-light font-serif text-[1rem] text-muted-foreground leading-[1.75]'>
-        הריצו את OSWP על התשתית שלכם לתמיד, או בחרו בענן המנוהל שלנו — בלי תפעול, בלי
-        תחזוקה, רק החתונה שלכם.
+        הריצו את OSWP על התשתית שלכם לתמיד, או בחרו בענן המנוהל שלנו — בלי תפעול, בלי תחזוקה, רק
+        החתונה שלכם.
       </p>
 
       <div className='mt-14 overflow-hidden rounded border border-border bg-border'>
@@ -100,7 +100,7 @@ export default function PricingSection({ sectionId }: PricingSectionProps) {
           </div>
 
           <div className='relative flex flex-col bg-foreground px-8 py-9 text-background'>
-            <div className='absolute top-0 right-0 left-0 h-0.5 bg-gradient-to-r from-primary to-gold' />
+            <div className='absolute top-0 end-0 start-0 h-0.5 bg-gradient-to-r from-primary to-gold' />
             <p className='mb-5 font-mono text-[0.57rem] text-gold uppercase tracking-[.18em]'>
               Couple
             </p>
@@ -111,8 +111,7 @@ export default function PricingSection({ sectionId }: PricingSectionProps) {
               </span>
             </div>
             <p className='mb-6 min-h-[3.5rem] font-light font-serif text-[0.88rem] text-background/55 leading-relaxed'>
-              מנוהל במלואו. אנחנו מטפלים בשרתים, בגיבויים ובעדכונים כדי שתוכלו להתמקד
-              בחתונה.
+              מנוהל במלואו. אנחנו מטפלים בשרתים, בגיבויים ובעדכונים כדי שתוכלו להתמקד בחתונה.
             </p>
             <div className='my-5 h-px bg-white/10' />
             <ul className='mb-8 flex flex-1 flex-col gap-3'>
@@ -150,8 +149,7 @@ export default function PricingSection({ sectionId }: PricingSectionProps) {
               </span>
             </div>
             <p className='mb-6 min-h-[3.5rem] font-light font-serif text-[0.88rem] text-muted-foreground leading-relaxed'>
-              למתכננות ומתכננים שמנהלים כמה זוגות. לוח בקרה אחד, אירועים מרובים, מוכן
-              ל-White-label.
+              למתכננות ומתכננים שמנהלים כמה זוגות. לוח בקרה אחד, אירועים מרובים, מוכן ל-White-label.
             </p>
             <div className='my-5 h-px bg-border' />
             <ul className='mb-8 flex flex-1 flex-col gap-3'>
@@ -175,8 +173,7 @@ export default function PricingSection({ sectionId }: PricingSectionProps) {
       </div>
 
       <p className='mt-12 text-center font-mono text-[0.63rem] text-muted-foreground leading-[1.9] tracking-[.04em]'>
-        OSWP זמינה בקוד פתוח תחת רישיון FSL-1.1, אירוח עצמי חינם לתמיד, זכויות אירוח מסחרי
-        שמורות.
+        OSWP זמינה בקוד פתוח תחת רישיון FSL-1.1, אירוח עצמי חינם לתמיד, זכויות אירוח מסחרי שמורות.
         <br />
         אירוח הענן הוא איך שאנחנו מממנים פיתוח מתמשך.{' '}
         <a

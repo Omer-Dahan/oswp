@@ -17,7 +17,7 @@ export default function DateInput({ eventDate, handleOnChange }: DateInputProps)
       />
       <label
         htmlFor='event-date'
-        className='absolute start-1 top-2 left-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 peer-focus:text-primary'
+        className='absolute top-2 start-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 peer-focus:text-primary'
       >
         תאריך
       </label>

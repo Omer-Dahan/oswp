@@ -33,7 +33,7 @@ export default function TimeSelections({
           className='flex w-full cursor-pointer items-center justify-between p-3'
         >
           <span
-            className={`absolute start-1 top-2 left-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 ${showStartTimes && 'text-primary'}`}
+            className={`absolute top-2 start-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 ${showStartTimes && 'text-primary'}`}
           >
             שעת התחלה
           </span>
@@ -57,7 +57,7 @@ export default function TimeSelections({
           className='flex w-full cursor-pointer items-center justify-between p-3'
         >
           <span
-            className={`absolute start-1 top-2 left-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 ${showEndTimes && 'text-primary'}`}
+            className={`absolute top-2 start-2 z-10 origin-[0] -translate-y-5 scale-75 bg-background px-2 ${showEndTimes && 'text-primary'}`}
           >
             שעת סיום
           </span>
@@ -93,14 +93,14 @@ const TimeDropdown = ({ isOpen, field, selectedTime, handleOnChange }: TimeDropd
 
   return (
     <div
-      className={`absolute top-12 left-0 z-20 h-60 w-full overflow-auto rounded-lg border border-primary bg-background ${isOpen ?? 'border-primary'}`}
+      className={`absolute top-12 start-0 z-20 h-60 w-full overflow-auto rounded-lg border border-primary bg-background ${isOpen ?? 'border-primary'}`}
     >
       <ul>
         {times.map((time) => (
           <li key={time}>
             <button
               type='button'
-              className={`w-full p-4 text-left text-lg hover:bg-primary/10 hover:underline ${selectedTime === time && `selected-${field} bg-primary/10 font-bold`}`}
+              className={`w-full p-4 text-start text-lg hover:bg-primary/10 hover:underline ${selectedTime === time && `selected-${field} bg-primary/10 font-bold`}`}
               onClick={() => handleOnChange({ field, inputValue: time })}
             >
               {time}

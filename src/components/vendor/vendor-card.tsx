@@ -167,7 +167,7 @@ export function VendorCard({
             </button>
             <div
               id={ratingsPanelId}
-              className={`absolute right-0 z-20 mt-1 w-44 rounded border border-border bg-popover p-2 shadow-sm ${
+              className={`absolute end-0 z-20 mt-1 w-44 rounded border border-border bg-popover p-2 shadow-sm ${
                 showRatingsBreakdown ? 'block' : 'hidden'
               }`}
             >

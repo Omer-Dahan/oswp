@@ -27,10 +27,10 @@ export function TelegramConnectCard() {
   const revokeIdentity = api.messaging.revokeIdentity.useMutation({
     onSuccess: () => {
       void linkedChats.refetch()
-      toast.success('הצ\'אט ב-Telegram נותק')
+      toast.success("הצ'אט ב-Telegram נותק")
     },
     onError: () => {
-      toast.error('ניתוק הצ\'אט ב-Telegram נכשל')
+      toast.error("ניתוק הצ'אט ב-Telegram נכשל")
     },
   })
 
@@ -40,8 +40,8 @@ export function TelegramConnectCard() {
         <div>
           <h4 className='font-medium text-foreground'>Telegram</h4>
           <p className='mt-1 text-muted-foreground text-xs'>
-            שלחו הודעה ל-Etta בטלגרם. העבירו קבצי PDF של הצעות מחיר מספקים והיא תחלץ את
-            הפרטים. אשרו שינויים מלוח הבקרה באתר.
+            שלחו הודעה ל-Etta בטלגרם. העבירו קבצי PDF של הצעות מחיר מספקים והיא תחלץ את הפרטים. אשרו
+            שינויים מלוח הבקרה באתר.
           </p>
         </div>
         <Button
@@ -51,7 +51,7 @@ export function TelegramConnectCard() {
           onClick={() => createPairingToken.mutate({ channel: 'telegram' })}
           disabled={createPairingToken.isPending}
         >
-          <Link2 className='mr-2 h-3.5 w-3.5' aria-hidden='true' />
+          <Link2 className='me-2 h-3.5 w-3.5' aria-hidden='true' />
           חיבור ל-Telegram
         </Button>
       </div>

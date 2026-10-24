@@ -45,12 +45,10 @@ export function TemplatePicker({ templates, currentTemplateId }: TemplatePickerP
         <p className='font-mono text-[0.62rem] text-foreground/45 uppercase tracking-[0.18em]'>
           תבנית
         </p>
-        <CardTitle className='font-serif text-2xl text-foreground'>
-          בחרו מראה לחתונה שלכם
-        </CardTitle>
+        <CardTitle className='font-serif text-2xl text-foreground'>בחרו מראה לחתונה שלכם</CardTitle>
         <p className='max-w-2xl font-sans text-muted-foreground text-sm leading-6'>
-          התבנית מעצבת את כל חוויית האורחים — אתר, ״שמרו את התאריך״, הזמנה ואישור הגעה — בפלטת
-          צבעים וטיפוגרפיה אחידות. אפשר להחליף בכל עת.
+          התבנית מעצבת את כל חוויית האורחים — אתר, ״שמרו את התאריך״, הזמנה ואישור הגעה — בפלטת צבעים
+          וטיפוגרפיה אחידות. אפשר להחליף בכל עת.
         </p>
       </CardHeader>
       <CardContent>
@@ -65,7 +63,7 @@ export function TemplatePicker({ templates, currentTemplateId }: TemplatePickerP
                 disabled={updateTemplate.isPending}
                 onClick={() => selectTemplate(template.id)}
                 className={cn(
-                  'group relative flex flex-col gap-3 rounded-[10px] border bg-background/70 p-4 text-left transition-colors',
+                  'group relative flex flex-col gap-3 rounded-[10px] border bg-background/70 p-4 text-start transition-colors',
                   isSelected
                     ? 'border-primary ring-1 ring-primary'
                     : 'border-border/80 hover:border-primary/60',
@@ -73,7 +71,7 @@ export function TemplatePicker({ templates, currentTemplateId }: TemplatePickerP
                 )}
               >
                 {isSelected ? (
-                  <span className='absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground'>
+                  <span className='absolute top-3 end-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground'>
                     <Check aria-hidden='true' className='h-3 w-3' />
                   </span>
                 ) : null}

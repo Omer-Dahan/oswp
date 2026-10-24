@@ -158,12 +158,12 @@ export function ModernEventForm({
                 <Button
                   variant='outline'
                   className={cn(
-                    'w-full justify-start text-left font-normal',
+                    'w-full justify-start text-start font-normal',
                     !selectedDate && 'text-muted-foreground'
                   )}
                   disabled={isSubmitting}
                 >
-                  <CalendarIcon className='mr-2 h-4 w-4' />
+                  <CalendarIcon className='me-2 h-4 w-4' />
                   {selectedDate ? (
                     format(selectedDate, 'PPP')
                   ) : (
@@ -196,13 +196,13 @@ export function ModernEventForm({
                 שעת התחלה
               </Label>
               <div className='relative'>
-                <Clock className='pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                <Clock className='pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                 <Input
                   id='startTime'
                   type='time'
                   {...register('startTime')}
                   disabled={isSubmitting}
-                  className='pl-10'
+                  className='ps-10'
                 />
               </div>
               {errors.startTime && (
@@ -215,13 +215,13 @@ export function ModernEventForm({
                 שעת סיום
               </Label>
               <div className='relative'>
-                <Clock className='pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                <Clock className='pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                 <Input
                   id='endTime'
                   type='time'
                   {...register('endTime')}
                   disabled={isSubmitting}
-                  className='pl-10'
+                  className='ps-10'
                 />
               </div>
               {errors.endTime && (

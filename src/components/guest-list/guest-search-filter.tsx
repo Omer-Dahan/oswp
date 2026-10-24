@@ -149,12 +149,12 @@ export default function GuestSearchFilter({
         <div className='relative flex items-center'>
           <Input
             id='search-guests-input'
-            className='w-64 pr-12 font-sans text-sm'
+            className='w-64 pe-12 font-sans text-sm'
             placeholder='חיפוש אורחים'
             value={searchInput}
             onChange={(e) => filterHouseholdsBySearch(e.target.value)}
           />
-          <div className='absolute right-0 flex h-full w-12 items-center justify-center rounded-r-md bg-primary'>
+          <div className='absolute end-0 flex h-full w-12 items-center justify-center rounded-e-md bg-primary'>
             <FaMagnifyingGlass className='text-primary-foreground' size={18} />
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function GuestSearchFilter({
               <IoIosArrowDown size={16} />
             </Button>
             {showInvitationDropdown && (
-              <div className='absolute top-full left-0 z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md'>
+              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md'>
                 {eventsToMap?.map(
                   (event) =>
                     event && (
@@ -231,7 +231,7 @@ export default function GuestSearchFilter({
               <IoIosArrowDown size={16} />
             </Button>
             {showTagDropdown && (
-              <div className='absolute top-full left-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
+              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
                 {allTags.length === 0 ? (
                   <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו תגיות</p>
                 ) : (
@@ -269,7 +269,7 @@ export default function GuestSearchFilter({
               <IoIosArrowDown size={16} />
             </Button>
             {showCountryDropdown && (
-              <div className='absolute top-full left-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
+              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
                 {availableCountries.length === 0 ? (
                   <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו מדינות</p>
                 ) : (

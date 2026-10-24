@@ -29,8 +29,8 @@ function BudgetEmptyState({ onAdd }: { onAdd: () => void }) {
       <div className='max-w-sm'>
         <p className='font-serif text-foreground text-xl'>התחילו את התקציב</p>
         <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
-          הגדירו יעד, חלקו אותו לסעיפים כמו אולם וקייטרינג, ועקבו אחר כל תשלום —
-          כולל פיקדונות הניתנים להחזר לאחר האירוע.
+          הגדירו יעד, חלקו אותו לסעיפים כמו אולם וקייטרינג, ועקבו אחר כל תשלום — כולל פיקדונות
+          הניתנים להחזר לאחר האירוע.
         </p>
       </div>
       <Button
@@ -88,7 +88,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
           <div className='grid min-w-0 overflow-hidden rounded-lg border border-border/70 bg-card/65 xl:grid-cols-[minmax(245px,30%)_minmax(0,1fr)]'>
             <nav
               aria-label='סעיפי תקציב'
-              className='min-w-0 border-border/70 border-b bg-background/60 xl:border-r xl:border-b-0'
+              className='min-w-0 border-border/70 border-b bg-background/60 xl:border-e xl:border-b-0'
             >
               <Button
                 type='button'
@@ -109,7 +109,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
                       aria-current={selected ? 'true' : undefined}
                       aria-controls='budget-category-detail'
                       onClick={() => setSelectedCategoryId(category.id)}
-                      className={`relative flex w-64 shrink-0 items-center gap-3 border-border/60 border-r px-4 py-5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset xl:w-full xl:border-r-0 xl:border-b ${selected ? 'bg-primary/[0.07] before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-primary' : 'hover:bg-muted/50'}`}
+                      className={`relative flex w-64 shrink-0 items-center gap-3 border-border/60 border-e px-4 py-5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset xl:w-full xl:border-e-0 xl:border-b ${selected ? 'bg-primary/[0.07] before:absolute before:inset-y-0 before:start-0 before:w-0.5 before:bg-primary' : 'hover:bg-muted/50'}`}
                     >
                       <span className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/80'>
                         <Layers className='h-4 w-4 text-muted-foreground' aria-hidden='true' />
@@ -127,7 +127,7 @@ export default function BudgetOverview({ initialOverview }: Readonly<BudgetOverv
                         {formatCurrency(category.totals.plannedAmount, currency)}
                       </span>
                       <ChevronRight
-                        className='h-3 w-3 shrink-0 text-muted-foreground'
+                        className='h-3 w-3 shrink-0 text-muted-foreground rtl:rotate-180'
                         aria-hidden='true'
                       />
                     </button>

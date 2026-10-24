@@ -158,7 +158,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
               type='button'
               aria-label='בחרו מדינה'
               disabled={disabled}
-              className='flex shrink-0 items-center gap-2 border-border border-r bg-muted/30 px-2.5 font-sans text-foreground text-sm transition-colors hover:bg-muted/50 focus-visible:outline-none disabled:cursor-not-allowed'
+              className='flex shrink-0 items-center gap-2 border-border border-e bg-muted/30 px-2.5 font-sans text-foreground text-sm transition-colors hover:bg-muted/50 focus-visible:outline-none disabled:cursor-not-allowed'
             >
               <span
                 aria-hidden='true'
@@ -180,14 +180,14 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
             }}
           >
             <div className='relative mb-1 px-0.5'>
-              <Search className='pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground' />
+              <Search className='pointer-events-none absolute top-1/2 start-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground' />
               <input
                 ref={searchInputRef}
                 type='text'
                 placeholder='חיפוש מדינות...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full rounded-[4px] border border-input bg-background py-1.5 pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring'
+                className='w-full rounded-[4px] border border-input bg-background py-1.5 pe-3 ps-8 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring'
               />
             </div>
             <div
@@ -209,7 +209,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                       aria-selected={isSelected}
                       onClick={() => handleCountryChange(option.code)}
                       className={cn(
-                        'flex w-full items-center gap-3 rounded-[6px] px-2.5 py-2 text-left font-sans text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+                        'flex w-full items-center gap-3 rounded-[6px] px-2.5 py-2 text-start font-sans text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
                         isSelected && 'bg-accent/60 text-accent-foreground'
                       )}
                     >

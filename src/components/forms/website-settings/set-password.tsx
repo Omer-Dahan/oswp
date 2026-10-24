@@ -38,16 +38,16 @@ export default function SetPasswordView({ setShowPasswordView, password }: SetPa
             className='cursor-pointer'
             onClick={() => setShowPasswordView(false)}
           >
-            <GoArrowLeft size={28} />
+            <GoArrowLeft size={28} className='rtl:rotate-180' />
           </button>
-          <span className='border-r'></span>
+          <span className='border-e'></span>
           <h1 className='font-bold text-2xl'>הגדרת סיסמה</h1>
         </div>
       </div>
       <div className='px-5 py-7'>
         <p className='mb-5 font-thin tracking-tight'>
-          הוסיפו סיסמה לאתר כדי לדעת מי שותף לתוכניות החתונה שלכם. בחרו סיסמה שקל לאורחים
-          לזכור (ולכם לשתף!).
+          הוסיפו סיסמה לאתר כדי לדעת מי שותף לתוכניות החתונה שלכם. בחרו סיסמה שקל לאורחים לזכור
+          (ולכם לשתף!).
         </p>
         <input
           placeholder='סיסמת אורחים'

@@ -43,7 +43,7 @@ export default function PageSectionsTemplate({
                 <IoIosArrowForward className='h-4 w-4' />
               )}
             </button>
-            <h2 className='ml-3 font-semibold font-serif text-lg'>{title}</h2>
+            <h2 className='ms-3 font-semibold font-serif text-lg'>{title}</h2>
           </div>
           <div className='flex items-center'>
             <Link href='/dashboard/preview'>
@@ -80,7 +80,7 @@ export default function PageSectionsTemplate({
               <div className='border-t p-5'>
                 <div className='flex cursor-pointer items-center'>
                   <AiOutlinePlusCircle size={20} className='text-primary' />
-                  <p className='pl-2 text-primary text-sm'>Add More to {title}</p>
+                  <p className='ps-2 text-primary text-sm'>Add More to {title}</p>
                 </div>
               </div>
             )}
@@ -107,7 +107,7 @@ const EditSectionMenu = ({
   return (
     <div
       ref={editSectionMenuRef}
-      className='absolute top-9 -left-32 z-20 flex w-48 flex-col rounded-md border bg-popover shadow-md'
+      className='absolute top-9 -start-32 z-20 flex w-48 flex-col rounded-md border bg-popover shadow-md'
     >
       {isRsvpSection ? (
         <>

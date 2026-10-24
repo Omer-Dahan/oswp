@@ -175,12 +175,12 @@ export function ManageEventGuestsDialog({
 
         <div className='space-y-3'>
           <div className='relative'>
-            <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground' />
+            <Search className='absolute top-2.5 start-2.5 h-4 w-4 text-muted-foreground' />
             <Input
               placeholder='חיפוש אורחים...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className='pl-9'
+              className='ps-9'
             />
           </div>
 
@@ -255,7 +255,7 @@ export function ManageEventGuestsDialog({
             onClick={handleSave}
             disabled={bulkUpdate.isPending || changedInvitations.length === 0}
           >
-            {bulkUpdate.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+            {bulkUpdate.isPending && <Loader2 className='me-2 h-4 w-4 animate-spin' />}
             {changedInvitations.length > 0
               ? `שמירה (${changedInvitations.length === 1 ? 'שינוי אחד' : `${changedInvitations.length} שינויים`})`
               : 'שמירה'}

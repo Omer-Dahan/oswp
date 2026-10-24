@@ -367,7 +367,7 @@ export function ChecklistPageClient({
                 type='button'
                 aria-label='סל הושלם'
                 aria-expanded={!collapsedBuckets.has('done')}
-                className='flex w-full items-center gap-3 text-left'
+                className='flex w-full items-center gap-3 text-start'
                 onClick={() => toggleBucket('done')}
               >
                 <h2 className='font-semibold text-foreground text-sm'>הושלם</h2>
@@ -400,7 +400,7 @@ export function ChecklistPageClient({
                 trigger={
                   <button
                     type='button'
-                    className='flex min-w-[200px] flex-col rounded-2xl border border-border/70 bg-card p-4 text-left shadow-sm transition-colors hover:border-primary/40'
+                    className='flex min-w-[200px] flex-col rounded-2xl border border-border/70 bg-card p-4 text-start shadow-sm transition-colors hover:border-primary/40'
                   >
                     <span className='text-muted-foreground text-xs'>
                       {TASK_CATEGORY_LABELS[milestone.category as TaskCategoryValue] ??
@@ -421,7 +421,7 @@ export function ChecklistPageClient({
                         {milestone.effectiveStatus === 'done' ? 'הושלם' : 'ממתין'}
                       </span>
                       {hasMilestoneOverrideDivergence(milestone) ? (
-                        <Badge variant='secondary' className='ml-auto text-[0.65rem]'>
+                        <Badge variant='secondary' className='ms-auto text-[0.65rem]'>
                           ⚠ עקיפה
                         </Badge>
                       ) : null}

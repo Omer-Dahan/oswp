@@ -173,12 +173,10 @@ export function HouseholdMembersModal(props: Readonly<HouseholdMembersModalProps
       <DialogContent className='max-w-2xl'>
         <DialogHeader>
           <DialogTitle>ניהול חברי משק הבית</DialogTitle>
-          <DialogDescription>
-            הוסיפו, עדכנו או הסירו אנשים במשק הבית לפני השמירה.
-          </DialogDescription>
+          <DialogDescription>הוסיפו, עדכנו או הסירו אנשים במשק הבית לפני השמירה.</DialogDescription>
         </DialogHeader>
 
-        <div className='max-h-[60vh] space-y-3 overflow-y-auto pr-1'>
+        <div className='max-h-[60vh] space-y-3 overflow-y-auto pe-1'>
           {draftMembers.map((member, index) => (
             <MemberRow
               key={member.id ?? `member-${index}`}

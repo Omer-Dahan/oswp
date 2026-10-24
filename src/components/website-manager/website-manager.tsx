@@ -112,8 +112,8 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
         לא פורסם
       </span>
       <p className='mt-3 text-foreground/75 text-sm leading-relaxed'>
-        פרסמו את אתר החתונה כדי לקבל עמוד ציבורי לאורחים. נדרש אתר מפורסם לפני שתוכלו לשתף
-        קישורי ״שמרו את התאריך״ מרשימת האורחים.
+        פרסמו את אתר החתונה כדי לקבל עמוד ציבורי לאורחים. נדרש אתר מפורסם לפני שתוכלו לשתף קישורי
+        ״שמרו את התאריך״ מרשימת האורחים.
       </p>
 
       <div className='mt-4 space-y-1.5'>
@@ -127,7 +127,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
               : 'border-destructive focus-within:ring-destructive'
           }`}
         >
-          <span className='whitespace-nowrap border-input border-r bg-muted/40 px-3 py-2 font-mono text-foreground/55 text-xs'>
+          <span className='whitespace-nowrap border-input border-e bg-muted/40 px-3 py-2 font-mono text-foreground/55 text-xs'>
             {previewHost}/w/
           </span>
           <Input
@@ -154,8 +154,7 @@ export function WebsiteManager({ initialWebsite, userEmail, defaultSubUrl }: Web
             className='flex items-center gap-1.5 rounded-sm border border-destructive/40 bg-destructive/10 px-2.5 py-1.5 font-medium text-destructive text-xs'
           >
             <AlertCircle className='h-3.5 w-3.5 shrink-0' aria-hidden='true' />
-            השתמשו באותיות, מספרים, מקפים וקווים תחתונים בלבד, ללא רווחים או תווים מיוחדים
-            אחרים.
+            השתמשו באותיות, מספרים, מקפים וקווים תחתונים בלבד, ללא רווחים או תווים מיוחדים אחרים.
           </p>
         )}
       </div>
