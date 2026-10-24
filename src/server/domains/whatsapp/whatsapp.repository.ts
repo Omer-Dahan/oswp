@@ -36,6 +36,7 @@ export type SendContext = {
   websiteSubUrl: string | null
   guest: { firstName: string } | null
   event: { name: string; date: Date | null } | null
+  template: { language: string; paramCount: number } | null
 }
 
 export type RecipientCandidate = {
@@ -312,7 +313,7 @@ export class WhatsAppRepository {
     const outbound = await this.db.whatsAppOutbound.findUnique({ where: { id: outboundId } })
     if (!outbound) return null
 
-    const [account, household, website, guest, event] = await Promise.all([
+    const [account, household, website, guest, event, template] = await Promise.all([
       this.db.whatsAppAccount.findUnique({ where: { weddingId: outbound.weddingId } }),
       outbound.householdId
         ? this.db.household.findUnique({
@@ -333,6 +334,11 @@ export class WhatsAppRepository {
             select: { name: true, date: true },
           })
         : Promise.resolve(null),
+      this.db.whatsAppTemplate.findFirst({
+        where: { weddingId: outbound.weddingId, name: outbound.templateName },
+        orderBy: { lastSyncedAt: 'desc' },
+        select: { language: true, paramCount: true },
+      }),
     ])
 
     return {
@@ -342,6 +348,7 @@ export class WhatsAppRepository {
       websiteSubUrl: website?.subUrl ?? null,
       guest,
       event,
+      template,
     }
   }
 
@@ -359,19 +366,43 @@ export class WhatsAppRepository {
     })
   }
 
-  /** Claims the oldest QUEUED row for this wedding by moving it to SENDING; null if the queue is empty. */
+  /**
+   * Claims the oldest QUEUED row for this wedding by moving it to SENDING;
+   * null if the queue is empty. The claim itself is a conditional
+   * `updateMany` (not a read-then-write) so two concurrent queue runners
+   * can't both claim the same row: only the update whose WHERE still matches
+   * `status: 'QUEUED'` at commit time affects a row.
+   */
   async claimNextQueued(weddingId: string): Promise<WhatsAppOutbound | null> {
-    return this.db.$transaction(async (tx) => {
-      const next = await tx.whatsAppOutbound.findFirst({
-        where: { weddingId, status: 'QUEUED' },
-        orderBy: { queuedAt: 'asc' },
-      })
-      if (!next) return null
-      return tx.whatsAppOutbound.update({
-        where: { id: next.id },
-        data: { status: 'SENDING' },
-      })
+    const next = await this.db.whatsAppOutbound.findFirst({
+      where: { weddingId, status: 'QUEUED' },
+      orderBy: { queuedAt: 'asc' },
+      select: { id: true },
     })
+    if (!next) return null
+
+    const claimed = await this.db.whatsAppOutbound.updateMany({
+      where: { id: next.id, status: 'QUEUED' },
+      data: { status: 'SENDING' },
+    })
+    if (claimed.count !== 1) return null
+
+    return this.db.whatsAppOutbound.findUnique({ where: { id: next.id } })
+  }
+
+  /**
+   * Moves rows stuck in SENDING back to QUEUED. A row stays SENDING only for
+   * the duration of one Graph API call; anything older than `olderThanMs` was
+   * orphaned by a crashed/killed sender (e.g. the client tab that was driving
+   * the drain closed mid-request) and would otherwise sit there forever.
+   */
+  async requeueStuckSending(weddingId: string, olderThanMs: number): Promise<number> {
+    const cutoff = new Date(Date.now() - olderThanMs)
+    const result = await this.db.whatsAppOutbound.updateMany({
+      where: { weddingId, status: 'SENDING', updatedAt: { lt: cutoff } },
+      data: { status: 'QUEUED' },
+    })
+    return result.count
   }
 
   async countQueued(weddingId: string): Promise<number> {
@@ -398,14 +429,25 @@ export class WhatsAppRepository {
     return new Set(rows.map((r) => r.toPhone))
   }
 
-  /** Households already messaged with this kind+template (any status but FAILED), for the resend skip. */
+  /**
+   * Households actually messaged with this kind+template, for the resend
+   * skip. Only counts rows that reached the provider (SENT/DELIVERED/READ) —
+   * QUEUED/SENDING rows haven't gone out yet, and counting them here made a
+   * retry after a stuck queue (see claimNextQueued) queue zero rows.
+   */
   async findAlreadyMessagedHouseholdIds(
     weddingId: string,
     kind: WhatsAppOutboundKind,
     templateName: string
   ): Promise<Set<string>> {
     const rows = await this.db.whatsAppOutbound.findMany({
-      where: { weddingId, kind, templateName, status: { not: 'FAILED' }, householdId: { not: null } },
+      where: {
+        weddingId,
+        kind,
+        templateName,
+        status: { in: ['SENT', 'DELIVERED', 'READ'] },
+        householdId: { not: null },
+      },
       select: { householdId: true },
       distinct: ['householdId'],
     })
@@ -424,7 +466,12 @@ export class WhatsAppRepository {
     }
     if (filter.householdIds) where.householdId = { in: filter.householdIds }
     if (filter.tagId) where.guestTagAssignments = { some: { guestTagId: filter.tagId } }
-    if (filter.eventId) where.invitations = { some: { eventId: filter.eventId } }
+    // Every guest has an Invitation row per event (default 'Not Invited'), so
+    // without excluding that status this matched everyone in the wedding
+    // regardless of whether they were actually invited to this event.
+    if (filter.eventId) {
+      where.invitations = { some: { eventId: filter.eventId, rsvp: { not: 'Not Invited' } } }
+    }
 
     const guests = await this.db.guest.findMany({
       where,
@@ -466,6 +513,7 @@ export class WhatsAppRepository {
       language: string
       category: WhatsAppTemplateCategory
       bodyPreview: string | null
+      paramCount: number
       status: string | null
     }>
   ): Promise<void> {
@@ -485,12 +533,14 @@ export class WhatsAppRepository {
           language: row.language,
           category: row.category,
           bodyPreview: row.bodyPreview,
+          paramCount: row.paramCount,
           status: row.status,
           lastSyncedAt: new Date(),
         },
         update: {
           category: row.category,
           bodyPreview: row.bodyPreview,
+          paramCount: row.paramCount,
           status: row.status,
           lastSyncedAt: new Date(),
         },

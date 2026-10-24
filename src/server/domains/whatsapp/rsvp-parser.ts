@@ -15,11 +15,28 @@ export type ParsedRsvpReply = {
   confidence: RsvpConfidence
 }
 
-const ATTENDING_WORDS = ['כן', 'מגיע', 'מגיעים', 'נגיע', 'מאשר', 'yes', 'confirm']
+const ATTENDING_WORDS = ['כן', 'מגיע', 'מגיעים', 'מגיעה', 'נגיע', 'נבוא', 'באים', 'אגיע', 'מאשר', 'yes', 'confirm']
 const ATTENDING_PHRASES = ['אני בא', 'אנחנו באים']
 
-const DECLINED_WORDS = ['לא', 'no', 'decline']
-const DECLINED_PHRASES = ['לא מגיע', 'לא נוכל', 'לא באים', 'לצערי לא', 'לא נגיע']
+// "לא" alone (or with minimal filler) is a clear decline, but trusting the
+// bare word anywhere in a longer message misreads hedging replies like "עוד
+// לא יודעים" as a firm no. It's only treated as a decline by itself; inside a
+// longer message, only an explicit decline phrase counts.
+const DECLINED_WORD = 'לא'
+const OTHER_DECLINED_WORDS = ['no', 'decline']
+const DECLINED_PHRASES = [
+  'לא מגיע',
+  'לא מגיעים',
+  'לא נוכל',
+  'לא באים',
+  'לא נבוא',
+  'לצערי לא',
+  'לא נגיע',
+]
+
+// Hedging replies that must never be auto-applied even though they contain
+// "לא" — the guest hasn't actually decided yet.
+const UNDECIDED_PHRASES = ['עוד לא', 'לא יודע', 'לא בטוח', 'לא החלטנו']
 
 const HEBREW_NUMBER_WORDS: Record<string, number> = {
   אחד: 1,
@@ -54,8 +71,16 @@ export function parseRsvpReply(text: string | null): ParsedRsvpReply {
   if (!trimmed) return { intent: 'unknown', headcount: null, confidence: 'low' }
 
   const tokens = extractTokens(trimmed)
+
+  if (matchesAny(tokens, UNDECIDED_PHRASES)) {
+    return { intent: 'unknown', headcount: null, confidence: 'low' }
+  }
+
   const attending = matchesAny(tokens, ATTENDING_WORDS) || matchesAny(tokens, ATTENDING_PHRASES)
-  const declined = matchesAny(tokens, DECLINED_WORDS) || matchesAny(tokens, DECLINED_PHRASES)
+  const declinedPhrase = matchesAny(tokens, DECLINED_PHRASES)
+  const declinedOtherWord = matchesAny(tokens, OTHER_DECLINED_WORDS)
+  const bareDeclinedWord = tokens.length <= 2 && tokens.includes(DECLINED_WORD)
+  const declined = declinedPhrase || declinedOtherWord || bareDeclinedWord
 
   let intent: RsvpIntent = 'unknown'
   let confidence: RsvpConfidence = 'low'
@@ -65,7 +90,7 @@ export function parseRsvpReply(text: string | null): ParsedRsvpReply {
     // contains the bare attending word ("מגיע"), so the two sides collide
     // by construction. Trust the phrase, but flag low confidence so the
     // review screen can double-check it.
-    if (matchesAny(tokens, DECLINED_PHRASES)) {
+    if (declinedPhrase) {
       intent = 'declined'
       confidence = 'low'
     }

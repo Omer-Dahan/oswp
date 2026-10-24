@@ -106,6 +106,26 @@ export function WhatsappMessagingScreen() {
   const [drainTotals, setDrainTotals] = useState({ sent: 0, failed: 0 })
   const [remaining, setRemaining] = useState(0)
   const drainInFlight = useRef(false)
+  const hasCheckedResume = useRef(false)
+
+  // The drain loop lives in this component's state, so closing the tab mid-send
+  // left rows stuck QUEUED with no one draining them. Resume automatically if
+  // there's a queue waiting when the screen (re)mounts.
+  const queuedCount = api.whatsapp.getQueuedCount.useQuery(undefined, {
+    enabled: account.data?.status === 'ACTIVE',
+    refetchOnWindowFocus: false,
+  })
+
+  useEffect(() => {
+    if (hasCheckedResume.current) return
+    if (queuedCount.data === undefined) return
+    hasCheckedResume.current = true
+    if (queuedCount.data > 0) {
+      setDrainTotals({ sent: 0, failed: 0 })
+      setRemaining(queuedCount.data)
+      setIsDraining(true)
+    }
+  }, [queuedCount.data])
 
   const audienceReady =
     audienceMode === 'all' ||

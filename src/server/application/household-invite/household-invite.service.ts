@@ -223,13 +223,27 @@ export class HouseholdInviteService {
    * Assigns a short invite code to the household, retrying on the rare
    * collision with another household's code (the DB unique constraint is the
    * source of truth). Reused links keep the same code and just get a fresh
-   * expiry.
+   * expiry — a code is only minted the first time, since regenerating it on
+   * every call would silently break every link already sent out.
    */
   private async assignInviteCode(
     householdId: string,
     guests: Array<{ firstName: string; lastName: string | null }>,
     expiresAt: Date
   ): Promise<string> {
+    const household = await this.db.household.findUnique({
+      where: { id: householdId },
+      select: { inviteCode: true },
+    })
+
+    if (household?.inviteCode) {
+      await this.db.household.update({
+        where: { id: householdId },
+        data: { inviteCodeExpiresAt: expiresAt },
+      })
+      return household.inviteCode
+    }
+
     const maxAttempts = 5
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const code = createHouseholdInviteCode(guests)
@@ -249,6 +263,30 @@ export class HouseholdInviteService {
       code: 'INTERNAL_SERVER_ERROR',
       message: 'Could not generate a unique invite code',
     })
+  }
+
+  /**
+   * Ensure a household has a usable invite code, minting one if it has none
+   * yet. Used when queueing a WhatsApp message whose template embeds the
+   * invite link, so the link parameter isn't sent empty. Returns null if the
+   * household doesn't exist.
+   */
+  async ensureInviteCode(householdId: string): Promise<string | null> {
+    const household = await this.db.household.findFirst({
+      where: { id: householdId },
+      select: {
+        guests: {
+          orderBy: { id: 'asc' },
+          take: 1,
+          select: { firstName: true, lastName: true },
+        },
+      },
+    })
+    if (!household) return null
+
+    const expiresAt = new Date()
+    expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1)
+    return this.assignInviteCode(householdId, household.guests, expiresAt)
   }
 
   async getPublicWeddingSummary(subUrl: string): Promise<{
