@@ -90,7 +90,7 @@ export function VendorForm(props: Readonly<VendorFormProps>) {
         const firstField = Object.keys(fieldErrors)[0]
         const firstMsg = firstField ? (fieldErrors[firstField]?.[0] ?? 'Invalid value') : null
         const label = firstField ? ` (${firstField}: ${firstMsg})` : ''
-        toast.error(`Failed to add vendor${label}`)
+        toast.error(`הוספת הספק נכשלה${label}`)
       } else {
         toast.error('הוספת הספק נכשלה')
       }

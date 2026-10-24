@@ -15,8 +15,8 @@ const useGuestFormActions = (closeForm: boolean, resetForm: () => void) => {
     },
     onError: (err) => {
       const fieldError = err.data?.zodError?.fieldErrors?.guestParty?.[0]
-      toast.error('Failed to create guests', {
-        description: fieldError ?? err.message ?? 'Please try again later.',
+      toast.error('יצירת האורחים נכשלה', {
+        description: fieldError ?? err.message ?? 'נסו שוב מאוחר יותר',
       })
     },
   })
@@ -29,8 +29,8 @@ const useGuestFormActions = (closeForm: boolean, resetForm: () => void) => {
     },
     onError: (err) => {
       const fieldError = err.data?.zodError?.fieldErrors?.guestParty?.[0]
-      toast.error('Failed to update party', {
-        description: fieldError ?? err.message ?? 'Please try again later.',
+      toast.error('עדכון משק הבית נכשל', {
+        description: fieldError ?? err.message ?? 'נסו שוב מאוחר יותר',
       })
     },
   })
@@ -42,8 +42,8 @@ const useGuestFormActions = (closeForm: boolean, resetForm: () => void) => {
     },
     onError: (err) => {
       const fieldError = err.data?.zodError?.fieldErrors?.eventName?.[0]
-      toast.error('Failed to delete household', {
-        description: fieldError ?? err.message ?? 'Please try again later.',
+      toast.error('מחיקת משק הבית נכשלה', {
+        description: fieldError ?? err.message ?? 'נסו שוב מאוחר יותר',
       })
     },
   })

@@ -166,7 +166,7 @@ export function TagsModal({
                     const isChecked = localSelectedIds.includes(tag.id)
                     const isMaxReached = localSelectedIds.length >= 10 && !isChecked
                     return (
-                      <div key={tag.id} className='flex items-center space-x-2'>
+                      <div key={tag.id} className='flex items-center gap-2'>
                         <Checkbox
                           id={`tag-${tag.id}`}
                           checked={isChecked}
@@ -203,7 +203,7 @@ export function TagsModal({
               className='w-full'
             >
               <FiPlus className='me-2 h-4 w-4' />
-              Create New Tag
+              תגית חדשה
             </Button>
           ) : (
             <form
@@ -262,7 +262,7 @@ export function TagsModal({
                     reset()
                   }}
                 >
-                  Cancel
+                  ביטול
                 </Button>
               </div>
             </form>
@@ -271,7 +271,7 @@ export function TagsModal({
 
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Cancel
+            ביטול
           </Button>
           <Button onClick={handleSave}>שמרו תגיות</Button>
         </DialogFooter>

@@ -70,12 +70,18 @@ const getInvitationAcceptUrl = (invitationId: string): string => {
   return url.toString()
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  owner: 'בעלים',
+  admin: 'מנהל',
+  member: 'חבר צוות',
+}
+
 const getRoleLabel = (role: string | string[] | undefined): string => {
   if (Array.isArray(role)) {
-    return role.join(', ')
+    return role.map((r) => ROLE_LABELS[r] ?? r).join(', ')
   }
 
-  return role ?? 'member'
+  return ROLE_LABELS[role ?? 'member'] ?? role ?? 'חבר צוות'
 }
 
 type OrganizationInvitationEmailPayload = {
@@ -118,7 +124,7 @@ export const authPlugins: BetterAuthPlugin[] = [
       const organizationName =
         typeof payload.organization?.name === 'string' && payload.organization.name.length > 0
           ? payload.organization.name
-          : 'your wedding workspace'
+          : 'סביבת העבודה של החתונה'
       const invitedByName =
         typeof payload.inviter?.user?.name === 'string' && payload.inviter.user.name.length > 0
           ? payload.inviter.user.name

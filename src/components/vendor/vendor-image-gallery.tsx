@@ -70,7 +70,7 @@ export function VendorImageGallery({ images, vendorId, hasWebsite }: VendorImage
   const handleUpload = useCallback(
     async (files: File[]) => {
       if (images.length >= MAX_IMAGES_PER_VENDOR) {
-        toast.error(`Maximum ${MAX_IMAGES_PER_VENDOR} images per vendor`)
+        toast.error(`עד ${MAX_IMAGES_PER_VENDOR} תמונות לספק`)
         return
       }
       const remaining = MAX_IMAGES_PER_VENDOR - images.length

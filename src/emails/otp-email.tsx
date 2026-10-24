@@ -17,7 +17,7 @@ export function OtpEmail({ otp, type }: OtpEmailProps) {
   const subject = subjectMap[type]
 
   return (
-    <html lang='en'>
+    <html lang='he' dir='rtl'>
       <Head />
       <Preview>
         {subject}: {otp}

@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV_LINKS = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Guest List', href: '/guest-list' },
-  { label: 'Events', href: '/events' },
-  { label: 'Vendors', href: '/vendors' },
-  { label: 'Budget', href: '/budget' },
+  { label: 'לוח בקרה', href: '/dashboard' },
+  { label: 'רשימת אורחים', href: '/guest-list' },
+  { label: 'אירועים', href: '/events' },
+  { label: 'ספקים', href: '/vendors' },
+  { label: 'תקציב', href: '/budget' },
 ]
 
 export default function NavLinks() {

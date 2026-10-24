@@ -9,7 +9,7 @@ interface ResetPasswordEmailProps {
 
 export function ResetPasswordEmail({ url, userName }: ResetPasswordEmailProps) {
   return (
-    <html lang='en'>
+    <html lang='he' dir='rtl'>
       <Head />
       <Preview>איפוס הסיסמה שלכם</Preview>
       <Body style={emailStyles.body}>

@@ -20,7 +20,7 @@ export function OrganizationInvitationEmail({
     : `הוזמנתם לשתף פעולה ב${organizationName}.`
 
   return (
-    <html lang='en'>
+    <html lang='he' dir='rtl'>
       <Head />
       <Preview>הצטרפו ל{organizationName} ב-OSWP</Preview>
       <Body style={emailStyles.body}>

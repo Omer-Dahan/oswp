@@ -260,7 +260,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
         {!isEditMode && (
           <div className='border-b bg-muted/20 px-6 py-3'>
             <p className='mb-2 font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-              Or let guests add themselves
+              או שהאורחים יוסיפו את עצמם
             </p>
             <SelfInviteLinkManager />
           </div>
@@ -282,7 +282,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
           >
             <AccordionItem value='guests' className='border-b-0'>
               <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
-                Guest Party ({fields.length})
+                משק הבית ({fields.length})
               </AccordionTrigger>
               <AccordionContent className='pb-0'>
                 {fields.map((field, index) => (
@@ -305,14 +305,14 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
                   onClick={handleAddGuestToParty}
                   className='w-full border-t py-4 font-medium text-primary text-sm transition-colors hover:bg-muted/50'
                 >
-                  + Add A Guest To This Party
+                  + הוספת אורח למשק הבית
                 </button>
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value='contact' className='border-b-0'>
               <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
-                Mailing Address
+                כתובת למשלוח
               </AccordionTrigger>
               <AccordionContent className='px-6 pb-6'>
                 <ContactForm register={register} errors={errors} />
@@ -321,7 +321,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
 
             <AccordionItem value='notes' className='border-b-0'>
               <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
-                Notes
+                הערות
               </AccordionTrigger>
               <AccordionContent className='px-6 pb-6'>
                 <div className='space-y-2'>
@@ -342,7 +342,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
             {isEditMode && (
               <AccordionItem value='gifts' className='border-b-0'>
                 <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
-                  Gifts
+                  מתנות
                 </AccordionTrigger>
                 <AccordionContent className='px-6 pb-6'>
                   <GiftSection
@@ -376,8 +376,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>למחוק מסיבה?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this party and all associated guests. This action cannot
-              be undone.
+              משק הבית וכל האורחים בו יימחקו לצמיתות. אי אפשר לבטל את הפעולה.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -402,7 +401,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>לבטל שינויים שלא נשמרו?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved edits in this form. If you close now, your changes will be lost.
+              יש שינויים שלא נשמרו. סגירה תמחק אותם.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -415,7 +414,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
               }}
               disabled={isLoading}
             >
-              Discard and close
+              לסגור בלי לשמור
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

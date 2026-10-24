@@ -9,6 +9,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
+import { he } from 'date-fns/locale'
 import { Calendar as CalendarIcon, Clock } from 'lucide-react'
 import { useEffect } from 'react'
 import { type Resolver, type SubmitHandler, useForm } from 'react-hook-form'
@@ -165,7 +166,7 @@ export function ModernEventForm({
                 >
                   <CalendarIcon className='me-2 h-4 w-4' />
                   {selectedDate ? (
-                    format(selectedDate, 'PPP')
+                    format(selectedDate, 'd בMMMM yyyy', { locale: he })
                   ) : (
                     <span className='text-xs md:text-sm'>בחרו תאריך</span>
                   )}

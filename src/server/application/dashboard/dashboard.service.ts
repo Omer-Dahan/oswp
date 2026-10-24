@@ -234,7 +234,8 @@ export class DashboardService {
       brideFirstName: wedding.brideFirstName,
       brideLastName: wedding.brideLastName,
       date: {
-        standardFormat: weddingDate?.toLocaleDateString('en-us', {
+        standardFormat: weddingDate?.toLocaleDateString('he-IL', {
+          timeZone: 'Asia/Jerusalem',
           weekday: 'long',
           year: 'numeric',
           month: 'short',

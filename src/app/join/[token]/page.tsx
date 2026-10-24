@@ -176,7 +176,7 @@ export default function SelfFillPage() {
                 <Label htmlFor='firstName'>{`${t('firstName')} *`}</Label>
                 <Input
                   id='firstName'
-                  placeholder='John'
+                  placeholder='ישראל'
                   {...register('firstName')}
                   className={errors.firstName ? 'border-destructive' : ''}
                 />
@@ -188,7 +188,7 @@ export default function SelfFillPage() {
                 <Label htmlFor='lastName'>{`${t('lastName')} *`}</Label>
                 <Input
                   id='lastName'
-                  placeholder='Doe'
+                  placeholder='ישראלי'
                   {...register('lastName')}
                   className={errors.lastName ? 'border-destructive' : ''}
                 />
@@ -204,7 +204,7 @@ export default function SelfFillPage() {
               <Input
                 id='email'
                 type='email'
-                placeholder='john@example.com'
+                placeholder='name@example.com'
                 {...register('email')}
                 className={errors.email ? 'border-destructive' : ''}
               />
@@ -245,7 +245,7 @@ export default function SelfFillPage() {
                 <Label htmlFor='address1'>{t('streetAddress')}</Label>
                 <Input
                   id='address1'
-                  placeholder='123 Main St'
+                  placeholder='רחוב הרצל 1'
                   {...register('address1')}
                   className={errors.address1 ? 'border-destructive' : ''}
                 />
@@ -258,7 +258,7 @@ export default function SelfFillPage() {
                 <Label htmlFor='address2'>{t('aptSuite')}</Label>
                 <Input
                   id='address2'
-                  placeholder='Apt 4B'
+                  placeholder='דירה 4'
                   {...register('address2')}
                   className={errors.address2 ? 'border-destructive' : ''}
                 />
@@ -272,7 +272,7 @@ export default function SelfFillPage() {
                   <Label htmlFor='city'>{t('city')}</Label>
                   <Input
                     id='city'
-                    placeholder='San Francisco'
+                    placeholder='תל אביב'
                     {...register('city')}
                     className={errors.city ? 'border-destructive' : ''}
                   />
@@ -309,7 +309,7 @@ export default function SelfFillPage() {
                   <Label htmlFor='country'>{t('country')}</Label>
                   <Input
                     id='country'
-                    placeholder='United States'
+                    placeholder='ישראל'
                     {...register('country')}
                     className={errors.country ? 'border-destructive' : ''}
                   />

@@ -340,7 +340,7 @@ export default function SidebarNavFrame(props: SidebarNavFrameProps) {
           ref={drawerRef}
           role='dialog'
           aria-modal='true'
-          aria-label='Navigation menu'
+          aria-label='תפריט ניווט'
           className='fixed inset-0 z-50 lg:hidden'
         >
           <div
@@ -368,7 +368,7 @@ export default function SidebarNavFrame(props: SidebarNavFrameProps) {
             <button
               ref={closeButtonRef}
               type='button'
-              aria-label='Close menu'
+              aria-label='סגירת התפריט'
               onClick={() => setIsOpen(false)}
               className='absolute top-2 end-3 z-10 flex h-9 w-9 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-foreground/[0.06] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar'
             >

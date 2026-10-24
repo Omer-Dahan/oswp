@@ -115,7 +115,7 @@ export const GuestNameForm = ({
       <div className='space-y-6 p-6'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-3'>
-            <h3 className='font-semibold text-lg'>Guest {guestIndex + 1}</h3>
+            <h3 className='font-semibold text-lg'>אורח {guestIndex + 1}</h3>
             <Button
               type='button'
               variant='outline'
@@ -124,7 +124,7 @@ export const GuestNameForm = ({
               className='h-7 gap-1.5 px-2 text-xs'
             >
               <FiTag className='h-3 w-3' />
-              Tags
+              תגיות
               {selectedTagIds.length > 0 && (
                 <Badge variant='secondary' className='ms-0.5 h-4 px-1 text-[10px]'>
                   {selectedTagIds.length}
@@ -136,7 +136,7 @@ export const GuestNameForm = ({
             <button
               type='button'
               onClick={() => handleRemoveGuest(guestIndex)}
-              aria-label={`Remove Guest ${guestIndex + 1}`}
+              aria-label={`הסרת אורח ${guestIndex + 1}`}
               className='text-muted-foreground transition-colors hover:text-destructive'
             >
               <FiMinusCircle size={24} aria-hidden='true' />
@@ -177,7 +177,7 @@ export const GuestNameForm = ({
         <div className='grid gap-4 sm:grid-cols-2'>
           <div className='space-y-2'>
             <Label htmlFor={`guest${guestIndex}-firstName`}>
-              First Name <span className='text-destructive'>*</span>
+              שם פרטי <span className='text-destructive'>*</span>
             </Label>
             <Input
               id={`guest${guestIndex}-firstName`}
@@ -243,7 +243,7 @@ export const GuestNameForm = ({
 
         <div className='space-y-2'>
           <Label htmlFor={`guest${guestIndex}-ageGroup`}>
-            Age Group <span className='text-destructive'>*</span>
+            קבוצת גיל <span className='text-destructive'>*</span>
           </Label>
           <Controller
             name={`guestParty.${guestIndex}.ageGroup`}
@@ -254,10 +254,10 @@ export const GuestNameForm = ({
                   <SelectValue placeholder='בחרו קבוצת גיל' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={GUEST_AGE_GROUP.INFANT}>Infant (0-2 years)</SelectItem>
-                  <SelectItem value={GUEST_AGE_GROUP.CHILD}>Child (3-12 years)</SelectItem>
-                  <SelectItem value={GUEST_AGE_GROUP.TEEN}>Teen (13-17 years)</SelectItem>
-                  <SelectItem value={GUEST_AGE_GROUP.ADULT}>Adult (18+ years)</SelectItem>
+                  <SelectItem value={GUEST_AGE_GROUP.INFANT}>תינוק (0-2)</SelectItem>
+                  <SelectItem value={GUEST_AGE_GROUP.CHILD}>ילד (3-12)</SelectItem>
+                  <SelectItem value={GUEST_AGE_GROUP.TEEN}>נער (13-17)</SelectItem>
+                  <SelectItem value={GUEST_AGE_GROUP.ADULT}>מבוגר (18+)</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -270,10 +270,10 @@ export const GuestNameForm = ({
         <div className='flex items-center justify-between rounded-lg border bg-muted/50 p-4'>
           <div className='space-y-0.5'>
             <Label htmlFor={`guest${guestIndex}-isTagAlong`} className='text-base'>
-              Tag-Along
+              מלווה
             </Label>
             <p className='text-muted-foreground text-sm'>
-              This person travels with the household but is not formally invited
+              מגיע עם משק הבית אבל לא מוזמן באופן רשמי
             </p>
           </div>
           <Controller
@@ -299,10 +299,10 @@ export const GuestNameForm = ({
           <div className='flex items-center justify-between rounded-lg border bg-muted/50 p-4'>
             <div className='space-y-0.5'>
               <Label htmlFor={`guest${guestIndex}-isPrimaryContact`} className='text-base'>
-                Primary Contact
+                איש קשר ראשי
               </Label>
               <p className='text-muted-foreground text-sm'>
-                This guest will receive correspondence
+                אליו יישלחו ההזמנות וההודעות
               </p>
             </div>
             <Controller
@@ -333,9 +333,9 @@ export const GuestNameForm = ({
           return (
             <div className='space-y-4'>
               <h4 className='font-medium text-muted-foreground text-sm'>
-                Event Invitations
+                הזמנה לאירועים
                 {isTagAlong && (
-                  <span className='ms-1 font-normal text-xs'>(tag-along eligible events)</span>
+                  <span className='ms-1 font-normal text-xs'>(אירועים הפתוחים למלווים)</span>
                 )}
               </h4>
               <div className='space-y-2'>
@@ -355,7 +355,7 @@ export const GuestNameForm = ({
                           </Label>
                           {event.date && (
                             <p className='mt-0.5 text-muted-foreground text-xs'>
-                              {new Date(event.date).toLocaleDateString()}
+                              {new Date(event.date).toLocaleDateString('he-IL')}
                             </p>
                           )}
                         </div>

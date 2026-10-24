@@ -61,12 +61,13 @@ export default function WeddingSettingsForm({ initialData }: WeddingSettingsForm
   const parsedCeremonyDate = initialData.weddingDate ? new Date(initialData.weddingDate) : null
   const ceremonyDateLabel =
     parsedCeremonyDate && !Number.isNaN(parsedCeremonyDate.valueOf())
-      ? parsedCeremonyDate.toLocaleDateString('en-US', {
+      ? parsedCeremonyDate.toLocaleDateString('he-IL', {
+          timeZone: 'Asia/Jerusalem',
           year: 'numeric',
           month: 'long',
           day: 'numeric',
         })
-      : 'No date set'
+      : 'לא נקבע תאריך'
 
   const ceremonyHref = initialData.primaryEventId
     ? `/events?eventId=${initialData.primaryEventId}`

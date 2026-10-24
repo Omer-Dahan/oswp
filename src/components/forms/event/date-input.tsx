@@ -10,7 +10,7 @@ export default function DateInput({ eventDate, handleOnChange }: DateInputProps)
         id='event-date'
         type='date'
         required={(eventDate?.length ?? 0) > 0}
-        placeholder='MM/DD/YYYY'
+        placeholder='DD/MM/YYYY'
         value={eventDate}
         onChange={(e) => handleOnChange({ field: 'date', inputValue: e.target.value })}
         className='peer w-full rounded-lg border p-3 focus:border-primary focus:outline-none focus:ring-0'
