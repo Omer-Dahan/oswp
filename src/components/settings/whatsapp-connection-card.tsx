@@ -101,6 +101,8 @@ export function WhatsappConnectionCard() {
               <Label htmlFor='wa-phoneNumberId'>מזהה מספר טלפון (Phone Number ID)</Label>
               <Input
                 id='wa-phoneNumberId'
+                dir='ltr'
+                className='text-left font-mono'
                 placeholder='הזינו את Phone Number ID'
                 {...register('phoneNumberId')}
                 disabled={isSubmitting}
@@ -114,6 +116,8 @@ export function WhatsappConnectionCard() {
               <Label htmlFor='wa-wabaId'>WABA ID</Label>
               <Input
                 id='wa-wabaId'
+                dir='ltr'
+                className='text-left font-mono'
                 placeholder='הזינו את WABA ID'
                 {...register('wabaId')}
                 disabled={isSubmitting}
@@ -126,6 +130,8 @@ export function WhatsappConnectionCard() {
               <Input
                 id='wa-accessToken'
                 type='password'
+                dir='ltr'
+                className='text-left font-mono'
                 placeholder={tokenPlaceholder}
                 {...register('accessToken')}
                 disabled={isSubmitting}
@@ -140,6 +146,8 @@ export function WhatsappConnectionCard() {
               <Input
                 id='wa-verifyToken'
                 type='password'
+                dir='ltr'
+                className='text-left font-mono'
                 placeholder='בחרו מחרוזת אימות לרישום ה-webhook'
                 {...register('verifyToken')}
                 disabled={isSubmitting}
@@ -154,6 +162,8 @@ export function WhatsappConnectionCard() {
               <Input
                 id='wa-appSecret'
                 type='password'
+                dir='ltr'
+                className='text-left font-mono'
                 placeholder={appSecretPlaceholder}
                 {...register('appSecret')}
                 disabled={isSubmitting}
