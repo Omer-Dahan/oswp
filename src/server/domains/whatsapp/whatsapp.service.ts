@@ -3,36 +3,42 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import type { WhatsAppOutbound, WhatsAppOutboundKind, WhatsAppTemplate, WhatsAppTemplateCategory } from '@prisma/client'
-
+import { env } from '~/env'
+import { householdInviteService } from '~/server/application/household-invite'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
-import { householdInviteService } from '~/server/application/household-invite'
-import { env } from '~/env'
-import {
-  decryptSecret,
-  encryptSecret,
-  maskSecret,
-} from '~/server/infrastructure/crypto/secrets'
 import type { MessagingSender } from '~/server/domains/whatsapp/messaging-sender'
-import { renderTemplatePreview, resolveTemplateVariables } from '~/server/domains/whatsapp/messaging-sender'
+import {
+  renderTemplatePreview,
+  resolveTemplateVariables,
+} from '~/server/domains/whatsapp/messaging-sender'
 import type { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
-import { allocateWithinDailyCap, dailyCapErrorMessage, partitionAlreadyMessaged } from '~/server/domains/whatsapp/whatsapp.rules'
+import {
+  allocateWithinDailyCap,
+  dailyCapErrorMessage,
+  partitionAlreadyMessaged,
+} from '~/server/domains/whatsapp/whatsapp.rules'
+import type {
+  WhatsAppAccountView,
+  WhatsAppOutbound,
+  WhatsAppOutboundKind,
+  WhatsAppTemplate,
+  WhatsAppTemplateCategory,
+  WhatsAppTestConnectionResult,
+} from '~/server/domains/whatsapp/whatsapp.types'
 import type {
   ComposePreviewInput,
   ProcessQueueInput,
   QueueBatchInput,
   SaveAccountInput,
 } from '~/server/domains/whatsapp/whatsapp.validator'
-import type {
-  WhatsAppAccountView,
-  WhatsAppTestConnectionResult,
-} from '~/server/domains/whatsapp/whatsapp.types'
+import { decryptSecret, encryptSecret, maskSecret } from '~/server/infrastructure/crypto/secrets'
 
 const GRAPH_API_VERSION = 'v23.0'
 const DEFAULT_PROCESS_BATCH = 25
 const SEND_PACE_MS = 1000
 const STUCK_SENDING_MS = 5 * 60_000
+const MAX_TEMPLATE_SYNC_PAGES = 50
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -107,7 +113,9 @@ export class WhatsAppService {
       phoneNumberId: account.phoneNumberId,
       wabaId: account.wabaId,
       accessTokenMasked: maskSecret(input.accessToken),
-      appSecretMasked: account.appSecretEnc ? maskSecret(decryptSecret(account.appSecretEnc)) : null,
+      appSecretMasked: account.appSecretEnc
+        ? maskSecret(decryptSecret(account.appSecretEnc))
+        : null,
       displayPhoneNumber: account.displayPhoneNumber,
       verifiedName: account.verifiedName,
       status: account.status,
@@ -192,30 +200,45 @@ export class WhatsAppService {
     }
 
     const accessToken = decryptSecret(account.accessTokenEnc)
-    const url = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${account.wabaId}/message_templates`)
-    url.searchParams.set('fields', 'name,language,category,status,components')
-    url.searchParams.set('limit', '100')
+    const initialUrl = new URL(
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${account.wabaId}/message_templates`
+    )
+    initialUrl.searchParams.set('fields', 'name,language,category,status,components')
+    initialUrl.searchParams.set('limit', '100')
 
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-    const body = (await response.json()) as {
-      data?: Array<{
-        name: string
-        language: string
-        category: string
-        status: string
-        components?: Array<{ type: string; text?: string }>
-      }>
-      error?: { message?: string }
+    type MetaTemplate = {
+      name: string
+      language: string
+      category: string
+      status: string
+      components?: Array<{ type: string; text?: string }>
     }
 
-    if (!response.ok) {
-      throw new TRPCError({
-        code: 'BAD_GATEWAY',
-        message: body.error?.message ?? `שגיאה מ-Meta (קוד ${response.status})`,
-      })
+    const metaTemplates: MetaTemplate[] = []
+    let nextUrl: string | null = initialUrl.toString()
+
+    // Meta paginates `message_templates`; a wedding with more than one page of
+    // approved templates would otherwise only ever see the first 100 synced.
+    for (let page = 0; nextUrl && page < MAX_TEMPLATE_SYNC_PAGES; page++) {
+      const response = await fetch(nextUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
+      const body = (await response.json()) as {
+        data?: MetaTemplate[]
+        paging?: { next?: string }
+        error?: { message?: string }
+      }
+
+      if (!response.ok) {
+        throw new TRPCError({
+          code: 'BAD_GATEWAY',
+          message: body.error?.message ?? `שגיאה מ-Meta (קוד ${response.status})`,
+        })
+      }
+
+      metaTemplates.push(...(body.data ?? []))
+      nextUrl = body.paging?.next ?? null
     }
 
-    const rows = (body.data ?? []).map((template) => {
+    const rows = metaTemplates.map((template) => {
       const bodyPreview = template.components?.find((c) => c.type === 'BODY')?.text ?? null
       return {
         weddingId,
@@ -231,6 +254,13 @@ export class WhatsAppService {
     })
 
     await this.repo.upsertTemplates(rows)
+    // Meta is the source of truth: a template it no longer returns (deleted,
+    // renamed) must stop surfacing here too, or compose would keep offering
+    // a template Meta will reject at send time.
+    await this.repo.deleteStaleTemplates(
+      weddingId,
+      rows.map((row) => ({ name: row.name, language: row.language }))
+    )
     return this.repo.listTemplates(weddingId)
   }
 

@@ -8,10 +8,13 @@
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
-import type { WhatsAppOutboundStatus } from '@prisma/client'
-
+import { normalisePhone } from '~/server/domains/whatsapp/phone-mapping'
 import { parseRsvpReply } from '~/server/domains/whatsapp/rsvp-parser'
-import type { WhatsAppRepository } from '~/server/domains/whatsapp/whatsapp.repository'
+import type {
+  HouseholdMatch,
+  WhatsAppRepository,
+} from '~/server/domains/whatsapp/whatsapp.repository'
+import type { WhatsAppOutboundStatus } from '~/server/domains/whatsapp/whatsapp.types'
 
 type MetaContact = { wa_id?: string; profile?: { name?: string } }
 type MetaMessage = {
@@ -50,27 +53,45 @@ export type ParsedStatusUpdate = {
   errorTitle: string | null
 }
 
-const STATUS_VALUES = new Set(['sent', 'delivered', 'read', 'failed'])
-
-/** The phone_number_id Meta reports for the first change, used to resolve the configured account. */
-export function extractPhoneNumberId(payload: unknown): string | null {
-  const entry = (payload as MetaWebhookPayload | null)?.entry?.[0]
-  return entry?.changes?.[0]?.value?.metadata?.phone_number_id ?? null
-}
-
-/** Flattens every entry/change into the message and status rows the domain persists. */
-export function parseWebhookPayload(payload: unknown): {
+export type ParsedWebhookGroup = {
+  phoneNumberId: string
   messages: ParsedInboundMessage[]
   statuses: ParsedStatusUpdate[]
-} {
+}
+
+const STATUS_VALUES = new Set(['sent', 'delivered', 'read', 'failed'])
+
+/** Every distinct phone_number_id Meta reports across the whole payload, for the account-resolution pass. */
+export function extractPhoneNumberIds(payload: unknown): string[] {
   const entries = (payload as MetaWebhookPayload | null)?.entry ?? []
-  const messages: ParsedInboundMessage[] = []
-  const statuses: ParsedStatusUpdate[] = []
+  const ids = new Set<string>()
+  for (const entry of entries) {
+    for (const change of entry.changes ?? []) {
+      const id = change.value?.metadata?.phone_number_id
+      if (id) ids.add(id)
+    }
+  }
+  return [...ids]
+}
+
+/**
+ * Flattens every entry/change into message and status rows, grouped by the
+ * change's own metadata.phone_number_id rather than assuming the whole batch
+ * belongs to a single account — a WABA with several numbers can report
+ * changes for more than one of them in the same call, and attributing all of
+ * them to entry[0]'s wedding would silently cross-contaminate households.
+ */
+export function parseWebhookPayload(payload: unknown): ParsedWebhookGroup[] {
+  const entries = (payload as MetaWebhookPayload | null)?.entry ?? []
+  const groups = new Map<string, ParsedWebhookGroup>()
 
   for (const entry of entries) {
     for (const change of entry.changes ?? []) {
       const value = change.value
-      if (!value) continue
+      const phoneNumberId = value?.metadata?.phone_number_id
+      if (!value || !phoneNumberId) continue
+
+      const group = groups.get(phoneNumberId) ?? { phoneNumberId, messages: [], statuses: [] }
 
       const contactsByWaId = new Map<string, MetaContact>()
       for (const contact of value.contacts ?? []) {
@@ -79,7 +100,7 @@ export function parseWebhookPayload(payload: unknown): {
 
       for (const message of value.messages ?? []) {
         if (!message.id || !message.from) continue
-        messages.push({
+        group.messages.push({
           waId: message.from,
           fromPhone: message.from,
           profileName: contactsByWaId.get(message.from)?.profile?.name ?? null,
@@ -94,16 +115,18 @@ export function parseWebhookPayload(payload: unknown): {
 
       for (const status of value.statuses ?? []) {
         if (!status.id || !status.status || !STATUS_VALUES.has(status.status)) continue
-        statuses.push({
+        group.statuses.push({
           providerMessageId: status.id,
           status: status.status as ParsedStatusUpdate['status'],
           errorTitle: status.errors?.[0]?.title ?? null,
         })
       }
+
+      groups.set(phoneNumberId, group)
     }
   }
 
-  return { messages, statuses }
+  return [...groups.values()]
 }
 
 /** Compares `X-Hub-Signature-256` (sha256=<hex>) against an HMAC over the exact raw body bytes. */
@@ -131,6 +154,20 @@ const STATUS_TO_OUTBOUND: Record<ParsedStatusUpdate['status'], WhatsAppOutboundS
   failed: 'FAILED',
 }
 
+// Progression of a delivery receipt. Statuses can arrive out of order (Meta
+// doesn't guarantee delivery order of webhook calls), so a status update is
+// only applied when it moves a row forward — otherwise a late "delivered"
+// retry could stomp a "read" that already landed.
+const OUTBOUND_STATUS_RANK: Record<WhatsAppOutboundStatus, number> = {
+  QUEUED: 0,
+  SENDING: 0,
+  SENT: 1,
+  DELIVERED: 2,
+  READ: 3,
+  FAILED: 4,
+}
+const ALL_OUTBOUND_STATUSES = Object.keys(OUTBOUND_STATUS_RANK) as WhatsAppOutboundStatus[]
+
 export class WebhookService {
   constructor(private repo: WhatsAppRepository) {}
 
@@ -143,12 +180,18 @@ export class WebhookService {
    * Maps every unresolved inbound row to a household and, when the parsed
    * reply is unambiguous, applies it to the household's invitations. Never
    * throws: one bad row is logged and skipped so the rest still resolve.
+   *
+   * The phone->household map is built once for the whole wedding rather than
+   * re-queried per row, since a single webhook delivery can carry many rows.
    */
   async resolveInboundReplies(weddingId: string): Promise<void> {
     const rows = await this.repo.findUnresolvedInbound(weddingId)
+    if (rows.length === 0) return
+
+    const phoneMap = await this.repo.findPhoneHouseholdMap(weddingId)
     for (const row of rows) {
       try {
-        await this.resolveOneInboundReply(weddingId, row.id, row.fromPhone, row.text)
+        await this.resolveOneInboundReply(row.id, row.fromPhone, row.text, phoneMap)
       } catch (error) {
         console.error('WhatsApp inbound reply resolution failed', error)
       }
@@ -156,13 +199,14 @@ export class WebhookService {
   }
 
   private async resolveOneInboundReply(
-    weddingId: string,
     inboundId: string,
     fromPhone: string,
-    text: string | null
+    text: string | null,
+    phoneMap: Map<string, HouseholdMatch>
   ): Promise<void> {
     const { intent, headcount, confidence } = parseRsvpReply(text)
-    const match = await this.repo.findHouseholdByPhone(weddingId, fromPhone)
+    const key = normalisePhone(fromPhone)
+    const match = key ? phoneMap.get(key) : undefined
 
     if (!match) {
       await this.repo.recordInboundParseResult(inboundId, {
@@ -173,7 +217,18 @@ export class WebhookService {
       return
     }
 
-    if (confidence === 'high' && (intent === 'attending' || intent === 'declined')) {
+    // A stated headcount that doesn't match how many people are actually in
+    // the household is a sign the guest meant something else (e.g. "we'll be
+    // 4" for a household of 2) — route it to the review screen instead of
+    // auto-applying a possibly-wrong RSVP.
+    const headcountMismatch =
+      intent === 'attending' && headcount !== null && headcount !== match.householdSize
+
+    if (
+      confidence === 'high' &&
+      !headcountMismatch &&
+      (intent === 'attending' || intent === 'declined')
+    ) {
       await this.repo.applyHouseholdRsvp(inboundId, {
         guestId: match.guestId,
         householdId: match.householdId,
@@ -186,20 +241,33 @@ export class WebhookService {
     await this.repo.recordInboundParseResult(inboundId, {
       guestId: match.guestId,
       householdId: match.householdId,
-      parsed: { intent, headcount, confidence },
+      parsed: {
+        intent,
+        headcount,
+        confidence,
+        ...(headcountMismatch ? { reason: 'headcount-mismatch' } : {}),
+      },
     })
   }
 
   async ingestStatuses(statuses: ParsedStatusUpdate[]): Promise<void> {
     for (const status of statuses) {
       const now = new Date()
-      await this.repo.updateOutboundStatusByProviderMessageId(status.providerMessageId, {
-        status: STATUS_TO_OUTBOUND[status.status],
-        ...(status.status === 'sent' ? { sentAt: now } : {}),
-        ...(status.status === 'delivered' ? { deliveredAt: now } : {}),
-        ...(status.status === 'read' ? { readAt: now } : {}),
-        ...(status.status === 'failed' ? { error: status.errorTitle ?? 'Unknown error' } : {}),
-      })
+      const newStatus = STATUS_TO_OUTBOUND[status.status]
+      const allowedFromStatuses = ALL_OUTBOUND_STATUSES.filter(
+        (s) => OUTBOUND_STATUS_RANK[s] < OUTBOUND_STATUS_RANK[newStatus]
+      )
+      await this.repo.updateOutboundStatusByProviderMessageId(
+        status.providerMessageId,
+        {
+          status: newStatus,
+          ...(status.status === 'sent' ? { sentAt: now } : {}),
+          ...(status.status === 'delivered' ? { deliveredAt: now } : {}),
+          ...(status.status === 'read' ? { readAt: now } : {}),
+          ...(status.status === 'failed' ? { error: status.errorTitle ?? 'Unknown error' } : {}),
+        },
+        allowedFromStatuses
+      )
     }
   }
 }

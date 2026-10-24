@@ -13,7 +13,13 @@ const randomInviteCodeSuffix = (): string => {
   return suffix
 }
 
-const toInitial = (value: string): string => value.trim().charAt(0).toLowerCase()
+// Only ASCII letters make it into the prefix — a Hebrew initial would land
+// as a non-ASCII character in a URL path segment, which breaks copy/paste and
+// some link-preview parsers.
+const toInitial = (value: string): string => {
+  const char = value.trim().charAt(0).toLowerCase()
+  return /^[a-z]$/.test(char) ? char : ''
+}
 
 /**
  * Readable prefix built from the first household member's initials (e.g. "js"

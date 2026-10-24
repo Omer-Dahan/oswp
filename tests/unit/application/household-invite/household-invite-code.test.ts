@@ -22,6 +22,11 @@ describe('household invite code', () => {
     expect(buildInviteCodePrefix([{ firstName: 'John', lastName: null }])).toBe('j')
   })
 
+  it('drops non-ASCII initials instead of embedding them in the prefix', () => {
+    expect(buildInviteCodePrefix([{ firstName: 'דוד', lastName: 'Cohen' }])).toBe('c')
+    expect(buildInviteCodePrefix([{ firstName: 'דוד', lastName: 'לוי' }])).toBe('hh')
+  })
+
   it('creates a code with a readable prefix and an 6-character random suffix', () => {
     const code = createHouseholdInviteCode([{ firstName: 'Ada', lastName: 'Lovelace' }])
 

@@ -14,12 +14,10 @@ const messagingSender = new MessagingSender(whatsAppRepository)
 export const whatsAppService = new WhatsAppService(whatsAppRepository, messagingSender)
 export const webhookService = new WebhookService(whatsAppRepository)
 export const inboundReviewService = new InboundReviewService(whatsAppRepository)
-export { whatsAppRepository }
 
 export { InboundReviewService } from '~/server/domains/whatsapp/inbound-review.service'
 export { MessagingSender } from '~/server/domains/whatsapp/messaging-sender'
 export {
-  extractPhoneNumberId,
   parseWebhookPayload,
   verifyWebhookSignature,
   WebhookService,
@@ -35,16 +33,17 @@ export type {
 } from '~/server/domains/whatsapp/whatsapp.types'
 export {
   type LinkInboundInput,
-  linkInboundSchema,
   type ListPendingInboundInput,
+  linkInboundSchema,
   listPendingInboundSchema,
+  listRecentOutboundSchema,
   type ProcessQueueInput,
   processQueueSchema,
   type QueueBatchInput,
   queueBatchSchema,
-  listRecentOutboundSchema,
   type ResolveInboundInput,
   resolveInboundSchema,
   type SaveAccountInput,
   saveAccountSchema,
 } from '~/server/domains/whatsapp/whatsapp.validator'
+export { whatsAppRepository }
