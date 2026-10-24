@@ -70,8 +70,16 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
+    // Unexpected server errors (DB failures, unhandled exceptions, etc.) carry
+    // internal detail in their message — never forward that to the client.
+    // Explicitly thrown TRPCErrors (validation, authz, business rules) use
+    // other codes and keep their intended user-facing message.
+    const message =
+      error.code === 'INTERNAL_SERVER_ERROR' ? 'אירעה שגיאה, נסו שוב' : shape.message
+
     return {
       ...shape,
+      message,
       data: {
         ...shape.data,
         zodError:

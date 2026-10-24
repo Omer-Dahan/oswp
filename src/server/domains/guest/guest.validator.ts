@@ -10,12 +10,15 @@ import { optionalPhoneSchema } from '~/lib/phone/phone-validator'
 
 const GUEST_AGE_GROUP_VALUES = ['INFANT', 'CHILD', 'TEEN', 'ADULT'] as const
 
+const NAME_MAX = 100
+const nameTooLong = 'השם חייב להיות עד 100 תווים'
+
 /**
  * Schema for creating a guest
  */
 export const createGuestSchema = z.object({
-  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }),
-  lastName: z.string().optional().default(''),
+  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }).max(NAME_MAX, nameTooLong),
+  lastName: z.string().max(NAME_MAX, nameTooLong).optional().default(''),
   email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
   phone: optionalPhoneSchema,
   householdId: z.string().min(1, 'Household ID is required'),
@@ -30,8 +33,8 @@ export const createGuestSchema = z.object({
  */
 export const updateGuestSchema = z.object({
   guestId: z.number(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  firstName: z.string().max(NAME_MAX, nameTooLong).optional(),
+  lastName: z.string().max(NAME_MAX, nameTooLong).optional(),
   email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
   phone: optionalPhoneSchema,
   ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).optional(),
@@ -66,8 +69,8 @@ export const getByEventSchema = z.object({
  */
 export const guestPartySchema = z.object({
   guestId: z.number().optional(),
-  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }),
-  lastName: z.string().optional().default(''),
+  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }).max(NAME_MAX, nameTooLong),
+  lastName: z.string().max(NAME_MAX, nameTooLong).optional().default(''),
   email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
   phone: optionalPhoneSchema,
   isPrimaryContact: z.boolean().default(false),
