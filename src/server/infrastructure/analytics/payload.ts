@@ -15,6 +15,10 @@ const MAX_FIELD_CHARS = 4_000
 /** Approximate cap on the total serialized payload size. */
 const MAX_TOTAL_CHARS = 30_000
 
+/** Key names (case-insensitive, matched as substrings) that must never reach analytics. */
+const DENYLISTED_KEY_PATTERN =
+  /token|secret|password|apikey|accesstoken|appsecret|verifytoken|phone|email/i
+
 function redactLargeStrings(value: unknown): unknown {
   if (typeof value === 'string') {
     return value.length > MAX_FIELD_CHARS ? `[redacted: ${value.length} chars]` : value
@@ -25,7 +29,7 @@ function redactLargeStrings(value: unknown): unknown {
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-      out[key] = redactLargeStrings(val)
+      out[key] = DENYLISTED_KEY_PATTERN.test(key) ? '[redacted]' : redactLargeStrings(val)
     }
     return out
   }
