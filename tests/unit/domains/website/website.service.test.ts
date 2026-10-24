@@ -47,6 +47,7 @@ describe('WebsiteService', () => {
   const mockVerifyPassword = jest.fn()
   const mockCreateAccessToken = jest.fn()
   const mockVerifyAccessToken = jest.fn()
+  const mockRateLimiterCheck = jest.fn()
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_APP_URL = 'https://oswp.example'
@@ -55,6 +56,7 @@ describe('WebsiteService', () => {
     mockVerifyPassword.mockReset()
     mockCreateAccessToken.mockReset()
     mockVerifyAccessToken.mockReset()
+    mockRateLimiterCheck.mockReset().mockResolvedValue(true)
     mockRequirePermission.mockReset()
     mockRequirePermission.mockReturnValue({ organizationId: 'org-1', role: 'admin' })
     mockBelongsToWeddingFn.mockResolvedValue(true)
@@ -65,7 +67,12 @@ describe('WebsiteService', () => {
       createAccessToken: mockCreateAccessToken,
       verifyAccessToken: mockVerifyAccessToken,
     }
-    websiteService = new WebsiteService(mockRepository, mockPasswordService as never)
+    const mockPasswordRateLimiter = { check: mockRateLimiterCheck }
+    websiteService = new WebsiteService(
+      mockRepository,
+      mockPasswordRateLimiter as never,
+      mockPasswordService as never
+    )
   })
 
   afterAll(() => {
@@ -92,7 +99,7 @@ describe('WebsiteService', () => {
     it('should update website password', async () => {
       const updatedWebsite = { ...mockWebsite, isPasswordEnabled: true, password: 'secret123' }
       mockUpdateFn.mockResolvedValue(updatedWebsite)
-      mockHashPassword.mockReturnValue('salt:hashed-password')
+      mockHashPassword.mockResolvedValue('salt:hashed-password')
 
       await websiteService.updateWebsite(actorContext, 'wedding-123', {
         isPasswordEnabled: true,

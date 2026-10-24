@@ -1,5 +1,5 @@
 import { householdInviteService } from '~/server/application/household-invite'
-import type { HouseholdSearchResult } from '~/server/domains/household/household.types'
+import type { PublicHouseholdSearchResult } from '~/server/domains/household/household.types'
 
 /**
  * Resolve the household behind a guest's invite token in the RSVP flow shape, so
@@ -11,7 +11,7 @@ import type { HouseholdSearchResult } from '~/server/domains/household/household
 export async function resolveRecognizedRsvpHousehold(
   websiteSubUrl: string,
   inviteToken: string | undefined
-): Promise<HouseholdSearchResult | null> {
+): Promise<PublicHouseholdSearchResult | null> {
   if (!inviteToken) return null
   return householdInviteService.getRecognizedRsvpHousehold(websiteSubUrl, inviteToken)
 }

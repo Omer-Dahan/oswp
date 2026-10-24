@@ -27,18 +27,16 @@ interface EventWithResponses extends Event {
   }
 }
 
+/**
+ * Invitation shape for the guest-facing RSVP flow. Matches the public,
+ * unauthenticated household search/recognition endpoints (see
+ * PublicRsvpGuest on the server), which omit fields a guest doesn't need and
+ * an anonymous caller shouldn't see.
+ */
 type Invitation = {
   id: string
-  guestId: number
   eventId: string
-  weddingId: string
   rsvp: string
-  dietaryRestrictions: string | null
-  submittedBy: number | null
-  submittedAt: Date | null
-  invitedAt: Date
-  createdAt: Date
-  updatedAt: Date
 }
 
 type Household = {
@@ -64,21 +62,20 @@ type Gift = {
   }
 }
 
+/**
+ * Guest shape for the guest-facing RSVP flow. Matches the public,
+ * unauthenticated household search/recognition endpoints: no contact fields
+ * (email, phone), since those endpoints are reachable by anyone who knows a
+ * guest's name.
+ */
 type Guest = {
   id: number
   firstName: string
   lastName: string
-  email: string | null
-  phone: string | null
   isPrimaryContact: boolean
-  weddingId: string
-  householdId: string
   ageGroup: 'INFANT' | 'CHILD' | 'TEEN' | 'ADULT' | null
   isTagAlong: boolean
-  createdAt: Date
-  updatedAt: Date
   invitations?: Invitation[]
-  guestTags?: Array<{ tagId: string }>
 }
 
 type User = {
@@ -243,7 +240,7 @@ interface CoverPhoto extends FileWithPath {
 
 type RouterOutput = inferRouterOutputs<AppRouter>
 type DashboardData = RouterOutput['dashboard']['getForActiveWorkspace']
-type HouseholdSearch = RouterOutput['household']['findBySearch']
+type HouseholdSearch = RouterOutput['household']['findBySearchPublic']
 type RsvpPageData = RouterOutput['website']['fetchWeddingData']
 
 export type {

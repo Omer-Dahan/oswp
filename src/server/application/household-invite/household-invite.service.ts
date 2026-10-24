@@ -7,8 +7,8 @@ import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analy
 import { createHouseholdInviteCode } from '~/server/application/household-invite/household-invite-code'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
-import { rsvpHouseholdSelect } from '~/server/domains/household/household.repository'
-import type { HouseholdSearchResult } from '~/server/domains/household/household.types'
+import { publicRsvpHouseholdSelect } from '~/server/domains/household/household.repository'
+import type { PublicHouseholdSearchResult } from '~/server/domains/household/household.types'
 import {
   type SaveTheDateSectionContent,
   WebsiteSectionType,
@@ -345,13 +345,13 @@ export class HouseholdInviteService {
   async getRecognizedRsvpHousehold(
     subUrl: string,
     code: string | null | undefined
-  ): Promise<HouseholdSearchResult | null> {
+  ): Promise<PublicHouseholdSearchResult | null> {
     const scopedInvite = await this.resolveInviteScope(subUrl, code)
     if (!scopedInvite) return null
 
     return this.db.household.findFirst({
       where: { id: scopedInvite.householdId, weddingId: scopedInvite.weddingId },
-      select: rsvpHouseholdSelect,
+      select: publicRsvpHouseholdSelect,
     })
   }
 

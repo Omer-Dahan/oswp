@@ -22,9 +22,14 @@ import { requirePermission } from '~/server/authz/permission-checker'
 import { GiftRepository } from '~/server/domains/gift/gift.repository'
 import { GuestRepository } from '~/server/domains/guest/guest.repository'
 import { HouseholdRepository } from '~/server/domains/household/household.repository'
-import type { Household, HouseholdSearchResult } from '~/server/domains/household/household.types'
+import type {
+  Household,
+  HouseholdSearchResult,
+  PublicHouseholdSearchResult,
+} from '~/server/domains/household/household.types'
 import { InvitationRepository } from '~/server/domains/invitation/invitation.repository'
 import type { WebsiteRepository } from '~/server/domains/website/website.repository'
+import { WebsitePasswordService } from '~/server/domains/website/website-password.service'
 
 export class HouseholdManagementService {
   constructor(
@@ -33,7 +38,8 @@ export class HouseholdManagementService {
     private invitationRepo: InvitationRepository,
     _giftRepo: GiftRepository,
     private websiteRepo: WebsiteRepository,
-    private db: PrismaClient
+    private db: PrismaClient,
+    private websitePasswordService: WebsitePasswordService = new WebsitePasswordService()
   ) {}
 
   async createHouseholdWithGuests(
@@ -335,11 +341,16 @@ export class HouseholdManagementService {
    *
    * The guest is unauthenticated, so the search is scoped to the wedding that
    * owns the given website subUrl rather than to an active wedding session.
+   * When the website is password-protected, this endpoint is itself a way to
+   * read (a restricted slice of) the guest list, so it must honour the
+   * password gate rather than only relying on the page that normally sits in
+   * front of it.
    */
   async searchHouseholdsPublic(
     subUrl: string,
-    searchText: string
-  ): Promise<HouseholdSearchResult[]> {
+    searchText: string,
+    accessToken?: string
+  ): Promise<PublicHouseholdSearchResult[]> {
     const website = await this.websiteRepo.findBySubUrl(subUrl)
 
     if (!website?.isRsvpEnabled) {
@@ -347,6 +358,20 @@ export class HouseholdManagementService {
         code: 'NOT_FOUND',
         message: 'RSVP is not available for this wedding',
       })
+    }
+
+    if (website.isPasswordEnabled) {
+      const hasPasswordAccess = this.websitePasswordService.verifyAccessToken(
+        accessToken,
+        website.id,
+        website.password
+      )
+      if (!hasPasswordAccess) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Password access required for this wedding website',
+        })
+      }
     }
 
     return this.householdRepo.searchPublicByName(searchText, website.weddingId)

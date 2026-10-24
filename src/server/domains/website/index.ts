@@ -8,11 +8,17 @@ import { WebsiteRepository } from '~/server/domains/website/website.repository'
 import { WebsiteService } from '~/server/domains/website/website.service'
 import { WebsitePasswordService } from '~/server/domains/website/website-password.service'
 import { db } from '~/server/infrastructure/database'
+import { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 
 // Create singleton instances
 const websiteRepository = new WebsiteRepository(db)
 const websitePasswordService = new WebsitePasswordService()
-export const websiteService = new WebsiteService(websiteRepository, websitePasswordService)
+const websitePasswordRateLimiter = new PrismaRateLimiter(db, { limit: 10, windowMs: 15 * 60_000 })
+export const websiteService = new WebsiteService(
+  websiteRepository,
+  websitePasswordRateLimiter,
+  websitePasswordService
+)
 
 // Export classes for testing/DI
 export { WebsiteRepository } from '~/server/domains/website/website.repository'

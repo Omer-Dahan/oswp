@@ -29,6 +29,8 @@ type MainRsvpFormProps = {
   basePath: string
   /** Place progress below the surrounding site's persistent navigation. */
   embedded?: boolean
+  /** Proves the guest already cleared this website's password gate, if any. */
+  accessToken?: string
 }
 
 const getMutationErrorMessage = (error: unknown, fallback: string): string => {
@@ -60,6 +62,7 @@ export default function MainRsvpForm({
   weddingData,
   basePath,
   embedded = false,
+  accessToken,
 }: MainRsvpFormProps) {
   const rsvpFormData = useRsvpForm()
   const numSteps = useRef(NUM_STATIC_STEPS)
@@ -206,7 +209,7 @@ export default function MainRsvpForm({
       >
         <AsyncState error={submitError} className='mb-4 text-center' />
         <MultistepRsvpForm currentStep={currentStep} setCurrentStep={setCurrentStep}>
-          <FindYourInvitationForm />
+          <FindYourInvitationForm accessToken={accessToken} />
           <ConfirmNameForm />
           {...generateDynamicStepForms()}
           <SendRsvp isFetching={submitRsvpForm.isPending} />

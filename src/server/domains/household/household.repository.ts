@@ -11,12 +11,14 @@ import type {
   Household,
   HouseholdSearchResult,
   HouseholdWithGuestsAndGifts,
+  PublicHouseholdSearchResult,
 } from '~/server/domains/household/household.types'
 
 /**
- * Shape returned to the guest-facing RSVP flow: the household with each guest's
- * invitations and tag assignments. Shared by name-search and invite-code
- * recognition so both paths hand the RSVP form identical data.
+ * Shape returned to the authenticated, staff-facing household search (used by
+ * coordinators manually matching a WhatsApp reply to a household). Full guest
+ * contact details are appropriate here since the caller is a signed-in team
+ * member of the wedding.
  */
 export const rsvpHouseholdSelect = {
   id: true,
@@ -26,6 +28,39 @@ export const rsvpHouseholdSelect = {
       guestTagAssignments: {
         select: {
           guestTagId: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.HouseholdSelect
+
+/**
+ * Shape returned to unauthenticated, guest-facing RSVP flows (public name
+ * search and invite-code recognition). Deliberately omits guest contact
+ * fields (email, phone) and limits invitations to events the household was
+ * actually invited to, since these endpoints are reachable by anyone who
+ * knows (or guesses) a guest's name.
+ */
+export const publicRsvpHouseholdSelect = {
+  id: true,
+  guests: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      isPrimaryContact: true,
+      isTagAlong: true,
+      ageGroup: true,
+      invitations: {
+        where: {
+          rsvp: {
+            not: 'Not Invited',
+          },
+        },
+        select: {
+          id: true,
+          eventId: true,
+          rsvp: true,
         },
       },
     },
@@ -329,7 +364,7 @@ export class HouseholdRepository {
   async searchPublicByName(
     searchText: string,
     weddingId: string
-  ): Promise<HouseholdSearchResult[]> {
+  ): Promise<PublicHouseholdSearchResult[]> {
     const terms = tokenizeNameForSearch(searchText)
 
     // Require a first and last name. A single term is too broad for a public
@@ -351,7 +386,7 @@ export class HouseholdRepository {
           },
         },
       },
-      select: rsvpHouseholdSelect,
+      select: publicRsvpHouseholdSelect,
     })
 
     // Every term must appear in a single guest's full name, so the searcher has
