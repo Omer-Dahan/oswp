@@ -12,13 +12,14 @@ export type SupportedCurrency = {
 }
 
 export const SUPPORTED_CURRENCIES: readonly SupportedCurrency[] = [
-  { code: 'USD', label: 'US Dollar' },
-  { code: 'GBP', label: 'British Pound' },
+  { code: 'ILS', label: 'שקל חדש' },
+  { code: 'USD', label: 'דולר אמריקאי' },
+  { code: 'GBP', label: 'לירה שטרלינג' },
 ] as const
 
 export const SUPPORTED_CURRENCY_CODES = SUPPORTED_CURRENCIES.map((currency) => currency.code)
 
-export const DEFAULT_CURRENCY = 'USD'
+export const DEFAULT_CURRENCY = 'ILS'
 
 export function isSupportedCurrency(code: string): boolean {
   return SUPPORTED_CURRENCY_CODES.includes(code)
