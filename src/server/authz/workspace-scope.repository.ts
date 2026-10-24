@@ -16,7 +16,7 @@ export class WorkspaceScopeRepository {
       LEFT JOIN "Wedding" w ON w."organizationId" = m."organizationId"
       WHERE m."userId" = ${userId}
         AND m."organizationId" = ${organizationId}
-      ORDER BY m."createdAt" ASC
+      ORDER BY m."createdAt" ASC, w."createdAt" ASC
       LIMIT 1
     `
 

@@ -55,9 +55,7 @@ export const weddingRouter = createTRPCRouter({
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Wedding not found' })
     }
 
-    // TODO(review-quality): replace first-event fallback with explicit ceremony/primary-event lookup.
-    const events = await eventService.getWeddingEvents(wedding.id)
-    const primaryEvent = events?.[0]
+    const primaryEvent = await eventService.getPrimaryEvent(wedding.id)
     return {
       groomFirstName: wedding.groomFirstName,
       groomLastName: wedding.groomLastName,

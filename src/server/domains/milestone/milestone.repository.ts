@@ -36,7 +36,7 @@ export class MilestoneRepository {
         },
         events: {
           orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
-          select: { date: true },
+          select: { date: true, isPrimary: true },
         },
         guests: {
           select: { id: true },
@@ -54,7 +54,12 @@ export class MilestoneRepository {
       return []
     }
 
-    const primaryEventDate = wedding.events.find((event) => event.date !== null)?.date ?? null
+    // Prefer the wedding's ceremony/primary event's date; fall back to the
+    // earliest event with any date set if the primary event has none.
+    const primaryEventDate =
+      wedding.events.find((event) => event.isPrimary)?.date ??
+      wedding.events.find((event) => event.date !== null)?.date ??
+      null
     const derivationState = {
       primaryEventDate,
       guestCount: wedding.guests.length,

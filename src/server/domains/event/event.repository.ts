@@ -53,6 +53,24 @@ export class EventRepository {
   }
 
   /**
+   * The wedding's ceremony/main event — "the wedding date" shown on the
+   * dashboard, website, and countdown. Falls back to the earliest-created
+   * event when none is marked primary (e.g. a wedding created before this
+   * flag existed that hasn't been backfilled).
+   */
+  async findPrimaryEvent(weddingId: string): Promise<Event | null> {
+    const primary = await this.db.event.findFirst({
+      where: { weddingId, isPrimary: true },
+    })
+    if (primary) return primary
+
+    return this.db.event.findFirst({
+      where: { weddingId },
+      orderBy: { createdAt: 'asc' },
+    })
+  }
+
+  /**
    * Find all events for a wedding with questions included
    */
   async findByWeddingIdWithQuestions(weddingId: string): Promise<EventWithQuestions[]> {

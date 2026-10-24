@@ -69,13 +69,19 @@ export const publicRsvpHouseholdSelect = {
 
 /**
  * Fold a name to a comparable form for the public RSVP lookup: lowercased, with
- * apostrophes dropped and hyphens/dashes treated as spaces. This makes
+ * apostrophes/quotes dropped and hyphens/dashes treated as spaces. This makes
  * "Sarah-Jane" and "Sarah Jane" compare equal (in either direction) and lets
  * "O'Brien" match "OBrien", so a guest isn't blocked by how the couple happened
- * to punctuate their name.
+ * to punctuate their name. Also drops the Hebrew geresh (׳), gershayim (״),
+ * and straight double quote ("), used the same way in Hebrew names/abbreviations.
  */
 export function normalizeNameForSearch(value: string): string {
-  return value.toLowerCase().replace(/['’]/g, '').replace(/[-–—]/g, ' ').replace(/\s+/g, ' ').trim()
+  return value
+    .toLowerCase()
+    .replace(/['’"׳״]/g, '')
+    .replace(/[-–—]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 /**
@@ -352,9 +358,12 @@ export class HouseholdRepository {
    *
    * Stricter than `search`, because this runs on an unauthenticated endpoint: a
    * guest must be identified by a first AND last name (at least two terms) and
-   * every term must match the SAME guest. A lone common first name like "sarah",
-   * or an incidental substring, therefore no longer surfaces the whole guest
-   * list, and a query can't match two different household members at once.
+   * every term must match the SAME guest. A lone common first name like "sarah"
+   * therefore no longer surfaces the whole guest list, and a query can't match
+   * two different household members at once. The exception is a guest whose
+   * own stored name is itself a single token (no last name on file) — a
+   * single matching term is accepted there since requiring two terms would
+   * make that guest permanently unfindable.
    *
    * Matching is done in memory against each guest's full name so hyphens and
    * spaces are interchangeable ("Sarah-Jane" == "Sarah Jane") while staying
@@ -366,10 +375,7 @@ export class HouseholdRepository {
     weddingId: string
   ): Promise<PublicHouseholdSearchResult[]> {
     const terms = tokenizeNameForSearch(searchText)
-
-    // Require a first and last name. A single term is too broad for a public
-    // lookup and would let anyone enumerate the couple's guest list.
-    if (terms.length < 2) return []
+    if (terms.length === 0) return []
 
     const households = await this.db.household.findMany({
       where: {
@@ -390,10 +396,20 @@ export class HouseholdRepository {
     })
 
     // Every term must appear in a single guest's full name, so the searcher has
-    // actually named a specific person rather than a household member each.
+    // actually named a specific person rather than a household member each. A
+    // single search term is only accepted against a guest whose own stored
+    // name is itself a single token (e.g. registered with no last name) —
+    // otherwise one short term would let a common first name enumerate the
+    // whole invite list.
     return households.filter((household) =>
       household.guests.some((guest) => {
-        const fullName = normalizeNameForSearch(`${guest.firstName} ${guest.lastName}`)
+        const guestNameTerms = tokenizeNameForSearch(`${guest.firstName} ${guest.lastName}`)
+
+        if (terms.length === 1) {
+          return guestNameTerms.length === 1 && guestNameTerms[0] === terms[0]
+        }
+
+        const fullName = guestNameTerms.join(' ')
         return terms.every((term) => fullName.includes(term))
       })
     )

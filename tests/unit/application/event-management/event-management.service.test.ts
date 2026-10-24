@@ -40,6 +40,8 @@ const createMockDb = () => {
     event: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
       update: jest.fn(),
       delete: jest.fn(),
     },
@@ -48,6 +50,10 @@ const createMockDb = () => {
     },
     invitation: {
       createMany: jest.fn(),
+    },
+    task: {
+      count: jest.fn().mockResolvedValue(0),
+      updateMany: jest.fn(),
     },
   }
 
@@ -105,13 +111,74 @@ describe('EventManagementService', () => {
     expect(mockRequirePermission).toHaveBeenCalledWith(actorContext, { event: ['update'] })
   })
 
+  it('rejects an update that moves the date into the past', async () => {
+    mockDb._tx.event.findUnique.mockResolvedValue({
+      id: 'event-123',
+      allowTagAlongs: false,
+      date: new Date('2030-06-15'),
+    })
+
+    await expect(
+      service.updateEvent(actorContext, 'wedding-123', {
+        eventId: 'event-123',
+        eventName: 'Updated',
+        date: '2020-01-01',
+      })
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+
+    expect(mockDb._tx.event.update).not.toHaveBeenCalled()
+  })
+
+  it('allows updating other fields without re-validating an unchanged past date', async () => {
+    mockDb._tx.event.findUnique.mockResolvedValue({
+      id: 'event-123',
+      allowTagAlongs: false,
+      date: new Date('2020-01-01'),
+    })
+    mockDb._tx.event.update.mockResolvedValue(mockEvent)
+
+    await service.updateEvent(actorContext, 'wedding-123', {
+      eventId: 'event-123',
+      eventName: 'Updated',
+      date: '2020-01-01',
+      venue: 'New venue',
+    })
+
+    expect(mockDb._tx.event.update).toHaveBeenCalled()
+  })
+
   it('requires event delete permission before deleting', async () => {
-    mockDeleteFn.mockResolvedValue(mockEvent)
+    mockDb._tx.event.delete.mockResolvedValue(mockEvent)
 
     await service.deleteEvent(actorContext, 'wedding-123', 'event-123')
 
     expect(mockRequirePermission).toHaveBeenCalledWith(actorContext, { event: ['delete'] })
-    expect(mockDeleteFn).toHaveBeenCalledWith('event-123')
+    expect(mockDb._tx.event.delete).toHaveBeenCalledWith({ where: { id: 'event-123' } })
+  })
+
+  it('reassigns tasks to another event before deleting one that still has tasks', async () => {
+    mockDb._tx.task.count.mockResolvedValue(2)
+    mockDb._tx.event.findFirst.mockResolvedValue({ id: 'event-456' })
+    mockDb._tx.event.delete.mockResolvedValue(mockEvent)
+
+    await service.deleteEvent(actorContext, 'wedding-123', 'event-123')
+
+    expect(mockDb._tx.task.updateMany).toHaveBeenCalledWith({
+      where: { weddingId: 'wedding-123', eventId: 'event-123' },
+      data: { eventId: 'event-456' },
+    })
+    expect(mockDb._tx.event.delete).toHaveBeenCalledWith({ where: { id: 'event-123' } })
+  })
+
+  it('blocks deleting the wedding’s only event when it still has tasks', async () => {
+    mockDb._tx.task.count.mockResolvedValue(1)
+    mockDb._tx.event.findFirst.mockResolvedValue(null)
+
+    await expect(
+      service.deleteEvent(actorContext, 'wedding-123', 'event-123')
+    ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' })
+
+    expect(mockDb._tx.event.delete).not.toHaveBeenCalled()
   })
 
   it('rejects update when event is outside wedding scope', async () => {
@@ -136,7 +203,7 @@ describe('EventManagementService', () => {
       code: 'FORBIDDEN',
     })
 
-    expect(mockDeleteFn).not.toHaveBeenCalled()
+    expect(mockDb.$transaction).not.toHaveBeenCalled()
   })
 
   it('rejects create when permission is missing', async () => {

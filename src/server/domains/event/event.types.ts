@@ -31,6 +31,9 @@ export type Event = {
   weddingId: string
   collectRsvp: boolean
   allowTagAlongs: boolean
+  // Optional so existing public/thinned Event shapes (e.g. the guest-facing
+  // RSVP form) that predate this flag don't all need updating to supply it.
+  isPrimary?: boolean
   createdAt: Date
   updatedAt: Date
 }

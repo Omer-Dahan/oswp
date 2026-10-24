@@ -43,6 +43,10 @@ export class SelfFillRepository {
         brideFirstName: true,
         brideLastName: true,
         events: {
+          // Only events accepting public RSVPs are offered to self-registering
+          // guests — an internal-only event shouldn't get an auto-"Invited"
+          // invitation just because it belongs to the same wedding.
+          where: { collectRsvp: true },
           select: {
             id: true,
             name: true,

@@ -16,7 +16,6 @@ jest.mock('~/server/domains/guest/guest.repository')
 import { SelfFillRegistrationService } from '~/server/application/self-fill-registration/self-fill-registration.service'
 // @ts-expect-error - Importing mock functions from mocked module
 import {
-  GuestRepository,
   mockCreate,
   mockFindByEmailAndWeddingId,
   mockGuest,
@@ -24,7 +23,6 @@ import {
 } from '~/server/domains/guest/guest.repository'
 // @ts-expect-error - Importing mock functions from mocked module
 import {
-  HouseholdRepository,
   mockCreateWithGifts,
   mockHousehold,
   resetMocks as resetHouseholdMocks,
@@ -69,15 +67,11 @@ describe('SelfFillRegistrationService', () => {
 
     mockDb = createMockDb()
     const selfFillRepo = new SelfFillRepository({})
-    const householdRepo = new HouseholdRepository({})
-    const guestRepo = new GuestRepository({})
 
     service = new SelfFillRegistrationService(
       // biome-ignore lint/suspicious/noExplicitAny: test mock
       mockDb as any,
-      selfFillRepo,
-      householdRepo,
-      guestRepo
+      selfFillRepo
     )
   })
 

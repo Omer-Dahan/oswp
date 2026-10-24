@@ -19,8 +19,8 @@ import { TRPCError } from '@trpc/server'
 
 import { logger } from '~/lib/observability/logger'
 
-import type { GuestRepository } from '~/server/domains/guest/guest.repository'
-import type { HouseholdRepository } from '~/server/domains/household/household.repository'
+import { GuestRepository } from '~/server/domains/guest/guest.repository'
+import { HouseholdRepository } from '~/server/domains/household/household.repository'
 import type { SelfFillRepository } from '~/server/domains/self-fill/self-fill.repository'
 import type {
   ISelfFillRegistration,
@@ -38,9 +38,7 @@ const DEFAULT_IS_PRIMARY_CONTACT = true
 export class SelfFillRegistrationService implements ISelfFillRegistration {
   constructor(
     private db: PrismaClient,
-    private selfFillRepo: SelfFillRepository,
-    private householdRepo: HouseholdRepository,
-    private guestRepo: GuestRepository
+    private selfFillRepo: SelfFillRepository
   ) {}
 
   /**
@@ -84,10 +82,17 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
 
     // 3. Transactional: duplicate check + create household + guest + invitations (P2)
     try {
-      const { householdId, guestId } = await this.db.$transaction(async () => {
+      const { householdId, guestId } = await this.db.$transaction(async (tx) => {
+        // Repositories must be built from `tx`, not `this.db` — otherwise
+        // these writes (and the duplicate check) run outside the
+        // transaction on a separate connection, defeating the atomicity and
+        // TOCTOU protection this transaction exists for.
+        const guestRepo = new GuestRepository(tx)
+        const householdRepo = new HouseholdRepository(tx)
+
         // Duplicate check inside transaction to reduce TOCTOU window (P2)
         if (normalizedEmail) {
-          const existing = await this.guestRepo.findByEmailAndWeddingId(normalizedEmail, weddingId)
+          const existing = await guestRepo.findByEmailAndWeddingId(normalizedEmail, weddingId)
           if (existing) {
             throw new TRPCError({
               code: 'CONFLICT',
@@ -96,7 +101,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
           }
         }
 
-        const household = await this.householdRepo.createWithGifts(
+        const household = await householdRepo.createWithGifts(
           {
             weddingId,
             address1: data.address1 ?? null,
@@ -109,7 +114,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
           eventIds
         )
 
-        const guest = await this.guestRepo.create({
+        const guest = await guestRepo.create({
           firstName: data.firstName,
           lastName: data.lastName,
           email: normalizedEmail,
