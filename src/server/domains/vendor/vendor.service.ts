@@ -273,7 +273,9 @@ export class VendorService {
 
   /**
    * Delete a vendor (cascades to quotes) with ownership verification.
-   * Cleans up blob storage for all associated files and images before cascade-deleting.
+   * Cleans up blob storage for all associated files and images after the
+   * DB delete succeeds, so a failed delete never leaves orphaned blobs
+   * deleted out from under a still-existing DB record.
    */
   async deleteVendor(ctx: AuthzContext, vendorId: string, weddingId: string): Promise<string> {
     this.requireVendorPermission(ctx, 'delete')
@@ -282,9 +284,9 @@ export class VendorService {
     const vendor = await this.vendorRepository.findByIdWithQuotes(vendorId)
     const fileUrls = (vendor?.quotes ?? []).flatMap((q) => q.files.map((f) => f.url))
     const imageUrls = (vendor?.images ?? []).map((img) => img.url)
-    await this.deleteBlobsBestEffort([...fileUrls, ...imageUrls])
 
     const deleted = await this.vendorRepository.delete(vendorId)
+    await this.deleteBlobsBestEffort([...fileUrls, ...imageUrls])
     return deleted.id
   }
 
@@ -331,7 +333,9 @@ export class VendorService {
 
   /**
    * Delete a quote with ownership verification.
-   * Cleans up blob storage for all associated files before deleting.
+   * Cleans up blob storage for all associated files after the DB delete
+   * succeeds, so a failed delete never leaves orphaned blobs deleted out
+   * from under a still-existing DB record.
    */
   async deleteQuote(
     ctx: AuthzContext,
@@ -343,11 +347,9 @@ export class VendorService {
     await this.assertVendorOwnership(vendorId, weddingId)
     await this.assertQuoteOwnership(quoteId, vendorId)
 
-    // Clean up blobs before cascade delete removes file DB records
     const fileUrls = await this.vendorRepository.findAllFileUrlsByQuoteId(quoteId)
-    await this.deleteBlobsBestEffort(fileUrls)
-
     const deleted = await this.vendorRepository.deleteQuote(quoteId)
+    await this.deleteBlobsBestEffort(fileUrls)
     return deleted.id
   }
 

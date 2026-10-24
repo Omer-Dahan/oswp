@@ -11,7 +11,7 @@ const parseDateInput = (value: string): Date => {
   return new Date(year ?? 0, (month ?? 1) - 1, day ?? 1)
 }
 
-const isTodayOrFutureDate = (value: string | undefined): boolean => {
+export const isTodayOrFutureDate = (value: string | undefined): boolean => {
   if (!value) return true
 
   const eventDate = parseDateInput(value)
@@ -46,27 +46,28 @@ export const createEventSchema = z
 
 /**
  * Schema for updating an existing event
+ *
+ * Unlike create, this has no "date can't be in the past" refine: the schema
+ * only sees the submitted payload, not whether `date` actually changed, and
+ * a form that resends an untouched past date (to update e.g. just the venue)
+ * must not be rejected. That check runs in EventManagementService.updateEvent
+ * instead, where the previously stored date is available for comparison.
  */
-export const updateEventSchema = z
-  .object({
-    eventId: z.string().min(1, 'Event ID is required'),
-    eventName: z
-      .string()
-      .min(1, { message: 'שם האירוע נדרש' })
-      .max(50, { message: 'שם האירוע חייב להיות עד 50 תווים' }),
-    date: z.string().optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    venue: z.string().optional(),
-    attire: z.string().optional(),
-    description: z.string().optional(),
-    collectRsvp: z.boolean().optional(),
-    allowTagAlongs: z.boolean().optional(),
-  })
-  .refine((data) => isTodayOrFutureDate(data.date), {
-    message: 'תאריך האירוע לא יכול להיות בעבר',
-    path: ['date'],
-  })
+export const updateEventSchema = z.object({
+  eventId: z.string().min(1, 'Event ID is required'),
+  eventName: z
+    .string()
+    .min(1, { message: 'שם האירוע נדרש' })
+    .max(50, { message: 'שם האירוע חייב להיות עד 50 תווים' }),
+  date: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  venue: z.string().optional(),
+  attire: z.string().optional(),
+  description: z.string().optional(),
+  collectRsvp: z.boolean().optional(),
+  allowTagAlongs: z.boolean().optional(),
+})
 
 /**
  * Schema for updating collect RSVP status

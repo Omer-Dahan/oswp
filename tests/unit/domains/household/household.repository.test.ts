@@ -108,6 +108,9 @@ describe('HouseholdRepository.searchPublicByName', () => {
     household('h-obrien', guest("O'Brien", 'Murphy')),
     // Two members whose names each match one term of "Papa Baby".
     household('h-bears', guest('Papa', 'Bear'), guest('Baby', 'Bear')),
+    // A guest registered with no last name — their own stored name is a
+    // single token, so a single search term must be able to find them.
+    household('h-cher', guest('Cher', '')),
   ]
 
   beforeEach(() => {
@@ -119,8 +122,16 @@ describe('HouseholdRepository.searchPublicByName', () => {
   const idsFor = async (searchText: string) =>
     (await repository.searchPublicByName(searchText, 'wedding-1')).map((h) => h.id)
 
-  it('returns nothing without querying for a single (first-name-only) term', async () => {
-    const result = await repository.searchPublicByName('Sarah', 'wedding-1')
+  it('returns nothing for a single term that only matches multi-token guests', async () => {
+    expect(await idsFor('Sarah')).toEqual([])
+  })
+
+  it('matches a single-name guest (no last name on file) by their one name', async () => {
+    expect(await idsFor('Cher')).toEqual(['h-cher'])
+  })
+
+  it('returns nothing without querying for an empty search string', async () => {
+    const result = await repository.searchPublicByName('   ', 'wedding-1')
 
     expect(result).toEqual([])
     expect(mockHouseholdFindMany).not.toHaveBeenCalled()
@@ -159,6 +170,12 @@ describe('HouseholdRepository.searchPublicByName', () => {
   it('ignores apostrophes when matching', async () => {
     expect(await idsFor('OBrien Murphy')).toEqual(['h-obrien'])
     expect(await idsFor("O'Brien Murphy")).toEqual(['h-obrien'])
+  })
+
+  it('ignores Hebrew geresh, gershayim, and straight double quotes when matching', async () => {
+    expect(await idsFor('O׳Brien Murphy')).toEqual(['h-obrien'])
+    expect(await idsFor('O״Brien Murphy')).toEqual(['h-obrien'])
+    expect(await idsFor('O"Brien Murphy')).toEqual(['h-obrien'])
   })
 
   it('stays partial- and case-tolerant', async () => {

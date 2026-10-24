@@ -406,6 +406,10 @@ model Event {
   description    String?
   collectRsvp    Boolean   @default(false)
   allowTagAlongs Boolean   @default(false)
+  // The wedding's ceremony/main event, set once per wedding at creation time.
+  // "The wedding date" shown on the dashboard/website/countdown reads this
+  // event rather than whichever event happened to be created first.
+  isPrimary      Boolean   @default(false) @map("is_primary")
 
   // Relations
   invitations Invitation[] @relation(name: "Event_Invitations")

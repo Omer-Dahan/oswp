@@ -217,7 +217,7 @@ export class WebsiteManagementService {
       })
     }
     const locale = await getLocale()
-    const weddingDate = events.find((event) => event.name === 'Wedding Day')?.date
+    const weddingDate = (events.find((event) => event.isPrimary) ?? events[0])?.date
     const homeSection = sections.find((section) => section.type === WebsiteSectionType.HOME)
     const homeContent =
       homeSection?.isEnabled && homeSection.type === WebsiteSectionType.HOME

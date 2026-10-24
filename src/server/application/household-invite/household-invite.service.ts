@@ -37,10 +37,6 @@ export type UpdateHouseholdInviteInput = {
   guests: HouseholdInviteGuestInput[]
 }
 
-// The primary wedding date and venue live on the event named "Wedding Day"
-// (see website-management.service.ts), not on the Wedding record itself.
-const WEDDING_DAY_EVENT_NAME = 'Wedding Day'
-
 export type HouseholdInviteData = {
   weddingId: string
   expiresAt: Date
@@ -303,8 +299,7 @@ export class HouseholdInviteService {
             groomFirstName: true,
             brideFirstName: true,
             events: {
-              where: { name: WEDDING_DAY_EVENT_NAME },
-              orderBy: { date: 'asc' },
+              where: { isPrimary: true },
               take: 1,
               select: { date: true, venue: true },
             },
@@ -577,7 +572,7 @@ export class HouseholdInviteService {
               brideLastName: true,
               events: {
                 orderBy: { date: 'asc' },
-                select: { name: true, date: true, venue: true },
+                select: { name: true, date: true, venue: true, isPrimary: true },
               },
             },
           },
@@ -612,9 +607,9 @@ export class HouseholdInviteService {
     if (!household) return null
 
     const { events, ...weddingNames } = household.wedding
-    // The primary date/venue come from the "Wedding Day" event; the full event
-    // list drives the save-the-date calendar block.
-    const weddingDayEvent = events.find((event) => event.name === WEDDING_DAY_EVENT_NAME)
+    // The primary date/venue come from the wedding's ceremony/primary event;
+    // the full event list drives the save-the-date calendar block.
+    const weddingDayEvent = events.find((event) => event.isPrimary) ?? events[0]
 
     // Mirror the website surfaces: only enabled Save the Date copy overrides the
     // template defaults, and malformed stored content is ignored rather than thrown.

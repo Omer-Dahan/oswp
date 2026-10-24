@@ -70,17 +70,35 @@ function convertDate(date: Date | null) {
   return `${daysOfTheWeek[day]}, ${abbreviatedMonths[month]} ${datee + 1}`
 }
 
+// The countdown is always shown in Israel time, so "today" must be today's
+// calendar date in Asia/Jerusalem — not the server process's own timezone
+// (which on most hosts is UTC and would be a day off for part of the day).
+const COUNTDOWN_TIMEZONE = 'Asia/Jerusalem'
+
 function calculateDaysRemaining(weddingDate: Date | null | undefined) {
   if (!weddingDate) return undefined
 
-  const treatAsUTC = (date: Date): number => {
-    const result = new Date(date)
-    result.setMinutes(result.getMinutes() - result.getTimezoneOffset())
-    return result.getTime()
-  }
-
   const millisecondsPerDay = 24 * 60 * 60 * 1000
-  return Math.ceil((treatAsUTC(weddingDate) - treatAsUTC(new Date())) / millisecondsPerDay)
+
+  // weddingDate is a date-only `@db.Date` column, stored as UTC midnight —
+  // its UTC year/month/day is the intended calendar date.
+  const weddingDateOnly = Date.UTC(
+    weddingDate.getUTCFullYear(),
+    weddingDate.getUTCMonth(),
+    weddingDate.getUTCDate()
+  )
+
+  const jerusalemParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: COUNTDOWN_TIMEZONE,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(new Date())
+  const part = (type: 'year' | 'month' | 'day'): number =>
+    Number(jerusalemParts.find((p) => p.type === type)?.value)
+  const todayInJerusalem = Date.UTC(part('year'), part('month') - 1, part('day'))
+
+  return Math.round((weddingDateOnly - todayInJerusalem) / millisecondsPerDay)
 }
 
 // returns an array of times from 12pm to 11:45am (24hrs) in 15min increments

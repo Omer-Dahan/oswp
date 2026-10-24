@@ -52,6 +52,10 @@ export default function NamesForm() {
   const { register, handleSubmit, formState, control, watch } = form
   const { errors, isSubmitting } = formState
   const hasWeddingDetails = watch('hasWeddingDetails')
+  // `mutate` isn't awaited by handleSubmit, so react-hook-form's isSubmitting
+  // flips back to false as soon as the request is dispatched — fold in the
+  // mutation's own pending state so the form stays disabled until it resolves.
+  const isPending = isSubmitting || createWedding.isPending
 
   if (isLoading) {
     return <LoadingSpinner />
@@ -113,7 +117,7 @@ export default function NamesForm() {
                         id='groomFirstName'
                         placeholder='הזינו שם פרטי'
                         {...register('groomFirstName')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                       {errors.groomFirstName && (
                         <p className='text-destructive text-sm'>{errors.groomFirstName.message}</p>
@@ -125,7 +129,7 @@ export default function NamesForm() {
                         id='groomMiddleName'
                         placeholder='הזינו שם אמצעי'
                         {...register('groomMiddleName')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                     </div>
                     <div className='space-y-2'>
@@ -134,7 +138,7 @@ export default function NamesForm() {
                         id='groomLastName'
                         placeholder='הזינו שם משפחה'
                         {...register('groomLastName')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                       {errors.groomLastName && (
                         <p className='text-destructive text-sm'>{errors.groomLastName.message}</p>
@@ -153,7 +157,7 @@ export default function NamesForm() {
                         id='brideFirstName'
                         placeholder='הזינו שם פרטי'
                         {...register('brideFirstName')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                       {errors.brideFirstName && (
                         <p className='text-destructive text-sm'>{errors.brideFirstName.message}</p>
@@ -165,7 +169,7 @@ export default function NamesForm() {
                         id='brideMiddleName'
                         placeholder='הזינו שם אמצעי'
                         {...register('brideMiddleName')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                     </div>
                     <div className='space-y-2'>
@@ -174,7 +178,7 @@ export default function NamesForm() {
                         id='brideLastName'
                         placeholder='הזינו שם משפחה'
                         {...register('brideLastName')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                       {errors.brideLastName && (
                         <p className='text-destructive text-sm'>{errors.brideLastName.message}</p>
@@ -202,7 +206,7 @@ export default function NamesForm() {
                       id='wedding-details-toggle'
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      disabled={isSubmitting}
+                      disabled={isPending}
                     />
                   )}
                 />
@@ -223,7 +227,7 @@ export default function NamesForm() {
                               'w-full justify-start text-start font-normal',
                               !weddingDate && 'text-muted-foreground'
                             )}
-                            disabled={isSubmitting}
+                            disabled={isPending}
                           >
                             <CalendarIcon className='me-2 h-4 w-4' />
                             {weddingDate ? (
@@ -246,7 +250,11 @@ export default function NamesForm() {
                             startMonth={new Date()}
                             endMonth={new Date(new Date().getFullYear() + 10, 11)}
                             autoFocus
-                            disabled={(date) => date < new Date()}
+                            disabled={(date) => {
+                              const startOfToday = new Date()
+                              startOfToday.setHours(0, 0, 0, 0)
+                              return date < startOfToday
+                            }}
                           />
                         </PopoverContent>
                       </Popover>
@@ -257,7 +265,7 @@ export default function NamesForm() {
                         id='weddingLocation'
                         placeholder='למשל: ריזורט חוף, קאבו'
                         {...register('weddingLocation')}
-                        disabled={isSubmitting}
+                        disabled={isPending}
                       />
                     </div>
                   </div>
@@ -265,8 +273,8 @@ export default function NamesForm() {
               )}
 
               {/* Submit Button */}
-              <Button type='submit' disabled={isSubmitting} className='w-full' size='lg'>
-                {isSubmitting ? 'יוצרים את התוכנית…' : 'בואו נתחיל'}
+              <Button type='submit' disabled={isPending} className='w-full' size='lg'>
+                {isPending ? 'יוצרים את התוכנית…' : 'בואו נתחיל'}
               </Button>
             </form>
           </CardContent>

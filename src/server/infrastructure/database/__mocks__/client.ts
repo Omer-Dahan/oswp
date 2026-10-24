@@ -19,6 +19,7 @@ export const mockEventFindMany = jest.fn()
 export const mockEventCreate = jest.fn()
 export const mockEventUpdate = jest.fn()
 export const mockEventDelete = jest.fn()
+export const mockEventCount = jest.fn()
 
 export const mockGuestFindUnique = jest.fn()
 export const mockGuestFindMany = jest.fn()
@@ -90,6 +91,7 @@ const dbModels = {
     create: mockEventCreate,
     update: mockEventUpdate,
     delete: mockEventDelete,
+    count: mockEventCount,
   },
   guest: {
     findUnique: mockGuestFindUnique,
@@ -184,6 +186,7 @@ export const resetMocks = (): void => {
   mockEventCreate.mockReset()
   mockEventUpdate.mockReset()
   mockEventDelete.mockReset()
+  mockEventCount.mockReset().mockResolvedValue(0)
   mockGuestFindUnique.mockReset()
   mockGuestFindMany.mockReset()
   mockGuestCreate.mockReset()

@@ -63,6 +63,9 @@ export class EventService {
     } = data
 
     return this.db.$transaction(async (tx) => {
+      // The wedding's first event becomes its primary/ceremony event.
+      const existingEventCount = await tx.event.count({ where: { weddingId } })
+
       // Create the event
       const newEvent = await tx.event.create({
         data: {
@@ -76,6 +79,7 @@ export class EventService {
           description,
           collectRsvp: collectRsvp ?? false,
           allowTagAlongs: allowTagAlongs ?? false,
+          isPrimary: existingEventCount === 0,
         },
       })
 
@@ -108,6 +112,12 @@ export class EventService {
       return undefined
     }
     return this.eventRepository.findByWeddingId(weddingId)
+  }
+
+  /** The wedding's ceremony/main event — see EventRepository.findPrimaryEvent. */
+  async getPrimaryEvent(weddingId: string | null): Promise<Event | null> {
+    if (!weddingId) return null
+    return this.eventRepository.findPrimaryEvent(weddingId)
   }
 
   /**

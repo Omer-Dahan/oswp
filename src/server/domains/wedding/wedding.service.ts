@@ -49,9 +49,12 @@ export class WeddingService {
    * 4. Updates the user's profile with couple info
    */
   async createWedding(userId: string, data: CreateWeddingInput): Promise<Wedding> {
-    // Check if user already has a wedding (currently allow only one wedding per user)
-    const existingWedding = await this.weddingRepository.existsForUser(userId)
-    if (existingWedding) {
+    // Allow only one wedding per user — but if a previous attempt created the
+    // wedding row and then failed before finishing provisioning (no
+    // organizationId yet), resume that attempt instead of permanently
+    // locking the user out with "already has a wedding".
+    const existingWedding = await this.weddingRepository.findByUserId(userId)
+    if (existingWedding?.organizationId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'כבר קיימת חתונה בחשבון הזה',
@@ -67,15 +70,18 @@ export class WeddingService {
       weddingLocation,
     } = data
 
-    // Create the wedding (repository will create UserWedding entry)
-    const wedding = await this.weddingRepository.create({
-      userId,
-      groomFirstName,
-      groomLastName,
-      brideFirstName,
-      brideLastName,
-      enabledAddOns: ['tasks'],
-    })
+    // Create the wedding (repository will create UserWedding entry), unless
+    // we're resuming a half-provisioned one from a previous failed attempt.
+    const wedding =
+      existingWedding ??
+      (await this.weddingRepository.create({
+        userId,
+        groomFirstName,
+        groomLastName,
+        brideFirstName,
+        brideLastName,
+        enabledAddOns: ['tasks'],
+      }))
 
     try {
       await provisionWeddingWorkspace({
@@ -95,15 +101,20 @@ export class WeddingService {
     // Seed default tags for the wedding
     await this.guestTagService.seedInitialTags(wedding.id, DEFAULT_TAGS)
 
-    // Create default "Wedding Day" event if date/location provided
+    // Create default "Wedding Day" event if date/location provided. Guarded
+    // by an existence check so resuming a half-provisioned wedding (see
+    // above) can't create a second ceremony event.
     if (data.hasWeddingDetails && (weddingDate || weddingLocation)) {
-      await this.eventService.createEventSystem(wedding.id, {
-        eventName: 'חופה וקידושין',
-        date: weddingDate ?? undefined,
-        venue: weddingLocation ?? undefined,
-        collectRsvp: false,
-        allowTagAlongs: false,
-      })
+      const existingEvents = await this.eventService.getWeddingEvents(wedding.id)
+      if (!existingEvents?.length) {
+        await this.eventService.createEventSystem(wedding.id, {
+          eventName: 'חופה וקידושין',
+          date: weddingDate ?? undefined,
+          venue: weddingLocation ?? undefined,
+          collectRsvp: false,
+          allowTagAlongs: false,
+        })
+      }
 
       try {
         await checklistSeedingService.ensureSeeded(wedding.id)

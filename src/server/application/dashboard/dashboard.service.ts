@@ -111,8 +111,9 @@ export class DashboardService {
       // For now, return minimal wedding data without website
     }
 
-    // Get wedding date and location from the first event (created as "Ceremony" during onboarding)
-    const primaryEvent = events[0]
+    // "The wedding date" comes from the wedding's ceremony/primary event, not
+    // whichever event happened to be created first.
+    const primaryEvent = events.find((event) => event.isPrimary) ?? events[0]
     const weddingDate = primaryEvent?.date
     const weddingLocation = primaryEvent?.venue
 
