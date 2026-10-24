@@ -14,9 +14,9 @@ const GUEST_AGE_GROUP_VALUES = ['INFANT', 'CHILD', 'TEEN', 'ADULT'] as const
  * Schema for creating a guest
  */
 export const createGuestSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name required' }),
+  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }),
   lastName: z.string().optional().default(''),
-  email: z.string().email('Valid email required').optional().nullable(),
+  email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
   phone: optionalPhoneSchema,
   householdId: z.string().min(1, 'Household ID is required'),
   isPrimaryContact: z.boolean().optional().default(false),
@@ -32,7 +32,7 @@ export const updateGuestSchema = z.object({
   guestId: z.number(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  email: z.string().email('Valid email required').optional().nullable(),
+  email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
   phone: optionalPhoneSchema,
   ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).optional(),
   isTagAlong: z.boolean().optional(),
@@ -66,9 +66,9 @@ export const getByEventSchema = z.object({
  */
 export const guestPartySchema = z.object({
   guestId: z.number().optional(),
-  firstName: z.string().min(1, { message: 'First name required' }),
+  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }),
   lastName: z.string().optional().default(''),
-  email: z.string().email('Valid email required').optional().nullable(),
+  email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
   phone: optionalPhoneSchema,
   isPrimaryContact: z.boolean().default(false),
   ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).default('ADULT'),

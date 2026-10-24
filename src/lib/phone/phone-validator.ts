@@ -32,13 +32,13 @@ export const optionalPhoneSchema = z
   .union([
     z.literal('').transform(() => null),
     z.null(),
-    z.string().refine(isValidE164Phone, { message: 'Please enter a valid phone number' }),
+    z.string().refine(isValidE164Phone, { message: 'הזינו מספר טלפון תקין' }),
   ])
   .optional()
 
 export const optionalPhoneSchemaNotNull = z
   .union([
     z.literal('').transform(() => undefined),
-    z.string().refine(isValidE164Phone, { message: 'Please enter a valid phone number' }),
+    z.string().refine(isValidE164Phone, { message: 'הזינו מספר טלפון תקין' }),
   ])
   .optional()

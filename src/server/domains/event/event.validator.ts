@@ -28,8 +28,8 @@ export const createEventSchema = z
   .object({
     eventName: z
       .string()
-      .min(1, { message: 'Event name required' })
-      .max(50, { message: 'Event name must be 50 characters or less' }),
+      .min(1, { message: 'שם האירוע נדרש' })
+      .max(50, { message: 'שם האירוע חייב להיות עד 50 תווים' }),
     date: z.string().optional(),
     startTime: z.string().optional(),
     endTime: z.string().optional(),
@@ -40,7 +40,7 @@ export const createEventSchema = z
     allowTagAlongs: z.boolean().default(false),
   })
   .refine((data) => isTodayOrFutureDate(data.date), {
-    message: 'Event date cannot be in the past',
+    message: 'תאריך האירוע לא יכול להיות בעבר',
     path: ['date'],
   })
 
@@ -52,8 +52,8 @@ export const updateEventSchema = z
     eventId: z.string().min(1, 'Event ID is required'),
     eventName: z
       .string()
-      .min(1, { message: 'Event name required' })
-      .max(50, { message: 'Event name must be 50 characters or less' }),
+      .min(1, { message: 'שם האירוע נדרש' })
+      .max(50, { message: 'שם האירוע חייב להיות עד 50 תווים' }),
     date: z.string().optional(),
     startTime: z.string().optional(),
     endTime: z.string().optional(),
@@ -64,7 +64,7 @@ export const updateEventSchema = z
     allowTagAlongs: z.boolean().optional(),
   })
   .refine((data) => isTodayOrFutureDate(data.date), {
-    message: 'Event date cannot be in the past',
+    message: 'תאריך האירוע לא יכול להיות בעבר',
     path: ['date'],
   })
 

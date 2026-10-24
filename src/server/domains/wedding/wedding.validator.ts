@@ -10,12 +10,12 @@ import { z } from 'zod'
  * Schema for creating a new wedding (onboarding)
  */
 export const createWeddingSchema = z.object({
-  groomFirstName: z.string().min(1, 'Groom first name is required'),
+  groomFirstName: z.string().min(1, 'שם פרטי של החתן נדרש'),
   groomMiddleName: z.string().optional(),
-  groomLastName: z.string().min(1, 'Groom last name is required'),
-  brideFirstName: z.string().min(1, 'Bride first name is required'),
+  groomLastName: z.string().min(1, 'שם משפחה של החתן נדרש'),
+  brideFirstName: z.string().min(1, 'שם פרטי של הכלה נדרש'),
   brideMiddleName: z.string().optional(),
-  brideLastName: z.string().min(1, 'Bride last name is required'),
+  brideLastName: z.string().min(1, 'שם משפחה של הכלה נדרש'),
   hasWeddingDetails: z.boolean().optional(),
   weddingDate: z.string().optional(),
   weddingLocation: z.string().optional(),
@@ -36,10 +36,10 @@ export const updateWeddingSchema = z.object({
  * Schema for updating wedding couple names from settings page.
  */
 export const updateWeddingDetailsSchema = z.object({
-  groomFirstName: z.string().min(1, 'Groom first name is required'),
-  groomLastName: z.string().min(1, 'Groom last name is required'),
-  brideFirstName: z.string().min(1, 'Bride first name is required'),
-  brideLastName: z.string().min(1, 'Bride last name is required'),
+  groomFirstName: z.string().min(1, 'שם פרטי של החתן נדרש'),
+  groomLastName: z.string().min(1, 'שם משפחה של החתן נדרש'),
+  brideFirstName: z.string().min(1, 'שם פרטי של הכלה נדרש'),
+  brideLastName: z.string().min(1, 'שם משפחה של הכלה נדרש'),
 })
 
 export const toggleWeddingAddOnSchema = z.object({

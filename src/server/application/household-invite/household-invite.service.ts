@@ -159,7 +159,7 @@ const normalizeBaseUrl = (baseUrl: string) => {
   } catch {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: 'Unable to generate invite link for this website origin',
+      message: 'לא ניתן ליצור קישור הזמנה עבור כתובת האתר הזו',
     })
   }
 }
@@ -205,7 +205,7 @@ export class HouseholdInviteService {
     if (!website) {
       throw new TRPCError({
         code: 'PRECONDITION_FAILED',
-        message: 'Publish a wedding website before generating household invite links',
+        message: 'פרסמו את אתר החתונה לפני יצירת קישורי הזמנה למשקי בית',
       })
     }
 

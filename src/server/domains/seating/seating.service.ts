@@ -130,7 +130,7 @@ export class SeatingService {
         if (data.capacity < seatedCount) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: `${lock.table.name} has ${seatedCount} guests seated. Move guests before reducing seats.`,
+            message: `יש בשולחן ${lock.table.name} ${seatedCount} אורחים, הזיזו אותם לפני הקטנת מספר המקומות`,
           })
         }
       }
@@ -157,7 +157,7 @@ export class SeatingService {
     if (guestIds.some((id) => !seatableIds.has(id))) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Only guests invited to this event who have not declined can be seated',
+        message: 'רק אורחים שהוזמנו לאירוע ולא סירבו יכולים להיות משובצים',
       })
     }
 
@@ -201,13 +201,13 @@ export class SeatingService {
       if (error instanceof SeatAlreadyTakenError) {
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'Someone else just moved one of these guests. Refresh and try again.',
+          message: 'מישהו אחר הזיז אורחים כרגע, רעננו ונסו שוב',
         })
       }
       if (error instanceof SeatingTableNotFoundError) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'This table was just deleted. Refresh to see the latest seating chart.',
+          message: 'השולחן נמחק כרגע, רעננו כדי לראות את תצוגת ההושבה העדכנית',
         })
       }
       throw error

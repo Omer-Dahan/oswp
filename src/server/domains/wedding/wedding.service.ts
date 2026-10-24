@@ -26,10 +26,10 @@ import type {
  * Default tags created for new weddings
  */
 const DEFAULT_TAGS = [
-  { name: 'Family', color: '#3b82f6' }, // blue
-  { name: 'MutualFriends', color: '#10b981' }, // green
-  { name: 'Coworkers', color: '#8b5cf6' }, // purple
-  { name: 'Plus One', color: '#f59e0b' }, // amber
+  { name: 'משפחה', color: '#3b82f6' }, // blue
+  { name: 'חברים משותפים', color: '#10b981' }, // green
+  { name: 'עבודה', color: '#8b5cf6' }, // purple
+  { name: 'מלווה', color: '#f59e0b' }, // amber
 ]
 
 export class WeddingService {
@@ -54,7 +54,7 @@ export class WeddingService {
     if (existingWedding) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'User already has a wedding',
+        message: 'כבר קיימת חתונה בחשבון הזה',
       })
     }
 
@@ -98,7 +98,7 @@ export class WeddingService {
     // Create default "Wedding Day" event if date/location provided
     if (data.hasWeddingDetails && (weddingDate || weddingLocation)) {
       await this.eventService.createEventSystem(wedding.id, {
-        eventName: 'Ceremony',
+        eventName: 'חופה וקידושין',
         date: weddingDate ?? undefined,
         venue: weddingLocation ?? undefined,
         collectRsvp: false,

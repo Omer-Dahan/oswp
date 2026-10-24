@@ -116,7 +116,7 @@ export class WhatsAppService {
     if (!account?.phoneNumberId || !account.accessTokenEnc) {
       throw new TRPCError({
         code: 'PRECONDITION_FAILED',
-        message: 'WhatsApp account is not configured yet',
+        message: 'חשבון הוואטסאפ עוד לא הוגדר',
       })
     }
 
@@ -140,7 +140,7 @@ export class WhatsAppService {
           status: 'ERROR',
           displayPhoneNumber: null,
           verifiedName: null,
-          error: body.error?.message ?? `Meta API returned HTTP ${response.status}`,
+          error: body.error?.message ?? `שגיאה מ-Meta (קוד ${response.status})`,
         }
       } else {
         result = {
@@ -155,7 +155,7 @@ export class WhatsAppService {
         status: 'ERROR',
         displayPhoneNumber: null,
         verifiedName: null,
-        error: 'Could not reach the Meta Graph API',
+        error: 'אין חיבור ל-Meta',
       }
     }
 
@@ -177,7 +177,7 @@ export class WhatsAppService {
     if (!account?.wabaId || !account.accessTokenEnc) {
       throw new TRPCError({
         code: 'PRECONDITION_FAILED',
-        message: 'WhatsApp account is not configured yet',
+        message: 'חשבון הוואטסאפ עוד לא הוגדר',
       })
     }
 
@@ -201,7 +201,7 @@ export class WhatsAppService {
     if (!response.ok) {
       throw new TRPCError({
         code: 'BAD_GATEWAY',
-        message: body.error?.message ?? `Meta API returned HTTP ${response.status}`,
+        message: body.error?.message ?? `שגיאה מ-Meta (קוד ${response.status})`,
       })
     }
 

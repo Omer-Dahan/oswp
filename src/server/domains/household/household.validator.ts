@@ -36,7 +36,7 @@ export const baseHouseholdFields = z.object({
   country: z.string().nullish().optional(),
   zipCode: z.string().nullish().optional(),
   phone: optionalPhoneSchema,
-  email: z.string().email({ message: 'Not a valid email' }).nullish().optional(),
+  email: z.string().email({ message: 'כתובת מייל לא תקינה' }).nullish().optional(),
   notes: z.string().nullish().optional(),
   likelihoodOfAttending: z.number().int().min(1).max(5).nullish().optional(),
 })
@@ -46,7 +46,7 @@ export const baseHouseholdFields = z.object({
  */
 export const createHouseholdSchema = baseHouseholdFields
   .extend({
-    guestParty: z.array(guestPartyInputSchema).min(1, 'At least one guest is required'),
+    guestParty: z.array(guestPartyInputSchema).min(1, 'נדרש לפחות אורח אחד'),
   })
   .refine(
     (data) => {
@@ -56,7 +56,7 @@ export const createHouseholdSchema = baseHouseholdFields
       return primaryContacts.length === 1
     },
     {
-      message: 'Exactly one guest must be marked as primary contact',
+      message: 'יש לסמן איש קשר ראשי אחד בדיוק',
       path: ['guestParty'],
     }
   )
@@ -67,7 +67,7 @@ export const createHouseholdSchema = baseHouseholdFields
 export const updateHouseholdSchema = baseHouseholdFields
   .extend({
     householdId: z.string().min(1, 'Household ID is required'),
-    guestParty: z.array(guestPartyInputSchema).min(1, 'At least one guest is required'),
+    guestParty: z.array(guestPartyInputSchema).min(1, 'נדרש לפחות אורח אחד'),
     deletedGuests: z.array(z.number()).optional(),
     gifts: z.array(giftInputSchema),
   })
@@ -79,7 +79,7 @@ export const updateHouseholdSchema = baseHouseholdFields
       return primaryContacts.length === 1
     },
     {
-      message: 'Exactly one guest must be marked as primary contact',
+      message: 'יש לסמן איש קשר ראשי אחד בדיוק',
       path: ['guestParty'],
     }
   )
