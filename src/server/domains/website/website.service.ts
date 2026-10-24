@@ -18,11 +18,15 @@ import type {
 } from '~/server/domains/website/website.types'
 import { computeWebsiteUrl } from '~/server/domains/website/website.utils'
 import { WebsitePasswordService } from '~/server/domains/website/website-password.service'
+import type { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 import { isKnownTemplateId } from '~/templates/catalog'
 
 export class WebsiteService {
   constructor(
     private websiteRepository: WebsiteRepository,
+    // Tight enough to stop a scripted brute force of a short password, loose
+    // enough that a guest fumbling the password a few times isn't locked out.
+    private passwordRateLimiter: PrismaRateLimiter,
     private websitePasswordService: WebsitePasswordService = new WebsitePasswordService()
   ) {}
 
@@ -54,7 +58,7 @@ export class WebsiteService {
     }
 
     const password = data.password
-      ? this.websitePasswordService.hashPassword(data.password)
+      ? await this.websitePasswordService.hashPassword(data.password)
       : undefined
 
     return this.websiteRepository.update(weddingId, {
@@ -183,14 +187,26 @@ export class WebsiteService {
     return this.websitePasswordService.verifyAccessToken(accessToken, website.id, website.password)
   }
 
-  async verifyWebsitePassword(subUrl: string, inputPassword: string): Promise<string | null> {
+  async verifyWebsitePassword(
+    subUrl: string,
+    inputPassword: string,
+    clientIp: string
+  ): Promise<string | null> {
+    const allowed = await this.passwordRateLimiter.check(`website-password:${clientIp}:${subUrl}`)
+    if (!allowed) {
+      throw new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: 'יותר מדי ניסיונות. נסו שוב בעוד כמה דקות.',
+      })
+    }
+
     const website = await this.websiteRepository.findBySubUrl(subUrl)
 
     if (!website?.isPasswordEnabled) {
       return null
     }
 
-    const isValidPassword = this.websitePasswordService.verifyPassword(
+    const isValidPassword = await this.websitePasswordService.verifyPassword(
       inputPassword,
       website.password
     )

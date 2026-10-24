@@ -130,8 +130,12 @@ export const websiteRouter = createTRPCRouter({
 
   verifyWebsitePassword: publicProcedure
     .input(verifyWebsitePasswordSchema)
-    .mutation(async ({ input }) => {
-      return websiteService.verifyWebsitePassword(input.subUrl, input.password)
+    .mutation(async ({ ctx, input }) => {
+      return websiteService.verifyWebsitePassword(
+        input.subUrl,
+        input.password,
+        getClientIp(ctx.headers)
+      )
     }),
 
   /**

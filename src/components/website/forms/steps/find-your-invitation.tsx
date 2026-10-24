@@ -6,7 +6,12 @@ import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { api } from '~/trpc/react'
 
-export default function FindYourInvitationForm({ goNext }: StepFormProps) {
+type FindYourInvitationFormProps = StepFormProps & {
+  /** Proves the guest already cleared this website's password gate, if any. */
+  accessToken?: string
+}
+
+export default function FindYourInvitationForm({ goNext, accessToken }: FindYourInvitationFormProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
   const { weddingData } = useRsvpForm()
@@ -17,7 +22,7 @@ export default function FindYourInvitationForm({ goNext }: StepFormProps) {
   const subUrl = weddingData.website?.subUrl ?? ''
 
   const { refetch, isFetching } = api.household.findBySearchPublic.useQuery(
-    { subUrl, searchText: name },
+    { subUrl, searchText: name, accessToken },
     {
       enabled: false,
       retry: false,

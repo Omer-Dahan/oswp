@@ -92,6 +92,10 @@ export const householdRouter = createTRPCRouter({
   findBySearchPublic: publicProcedure
     .input(publicSearchHouseholdSchema)
     .query(async ({ input }) => {
-      return householdManagementService.searchHouseholdsPublic(input.subUrl, input.searchText)
+      return householdManagementService.searchHouseholdsPublic(
+        input.subUrl,
+        input.searchText,
+        input.accessToken
+      )
     }),
 })

@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: RsvpPageProps): Promise<Metad
 
 export default async function RsvpPage({ params }: RsvpPageProps) {
   const { websiteSubUrl } = await params
-  const { loadResult, inviteToken } = await loadVisitorWedding(websiteSubUrl)
+  const { loadResult, inviteToken, accessToken } = await loadVisitorWedding(websiteSubUrl)
 
   const verifyWebsitePassword = async (passwordInput: string) => {
     'use server'
@@ -78,6 +78,7 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
         weddingData={loadResult.weddingData}
         basePath={`/w/${websiteSubUrl}`}
         embedded={template.id === 'voyage' && loadResult.weddingData.websiteBuilderEnabled}
+        accessToken={accessToken}
       />
     </RsvpFormProvider>
   )

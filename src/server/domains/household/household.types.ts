@@ -71,3 +71,27 @@ export type HouseholdSearchResult = {
   id: string
   guests: GuestWithInvitations[]
 }
+
+/**
+ * Guest shape exposed to unauthenticated, guest-facing RSVP flows (public name
+ * search and invite-code recognition). Deliberately excludes contact fields
+ * (email, phone) and invitations the household wasn't actually sent, since
+ * these endpoints are reachable by anyone who can guess a guest's name.
+ */
+export type PublicRsvpGuest = {
+  id: number
+  firstName: string
+  lastName: string
+  isPrimaryContact: boolean
+  isTagAlong: boolean
+  ageGroup: 'INFANT' | 'CHILD' | 'TEEN' | 'ADULT' | null
+  invitations: Array<{ id: string; eventId: string; rsvp: string }>
+}
+
+/**
+ * Household search result shape for the public RSVP flow (see PublicRsvpGuest).
+ */
+export type PublicHouseholdSearchResult = {
+  id: string
+  guests: PublicRsvpGuest[]
+}

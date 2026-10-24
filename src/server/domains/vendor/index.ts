@@ -10,6 +10,7 @@ import { db } from '~/server/infrastructure/database'
 
 // Create singleton instances
 const vendorRepository = new VendorRepository(db)
+export { vendorRepository }
 export const vendorService = new VendorService(vendorRepository)
 
 // Export classes for testing/DI

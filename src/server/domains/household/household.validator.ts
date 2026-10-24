@@ -105,6 +105,7 @@ export const searchHouseholdSchema = z.object({
 export const publicSearchHouseholdSchema = z.object({
   subUrl: z.string().min(1, { message: 'Wedding website is required' }),
   searchText: z.string().min(2, { message: 'Search input should be minimum 2 characters' }),
+  accessToken: z.string().optional(),
 })
 
 /**

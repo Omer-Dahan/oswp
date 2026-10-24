@@ -14,5 +14,5 @@ import { readWebsiteVisitorCookies } from '~/app/w/[websiteSubUrl]/_lib/website-
 export async function loadVisitorWedding(websiteSubUrl: string) {
   const { accessToken, inviteToken } = await readWebsiteVisitorCookies(websiteSubUrl)
   const loadResult = await loadWeddingBySubUrl(websiteSubUrl, accessToken, inviteToken)
-  return { loadResult, inviteToken }
+  return { loadResult, inviteToken, accessToken }
 }
