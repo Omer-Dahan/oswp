@@ -5,7 +5,7 @@
 import { createHmac } from 'node:crypto'
 
 import {
-  extractPhoneNumberId,
+  extractPhoneNumberIds,
   parseWebhookPayload,
   verifyWebhookSignature,
 } from '~/server/domains/whatsapp/webhook.service'
@@ -88,13 +88,18 @@ describe('parseWebhookPayload', () => {
     ],
   }
 
-  it('extracts the phone_number_id used to resolve the account', () => {
-    expect(extractPhoneNumberId(fixture)).toBe('1234567890')
+  it('extracts every distinct phone_number_id for the account-resolution pass', () => {
+    expect(extractPhoneNumberIds(fixture)).toEqual(['1234567890'])
   })
 
-  it('extracts two messages and one status from the fixture', () => {
-    const { messages, statuses } = parseWebhookPayload(fixture)
+  it('extracts two messages and one status, grouped under their phone_number_id', () => {
+    const groups = parseWebhookPayload(fixture)
 
+    expect(groups).toHaveLength(1)
+    const [group] = groups
+    expect(group?.phoneNumberId).toBe('1234567890')
+
+    const { messages, statuses } = group ?? { messages: [], statuses: [] }
     expect(messages).toHaveLength(2)
     expect(messages[0]).toEqual({
       waId: '972500000001',
@@ -119,8 +124,38 @@ describe('parseWebhookPayload', () => {
     })
   })
 
-  it('returns empty arrays for a malformed/empty payload', () => {
-    expect(parseWebhookPayload({})).toEqual({ messages: [], statuses: [] })
-    expect(parseWebhookPayload(null)).toEqual({ messages: [], statuses: [] })
+  it('routes changes with different phone_number_id into separate groups', () => {
+    const multiAccountFixture = {
+      entry: [
+        {
+          id: 'waba-1',
+          changes: [
+            {
+              value: {
+                metadata: { phone_number_id: '1111' },
+                messages: [{ id: 'wamid.a', from: '972500000001', text: { body: 'כן' } }],
+              },
+            },
+            {
+              value: {
+                metadata: { phone_number_id: '2222' },
+                messages: [{ id: 'wamid.b', from: '972500000002', text: { body: 'לא' } }],
+              },
+            },
+          ],
+        },
+      ],
+    }
+
+    const groups = parseWebhookPayload(multiAccountFixture)
+    expect(groups).toHaveLength(2)
+    expect(groups.map((g) => g.phoneNumberId).sort()).toEqual(['1111', '2222'])
+    expect(groups.find((g) => g.phoneNumberId === '1111')?.messages).toHaveLength(1)
+    expect(groups.find((g) => g.phoneNumberId === '2222')?.messages).toHaveLength(1)
+  })
+
+  it('returns an empty array for a malformed/empty payload', () => {
+    expect(parseWebhookPayload({})).toEqual([])
+    expect(parseWebhookPayload(null)).toEqual([])
   })
 })

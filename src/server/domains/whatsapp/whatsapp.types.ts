@@ -6,6 +6,14 @@ import type { WhatsAppAccount as PrismaWhatsAppAccount } from '@prisma/client'
 
 export type WhatsAppAccount = PrismaWhatsAppAccount
 
+export type {
+  WhatsAppOutbound,
+  WhatsAppOutboundKind,
+  WhatsAppOutboundStatus,
+  WhatsAppTemplate,
+  WhatsAppTemplateCategory,
+} from '@prisma/client'
+
 export type WhatsAppAccountView = {
   configured: boolean
   phoneNumberId: string | null

@@ -20,7 +20,7 @@ import type { WhatsAppAccount } from '~/server/domains/whatsapp/whatsapp.types'
 
 const ROLLING_WINDOW_MS = 24 * 60 * 60 * 1000
 
-export type HouseholdMatch = { guestId: number; householdId: string }
+export type HouseholdMatch = { guestId: number; householdId: string; householdSize: number }
 
 export type PendingInboundRow = WhatsAppInbound & {
   guest: { firstName: string; lastName: string } | null
@@ -154,7 +154,11 @@ export class WhatsAppRepository {
   }
 
   /** Assigns a household to an inbound row whose phone didn't match one automatically. */
-  async setInboundHousehold(weddingId: string, inboundId: string, householdId: string): Promise<void> {
+  async setInboundHousehold(
+    weddingId: string,
+    inboundId: string,
+    householdId: string
+  ): Promise<void> {
     await this.db.whatsAppInbound.updateMany({
       where: { id: inboundId, weddingId },
       data: { householdId },
@@ -209,25 +213,48 @@ export class WhatsAppRepository {
   }
 
   /**
-   * Matches a raw inbound phone against this wedding's guest list by the
-   * last-9-digits key, preferring the household's primary contact when
-   * several guests share a phone.
+   * Builds the phone->household map for a whole wedding in one pass, so the
+   * webhook's inbound-reply resolution can look up every row in memory
+   * instead of re-querying per message. Keyed by the same last-9-digits
+   * normalisation used to match a raw inbound phone, preferring the
+   * household's primary contact when several guests share a phone.
    */
-  async findHouseholdByPhone(weddingId: string, rawPhone: string): Promise<HouseholdMatch | null> {
-    const key = normalisePhone(rawPhone)
-    if (!key) return null
-
+  async findPhoneHouseholdMap(weddingId: string): Promise<Map<string, HouseholdMatch>> {
     const guests = await this.db.guest.findMany({
       where: { weddingId, phone: { not: null } },
       select: { id: true, phone: true, householdId: true, isPrimaryContact: true },
     })
 
-    const matches = guests.filter((guest) => normalisePhone(guest.phone ?? '') === key)
-    if (matches.length === 0) return null
+    const byKey = new Map<string, Array<(typeof guests)[number]>>()
+    for (const guest of guests) {
+      const key = normalisePhone(guest.phone ?? '')
+      if (!key) continue
+      const list = byKey.get(key) ?? []
+      list.push(guest)
+      byKey.set(key, list)
+    }
 
-    const match = matches.find((guest) => guest.isPrimaryContact) ?? matches[0]
-    if (!match) return null
-    return { guestId: match.id, householdId: match.householdId }
+    const householdIds = [...new Set(guests.map((guest) => guest.householdId))]
+    const householdSizes = await this.db.guest.groupBy({
+      by: ['householdId'],
+      where: { householdId: { in: householdIds } },
+      _count: { _all: true },
+    })
+    const sizeByHouseholdId = new Map(
+      householdSizes.map((row) => [row.householdId, row._count._all])
+    )
+
+    const result = new Map<string, HouseholdMatch>()
+    for (const [key, candidates] of byKey) {
+      const match = candidates.find((guest) => guest.isPrimaryContact) ?? candidates[0]
+      if (!match) continue
+      result.set(key, {
+        guestId: match.id,
+        householdId: match.householdId,
+        householdSize: sizeByHouseholdId.get(match.householdId) ?? 1,
+      })
+    }
+    return result
   }
 
   /** Records the parsed intent for an inbound row that could not be auto-applied (no match, or not high confidence). */
@@ -248,7 +275,12 @@ export class WhatsAppRepository {
    */
   async applyHouseholdRsvp(
     inboundId: string,
-    params: { guestId: number; householdId: string; rsvp: 'Attending' | 'Declined'; parsed: Prisma.InputJsonValue }
+    params: {
+      guestId: number
+      householdId: string
+      rsvp: 'Attending' | 'Declined'
+      parsed: Prisma.InputJsonValue
+    }
   ): Promise<void> {
     await this.db.$transaction(async (tx) => {
       const householdGuests = await tx.guest.findMany({
@@ -276,13 +308,26 @@ export class WhatsAppRepository {
     })
   }
 
-  /** Applies a delivery-status update to the outbound row with this providerMessageId, if any. */
+  /**
+   * Applies a delivery-status update to the outbound row with this
+   * providerMessageId, if any — but only when the row's current status is
+   * one of `allowedFromStatuses`, so a status update that arrives out of
+   * order (e.g. a delayed "delivered" after "read" already landed) can't
+   * downgrade the row.
+   */
   async updateOutboundStatusByProviderMessageId(
     providerMessageId: string,
-    data: { status: WhatsAppOutboundStatus; sentAt?: Date; deliveredAt?: Date; readAt?: Date; error?: string }
+    data: {
+      status: WhatsAppOutboundStatus
+      sentAt?: Date
+      deliveredAt?: Date
+      readAt?: Date
+      error?: string
+    },
+    allowedFromStatuses: WhatsAppOutboundStatus[]
   ): Promise<void> {
     await this.db.whatsAppOutbound.updateMany({
-      where: { providerMessageId },
+      where: { providerMessageId, status: { in: allowedFromStatuses } },
       data,
     })
   }
@@ -550,6 +595,27 @@ export class WhatsAppRepository {
 
   async listTemplates(weddingId: string): Promise<WhatsAppTemplate[]> {
     return this.db.whatsAppTemplate.findMany({ where: { weddingId }, orderBy: { name: 'asc' } })
+  }
+
+  /** Removes cached templates for this wedding that Meta no longer returned from a sync. */
+  async deleteStaleTemplates(
+    weddingId: string,
+    keep: Array<{ name: string; language: string }>
+  ): Promise<void> {
+    if (keep.length === 0) {
+      await this.db.whatsAppTemplate.deleteMany({
+        where: { weddingId, provider: 'WHATSAPP_CLOUD' },
+      })
+      return
+    }
+
+    await this.db.whatsAppTemplate.deleteMany({
+      where: {
+        weddingId,
+        provider: 'WHATSAPP_CLOUD',
+        NOT: { OR: keep.map((template) => ({ name: template.name, language: template.language })) },
+      },
+    })
   }
 
   /** Everything the compose preview needs to render one candidate's template variables. */
