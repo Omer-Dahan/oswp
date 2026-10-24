@@ -224,7 +224,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
         <GuestDetailSection
           title='בני הבית'
           contentClassName='space-y-2'
-          actionClassName='-mr-1'
+          actionClassName='-me-1'
           action={
             <button
               type='button'
