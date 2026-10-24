@@ -321,12 +321,12 @@ export function ChecklistPageClient({
         />
       ) : (
         <>
-          <div className='flex flex-wrap items-start gap-5'>
+          <div className='grid grid-cols-1 gap-5 lg:grid-cols-2 2xl:grid-cols-5'>
             {horizons.map((horizon, index) => (
               <section
                 key={horizon.key}
                 aria-labelledby={`checklist-horizon-${horizon.key}`}
-                className={`flex min-w-0 flex-[1_1_300px] flex-col gap-3 rounded-2xl p-4 ${
+                className={`flex min-w-0 flex-col gap-3 rounded-2xl p-4 ${
                   index === 0 ? 'bg-blush' : 'bg-secondary'
                 }`}
               >
