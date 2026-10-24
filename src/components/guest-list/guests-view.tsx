@@ -188,7 +188,7 @@ export default function GuestsView({
     const primary = household.guests.find((guest) => guest.isPrimaryContact)
     return {
       email: primary?.email ?? '',
-      phone: normalizePhoneToE164(primary?.phone) ?? '',
+      phone: normalizePhoneToE164(primary?.phone, 'IL') ?? primary?.phone ?? '',
       address1: household.address1 ?? '',
       address2: household.address2 ?? '',
       city: household.city ?? '',
@@ -258,8 +258,8 @@ export default function GuestsView({
         lastName: guest.lastName,
         email: guest.isPrimaryContact ? draftSnapshot.email || null : guest.email,
         phone: guest.isPrimaryContact
-          ? (normalizePhoneToE164(draftSnapshot.phone) ?? null)
-          : (normalizePhoneToE164(guest.phone) ?? null),
+          ? (normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? draftSnapshot.phone ?? null)
+          : (normalizePhoneToE164(guest.phone, 'IL') ?? guest.phone ?? null),
         isPrimaryContact: guest.isPrimaryContact,
         ageGroup: guest.ageGroup ?? 'ADULT',
         isTagAlong: guest.isTagAlong ?? false,
@@ -308,7 +308,7 @@ export default function GuestsView({
                   return {
                     ...guest,
                     email: draftSnapshot.email || null,
-                    phone: normalizePhoneToE164(draftSnapshot.phone) ?? null,
+                    phone: normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? draftSnapshot.phone ?? null,
                   }
                 }),
               }
@@ -357,7 +357,7 @@ export default function GuestsView({
           firstName: member.firstName,
           lastName: member.lastName,
           email: member.email,
-          phone: normalizePhoneToE164(member.phone) ?? null,
+          phone: normalizePhoneToE164(member.phone, 'IL') ?? member.phone ?? null,
           isPrimaryContact: member.isPrimaryContact,
           ageGroup: member.ageGroup,
           isTagAlong: member.isTagAlong,
@@ -384,7 +384,7 @@ export default function GuestsView({
             firstName: guest.firstName,
             lastName: guest.lastName,
             email: guest.email,
-            phone: normalizePhoneToE164(guest.phone) ?? null,
+            phone: normalizePhoneToE164(guest.phone, 'IL') ?? guest.phone ?? null,
             isPrimaryContact: guest.isPrimaryContact,
             ageGroup: guest.ageGroup ?? 'ADULT',
             isTagAlong: guest.isTagAlong ?? false,
