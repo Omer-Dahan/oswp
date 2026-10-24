@@ -14,7 +14,7 @@ export const requirePermission = (
   if (!ctx.activeOrganization) {
     throw new TRPCError({
       code: 'PRECONDITION_FAILED',
-      message: 'No active organization in session',
+      message: 'אין סביבת עבודה פעילה',
     })
   }
 

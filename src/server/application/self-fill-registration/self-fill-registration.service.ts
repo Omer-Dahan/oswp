@@ -64,7 +64,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
     if (!wedding) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Invalid or expired registration link',
+        message: 'הקישור לא תקין או שפג תוקפו',
       })
     }
 
@@ -75,7 +75,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
     if (eventIds.length === 0) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Invalid or expired registration link',
+        message: 'הקישור לא תקין או שפג תוקפו',
       })
     }
 
@@ -91,7 +91,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
           if (existing) {
             throw new TRPCError({
               code: 'CONFLICT',
-              message: 'You are already registered for this wedding.',
+              message: 'כבר נרשמתם לחתונה הזו',
             })
           }
         }
@@ -138,7 +138,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
         success: true,
         guestId,
         householdId,
-        message: `Thank you, ${data.firstName}! You have been added to the guest list.`,
+        message: `תודה ${data.firstName}, נוספת לרשימת האורחים`,
       }
     } catch (error) {
       if (error instanceof TRPCError) throw error
@@ -153,7 +153,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
       ) {
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'You are already registered for this wedding.',
+          message: 'כבר נרשמתם לחתונה הזו',
         })
       }
 
@@ -161,7 +161,7 @@ export class SelfFillRegistrationService implements ISelfFillRegistration {
 
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to complete registration. Please try again.',
+        message: 'ההרשמה נכשלה, נסו שוב',
       })
     }
   }

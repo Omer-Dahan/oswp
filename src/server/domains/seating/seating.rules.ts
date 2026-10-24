@@ -29,4 +29,4 @@ export const tableHasRoom = (table: TableSeats, incomingGuestIds: readonly numbe
   table.guestIds.length + getSeatsNeeded(table.guestIds, incomingGuestIds) <= table.capacity
 
 export const openSeatsMessage = (tableName: string, openSeats: number): string =>
-  `${tableName} only has ${openSeats} open seat${openSeats === 1 ? '' : 's'}`
+  `בשולחן ${tableName} נשארו ${openSeats} מקומות פנויים`

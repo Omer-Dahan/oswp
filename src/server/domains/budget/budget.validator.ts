@@ -15,10 +15,10 @@ export const MAX_BUDGET_CATEGORY_NAME_LENGTH = 100
 export const MAX_BUDGET_NOTES_LENGTH = 2000
 
 const moneySchema = z
-  .number({ message: 'Amount must be a number' })
-  .min(0, 'Amount cannot be negative')
-  .max(MAX_BUDGET_AMOUNT, 'Amount is too large')
-  .refine((value) => Number.isFinite(value), 'Amount must be a valid number')
+  .number({ message: 'הסכום חייב להיות מספר' })
+  .min(0, 'הסכום לא יכול להיות שלילי')
+  .max(MAX_BUDGET_AMOUNT, 'הסכום גדול מדי')
+  .refine((value) => Number.isFinite(value), 'הסכום חייב להיות מספר תקין')
 
 // ─── Target budget ──────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ export const setTargetSchema = z.object({
 
 export const currencyCodeSchema = z.enum(
   SUPPORTED_CURRENCY_CODES as [string, ...string[]],
-  'Unsupported currency'
+  'מטבע לא נתמך'
 )
 
 export const setCurrencySchema = z.object({
@@ -41,8 +41,8 @@ export const createCategorySchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, 'Category name is required')
-    .max(MAX_BUDGET_CATEGORY_NAME_LENGTH, 'Name is too long'),
+    .min(1, 'שם הקטגוריה נדרש')
+    .max(MAX_BUDGET_CATEGORY_NAME_LENGTH, 'השם ארוך מדי'),
   plannedAmount: moneySchema.optional(),
 })
 
@@ -51,8 +51,8 @@ export const updateCategorySchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, 'Category name is required')
-    .max(MAX_BUDGET_CATEGORY_NAME_LENGTH, 'Name is too long')
+    .min(1, 'שם הקטגוריה נדרש')
+    .max(MAX_BUDGET_CATEGORY_NAME_LENGTH, 'השם ארוך מדי')
     .optional(),
   plannedAmount: moneySchema.optional(),
 })
@@ -68,8 +68,8 @@ export const createExpenseSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(1, 'Description is required')
-    .max(MAX_BUDGET_DESCRIPTION_LENGTH, 'Description is too long'),
+    .min(1, 'תיאור נדרש')
+    .max(MAX_BUDGET_DESCRIPTION_LENGTH, 'התיאור ארוך מדי'),
   estimatedAmount: moneySchema.optional(),
   amount: moneySchema.optional(),
   isDeposit: z.boolean().optional(),
@@ -77,7 +77,7 @@ export const createExpenseSchema = z.object({
   refundedAt: z.coerce.date().nullable().optional(),
   dueAt: z.coerce.date().nullable().optional(),
   paidAt: z.coerce.date().nullable().optional(),
-  notes: z.string().trim().max(MAX_BUDGET_NOTES_LENGTH, 'Notes are too long').nullable().optional(),
+  notes: z.string().trim().max(MAX_BUDGET_NOTES_LENGTH, 'ההערות ארוכות מדי').nullable().optional(),
 })
 
 export const updateExpenseSchema = z.object({
@@ -85,8 +85,8 @@ export const updateExpenseSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(1, 'Description is required')
-    .max(MAX_BUDGET_DESCRIPTION_LENGTH, 'Description is too long')
+    .min(1, 'תיאור נדרש')
+    .max(MAX_BUDGET_DESCRIPTION_LENGTH, 'התיאור ארוך מדי')
     .optional(),
   estimatedAmount: moneySchema.optional(),
   amount: moneySchema.optional(),
@@ -95,7 +95,7 @@ export const updateExpenseSchema = z.object({
   refundedAt: z.coerce.date().nullable().optional(),
   dueAt: z.coerce.date().nullable().optional(),
   paidAt: z.coerce.date().nullable().optional(),
-  notes: z.string().trim().max(MAX_BUDGET_NOTES_LENGTH, 'Notes are too long').nullable().optional(),
+  notes: z.string().trim().max(MAX_BUDGET_NOTES_LENGTH, 'ההערות ארוכות מדי').nullable().optional(),
 })
 
 export const deleteExpenseSchema = z.object({

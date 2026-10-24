@@ -5,13 +5,13 @@
 import { z } from 'zod'
 
 export const saveAccountSchema = z.object({
-  phoneNumberId: z.string().regex(/^\d+$/, 'Phone number ID must contain digits only'),
-  wabaId: z.string().regex(/^\d+$/, 'WABA ID must contain digits only'),
-  accessToken: z.string().min(20, 'Access token looks too short'),
-  verifyToken: z.string().min(8, 'Verify token must be at least 8 characters'),
+  phoneNumberId: z.string().regex(/^\d+$/, 'מזהה מספר הטלפון צריך להכיל ספרות בלבד'),
+  wabaId: z.string().regex(/^\d+$/, 'מזהה ה-WABA צריך להכיל ספרות בלבד'),
+  accessToken: z.string().min(20, 'הטוקן קצר מדי'),
+  verifyToken: z.string().min(8, 'טוקן האימות חייב להיות באורך 8 תווים לפחות'),
   appSecret: z.preprocess(
     (value) => (value === '' ? undefined : value),
-    z.string().min(8, 'App secret must be at least 8 characters').optional()
+    z.string().min(8, 'App secret חייב להיות באורך 8 תווים לפחות').optional()
   ),
 })
 

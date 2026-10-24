@@ -74,7 +74,7 @@ export class CommunicationLogService {
 
       entries.push({
         type: 'INVITATION_SENT',
-        message: `Invitation sent for ${eventName}`,
+        message: `נשלחה הזמנה ל${eventName}`,
         date: inv.invitedAt,
         eventId: inv.eventId,
         eventName,
@@ -83,7 +83,7 @@ export class CommunicationLogService {
       if (inv.submittedAt) {
         entries.push({
           type: 'RSVP_RECEIVED',
-          message: `${guestName} RSVP'd ${inv.rsvp} for ${eventName}`,
+          message: `${guestName} השיב/ה: ${inv.rsvp} ל${eventName}`,
           date: inv.submittedAt,
           eventId: inv.eventId,
           eventName,
@@ -98,7 +98,7 @@ export class CommunicationLogService {
       if (gift.thankYouSentAt) {
         entries.push({
           type: 'THANK_YOU_SENT',
-          message: `Thank you sent for ${gift.event.name}`,
+          message: `נשלחה תודה על ${gift.event.name}`,
           date: gift.thankYouSentAt,
           eventId: gift.eventId,
           eventName: gift.event.name,
