@@ -47,13 +47,13 @@ export default function FindYourInvitationForm({ goNext, accessToken }: FindYour
 
   return (
     <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest'>
+      <h2 className='text-2xl tracking-widest text-stone-900'>
         {t('weddingTitle', {
           brideFirstName: weddingData.brideFirstName ?? '',
           groomFirstName: weddingData.groomFirstName ?? '',
         })}
       </h2>
-      <p className='mb-3 font-thin'>{t('groupNote')}</p>
+      <p className='mb-3 font-normal text-stone-800'>{t('groupNote')}</p>
       <input
         placeholder={t('fullNamePlaceholder')}
         className='border border-gray-400 bg-white p-3 text-black placeholder:text-gray-500'
@@ -63,7 +63,7 @@ export default function FindYourInvitationForm({ goNext, accessToken }: FindYour
         }}
         value={name}
       />
-      {showError && <p className='text-xs'>{t('notFound')}</p>}
+      {showError && <p className='text-xs text-stone-800'>{t('notFound')}</p>}
       <button
         className={`mt-3 py-3 text-white text-xl tracking-wide ${name.length === 0 || isFetching ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
         type='button'
