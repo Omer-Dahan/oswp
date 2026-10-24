@@ -21,7 +21,7 @@ function TaskListItemBase({ task, onToggle }: TaskListItemProps) {
     <button
       type='button'
       onClick={() => onToggle(task.id)}
-      className='flex min-h-[52px] w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+      className='flex min-h-[52px] w-full items-center gap-3 rounded-xl px-2 py-2.5 text-start transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
     >
       <span
         className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] text-[0.65rem] transition-all ${
@@ -45,7 +45,7 @@ function TaskListItemBase({ task, onToggle }: TaskListItemProps) {
         {task.tag}
       </span>
       <span
-        className={`w-16 flex-shrink-0 text-right text-xs ${task.urgent ? 'text-foreground' : 'text-muted-foreground'}`}
+        className={`w-16 flex-shrink-0 text-end text-xs ${task.urgent ? 'text-foreground' : 'text-muted-foreground'}`}
       >
         {task.due}
       </span>

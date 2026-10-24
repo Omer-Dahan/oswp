@@ -42,14 +42,14 @@ function DraggableGuest(props: Readonly<{ guest: SeatingGuest; onSelect: () => v
         {...attributes}
         {...listeners}
         className={cn(
-          'flex w-full touch-manipulation items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'flex w-full touch-manipulation items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           isDragging && 'opacity-30'
         )}
       >
         <GripVertical className='h-3.5 w-3.5 shrink-0 text-muted-foreground' aria-hidden='true' />
         <span className='truncate'>{formatGuestName(guest)}</span>
         {guest.isTagAlong ? (
-          <span className='ml-auto text-[0.6rem] text-muted-foreground'>+1</span>
+          <span className='ms-auto text-[0.6rem] text-muted-foreground'>+1</span>
         ) : null}
       </button>
     </li>

@@ -146,8 +146,8 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
       <main className='relative min-h-screen overflow-hidden bg-background px-5 py-12 text-foreground sm:py-16'>
         {/* Soft, warm backdrop so the save the date card reads as a framed keepsake. */}
         <div aria-hidden className='pointer-events-none absolute inset-0 -z-10'>
-          <div className='absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl' />
-          <div className='absolute right-0 bottom-0 h-72 w-72 translate-x-1/4 rounded-full bg-accent/15 blur-3xl' />
+          <div className='absolute -top-32 start-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl' />
+          <div className='absolute end-0 bottom-0 h-72 w-72 translate-x-1/4 rounded-full bg-accent/15 blur-3xl' />
         </div>
 
         <div className='mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-2xl items-center'>

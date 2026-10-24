@@ -42,9 +42,9 @@ export default function EditUrlView({ setShowEditUrlView, websiteUrl }: EditUrlV
             className='cursor-pointer'
             onClick={() => setShowEditUrlView(false)}
           >
-            <GoArrowLeft size={28} />
+            <GoArrowLeft size={28} className='rtl:rotate-180' />
           </button>
-          <span className='border-r'></span>
+          <span className='border-e'></span>
           <h1 className='font-bold text-2xl'>עריכת כתובת</h1>
         </div>
       </div>

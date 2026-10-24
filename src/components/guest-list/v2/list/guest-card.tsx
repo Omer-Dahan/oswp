@@ -119,7 +119,7 @@ function GuestCardComponent({
   return (
     <button
       type='button'
-      className='w-full text-left'
+      className='w-full text-start'
       aria-label={`בחירת משק הבית של ${primaryGuestName}`}
       onClick={handleSelect}
     >

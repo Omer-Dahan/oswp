@@ -57,18 +57,18 @@ export function GuestDetailDrawer(props: Readonly<GuestDetailDrawerProps>) {
           className={cn(
             `fixed inset-0 z-50 flex h-screen w-screen max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden p-0 pb-0 outline-none ${SIDE_PANE_SURFACE_CLASS}`,
             mode === 'desktop' &&
-              `md:inset-y-0 md:right-0 md:left-auto md:h-full md:translate-x-0 md:translate-y-0 md:p-6 ${SIDE_PANE_DIALOG_WIDTH_CLASS}`,
+              `md:inset-y-0 md:end-0 md:start-auto md:h-full md:translate-x-0 md:translate-y-0 md:p-6 ${SIDE_PANE_DIALOG_WIDTH_CLASS}`,
             className
           )}
         >
           <DialogClose
             aria-label='סגירת פרטי אורח'
-            className='absolute top-4 right-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+            className='absolute top-4 end-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
             <X className='h-4 w-4' aria-hidden='true' />
           </DialogClose>
 
-          <header className='border-border/80 border-b px-5 py-5 pr-14 md:px-6'>
+          <header className='border-border/80 border-b px-5 py-5 pe-14 md:px-6'>
             <DialogTitle className='font-display text-3xl text-foreground leading-tight'>
               {title}
             </DialogTitle>

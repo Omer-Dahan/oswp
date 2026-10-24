@@ -258,9 +258,7 @@ export function OrganizationOutstandingInvitesCard() {
         <CardHeader className='pb-2'>
           <div className='flex items-start justify-between gap-3'>
             <div className='space-y-1'>
-              <CardTitle className='font-serif text-foreground text-xl'>
-                הזמנות פתוחות
-              </CardTitle>
+              <CardTitle className='font-serif text-foreground text-xl'>הזמנות פתוחות</CardTitle>
               <CardDescription className='text-foreground/70'>
                 הזמנות ארגון שעדיין בהמתנה ופעילות.
               </CardDescription>
@@ -323,7 +321,7 @@ export function OrganizationOutstandingInvitesCard() {
                     >
                       {resendingId === invitation.id ? (
                         <>
-                          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                          <Loader2 className='me-2 h-4 w-4 animate-spin' />
                           שולח מחדש...
                         </>
                       ) : (
@@ -339,7 +337,7 @@ export function OrganizationOutstandingInvitesCard() {
                     >
                       {cancelingId === invitation.id ? (
                         <>
-                          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                          <Loader2 className='me-2 h-4 w-4 animate-spin' />
                           מבטל...
                         </>
                       ) : (

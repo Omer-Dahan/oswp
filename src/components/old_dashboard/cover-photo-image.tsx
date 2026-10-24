@@ -44,7 +44,7 @@ export default function CoverPhotoImage({ coverPhotoUrl, deleteImage }: CoverPho
       >
         <Image src={coverPhotoUrl} layout='fill' objectFit='contain' alt='Website Cover Photo' />
         {showActions && (
-          <div className='group absolute top-0 left-0 flex aspect-video h-auto w-full items-center justify-center bg-transparent/75 opacity-0 transition-all duration-300 ease-in-out hover:opacity-100'>
+          <div className='group absolute top-0 start-0 flex aspect-video h-auto w-full items-center justify-center bg-transparent/75 opacity-0 transition-all duration-300 ease-in-out hover:opacity-100'>
             <div className='flex gap-20'>
               <button
                 type='button'

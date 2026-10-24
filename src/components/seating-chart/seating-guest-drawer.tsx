@@ -42,7 +42,7 @@ function DetailRow(props: Readonly<{ label: string; value: string | null }>) {
   return (
     <div className='flex justify-between gap-4'>
       <span>{props.label}</span>
-      <span className='text-right text-foreground'>{props.value || '—'}</span>
+      <span className='text-end text-foreground'>{props.value || '—'}</span>
     </div>
   )
 }

@@ -317,9 +317,7 @@ export function OrganizationMembersSettingsCard() {
                     toast.success('ההזמנה בוטלה')
                     loadOrganizationState()
                   } catch (error) {
-                    toast.error(
-                      error instanceof Error ? error.message : 'לא ניתן לבטל את ההזמנה.'
-                    )
+                    toast.error(error instanceof Error ? error.message : 'לא ניתן לבטל את ההזמנה.')
                   }
                 }}
               />
@@ -487,10 +485,7 @@ function OrganizationMembersList({
             <DialogTitle>אישור הסרת חבר</DialogTitle>
             <DialogDescription>
               הקלידו delete כדי לאשר הסרת{' '}
-              {memberPendingRemoval?.user?.name ||
-                memberPendingRemoval?.user?.email ||
-                'חבר זה'}
-              .
+              {memberPendingRemoval?.user?.name || memberPendingRemoval?.user?.email || 'חבר זה'}.
             </DialogDescription>
           </DialogHeader>
           <div className='space-y-2'>
@@ -717,9 +712,7 @@ function InviteMemberDialog({
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle>הזמינו חבר</DialogTitle>
-          <DialogDescription>
-            שלחו הזמנה לארגון בלי לרענן את הדף.
-          </DialogDescription>
+          <DialogDescription>שלחו הזמנה לארגון בלי לרענן את הדף.</DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
           <div className='space-y-2'>
@@ -768,7 +761,7 @@ function InviteMemberDialog({
             <Button disabled={!canSubmit} onClick={() => void handleSubmit()} type='button'>
               {isSubmitting ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  <Loader2 className='me-2 h-4 w-4 animate-spin' />
                   שולח...
                 </>
               ) : (
@@ -834,8 +827,7 @@ function EditMemberRoleDialog({
         <DialogHeader>
           <DialogTitle>ערכו תפקיד</DialogTitle>
           <DialogDescription>
-            עדכנו את התפקיד בארגון עבור{' '}
-            {member.user?.name || member.user?.email || 'חבר זה'}.
+            עדכנו את התפקיד בארגון עבור {member.user?.name || member.user?.email || 'חבר זה'}.
           </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
@@ -869,7 +861,7 @@ function EditMemberRoleDialog({
             <Button disabled={isSubmitting} onClick={() => void handleSubmit()} type='button'>
               {isSubmitting ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  <Loader2 className='me-2 h-4 w-4 animate-spin' />
                   שומר...
                 </>
               ) : (

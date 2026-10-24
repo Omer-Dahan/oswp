@@ -166,9 +166,7 @@ function UpNextCard({
           </>
         ) : (
           <>
-            <p className='font-semibold text-2xl text-foreground tracking-tight'>
-              אתם מעודכנים
-            </p>
+            <p className='font-semibold text-2xl text-foreground tracking-tight'>אתם מעודכנים</p>
             <EmptyNote>
               אין משימות פעילות עדיין. הוסיפו את המשימה הראשונה כדי להתחיל לעקוב אחר התקדמות התכנון.
             </EmptyNote>
@@ -461,7 +459,7 @@ function MilestonesCard({ dashboardData }: { dashboardData: DashboardData | null
           return (
             <div key={milestone.id} className='relative flex gap-3 pb-4 last:pb-0'>
               {i < visibleMilestones.length - 1 && (
-                <div className='absolute top-4 bottom-0 left-[5px] w-px bg-border' />
+                <div className='absolute top-4 bottom-0 start-[5px] w-px bg-border' />
               )}
               <span
                 className={`relative z-10 mt-1.5 h-3 w-3 flex-shrink-0 rounded-full border-2 ${dotClass[status]}`}

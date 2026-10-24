@@ -40,7 +40,7 @@ export default function QuestionOption({
       <FiMinusCircle
         size={32}
         color={optionIndex < 2 ? 'lightgray' : 'gray'}
-        className={`mt-2 mr-3 -ml-0.5 ${optionIndex < 2 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`mt-2 me-3 -ms-0.5 ${optionIndex < 2 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         onClick={() => optionIndex > 1 && handleRemoveOption(option)}
       />
       <div className='flex w-full flex-col gap-3'>

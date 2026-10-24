@@ -42,7 +42,7 @@ export function FileViewerDrawer({ file, onClose }: FileViewerDrawerProps) {
         <DialogPrimitive.Content
           className={cn(
             'fixed inset-0 z-[60] flex h-screen w-screen max-w-none flex-col overflow-hidden p-0 outline-none',
-            'md:inset-y-0 md:right-0 md:left-auto md:h-full md:w-[680px] md:max-w-[680px]',
+            'md:inset-y-0 md:end-0 md:start-auto md:h-full md:w-[680px] md:max-w-[680px]',
             SIDE_PANE_SURFACE_CLASS
           )}
         >
@@ -51,13 +51,13 @@ export function FileViewerDrawer({ file, onClose }: FileViewerDrawerProps) {
 
           <DialogClose
             aria-label='סגירת מציג הקבצים'
-            className='absolute top-4 right-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+            className='absolute top-4 end-4 z-10 rounded-full border border-border/80 bg-card p-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
             <X className='h-4 w-4' aria-hidden='true' />
           </DialogClose>
 
           {/* Header */}
-          <header className='border-border/80 border-b px-5 py-5 pr-14'>
+          <header className='border-border/80 border-b px-5 py-5 pe-14'>
             <p className='font-mono text-[0.58rem] text-muted-foreground uppercase tracking-widest'>
               {fileType === 'image' ? 'Image' : 'Document'}
             </p>

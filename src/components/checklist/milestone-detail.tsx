@@ -80,7 +80,7 @@ export function MilestoneDetail({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
         aria-label={milestone.title}
-        className='top-auto right-0 bottom-0 left-0 max-w-none translate-x-0 translate-y-0 rounded-t-[8px] sm:top-[50%] sm:left-[50%] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[8px]'
+        className='top-auto end-0 bottom-0 start-0 max-w-none translate-x-0 translate-y-0 rounded-t-[8px] sm:top-[50%] sm:start-[50%] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[8px]'
       >
         {content}
       </DialogContent>
@@ -117,7 +117,7 @@ function MilestoneDetailContent({
 
   return (
     <div className='space-y-4 p-6'>
-      <div className='space-y-2 text-left'>
+      <div className='space-y-2 text-start'>
         <h2 className='font-display text-2xl italic'>{milestone.title}</h2>
         <p className='text-muted-foreground text-sm'>
           עברו על סטטוס האבן דרך שנקבע על ידי המערכת או עקפו אותו ידנית.

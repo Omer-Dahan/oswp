@@ -283,7 +283,7 @@ export function QuoteForm({
                     type='button'
                     aria-label={`Remove ${file.name}`}
                     onClick={() => removeFile(i)}
-                    className='ml-2 shrink-0 text-muted-foreground hover:text-destructive'
+                    className='ms-2 shrink-0 text-muted-foreground hover:text-destructive'
                   >
                     ✕
                   </button>

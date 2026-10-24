@@ -56,7 +56,7 @@ export function AllocationBar({ categories, currency }: Readonly<AllocationBarPr
           {barSegments.map((segment) => (
             <div
               key={segment.id}
-              className='h-full first:rounded-l-full last:rounded-r-full'
+              className='h-full first:rounded-s-full last:rounded-e-full'
               style={{
                 width: `${(segment.value / total) * 100}%`,
                 backgroundColor: segment.color,

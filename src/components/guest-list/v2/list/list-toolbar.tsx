@@ -26,9 +26,9 @@ type ListToolbarProps = {
 }
 
 function SortIcon({ active, direction }: { active: boolean; direction?: SortDirection }) {
-  if (!active) return <ArrowUpDown className='mr-2 h-3 w-3' aria-hidden='true' />
-  if (direction === 'ascending') return <ArrowUp className='mr-2 h-3 w-3' aria-hidden='true' />
-  return <ArrowDown className='mr-2 h-3 w-3' aria-hidden='true' />
+  if (!active) return <ArrowUpDown className='me-2 h-3 w-3' aria-hidden='true' />
+  if (direction === 'ascending') return <ArrowUp className='me-2 h-3 w-3' aria-hidden='true' />
+  return <ArrowDown className='me-2 h-3 w-3' aria-hidden='true' />
 }
 
 export function ListToolbar({
@@ -98,7 +98,7 @@ export function ListToolbar({
 }
 
 const toggleBtnClass = (isActive: boolean, hasBorderLeft = false) =>
-  `flex items-center px-2.5 py-1.5 transition-colors${hasBorderLeft ? ' border-border border-l' : ''} ${
+  `flex items-center px-2.5 py-1.5 transition-colors${hasBorderLeft ? ' border-border border-s' : ''} ${
     isActive
       ? 'bg-primary text-primary-foreground'
       : 'bg-background text-foreground/60 hover:bg-muted/50'

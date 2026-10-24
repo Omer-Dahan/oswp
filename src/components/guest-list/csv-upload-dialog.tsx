@@ -43,7 +43,7 @@ function PreviewTable({ rows }: PreviewTableProps) {
         <thead className='sticky top-0 bg-muted'>
           <tr>
             {['#', 'שם פרטי', 'שם משפחה', 'דוא״ל', 'טלפון', 'קבוצת גיל', 'סטטוס'].map((h) => (
-              <th key={h} className='px-3 py-2 text-left font-medium text-muted-foreground'>
+              <th key={h} className='px-3 py-2 text-start font-medium text-muted-foreground'>
                 {h}
               </th>
             ))}

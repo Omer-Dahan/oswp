@@ -10,8 +10,8 @@ const ellipsisOverflow = 'overflow-hidden overflow-ellipsis whitespace-nowrap'
 const animatedInput =
   'peer block w-full appearance-none rounded-[4px] border border-input bg-background px-2.5 pb-2.5 pt-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-0'
 const animatedLabel =
-  'absolute left-2 start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-background px-2 text-sm text-muted-foreground duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-primary rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4'
-const requiredAsterisk = 'before:ml-0.5 before:text-red-500 before:content-["*"]'
+  'absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-background px-2 text-sm text-muted-foreground duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-primary'
+const requiredAsterisk = 'before:ms-0.5 before:text-red-500 before:content-["*"]'
 
 type ButtonOptions = {
   px?: string

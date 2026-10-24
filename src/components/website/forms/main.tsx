@@ -229,7 +229,7 @@ const ProgressBar = ({
       <button
         type='button'
         aria-label='סגרו טופס RSVP'
-        className='absolute top-2 right-20 z-20 rounded-md text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+        className='absolute top-2 end-20 z-20 rounded-md text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
         onClick={() => {
           if (
             !shouldConfirmRsvpClose({ currentStep, numSteps }) ||
@@ -244,7 +244,7 @@ const ProgressBar = ({
       <h1 className='py-3 text-2xl'>RSVP</h1>
       <div className='relative mb-2.5 h-3 w-full rounded-full bg-gray-200'>
         <div
-          className='absolute top-0 left-0 mb-2.5 h-3 rounded-full bg-gray-700 transition-[width]'
+          className='absolute top-0 start-0 mb-2.5 h-3 rounded-full bg-gray-700 transition-[width]'
           style={{
             width: currentStep < 3 ? '3%' : currentStep === numSteps - 1 ? '99%' : `${progress}%`,
           }}

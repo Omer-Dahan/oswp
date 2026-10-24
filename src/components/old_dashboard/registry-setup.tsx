@@ -33,7 +33,7 @@ export default function RegistrySetup({ setShowRegistrySetup }: RegistrySetupPro
             </Link>
             <button
               type='button'
-              className='ml-5 underline hover:no-underline'
+              className='ms-5 underline hover:no-underline'
               onClick={() => {
                 localStorage.setItem('registrySectionStatus', 'hidden')
                 setShowRegistrySetup(false)

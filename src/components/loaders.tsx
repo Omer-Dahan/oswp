@@ -26,7 +26,7 @@ export const LoadingSpinner = (props: { size?: number; useAccentColor?: boolean 
 
 export const LoadingPage = () => {
   return (
-    <div className='absolute top-0 right-0 flex h-screen w-screen items-center justify-center'>
+    <div className='absolute top-0 end-0 flex h-screen w-screen items-center justify-center'>
       <LoadingSpinner size={60} />
     </div>
   )

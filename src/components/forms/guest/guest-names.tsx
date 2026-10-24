@@ -126,7 +126,7 @@ export const GuestNameForm = ({
               <FiTag className='h-3 w-3' />
               Tags
               {selectedTagIds.length > 0 && (
-                <Badge variant='secondary' className='ml-0.5 h-4 px-1 text-[10px]'>
+                <Badge variant='secondary' className='ms-0.5 h-4 px-1 text-[10px]'>
                   {selectedTagIds.length}
                 </Badge>
               )}
@@ -335,7 +335,7 @@ export const GuestNameForm = ({
               <h4 className='font-medium text-muted-foreground text-sm'>
                 Event Invitations
                 {isTagAlong && (
-                  <span className='ml-1 font-normal text-xs'>(tag-along eligible events)</span>
+                  <span className='ms-1 font-normal text-xs'>(tag-along eligible events)</span>
                 )}
               </h4>
               <div className='space-y-2'>
@@ -346,7 +346,7 @@ export const GuestNameForm = ({
                     control={control}
                     render={({ field }) => (
                       <div className='flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50'>
-                        <div className='mr-3 min-w-0 flex-1'>
+                        <div className='me-3 min-w-0 flex-1'>
                           <Label
                             htmlFor={`guest${guestIndex}-event-${event.id}`}
                             className='cursor-pointer font-medium'

@@ -37,13 +37,13 @@ export default function RsvpFormSettings({
           setShowQuestionForm={setShowQuestionForm}
         />
       )}
-      <div className='absolute top-0 left-0 flex h-[120px] w-screen items-center bg-white pl-10'>
+      <div className='absolute top-0 start-0 flex h-[120px] w-screen items-center bg-white ps-10'>
         <button
           type='button'
           className='flex cursor-pointer gap-3'
           onClick={() => setShowRsvpSettings(false)}
         >
-          <GoArrowLeft size={36} />
+          <GoArrowLeft size={36} className='rtl:rotate-180' />
           <span className='font-semibold text-2xl'>אישור הגעה מקוון</span>
         </button>
       </div>

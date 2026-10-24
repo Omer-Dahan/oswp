@@ -243,7 +243,7 @@ export function TaskDialog({
 
           <DialogFooter>
             {mode === 'edit' && onDelete ? (
-              <Button type='button' variant='ghost' onClick={onDelete} className='mr-auto'>
+              <Button type='button' variant='ghost' onClick={onDelete} className='me-auto'>
                 מחיקת משימה
               </Button>
             ) : null}

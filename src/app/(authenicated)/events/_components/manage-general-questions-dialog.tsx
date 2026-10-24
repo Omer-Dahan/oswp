@@ -87,15 +87,14 @@ export function ManageGeneralQuestionsDialog({
           <DialogHeader>
             <DialogTitle>שאלות אישור הגעה כלליות</DialogTitle>
             <DialogDescription>
-              נשאלות מכל אורח שמאשר הגעה, בין אם הוא מאשר או מסרב — לדוגמה הערה לזוג או שאלה
-              לגבי ילדים.
+              נשאלות מכל אורח שמאשר הגעה, בין אם הוא מאשר או מסרב — לדוגמה הערה לזוג או שאלה לגבי
+              ילדים.
             </DialogDescription>
           </DialogHeader>
 
           {!isRsvpEnabled ? (
             <div className='rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm'>
-              הפעילו <strong>אישור הגעה מקוון</strong> באתר שלכם כדי לאסוף תשובות לשאלות
-              אלה.
+              הפעילו <strong>אישור הגעה מקוון</strong> באתר שלכם כדי לאסוף תשובות לשאלות אלה.
             </div>
           ) : null}
 
@@ -105,13 +104,13 @@ export function ManageGeneralQuestionsDialog({
                 {questionList.length} {questionList.length === 1 ? 'שאלה' : 'שאלות'}
               </p>
               <Button type='button' size='sm' onClick={openCreateForm} disabled={!isRsvpEnabled}>
-                <Plus className='mr-1 h-4 w-4' />
+                <Plus className='me-1 h-4 w-4' />
                 הוסיפו שאלה
               </Button>
             </div>
             <p className='text-muted-foreground text-xs'>
-              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> תשובת כתיבה
-              באישור הגעה ציבורי.
+              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> תשובת כתיבה באישור
+              הגעה ציבורי.
             </p>
 
             {questionList.length === 0 ? (
@@ -207,7 +206,7 @@ export function ManageGeneralQuestionsDialog({
                 deleteQuestion.mutate({ questionId: deletingQuestion.id })
               }}
             >
-              {deleteQuestion.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+              {deleteQuestion.isPending ? <Loader2 className='me-2 h-4 w-4 animate-spin' /> : null}
               מחיקה
             </AlertDialogAction>
           </AlertDialogFooter>

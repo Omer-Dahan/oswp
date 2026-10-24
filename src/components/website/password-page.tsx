@@ -37,8 +37,8 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
     <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 px-6 py-12'>
       {/* Soft, warm backdrop so the unlock card reads as the clear focal point. */}
       <div aria-hidden className='pointer-events-none absolute inset-0 -z-10'>
-        <div className='absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl' />
-        <div className='absolute right-0 bottom-0 h-72 w-72 translate-x-1/4 rounded-full bg-accent/20 blur-3xl' />
+        <div className='absolute -top-32 start-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl' />
+        <div className='absolute end-0 bottom-0 h-72 w-72 translate-x-1/4 rounded-full bg-accent/20 blur-3xl' />
       </div>
 
       <form

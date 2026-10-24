@@ -57,7 +57,7 @@ export default function EttaPanel() {
   }
 
   return (
-    <aside className='hidden h-full w-80 flex-shrink-0 flex-col overflow-hidden border-white/10 border-l bg-etta-ink lg:flex'>
+    <aside className='hidden h-full w-80 flex-shrink-0 flex-col overflow-hidden border-white/10 border-s bg-etta-ink lg:flex'>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className='flex items-center gap-3 border-white/10 border-b px-4 py-3.5'>
         <div className='flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-primary font-serif text-lg text-white italic shadow-md'>
@@ -118,15 +118,15 @@ export default function EttaPanel() {
             <div
               className={`max-w-[88%] rounded px-3 py-2 font-serif text-[0.82rem] leading-relaxed ${
                 msg.role === 'etta'
-                  ? 'rounded-tl-none bg-white/[0.05] text-sidebar-cream/82'
-                  : 'rounded-tr-none border border-primary/25 bg-primary/18 text-sidebar-cream/88 italic'
+                  ? 'rounded-ss-none bg-white/[0.05] text-sidebar-cream/82'
+                  : 'rounded-se-none border border-primary/25 bg-primary/18 text-sidebar-cream/88 italic'
               }`}
             >
               {msg.text}
             </div>
             <p
               className={`mt-1 font-mono text-[0.52rem] text-sidebar-cream/22 tracking-wider ${
-                msg.role === 'user' ? 'text-right' : 'text-left'
+                msg.role === 'user' ? 'text-end' : 'text-start'
               }`}
             >
               {msg.role === 'etta' ? 'Etta' : 'You'} · {msg.time}
@@ -142,7 +142,7 @@ export default function EttaPanel() {
             key={s}
             type='button'
             onClick={() => setInput(s)}
-            className='min-h-[44px] rounded border border-white/7 bg-white/[0.04] px-3 py-2 text-left font-mono text-[0.58rem] text-sidebar-cream/45 tracking-wider transition-all hover:border-accent/30 hover:bg-accent/[0.06] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-cream/80 focus-visible:ring-offset-1 focus-visible:ring-offset-etta-ink'
+            className='min-h-[44px] rounded border border-white/7 bg-white/[0.04] px-3 py-2 text-start font-mono text-[0.58rem] text-sidebar-cream/45 tracking-wider transition-all hover:border-accent/30 hover:bg-accent/[0.06] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-cream/80 focus-visible:ring-offset-1 focus-visible:ring-offset-etta-ink'
           >
             &ldquo;{s}&rdquo;
           </button>

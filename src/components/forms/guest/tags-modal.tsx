@@ -141,7 +141,7 @@ export function TagsModal({
                       <button
                         type='button'
                         onClick={() => handleToggleTag(tag.id)}
-                        className='ml-1 hover:text-destructive'
+                        className='ms-1 hover:text-destructive'
                       >
                         <FiX className='h-3 w-3' />
                       </button>
@@ -202,7 +202,7 @@ export function TagsModal({
               onClick={() => setIsCreating(true)}
               className='w-full'
             >
-              <FiPlus className='mr-2 h-4 w-4' />
+              <FiPlus className='me-2 h-4 w-4' />
               Create New Tag
             </Button>
           ) : (

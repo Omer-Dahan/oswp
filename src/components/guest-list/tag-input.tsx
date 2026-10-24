@@ -145,7 +145,7 @@ export function TagInput({
                 e.stopPropagation()
                 onToggle(tag.id)
               }}
-              className='ml-0.5 hover:text-destructive'
+              className='ms-0.5 hover:text-destructive'
               aria-label={`הסרת ${tag.name}`}
             >
               <FiX className='h-3 w-3' />
@@ -184,7 +184,7 @@ export function TagInput({
                   disabled={disabled}
                   onMouseEnter={() => setHighlightedIndex(i)}
                   onClick={() => selectOption(i)}
-                  className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm ${
+                  className={`flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm ${
                     i === highlightedIndex ? 'bg-accent text-accent-foreground' : ''
                   } ${disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
                 >
@@ -214,7 +214,7 @@ export function TagInput({
                 type='button'
                 onMouseEnter={() => setHighlightedIndex(i)}
                 onClick={() => selectOption(i)}
-                className={`flex w-full items-center gap-2 border-border/50 border-t px-3 py-1.5 text-left text-sm ${
+                className={`flex w-full items-center gap-2 border-border/50 border-t px-3 py-1.5 text-start text-sm ${
                   i === highlightedIndex ? 'bg-accent text-accent-foreground' : ''
                 } cursor-pointer`}
               >

@@ -21,7 +21,7 @@ export default function ImageCropperModal({
   const cropperRef = useRef<ReactCropperElement>(null)
 
   return (
-    <div className='bg fixed top-0 left-0 z-50 flex h-screen w-screen items-center justify-center bg-transparent/[0.5]'>
+    <div className='bg fixed top-0 start-0 z-50 flex h-screen w-screen items-center justify-center bg-transparent/[0.5]'>
       <div className='h-[700px] w-[800px] rounded-md bg-white px-9 py-12'>
         <div className='flex items-center justify-between gap-5'>
           <h1 className='font-semibold text-2xl'>Adjust Photo</h1>

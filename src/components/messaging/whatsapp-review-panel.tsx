@@ -61,7 +61,7 @@ function intentVariant(intent: string | undefined): BadgeVariant {
 }
 
 const thClass =
-  'px-3 py-2 text-right font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
+  'px-3 py-2 text-end font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
 const sectionLabelClass = 'font-mono text-[0.62rem] text-foreground/55 uppercase tracking-[0.1em]'
 
 const DECISION_LABELS: Record<Decision, string> = {

@@ -91,13 +91,13 @@ export default function HomeContent({
               <Card key={event.id} className='relative transition-shadow hover:shadow-md'>
                 <button
                   type='button'
-                  className='absolute top-4 right-4 text-muted-foreground transition-colors hover:text-primary'
+                  className='absolute top-4 end-4 text-muted-foreground transition-colors hover:text-primary'
                   onClick={() => handleEditEvent(event)}
                 >
                   <BsPencil size={16} className='text-primary' />
                 </button>
                 <CardHeader className='pb-2'>
-                  <CardTitle className='pr-6 font-serif text-base'>{event.name}</CardTitle>
+                  <CardTitle className='pe-6 font-serif text-base'>{event.name}</CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-2'>
                   <div className='flex flex-col gap-3 font-light text-sm'>
@@ -169,7 +169,7 @@ export default function HomeContent({
           >
             <div className='flex'>
               <AiOutlinePlusCircle size={22} className='text-primary' />
-              <span className='pl-2 text-primary text-sm'>Add Event</span>
+              <span className='ps-2 text-primary text-sm'>Add Event</span>
             </div>
           </button>
         </div>

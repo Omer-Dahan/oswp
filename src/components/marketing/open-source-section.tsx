@@ -14,19 +14,18 @@ export default function OpenSourceSection({ includeLongForm = false }: OpenSourc
         משותף עם כולם.
       </h2>
       <p className='mx-auto mt-5 max-w-lg font-light font-serif text-[1rem] text-white/70 leading-[1.75]'>
-        OSWP זמינה בקוד פתוח תחת רישיון FSL-1.1 ונבנית בשקיפות מלאה. תנו כוכב, עשו fork, תרמו
-        קוד, או אחסנו בעצמכם בחינם. בלי הגבלת אורחים. בלי אגירת מידע. Etta כלולה.
+        OSWP זמינה בקוד פתוח תחת רישיון FSL-1.1 ונבנית בשקיפות מלאה. תנו כוכב, עשו fork, תרמו קוד,
+        או אחסנו בעצמכם בחינם. בלי הגבלת אורחים. בלי אגירת מידע. Etta כלולה.
       </p>
 
       {includeLongForm ? (
-        <div className='mx-auto mt-6 max-w-2xl space-y-3 text-left'>
+        <div className='mx-auto mt-6 max-w-2xl space-y-3 text-start'>
           <p className='font-serif text-[0.95rem] text-white/80 leading-relaxed'>
-            אנחנו בונים בשקיפות כך שזוגות ומתכננים יכולים לבדוק כל שינוי, להציע שיפורים,
-            ולפרוס על תשתית שבשליטתם.
+            אנחנו בונים בשקיפות כך שזוגות ומתכננים יכולים לבדוק כל שינוי, להציע שיפורים, ולפרוס על
+            תשתית שבשליטתם.
           </p>
           <p className='font-serif text-[0.95rem] text-white/80 leading-relaxed'>
-            תרומות במוצר, בעיצוב, בתיעוד ובפיתוח מתקבלות בברכה דרך פרויקט ה-GitHub והדיונים
-            בו.
+            תרומות במוצר, בעיצוב, בתיעוד ובפיתוח מתקבלות בברכה דרך פרויקט ה-GitHub והדיונים בו.
           </p>
         </div>
       ) : null}

@@ -163,7 +163,9 @@ export function EventQuestionFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-xl'>
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'עריכת שאלת אישור הגעה' : 'הוספת שאלת אישור הגעה'}</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? 'עריכת שאלת אישור הגעה' : 'הוספת שאלת אישור הגעה'}
+          </DialogTitle>
           <DialogDescription>
             שאלה זו מוצגת רק עבור אירוע זה כאשר מוזמנים מאשרים הגעה.
           </DialogDescription>
@@ -206,7 +208,7 @@ export function EventQuestionFormDialog({
                   onClick={handleAddOption}
                   disabled={upsertQuestion.isPending}
                 >
-                  <Plus className='mr-1 h-4 w-4' />
+                  <Plus className='me-1 h-4 w-4' />
                   הוספת אפשרות
                 </Button>
               </div>
@@ -214,8 +216,8 @@ export function EventQuestionFormDialog({
                 מוזמנים חייבים לענות על שאלות בחירה מרובה.
               </p>
               <p className='text-muted-foreground text-xs'>
-                הפעילו <strong>אחר</strong> כאשר מוזמנים צריכים להיות מסוגלים לכתוב תשובה מותאמת אישית
-                באישור הגעה ציבורי.
+                הפעילו <strong>אחר</strong> כאשר מוזמנים צריכים להיות מסוגלים לכתוב תשובה מותאמת
+                אישית באישור הגעה ציבורי.
               </p>
               <label
                 htmlFor='event-question-allow-other'
@@ -275,7 +277,7 @@ export function EventQuestionFormDialog({
             onClick={handleSubmit}
             disabled={upsertQuestion.isPending || !isQuestionValid}
           >
-            {upsertQuestion.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+            {upsertQuestion.isPending ? <Loader2 className='me-2 h-4 w-4 animate-spin' /> : null}
             {isEditMode ? 'שמירת שינויים' : 'הוסיפו שאלה'}
           </Button>
         </DialogFooter>

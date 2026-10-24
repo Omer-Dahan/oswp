@@ -101,13 +101,13 @@ export function ManageEventQuestionsDialog({
                 onClick={openCreateForm}
                 disabled={!event.collectRsvp}
               >
-                <Plus className='mr-1 h-4 w-4' />
+                <Plus className='me-1 h-4 w-4' />
                 הוסיפו שאלה
               </Button>
             </div>
             <p className='text-muted-foreground text-xs'>
-              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> תשובת כתיבה
-              באישור הגעה ציבורי.
+              שאלות אמריקאיות יכולות לכלול באופן אופציונלי <strong>אחר</strong> תשובת כתיבה באישור
+              הגעה ציבורי.
             </p>
 
             {questions.length === 0 ? (
@@ -203,7 +203,7 @@ export function ManageEventQuestionsDialog({
                 deleteQuestion.mutate({ questionId: deletingQuestion.id })
               }}
             >
-              {deleteQuestion.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+              {deleteQuestion.isPending ? <Loader2 className='me-2 h-4 w-4 animate-spin' /> : null}
               מחיקה
             </AlertDialogAction>
           </AlertDialogFooter>

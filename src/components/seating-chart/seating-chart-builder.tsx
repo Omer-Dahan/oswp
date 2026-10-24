@@ -486,7 +486,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         </Select>
         <div className='flex gap-2'>
           <Button variant='outline' onClick={handleExport} disabled={!chart}>
-            <Download className='mr-2 h-4 w-4' aria-hidden='true' />
+            <Download className='me-2 h-4 w-4' aria-hidden='true' />
             ייצוא CSV
           </Button>
           <Button
@@ -494,7 +494,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
             onClick={() => openTableDialog({ mode: 'create' })}
             disabled={!chart}
           >
-            <Plus className='mr-2 h-4 w-4' aria-hidden='true' />
+            <Plus className='me-2 h-4 w-4' aria-hidden='true' />
             הוסיפו שולחן
           </Button>
         </div>
@@ -539,7 +539,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
                 }}
               >
                 {chart.tables.length === 0 ? (
-                  <p className='absolute top-10 left-10 max-w-xs text-muted-foreground text-sm'>
+                  <p className='absolute top-10 start-10 max-w-xs text-muted-foreground text-sm'>
                     הוסיפו שולחן כדי להתחיל את תוכנית המקומות. גררו שולחנות כדי לסדר את האולם, ואז
                     גררו אורחים או משקי בית שלמים אליהם.
                   </p>

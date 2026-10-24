@@ -16,7 +16,7 @@ export default async function AuthPage({ params }: { params: Promise<{ path: str
             <p className='mt-1 text-muted-foreground text-xs'>
               התחברו לאחד מהחשבונות הבאים כדי לנסות את נתוני ההדגמה של החתונה.
             </p>
-            <ul className='mt-2 list-disc space-y-1 pl-5 text-xs'>
+            <ul className='mt-2 list-disc space-y-1 ps-5 text-xs'>
               <li>
                 <span className='font-medium'>shrek@swamp.wed</span>
               </li>

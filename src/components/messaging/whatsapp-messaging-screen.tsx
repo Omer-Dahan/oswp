@@ -71,7 +71,7 @@ function templateStatusLabel(status: string | null): string {
 
 const sectionLabelClass = 'font-mono text-[0.62rem] text-foreground/55 uppercase tracking-[0.1em]'
 const thClass =
-  'px-3 py-2 text-right font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
+  'px-3 py-2 text-end font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
 
 export function WhatsappMessagingScreen() {
   const utils = api.useUtils()

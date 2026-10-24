@@ -255,8 +255,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           <div className='max-w-sm'>
             <p className='font-serif text-xl text-foreground'>אין אירועים עדיין</p>
             <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
-              התחילו ביצירת אירוע החתונה הראשון שלכם. הוסיפו טקסים, קבלות פנים,
-              ארוחות חזרה ועוד.
+              התחילו ביצירת אירוע החתונה הראשון שלכם. הוסיפו טקסים, קבלות פנים, ארוחות חזרה ועוד.
             </p>
           </div>
           <div className='flex flex-wrap items-center justify-center gap-2'>
@@ -314,7 +313,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
         <div className='flex items-center gap-2'>
           {generalQuestionsButton}
           <Button onClick={() => setIsCreateDialogOpen(true)} size='sm'>
-            <Plus className='mr-2 h-4 w-4' />
+            <Plus className='me-2 h-4 w-4' />
             יצירת אירוע
           </Button>
         </div>
@@ -364,8 +363,8 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           <AlertDialogHeader>
             <AlertDialogTitle>למחוק אירוע?</AlertDialogTitle>
             <AlertDialogDescription>
-              פעולה זו תמחק לצמיתות את ״{deletingEvent?.name}״ ואת כל ההזמנות, השאלות
-              והתשובות המשויכות אליו. לא ניתן לבטל פעולה זו.
+              פעולה זו תמחק לצמיתות את ״{deletingEvent?.name}״ ואת כל ההזמנות, השאלות והתשובות
+              המשויכות אליו. לא ניתן לבטל פעולה זו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

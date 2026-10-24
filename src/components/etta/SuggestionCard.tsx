@@ -26,7 +26,7 @@ export function SuggestionCard({ suggestion, onApprove, onDismiss }: SuggestionC
         <span className='rounded bg-secondary px-2 py-0.5 font-medium text-secondary-foreground text-xs'>
           {suggestion.actionType}
         </span>
-        <span className='ml-auto text-muted-foreground text-xs'>
+        <span className='ms-auto text-muted-foreground text-xs'>
           {formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true })}
         </span>
       </div>

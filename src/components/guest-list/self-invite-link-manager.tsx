@@ -72,7 +72,7 @@ export function SelfInviteLinkManager() {
         onClick={() => generateToken.mutate({})}
         disabled={generateToken.isPending}
       >
-        <Link2 className='mr-2 h-3.5 w-3.5' aria-hidden='true' />
+        <Link2 className='me-2 h-3.5 w-3.5' aria-hidden='true' />
         יצירת קישור הזמנה
       </Button>
     )

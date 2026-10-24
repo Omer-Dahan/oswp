@@ -74,7 +74,7 @@ export default function CoverPhotoUploader({
         <div className='flex cursor-pointer items-center justify-center border py-16 transition-colors duration-300 ease-in-out hover:bg-gray-100'>
           <div className='flex'>
             <AiOutlinePlusCircle size={25} color={sharedStyles.primaryColorHex} />
-            <p className={`pl-3 text-${sharedStyles.primaryColor}`}>Add a Cover Photo</p>
+            <p className={`ps-3 text-${sharedStyles.primaryColor}`}>Add a Cover Photo</p>
           </div>
         </div>
       </div>

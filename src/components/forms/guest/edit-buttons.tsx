@@ -16,7 +16,7 @@ export default function EditFormButtons({
   const toggleGuestForm = useToggleGuestForm()
 
   return (
-    <div className='fixed right-0 bottom-0 left-0 z-20 space-y-3 border-t bg-background p-6 sm:right-0 sm:left-auto sm:w-[525px]'>
+    <div className='fixed end-0 bottom-0 start-0 z-20 space-y-3 border-t bg-background p-6 sm:end-0 sm:start-auto sm:w-[525px]'>
       <div className='flex flex-col gap-3 sm:flex-row'>
         <Button
           type='button'
@@ -33,7 +33,7 @@ export default function EditFormButtons({
           disabled={isUpdatingHousehold}
           className='w-full sm:flex-1'
         >
-          {isUpdatingHousehold && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+          {isUpdatingHousehold && <Loader2 className='me-2 h-4 w-4 animate-spin' />}
           {isUpdatingHousehold ? 'שומר...' : 'שמירת שינויים'}
         </Button>
       </div>

@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
-import { parseDryRunArgs } from '~/server/scripts/script-args'
-import { TASK_SEED } from '~/server/domains/task/task.seed'
 import { MILESTONE_SEED } from '~/server/domains/milestone/milestone.seed'
+import { TASK_SEED } from '~/server/domains/task/task.seed'
+import { parseDryRunArgs } from '~/server/scripts/script-args'
 
 type DatabaseClient = Awaited<typeof import('~/server/db')>['db']
 

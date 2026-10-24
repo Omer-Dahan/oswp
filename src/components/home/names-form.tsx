@@ -76,7 +76,9 @@ export default function NamesForm() {
         <Card className='w-full max-w-2xl'>
           <CardHeader className='text-center'>
             <CardTitle className='font-display text-3xl italic'>תכננו את החתונה</CardTitle>
-            <CardDescription>הוסיפו את השמות שלכם למטה כדי להתחיל לתכנן את היום שלכם</CardDescription>
+            <CardDescription>
+              הוסיפו את השמות שלכם למטה כדי להתחיל לתכנן את היום שלכם
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {createWedding.isPending && (
@@ -218,12 +220,12 @@ export default function NamesForm() {
                           <Button
                             variant='outline'
                             className={cn(
-                              'w-full justify-start text-left font-normal',
+                              'w-full justify-start text-start font-normal',
                               !weddingDate && 'text-muted-foreground'
                             )}
                             disabled={isSubmitting}
                           >
-                            <CalendarIcon className='mr-2 h-4 w-4' />
+                            <CalendarIcon className='me-2 h-4 w-4' />
                             {weddingDate ? (
                               weddingDate.toLocaleDateString('he-IL', {
                                 year: 'numeric',

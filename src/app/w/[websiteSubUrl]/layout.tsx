@@ -20,7 +20,7 @@ export default async function WeddingWebsiteLayout({
         lang={locale}
         className={`contents ${hebrewSerif.variable} ${hebrewSans.variable} ${hebrewAlt.variable} ${hebrewLight.variable}`}
       >
-        <div className='fixed top-3 right-3 z-50'>
+        <div className='fixed top-3 end-3 z-50'>
           <LocaleToggle />
         </div>
         {children}
