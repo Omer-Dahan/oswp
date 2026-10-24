@@ -228,6 +228,40 @@ export class QuestionRepository {
     })
   }
 
+  /**
+   * Of the given question IDs, which ones belong to this wedding (via their
+   * event or website). Used to reject a public RSVP answer aimed at a foreign
+   * wedding's question before any Answer/OptionResponse row is written.
+   */
+  async findQuestionIdsInWedding(weddingId: string, questionIds: string[]): Promise<string[]> {
+    if (questionIds.length === 0) return []
+
+    const questions = await this.db.question.findMany({
+      where: {
+        id: { in: questionIds },
+        OR: [{ event: { weddingId } }, { website: { weddingId } }],
+      },
+      select: { id: true },
+    })
+
+    return questions.map((question) => question.id)
+  }
+
+  /**
+   * Resolve the owning question for each option ID, so a submitted optionId
+   * can be checked against the questionId the guest claims to be answering.
+   * Closes cross-wedding Option forgery: a foreign optionId would otherwise
+   * increment another wedding's response count.
+   */
+  async findOptionsByIds(optionIds: string[]): Promise<Array<{ id: string; questionId: string }>> {
+    if (optionIds.length === 0) return []
+
+    return this.db.option.findMany({
+      where: { id: { in: optionIds } },
+      select: { id: true, questionId: true },
+    })
+  }
+
   async householdBelongsToWedding(householdId: string, weddingId: string): Promise<boolean> {
     const household = await this.db.household.findFirst({
       where: { id: householdId, weddingId },

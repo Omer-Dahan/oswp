@@ -328,4 +328,18 @@ export class GuestRepository {
       },
     })
   }
+
+  /**
+   * Count guests by IDs constrained to a single household. Used to verify a
+   * public RSVP submission's guestIds all belong to the household it claims
+   * to come from.
+   */
+  async countByIdsInHousehold(householdId: string, guestIds: number[]): Promise<number> {
+    return this.db.guest.count({
+      where: {
+        householdId,
+        id: { in: guestIds },
+      },
+    })
+  }
 }

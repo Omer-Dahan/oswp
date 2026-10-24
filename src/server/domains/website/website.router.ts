@@ -6,7 +6,11 @@
  */
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '~/server/api/trpc'
-import { rsvpSubmissionService, submitPublicRsvpSchema } from '~/server/application/rsvp-submission'
+import {
+  getClientIp,
+  rsvpSubmissionService,
+  submitPublicRsvpSchema,
+} from '~/server/application/rsvp-submission'
 import { websiteManagementService } from '~/server/application/website-management'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { requirePermission } from '~/server/authz/permission-checker'
@@ -149,7 +153,7 @@ export const websiteRouter = createTRPCRouter({
    */
   submitPublicRsvpForm: publicProcedure
     .input(submitPublicRsvpSchema)
-    .mutation(async ({ input }) => {
-      return rsvpSubmissionService.submitPublicRsvp(input)
+    .mutation(async ({ ctx, input }) => {
+      return rsvpSubmissionService.submitPublicRsvp(input, getClientIp(ctx.headers))
     }),
 })
