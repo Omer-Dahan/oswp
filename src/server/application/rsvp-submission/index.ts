@@ -30,7 +30,10 @@ export const rsvpSubmissionService = new RsvpSubmissionService(
 // Export router
 export { rsvpSubmissionRouter } from '~/server/application/rsvp-submission/rsvp-submission.router'
 // Export classes for testing/DI
-export { RsvpSubmissionService } from '~/server/application/rsvp-submission/rsvp-submission.service'
+export {
+  getClientIp,
+  RsvpSubmissionService,
+} from '~/server/application/rsvp-submission/rsvp-submission.service'
 // Export types
 export type {
   AnswerToQuestion,

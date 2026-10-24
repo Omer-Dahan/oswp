@@ -331,6 +331,26 @@ export class InvitationRepository {
   }
 
   /**
+   * Current rsvp status for each guest/event pair, scoped to a wedding. Used to
+   * filter out invitations the guest was never invited to (rsvp === 'Not
+   * Invited') before a public submission writes over them.
+   */
+  async findRsvpStatusesForPairs(
+    weddingId: string,
+    pairs: Array<{ guestId: number; eventId: string }>
+  ): Promise<Array<{ guestId: number; eventId: string; rsvp: string }>> {
+    if (pairs.length === 0) return []
+
+    return this.db.invitation.findMany({
+      where: {
+        weddingId,
+        OR: pairs.map((pair) => ({ guestId: pair.guestId, eventId: pair.eventId })),
+      },
+      select: { guestId: true, eventId: true, rsvp: true },
+    })
+  }
+
+  /**
    * Get RSVP counts for an event
    *
    * When includeTagAlongs is false, invitations belonging to tag-along guests

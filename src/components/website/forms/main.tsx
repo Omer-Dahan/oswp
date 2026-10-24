@@ -154,8 +154,9 @@ export default function MainRsvpForm({
           setSubmitError(null)
 
           const subUrl = weddingData.website?.subUrl
+          const householdId = rsvpFormData.selectedHousehold?.id
 
-          if (!subUrl) {
+          if (!subUrl || !householdId) {
             setSubmitError('Something went wrong. Please refresh the page and try again.')
             return
           }
@@ -190,8 +191,15 @@ export default function MainRsvpForm({
 
           submitRsvpForm.mutate({
             subUrl,
+            householdId,
             ...(token ? { token } : {}),
-            rsvpResponses: rsvpFormData.rsvpResponses,
+            rsvpResponses: rsvpFormData.rsvpResponses.map((response) => ({
+              eventId: response.eventId,
+              guestId: response.guestId,
+              // RsvpSelection only ever produces these two values; narrowed here
+              // since the public submission schema requires the literal union.
+              rsvp: response.rsvp as 'Attending' | 'Declined',
+            })),
             answersToQuestions: rsvpFormData.answersToQuestions,
           })
         }}
