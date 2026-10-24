@@ -110,6 +110,17 @@ export const createTRPCRouter = t.router
 export const createCallerFactory = t.createCallerFactory
 
 /**
+ * Mutation paths whose input must never be attached to analytics, even
+ * redacted — they carry raw credentials/PII beyond what a key-based denylist
+ * can safely cover.
+ */
+const ANALYTICS_PAYLOAD_SKIP_PATHS = new Set([
+  'whatsapp.saveAccount',
+  'website.update',
+  'website.verifyWebsitePassword',
+])
+
+/**
  * Analytics middleware
  *
  * Auto-instruments every successful mutation with a standardized PostHog event
@@ -139,7 +150,9 @@ const analyticsMiddleware = t.middleware(async ({ ctx, path, type, next, getRawI
         context,
         properties: {
           trpc_path: path,
-          payload: sanitizePayload(rawInput),
+          payload: ANALYTICS_PAYLOAD_SKIP_PATHS.has(path)
+            ? undefined
+            : sanitizePayload(rawInput),
         },
       })
     } catch {
