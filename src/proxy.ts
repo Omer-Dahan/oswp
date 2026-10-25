@@ -48,7 +48,14 @@ const isPublicTrpcPath = (pathname: string): boolean => {
     procedures.length > 0 && procedures.every((procedure) => PUBLIC_TRPC_PROCEDURES.has(procedure))
   )
 }
-const PUBLIC_EXACT_PATHS = ['/', '/api/blob/upload', '/api/locale', '/pricing', '/open-source']
+const PUBLIC_EXACT_PATHS = [
+  '/',
+  '/api/blob/upload',
+  '/api/locale',
+  '/pricing',
+  '/open-source',
+  '/no-access',
+]
 
 const isReservedSlug = (slug: string): boolean =>
   reservedWebsiteRootSegmentsSet.has(slug) || slug.startsWith('auth') || slug.startsWith('join')

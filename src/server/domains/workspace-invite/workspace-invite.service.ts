@@ -75,6 +75,9 @@ type MemberDelegate = {
   create: (args: {
     data: { id: string; organizationId: string; userId: string; role: string; side: string | null }
   }) => Promise<unknown>
+  findFirst: (args: {
+    where: { organizationId: string; userId: string }
+  }) => Promise<{ id: string } | null>
   findMany: (args: {
     where: { organizationId: string }
     orderBy: { createdAt: 'asc' }
@@ -252,7 +255,7 @@ export class WorkspaceInviteService {
 
     const wedding = await this.db.wedding.findUnique({
       where: { id: row.weddingId },
-      select: { groomFirstName: true, groomLastName: true },
+      select: { groomFirstName: true, groomLastName: true, organizationId: true },
     })
     if (!wedding) return { ok: false, error: 'not_found' }
 
@@ -261,11 +264,18 @@ export class WorkspaceInviteService {
     })
     const userId = signUpResult.user.id
 
-    const { organizationId } = await this.provisionWeddingWorkspace({
-      weddingId: row.weddingId,
-      name: `${wedding.groomFirstName} & ${wedding.groomLastName}`,
-      userId,
-    })
+    // The wedding already has an organization (its owner provisioned one) in
+    // the common case, so link the invitee to it directly instead of calling
+    // provisionWeddingWorkspace, which would mint an unintended `owner` member.
+    const organizationId = wedding.organizationId
+      ? wedding.organizationId
+      : (
+          await this.provisionWeddingWorkspace({
+            weddingId: row.weddingId,
+            name: `${wedding.groomFirstName} & ${wedding.groomLastName}`,
+            userId,
+          })
+        ).organizationId
 
     const side = row.side ?? input.side
 
@@ -277,15 +287,18 @@ export class WorkspaceInviteService {
           throw new WorkspaceInviteValidationError(currentValidity.reason)
         }
 
-        await tx.member.create({
-          data: {
-            id: randomUUID(),
-            organizationId,
-            userId,
-            role: row.role,
-            side,
-          },
-        })
+        const existingMember = await tx.member.findFirst({ where: { organizationId, userId } })
+        if (!existingMember) {
+          await tx.member.create({
+            data: {
+              id: randomUUID(),
+              organizationId,
+              userId,
+              role: row.role,
+              side,
+            },
+          })
+        }
 
         await tx.workspaceInviteLink.update({
           where: { id: row.id },
