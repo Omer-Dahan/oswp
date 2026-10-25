@@ -14,13 +14,16 @@ type InvitationHeroProps = {
   invitedHousehold: InvitedHousehold | null
 }
 
-function RsvpButton({ rsvpHref, isRsvpEnabled }: Pick<InvitationHeroProps, 'rsvpHref' | 'isRsvpEnabled'>) {
+function RsvpButton({
+  rsvpHref,
+  isRsvpEnabled,
+}: Pick<InvitationHeroProps, 'rsvpHref' | 'isRsvpEnabled'>) {
   if (!isRsvpEnabled) return null
   return (
     <Link
       href={rsvpHref}
       aria-label='אישור הגעה לאירוע'
-      className='inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:shadow-sm sm:text-[17px]'
+      className='inline-flex h-11 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:shadow-sm sm:text-[17px]'
     >
       אישור הגעה
     </Link>
@@ -72,15 +75,15 @@ export function InvitationHero({
         </div>
         <div className='absolute inset-0 bg-background/35' />
 
-        <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-5 px-6'>
-          <div className='hero-cards flex flex-col items-center gap-2.5'>
+        <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 px-6'>
+          <div className='hero-cards flex flex-col items-center gap-0'>
             <div className='hero-card-enter'>
               <HeroCard
                 src='/brand/jerusalem-art.png'
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
-                className='aspect-square w-[min(92vw,30svh)]'
+                className='aspect-square w-[min(92vw,36svh)]'
                 priority
               />
             </div>
@@ -90,13 +93,13 @@ export function InvitationHero({
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,42svh)]'
+                className='aspect-square w-[min(92vw,50svh)]'
               />
             </div>
           </div>
 
-          <div className='relative z-10 flex flex-col items-center gap-3 text-center'>
-            <p className='font-serif text-foreground text-base'>{greeting}</p>
+          <div className='relative z-10 flex flex-col items-center gap-0.5 text-center'>
+            <p className='font-serif text-foreground text-sm'>{greeting}</p>
             <RsvpButton rsvpHref={rsvpHref} isRsvpEnabled={isRsvpEnabled} />
           </div>
         </div>
@@ -120,10 +123,19 @@ export function InvitationHero({
 
         <div className='hero-cards relative z-10 flex items-stretch justify-center gap-6 lg:gap-10'>
           <div className='hero-card-enter'>
-            <HeroCard src='/brand/invitation.png' label='הזמנת החתונה' expandedAlt={invitationAlt} priority />
+            <HeroCard
+              src='/brand/jerusalem-art.png'
+              label='שמרו את התאריך'
+              expandedAlt='שמרו את התאריך'
+            />
           </div>
           <div className='hero-card-enter'>
-            <HeroCard src='/brand/jerusalem-art.png' label='שמרו את התאריך' expandedAlt='שמרו את התאריך' />
+            <HeroCard
+              src='/brand/invitation.png'
+              label='הזמנת החתונה'
+              expandedAlt={invitationAlt}
+              priority
+            />
           </div>
         </div>
 
