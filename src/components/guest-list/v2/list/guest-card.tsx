@@ -8,7 +8,6 @@ type GuestCardProps = {
   household: HouseholdWithGuests
   onSelectHousehold: (household: HouseholdWithGuests) => void
   isSelected?: boolean
-  allTags?: Array<{ id: string; name: string; color?: string | null }>
 }
 
 type RsvpSummary = {
@@ -26,32 +25,11 @@ const getInitials = (name: string): string => {
     .join('')
 }
 
-const getLocationLabel = (household: HouseholdWithGuests): string => {
-  const locationParts = [household.city, household.state, household.country].filter(
-    (value): value is string => Boolean(value)
-  )
+const getPrimaryGuestPhone = (household: HouseholdWithGuests): string | null => {
+  const primaryGuest =
+    household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
 
-  if (locationParts.length === 0) return 'לא הוגדר מיקום'
-
-  return locationParts.join(', ')
-}
-
-const getHouseholdTags = (
-  household: HouseholdWithGuests,
-  allTags: Array<{ id: string; name: string; color?: string | null }>
-): Array<{ id: string; name: string }> => {
-  const uniqueTagIds = Array.from(
-    new Set(
-      household.guests
-        .flatMap((guest) => guest.guestTags ?? [])
-        .map((guestTag) => guestTag.tagId)
-        .filter(Boolean)
-    )
-  ).slice(0, 2)
-
-  return uniqueTagIds
-    .map((tagId) => allTags.find((t) => t.id === tagId))
-    .filter((t): t is NonNullable<typeof t> => t !== undefined)
+  return primaryGuest?.phone ?? null
 }
 
 const getRsvpSummary = (household: HouseholdWithGuests): RsvpSummary => {
@@ -97,7 +75,6 @@ function GuestCardComponent({
   household,
   onSelectHousehold,
   isSelected = false,
-  allTags = [],
 }: Readonly<GuestCardProps>) {
   const primaryGuestName = getPrimaryGuestName(household)
   const invitedGuests = household.guests.filter((guest) => !guest.isTagAlong)
@@ -105,13 +82,11 @@ function GuestCardComponent({
   const extraGuestsCount = Math.max(household.guests.length - 1, 0)
   const summaryName =
     extraGuestsCount > 0 ? `${primaryGuestName} +${extraGuestsCount}` : primaryGuestName
+  const guestCount = household.invitedCount ?? invitedGuests.length
 
   const rsvpSummary = getRsvpSummary(household)
   const initials = getInitials(primaryGuestName)
-  const locationLabel = getLocationLabel(household)
-  const householdTags = getHouseholdTags(household, allTags)
-  const visibleTags = householdTags.slice(0, 1)
-  const hiddenTagCount = Math.max(householdTags.length - visibleTags.length, 0)
+  const phone = getPrimaryGuestPhone(household)
   const handleSelect = useCallback(() => {
     onSelectHousehold(household)
   }, [household, onSelectHousehold])
@@ -140,19 +115,28 @@ function GuestCardComponent({
                 <p className='truncate font-serif text-[1.02rem] text-foreground leading-tight'>
                   {summaryName}
                 </p>
-                <p className='truncate font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>
-                  {locationLabel}
-                </p>
               </div>
             </div>
             <Badge
               variant='secondary'
               className='shrink-0 font-mono text-[0.54rem] uppercase tracking-wider'
             >
-              קבוצה של {invitedGuests.length}
+              {guestCount} אורחים
               {tagAlongCount > 0 && ` +${tagAlongCount}`}
             </Badge>
           </div>
+
+          {(phone || household.side || household.groupName) && (
+            <div className='flex flex-wrap gap-3 font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
+              {phone && (
+                <span>
+                  טלפון <span dir='ltr'>{phone}</span>
+                </span>
+              )}
+              {household.side && <span>צד {household.side}</span>}
+              {household.groupName && <span>קבוצה {household.groupName}</span>}
+            </div>
+          )}
 
           <div className='flex flex-wrap gap-2 text-xs'>
             {rsvpSummary.attending > 0 && (
@@ -177,23 +161,6 @@ function GuestCardComponent({
                 className='border-destructive/30 bg-destructive/10 font-normal text-destructive'
               >
                 {rsvpSummary.declined} לא מגיעים
-              </Badge>
-            )}
-            {visibleTags.map((tag) => (
-              <Badge
-                key={tag.id}
-                variant='outline'
-                className='border-foreground/15 bg-foreground/[0.04] font-normal text-foreground/70'
-              >
-                {tag.name}
-              </Badge>
-            ))}
-            {hiddenTagCount > 0 && (
-              <Badge
-                variant='outline'
-                className='border-foreground/15 bg-foreground/[0.04] font-normal text-foreground/70'
-              >
-                +{hiddenTagCount} תגיות
               </Badge>
             )}
             {rsvpSummary.attending === 0 &&

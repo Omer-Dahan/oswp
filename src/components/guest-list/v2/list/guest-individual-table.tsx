@@ -1,18 +1,15 @@
 'use client'
 
-import { memo, useCallback, useMemo } from 'react'
+import { memo, useCallback } from 'react'
 import { Badge } from '~/components/ui/badge'
 import { RSVP_STATUS_LABELS } from '~/lib/constants/rsvp'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
-
-type TagMap = Map<string, { id: string; name: string; color?: string | null }>
 
 type GuestIndividualTableProps = {
   households: HouseholdWithGuests[]
   householdNumberMap: Map<string, number>
   onSelectHousehold: (household: HouseholdWithGuests) => void
   selectedHouseholdId?: string
-  allTags?: Array<{ id: string; name: string; color?: string | null }>
 }
 
 const thClass =
@@ -23,10 +20,7 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
   householdNumberMap,
   onSelectHousehold,
   selectedHouseholdId,
-  allTags = [],
 }: Readonly<GuestIndividualTableProps>) {
-  const tagMap: TagMap = useMemo(() => new Map(allTags.map((t) => [t.id, t])), [allTags])
-
   return (
     <div className='overflow-x-auto rounded-md border border-border'>
       <table className='w-full text-sm'>
@@ -35,10 +29,12 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
             <th className={thClass}>אדם</th>
             <th className={thClass}>משק בית</th>
             <th className={thClass}>דוא״ל</th>
-            <th className={thClass}>תגיות</th>
+            <th className={thClass}>טלפון</th>
+            <th className={thClass}>צד</th>
+            <th className={thClass}>קבוצה</th>
+            <th className={thClass}>מספר אורחים</th>
             <th className={thClass}>אישור הגעה</th>
             <th className={thClass}>פרטי קשר מלאים</th>
-            <th className={thClass}>מיקום מלא</th>
           </tr>
         </thead>
         <tbody>
@@ -51,7 +47,6 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
                 householdNumber={householdNumberMap.get(household.id) ?? 0}
                 isSelected={selectedHouseholdId === household.id}
                 onSelectHousehold={onSelectHousehold}
-                tagMap={tagMap}
               />
             ))
           )}
@@ -67,7 +62,6 @@ type GuestTableRowProps = {
   householdNumber: number
   isSelected: boolean
   onSelectHousehold: (household: HouseholdWithGuests) => void
-  tagMap: TagMap
 }
 
 const GuestTableRow = memo(function GuestTableRow({
@@ -76,19 +70,15 @@ const GuestTableRow = memo(function GuestTableRow({
   householdNumber,
   isSelected,
   onSelectHousehold,
-  tagMap,
 }: Readonly<GuestTableRowProps>) {
-  const guestTags = (guest.guestTags ?? [])
-    .map((gt) => tagMap.get(gt.tagId))
-    .filter((t): t is NonNullable<typeof t> => t !== undefined)
-
   const handleClick = useCallback(() => {
     onSelectHousehold(household)
   }, [household, onSelectHousehold])
 
   const guestName = `${guest.firstName} ${guest.lastName}`.trim()
   const contactComplete = Boolean(guest.email && guest.phone)
-  const locationComplete = Boolean(household.city && household.state && household.country)
+  const invitedGuestCount =
+    household.invitedCount ?? household.guests.filter((g) => !g.isTagAlong).length
   const rsvpSummary = guest.invitations.some((invitation) => invitation.rsvp === 'Attending')
     ? 'Attending'
     : guest.invitations.some((invitation) => invitation.rsvp === 'Declined')
@@ -111,23 +101,16 @@ const GuestTableRow = memo(function GuestTableRow({
       <td className='px-4 py-3 text-foreground/70'>
         {guest.email ?? <span className='text-foreground/35'>—</span>}
       </td>
-      <td className='px-4 py-3'>
-        {guestTags.length > 0 ? (
-          <div className='flex flex-wrap gap-1'>
-            {guestTags.map((tag) => (
-              <Badge
-                key={tag.id}
-                variant='outline'
-                className='border-foreground/15 bg-foreground/[0.04] text-[0.58rem] text-foreground/70 uppercase tracking-wider'
-              >
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
-        ) : (
-          <span className='text-foreground/35'>—</span>
-        )}
+      <td className='px-4 py-3 text-foreground/70'>
+        {guest.phone ? <span dir='ltr'>{guest.phone}</span> : <span className='text-foreground/35'>—</span>}
       </td>
+      <td className='px-4 py-3 text-foreground/70'>
+        {household.side ?? <span className='text-foreground/35'>—</span>}
+      </td>
+      <td className='px-4 py-3 text-foreground/70'>
+        {household.groupName ?? <span className='text-foreground/35'>—</span>}
+      </td>
+      <td className='px-4 py-3 text-foreground/70'>{invitedGuestCount}</td>
       <td className='px-4 py-3'>
         <Badge variant='outline'>{RSVP_STATUS_LABELS[rsvpSummary]}</Badge>
       </td>
@@ -136,13 +119,6 @@ const GuestTableRow = memo(function GuestTableRow({
           className={contactComplete ? 'font-medium text-success' : 'font-medium text-destructive'}
         >
           {contactComplete ? 'מלא' : 'חסר'}
-        </span>
-      </td>
-      <td className='px-4 py-3'>
-        <span
-          className={locationComplete ? 'font-medium text-success' : 'font-medium text-destructive'}
-        >
-          {locationComplete ? 'מלא' : 'חסר'}
         </span>
       </td>
     </tr>
