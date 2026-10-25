@@ -17,6 +17,7 @@ import { invitationRouter } from '~/server/domains/invitation/invitation.router'
 import { messagingRouter } from '~/server/domains/messaging/messaging.router'
 import { milestoneRouter } from '~/server/domains/milestone/milestone.router'
 import { questionRouter } from '~/server/domains/question/question.router'
+import { reportRouter } from '~/server/domains/report/report.router'
 import { seatingRouter } from '~/server/domains/seating/seating.router'
 import { createSelfFillRouter } from '~/server/domains/self-fill'
 import { taskRouter } from '~/server/domains/task/task.router'
@@ -87,6 +88,9 @@ export const appRouter = createTRPCRouter({
 
   // Shareable token-link workspace invites (no email path required)
   workspaceInvite: workspaceInviteRouter,
+
+  // Operational reports (kitchen sheet, etc.)
+  report: reportRouter,
 })
 
 // export type definition of API

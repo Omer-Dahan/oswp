@@ -1,7 +1,8 @@
 'use client'
 
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
-import { Download, Plus, Wand2 } from 'lucide-react'
+import { ChefHat, Download, Plus, Wand2 } from 'lucide-react'
+import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
