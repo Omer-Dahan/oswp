@@ -187,6 +187,35 @@ function normalizeRow(raw: RawCsvRow): GuestCsvRowInput {
 }
 
 // ---------------------------------------------------------------------------
+// Header row detection (the couple's sheet often has a title/blank row
+// above the real header row — scan the first few rows to find it)
+// ---------------------------------------------------------------------------
+
+const HEADER_SEARCH_LIMIT = 10
+const MIN_RECOGNIZED_HEADERS = 2
+
+function isRecognizedField(field: string): boolean {
+  return KNOWN_FIELDS.has(field) || EXTRA_FIELDS.has(field)
+}
+
+function detectHeaderRowIndex(rows: string[][]): number {
+  const limit = Math.min(rows.length, HEADER_SEARCH_LIMIT)
+  for (let i = 0; i < limit; i++) {
+    const recognizedCount = (rows[i] ?? []).map(transformHeader).filter(isRecognizedField).length
+    if (recognizedCount >= MIN_RECOGNIZED_HEADERS) return i
+  }
+  return 0
+}
+
+function rowsToRawCsvRow(headers: string[], values: string[]): RawCsvRow {
+  const row: Record<string, string> = {}
+  headers.forEach((header, i) => {
+    if (header && values[i] !== undefined && values[i] !== '') row[header] = values[i]
+  })
+  return row as RawCsvRow
+}
+
+// ---------------------------------------------------------------------------
 // Parsing
 // ---------------------------------------------------------------------------
 
@@ -194,23 +223,28 @@ const MAX_CSV_ROWS = 500
 
 export function parseCsvFile(file: File): Promise<ParsedCsvRow[]> {
   return new Promise((resolve, reject) => {
-    Papa.parse<RawCsvRow>(file, {
-      header: true,
+    Papa.parse<string[]>(file, {
+      header: false,
       skipEmptyLines: true,
-      transformHeader,
       complete: ({ data }) => {
-        if (data.length > MAX_CSV_ROWS) {
-          reject(new Error(`CSV exceeds the ${MAX_CSV_ROWS}-row limit (found ${data.length} rows)`))
+        const dataRowCount = Math.max(data.length - 1, 0)
+        if (dataRowCount > MAX_CSV_ROWS) {
+          reject(new Error(`CSV exceeds the ${MAX_CSV_ROWS}-row limit (found ${dataRowCount} rows)`))
           return
         }
-        const rows = data.map((rawRow, index) => {
-          const raw = normalizeRow(rawRow)
+        const headerRowIndex = detectHeaderRowIndex(data)
+        const headers = data[headerRowIndex]?.map(transformHeader) ?? []
+        const dataRows = data.slice(headerRowIndex + 1)
+
+        const rows = dataRows.map((values, index) => {
+          const raw = normalizeRow(rowsToRawCsvRow(headers, values))
           const result = guestCsvRowSchema.safeParse(raw)
+          const rowNumber = headerRowIndex + index + 2
           if (result.success) {
-            return { rowNumber: index + 2, raw, valid: true as const, data: result.data }
+            return { rowNumber, raw, valid: true as const, data: result.data }
           }
           return {
-            rowNumber: index + 2,
+            rowNumber,
             raw,
             valid: false as const,
             errors: result.error.issues.map((i) => i.message),
