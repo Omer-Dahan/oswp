@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation'
 import {
   type Dispatch,
   type SetStateAction,
@@ -41,6 +42,8 @@ import {
 import { AsyncState } from '~/components/ui/async-state'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
@@ -76,6 +79,8 @@ export default function GuestsView({
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode>('households')
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [showDeleteHouseholdDialog, setShowDeleteHouseholdDialog] = useState(false)
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
+  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
   const [editingSections, setEditingSections] = useState<Set<'contactAddress' | 'notes'>>(new Set())
   const [drawerDraft, setDrawerDraft] = useState<DrawerDraft>({
     email: '',
@@ -226,8 +231,24 @@ export default function GuestsView({
     return keys.some((key) => drawerDraft[key] !== drawerBaseline[key])
   }, [drawerBaseline, drawerDraft])
 
+  const router = useRouter()
   const updateHouseholdMutation = api.household.update.useMutation()
   const deleteHouseholdMutation = api.household.delete.useMutation()
+  const deleteAllHouseholdsMutation = api.household.deleteAll.useMutation()
+
+  const handleConfirmDeleteAll = useCallback(() => {
+    deleteAllHouseholdsMutation.mutate(undefined, {
+      onSuccess: ({ deleted }) => {
+        setShowDeleteAllDialog(false)
+        setDeleteAllConfirmText('')
+        toast.success(`נמחקו ${deleted} משקי בית`)
+        router.refresh()
+      },
+      onError: () => {
+        toast.error('מחיקת כל האורחים נכשלה')
+      },
+    })
+  }, [deleteAllHouseholdsMutation, router])
 
   const saveDrawerChanges = useCallback(() => {
     if (!selectedCanonicalHousehold) return
@@ -657,6 +678,14 @@ export default function GuestsView({
           selectedEventId={selectedEventId}
         />
         <div className='flex shrink-0 gap-3'>
+          <Button
+            type='button'
+            variant='outline'
+            className='border-destructive text-destructive hover:bg-destructive/10'
+            onClick={() => setShowDeleteAllDialog(true)}
+          >
+            מחיקת כל האורחים
+          </Button>
           <Button type='button' variant='outline' onClick={onImportClick}>
             ייבוא אורחים
           </Button>
@@ -841,6 +870,51 @@ export default function GuestsView({
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
               {deleteHouseholdMutation.isPending ? 'מוחק...' : 'מחיקת מפלגה'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showDeleteAllDialog}
+        onOpenChange={(open) => {
+          setShowDeleteAllDialog(open)
+          if (!open) setDeleteAllConfirmText('')
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>מחיקת כל האורחים?</AlertDialogTitle>
+            <AlertDialogDescription>
+              פעולה זו תמחק לצמיתות את כל משקי הבית, האורחים, ההזמנות, אישורי ההגעה, ההושבה
+              והמתנות של החתונה הנוכחית. לא ניתן לבטל פעולה זו.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className='space-y-2'>
+            <Label htmlFor='delete-all-confirm'>
+              הקלידו <span className='font-semibold'>מחק הכל</span> לאישור
+            </Label>
+            <Input
+              id='delete-all-confirm'
+              value={deleteAllConfirmText}
+              onChange={(e) => setDeleteAllConfirmText(e.target.value)}
+              autoComplete='off'
+              disabled={deleteAllHouseholdsMutation.isPending}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteAllHouseholdsMutation.isPending}>
+              ביטול
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleConfirmDeleteAll()
+              }}
+              disabled={deleteAllConfirmText !== 'מחק הכל' || deleteAllHouseholdsMutation.isPending}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+            >
+              {deleteAllHouseholdsMutation.isPending ? 'מוחק...' : 'מחיקת כל האורחים'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

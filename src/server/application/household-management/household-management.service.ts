@@ -314,6 +314,12 @@ export class HouseholdManagementService {
     return deletedHousehold.id
   }
 
+  async deleteAllHouseholds(ctx: AuthzContext, weddingId: string): Promise<{ deleted: number }> {
+    requirePermission(ctx, { guest: ['delete'] })
+    const deleted = await this.householdRepo.deleteAllForWedding(weddingId)
+    return { deleted }
+  }
+
   async bulkCreateHouseholds(
     ctx: AuthzContext,
     weddingId: string,
