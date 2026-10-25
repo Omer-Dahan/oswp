@@ -39,7 +39,14 @@ export const baseHouseholdFields = z.object({
   email: z.string().email({ message: 'כתובת מייל לא תקינה' }).nullish().optional(),
   notes: z.string().max(1000, 'הערות חייבות להיות עד 1000 תווים').nullish().optional(),
   likelihoodOfAttending: z.number().int().min(1).max(5).nullish().optional(),
-  invitedCount: z.number().int().min(0).max(50).nullish().optional(),
+  invitedCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(50)
+    .nullish()
+    .transform((v) => (v === 0 ? null : v))
+    .optional(),
   side: z.string().max(40).nullish().optional(),
   groupName: z.string().max(60).nullish().optional(),
   phoneAlt: z.string().max(40).nullish().optional(),

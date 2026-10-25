@@ -8,8 +8,9 @@ import { Switch } from '~/components/ui/switch'
 import {
   canUseExtraGuests,
   clampCount,
+  getInitialAttendingGuestIds,
+  getInitialExtraGuests,
   getMaxAttendingBound,
-  isGuestAttendingByDefault,
   upsertRsvpResponses,
 } from '~/components/website/forms/rsvp-state'
 import {
@@ -29,15 +30,12 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
   const household = rsvpFormData.selectedHousehold
   const namedGuests = useMemo(() => household?.guests ?? [], [household])
 
-  const [attendingGuestIds, setAttendingGuestIds] = useState<Set<number>>(
-    () =>
-      new Set(
-        namedGuests
-          .filter((guest) =>
-            isGuestAttendingByDefault(guest.id, guest.invitations, rsvpFormData.rsvpResponses)
-          )
-          .map((guest) => guest.id)
-      )
+  const savedTotal = rsvpFormData.attendingCount ?? household?.attendingCount
+  // A saved 0 means "not answered" (defaults are never 0), not "zero attendees".
+  const hasAnsweredBefore = savedTotal != null && savedTotal > 0
+
+  const [attendingGuestIds, setAttendingGuestIds] = useState<Set<number>>(() =>
+    getInitialAttendingGuestIds(namedGuests, rsvpFormData.rsvpResponses, hasAnsweredBefore)
   )
 
   const maxTotal = getMaxAttendingBound(household?.invitedCount, namedGuests.length)
@@ -45,10 +43,9 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
   const namedAttendingCount = attendingGuestIds.size
   const maxExtras = clampCount(maxTotal - namedAttendingCount, 0, maxTotal)
 
-  const [extraGuests, setExtraGuests] = useState<number>(() => {
-    const previousTotal = rsvpFormData.attendingCount ?? household?.attendingCount ?? 0
-    return clampCount(previousTotal - namedAttendingCount, 0, maxExtras)
-  })
+  const [extraGuests, setExtraGuests] = useState<number>(() =>
+    getInitialExtraGuests(hasAnsweredBefore, savedTotal, namedAttendingCount, maxExtras)
+  )
 
   const clampedExtraGuests = clampCount(extraGuests, 0, maxExtras)
   const total = namedAttendingCount + clampedExtraGuests

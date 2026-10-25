@@ -68,7 +68,7 @@ export const guestCsvRowSchema = z.object({
   zipCode: optionalString,
   country: optionalString,
   notes: optionalString,
-  invitedCount: optionalInt(0, 50),
+  invitedCount: optionalInt(0, 50).transform((v) => (v === 0 ? undefined : v)),
   side: optionalString.pipe(z.string().max(40).optional()),
   groupName: optionalString.pipe(z.string().max(60).optional()),
   phoneAlt: optionalString.pipe(z.string().max(40).optional()),

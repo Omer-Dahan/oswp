@@ -192,6 +192,42 @@ describe('createHouseholdSchema', () => {
     const result = createHouseholdSchema.safeParse(validInput)
     expect(result.success).toBe(true)
   })
+
+  it('maps an invitedCount of 0 to null — a household is never known to have 0 people', () => {
+    const input = {
+      guestParty: [
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          isPrimaryContact: true,
+          invites: {},
+        },
+      ],
+      invitedCount: 0,
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.invitedCount).toBeNull()
+  })
+
+  it('preserves a positive invitedCount', () => {
+    const input = {
+      guestParty: [
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          isPrimaryContact: true,
+          invites: {},
+        },
+      ],
+      invitedCount: 6,
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.invitedCount).toBe(6)
+  })
 })
 
 describe('updateHouseholdSchema', () => {
