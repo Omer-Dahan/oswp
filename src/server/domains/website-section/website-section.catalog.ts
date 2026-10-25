@@ -48,7 +48,7 @@ export const SECTION_CATALOG = [
     description: 'How you met, the proposal, your journey together.',
     position: 1,
     defaultEnabled: false,
-    defaultContent: { heading: 'Our Story', body: '' },
+    defaultContent: { heading: 'הסיפור שלנו', body: '' },
   }),
   entry({
     type: SectionType.TIMELINE,
@@ -58,8 +58,8 @@ export const SECTION_CATALOG = [
     position: 2,
     defaultEnabled: false,
     defaultContent: {
-      heading: 'Every Great Journey Has a Beginning',
-      eyebrow: 'Our Story',
+      heading: 'לכל מסע גדול יש התחלה',
+      eyebrow: 'הסיפור שלנו',
       milestones: [],
     },
   }),
@@ -70,8 +70,8 @@ export const SECTION_CATALOG = [
     position: 3,
     defaultEnabled: false,
     defaultContent: {
-      eyebrow: 'The Destination',
-      heading: 'Your Invitation',
+      eyebrow: 'היעד',
+      heading: 'ההזמנה שלכם',
       body: '',
     },
   }),
@@ -81,7 +81,7 @@ export const SECTION_CATALOG = [
     description: 'A row of image cards for the ceremony, celebration, and other moments.',
     position: 4,
     defaultEnabled: false,
-    defaultContent: { heading: 'Curated Experiences', eyebrow: 'Curated Experiences', items: [] },
+    defaultContent: { heading: 'חוויות נבחרות', eyebrow: 'חוויות נבחרות', items: [] },
   }),
   entry({
     type: SectionType.WEDDING_PARTY,
@@ -89,7 +89,7 @@ export const SECTION_CATALOG = [
     description: 'Introduce the people standing beside you.',
     position: 5,
     defaultEnabled: false,
-    defaultContent: { heading: 'Wedding Party', members: [] },
+    defaultContent: { heading: 'השושבינים', members: [] },
   }),
   entry({
     type: SectionType.TRAVEL,
@@ -97,7 +97,7 @@ export const SECTION_CATALOG = [
     description: 'Hotels, directions, services, and getting-around notes for guests.',
     position: 6,
     defaultEnabled: false,
-    defaultContent: { heading: 'Travel & Stay', body: '' },
+    defaultContent: { heading: 'הגעה ואירוח', body: '' },
   }),
   entry({
     type: SectionType.FAQ,
@@ -105,7 +105,7 @@ export const SECTION_CATALOG = [
     description: 'Answer the questions guests ask most.',
     position: 7,
     defaultEnabled: false,
-    defaultContent: { heading: 'Questions & Answers', items: [] },
+    defaultContent: { heading: 'שאלות ותשובות', items: [] },
   }),
   entry({
     type: SectionType.REGISTRY,
@@ -113,7 +113,7 @@ export const SECTION_CATALOG = [
     description: 'Link out to your registries and gift preferences.',
     position: 8,
     defaultEnabled: false,
-    defaultContent: { heading: 'Registry', body: '', links: [] },
+    defaultContent: { heading: 'רשימת מתנות', body: '', links: [] },
   }),
   entry({
     type: SectionType.SAVE_THE_DATE,

@@ -26,7 +26,7 @@ export const mockWebsiteWithQuestions: WebsiteWithQuestions = {
   generalQuestions: [
     {
       id: 'q-1',
-      text: 'Will you be bringing any children under the age of 10?',
+      text: 'האם תגיעו עם ילדים מתחת לגיל 10?',
       type: 'Text',
       isRequired: false,
       allowOther: false,
@@ -39,7 +39,7 @@ export const mockWebsiteWithQuestions: WebsiteWithQuestions = {
     },
     {
       id: 'q-2',
-      text: 'Send a note to the couple?',
+      text: 'רוצים להשאיר ברכה לזוג?',
       type: 'Text',
       isRequired: false,
       allowOther: false,
