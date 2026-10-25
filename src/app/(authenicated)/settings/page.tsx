@@ -1,3 +1,5 @@
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { PluginsSettingsCard } from '~/app/_components/settings/plugins-settings-card'
 import DashboardTopbar from '~/components/dashboard/dashboard-topbar'
 import WeddingSettingsForm from '~/components/forms/wedding-settings-form'
@@ -5,12 +7,30 @@ import { OrganizationMembersSettingsCard } from '~/components/settings/organizat
 import { OrganizationOutstandingInvitesCard } from '~/components/settings/organization-outstanding-invites-card'
 import { TelegramConnectCard } from '~/components/settings/telegram-connect-card'
 import { WhatsappConnectionCard } from '~/components/settings/whatsapp-connection-card'
+import { auth } from '~/lib/auth'
 import { getRequiredWedding } from '~/server/application/authenticated-route/authenticated-route-data'
+import { resolveWorkspaceScope } from '~/server/application/workspace/workspace-scope'
+import { readWorkspaceCapabilities } from '~/server/authz/workspace-capabilities'
 import { api } from '~/trpc/server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (session?.user?.id) {
+    const scope = await resolveWorkspaceScope({
+      session,
+      userId: session.user.id,
+    })
+    const capabilities = readWorkspaceCapabilities(scope.activeOrganization?.role)
+    if (!capabilities.canAccessSettings) {
+      redirect('/dashboard')
+    }
+  }
+
   const wedding = await getRequiredWedding()
 
   let details: Awaited<ReturnType<typeof api.wedding.getDetails>> | null = null

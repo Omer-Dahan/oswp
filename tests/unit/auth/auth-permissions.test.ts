@@ -163,7 +163,7 @@ describe('organization plugin wiring', () => {
   })
 
   it('exports the full organization role matrix', () => {
-    expect(Object.keys(organizationRoles)).toEqual(['owner', 'admin', 'member', 'viewer'])
+    expect(Object.keys(organizationRoles)).toEqual(['owner', 'admin', 'member', 'family', 'viewer'])
     expect(organizationRoles.owner.statements.invitation).toEqual(['create', 'cancel'])
     expect(organizationRoles.owner.statements.member).toEqual(['create', 'update', 'delete'])
     expect(organizationRoles.member.statements.guest_invitation).toEqual([
