@@ -103,6 +103,8 @@ export type EventWithStats = {
   startTime: string | null
   endTime: string | null
   venue: string | null
+  venueAddress: string | null
+  venueWazeUrl: string | null
   attire: string | null
   description: string | null
   weddingId: string

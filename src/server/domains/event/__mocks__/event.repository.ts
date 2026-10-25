@@ -13,6 +13,8 @@ export const mockEvent: Event = {
   startTime: '14:00',
   endTime: '16:00',
   venue: 'Beautiful Garden',
+  venueAddress: null,
+  venueWazeUrl: null,
   attire: 'Formal',
   description: 'Our special day!',
   weddingId: 'wedding-123',

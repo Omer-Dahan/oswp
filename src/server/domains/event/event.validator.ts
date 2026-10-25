@@ -6,6 +6,15 @@
 
 import { z } from 'zod'
 
+import { isValidStoredWazeUrl } from '~/lib/website/maps'
+
+const venueWazeUrlSchema = z
+  .string()
+  .optional()
+  .refine((value) => !value || isValidStoredWazeUrl(value), {
+    message: 'קישור הוויז חייב להיות קישור שיתוף מהאולם (https://waze.com/ul/...)',
+  })
+
 const parseDateInput = (value: string): Date => {
   const [year, month, day] = value.split('-').map(Number)
   return new Date(year ?? 0, (month ?? 1) - 1, day ?? 1)
@@ -34,6 +43,8 @@ export const createEventSchema = z
     startTime: z.string().optional(),
     endTime: z.string().optional(),
     venue: z.string().optional(),
+    venueAddress: z.string().optional(),
+    venueWazeUrl: venueWazeUrlSchema,
     attire: z.string().optional(),
     description: z.string().optional(),
     collectRsvp: z.boolean().default(false),
@@ -63,6 +74,8 @@ export const updateEventSchema = z.object({
   startTime: z.string().optional(),
   endTime: z.string().optional(),
   venue: z.string().optional(),
+  venueAddress: z.string().optional(),
+  venueWazeUrl: venueWazeUrlSchema,
   attire: z.string().optional(),
   description: z.string().optional(),
   collectRsvp: z.boolean().optional(),
