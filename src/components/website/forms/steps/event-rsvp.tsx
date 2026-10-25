@@ -8,6 +8,13 @@ import { formatDateStandard } from '~/app/utils/helpers'
 import type { Event, Guest, RsvpFormResponse, StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { upsertRsvpResponses } from '~/components/website/forms/rsvp-state'
+import {
+  StepActions,
+  StepHeading,
+  StepPrimaryButton,
+  StepSecondaryButton,
+  StepShell,
+} from '~/components/website/forms/steps/step-ui'
 
 interface EventRsvpFormProps extends StepFormProps {
   event: Event
@@ -40,63 +47,60 @@ export default function EventRsvpForm({
   const hasAnsweredAllGuests = eventResponses.length === invitedGuests.length
 
   return (
-    <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest'>{event.name}</h2>
+    <StepShell>
+      <StepHeading>{event.name}</StepHeading>
       {!!event.date && (
-        <div className='flex gap-2'>
-          <AiOutlineCalendar size={20} />
+        <div className='flex items-center gap-2 text-base text-muted-foreground'>
+          <AiOutlineCalendar size={20} aria-hidden />
           <span>
             {formatDateStandard(event.date)}
             {event.startTime && ` at ${event.startTime}`}
           </span>
         </div>
       )}
-      <ul>
+      <ul className='flex flex-col gap-3'>
         {invitedGuests.map((guest) => {
           return (
-            <li key={guest.id} className='mb-3'>
-              <div className='flex items-center justify-between'>
-                <span>
-                  {guest.firstName} {guest.lastName}
-                </span>
-                <RsvpSelection
-                  eventId={event.id}
-                  guestId={guest.id}
-                  guestName={`${guest.firstName} ${guest.lastName}`}
-                  response={rsvpResponsesByGuestId[guest.id]}
-                  onSelect={(response) => {
-                    setRsvpResponsesByGuestId((prev) => ({
-                      ...prev,
-                      [response.guestId]: response,
-                    }))
-                  }}
-                />
-              </div>
+            <li
+              key={guest.id}
+              className='flex flex-col gap-3 rounded-[16px] border border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between'
+            >
+              <span className='text-base text-foreground'>
+                {guest.firstName} {guest.lastName}
+              </span>
+              <RsvpSelection
+                eventId={event.id}
+                guestId={guest.id}
+                guestName={`${guest.firstName} ${guest.lastName}`}
+                response={rsvpResponsesByGuestId[guest.id]}
+                onSelect={(response) => {
+                  setRsvpResponsesByGuestId((prev) => ({
+                    ...prev,
+                    [response.guestId]: response,
+                  }))
+                }}
+              />
             </li>
           )
         })}
       </ul>
-      <button
-        className={`mt-3 py-3 text-white text-xl tracking-wide ${!hasAnsweredAllGuests ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
-        disabled={!hasAnsweredAllGuests}
-        type='button'
-        onClick={() => {
-          updateRsvpForm({
-            rsvpResponses: upsertRsvpResponses(rsvpFormData.rsvpResponses, eventResponses),
-          })
-          goNext?.()
-        }}
-      >
-        {tCommon('continue')}
-      </button>
-      <button
-        className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-        type='submit'
-        onClick={() => goBack?.()}
-      >
-        {tCommon('back')}
-      </button>
-    </div>
+      <StepActions>
+        <StepPrimaryButton
+          disabled={!hasAnsweredAllGuests}
+          onClick={() => {
+            updateRsvpForm({
+              rsvpResponses: upsertRsvpResponses(rsvpFormData.rsvpResponses, eventResponses),
+            })
+            goNext?.()
+          }}
+        >
+          {tCommon('continue')}
+        </StepPrimaryButton>
+        <StepSecondaryButton type='submit' onClick={() => goBack?.()}>
+          {tCommon('back')}
+        </StepSecondaryButton>
+      </StepActions>
+    </StepShell>
   )
 }
 
@@ -122,21 +126,29 @@ function RsvpSelection({ eventId, guestId, guestName, response, onSelect }: Rsvp
   }
 
   return (
-    <div className='flex gap-3'>
+    <div className='flex gap-2'>
       <button
         type='button'
-        className={`flex w-32 cursor-pointer items-center justify-center gap-1 border border-stone-400 py-2 ${selectedRsvp === 'Attending' ? 'bg-stone-700 text-white' : 'text-stone-400'}`}
+        className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border text-base transition-colors sm:w-28 sm:flex-none ${
+          selectedRsvp === 'Attending'
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+        }`}
         onClick={() => handleOnSelect('Attending')}
       >
-        {selectedRsvp === 'Attending' && <IoIosCheckmarkCircleOutline size={20} />}
+        {selectedRsvp === 'Attending' && <IoIosCheckmarkCircleOutline size={18} aria-hidden />}
         {selectedRsvp === 'Attending' ? t('accepted') : t('accept')}
       </button>
       <button
         type='button'
-        className={`flex w-32 cursor-pointer items-center justify-center gap-1 border border-stone-400 py-2 ${selectedRsvp === 'Declined' ? 'bg-stone-700 text-white' : 'text-stone-400'}`}
+        className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border text-base transition-colors sm:w-28 sm:flex-none ${
+          selectedRsvp === 'Declined'
+            ? 'border-foreground/50 bg-foreground/10 text-foreground'
+            : 'border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground'
+        }`}
         onClick={() => handleOnSelect('Declined')}
       >
-        {selectedRsvp === 'Declined' && <IoIosCheckmarkCircleOutline size={20} />}
+        {selectedRsvp === 'Declined' && <IoIosCheckmarkCircleOutline size={18} aria-hidden />}
         {selectedRsvp === 'Declined' ? t('declined') : t('decline')}
       </button>
     </div>

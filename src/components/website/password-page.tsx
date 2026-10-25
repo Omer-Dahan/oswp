@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
+import {
+  StepTextInput,
+  stepHeadingFont,
+  stepPrimaryClassName,
+} from '~/components/website/forms/steps/step-ui'
 
 type PasswordPageProps = {
   verifyWebsitePassword: (passwordInput: string) => Promise<boolean>
@@ -34,47 +37,27 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
   }
 
   return (
-    <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 px-6 py-12'>
-      {/* Soft, warm backdrop so the unlock card reads as the clear focal point. */}
-      <div aria-hidden className='pointer-events-none absolute inset-0 -z-10'>
-        <div className='absolute -top-32 start-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl' />
-        <div className='absolute end-0 bottom-0 h-72 w-72 translate-x-1/4 rounded-full bg-accent/20 blur-3xl' />
-      </div>
-
+    <main className='flex min-h-screen items-center justify-center px-6 py-12'>
       <form
-        className='w-full max-w-md space-y-6 rounded-2xl border border-border/70 bg-background/95 p-8 text-center shadow-2xl shadow-foreground/10 ring-1 ring-border/40 backdrop-blur-sm sm:p-10'
+        className='flex w-full max-w-md flex-col items-center gap-6 rounded-[28px] border border-border bg-card px-8 py-12 text-center text-card-foreground shadow-sm sm:px-10'
         onSubmit={(event) => void verifyPassword(event)}
       >
-        {/* Slim accent band anchors the top of the card. */}
-        <div
-          aria-hidden
-          className='-mx-8 -mt-8 mb-2 h-1.5 rounded-t-2xl bg-gradient-to-r from-primary via-accent to-primary sm:-mx-10 sm:-mt-10'
-        />
+        <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary'>
+          <Lock aria-hidden className='h-6 w-6' />
+        </span>
 
-        <div className='flex justify-center'>
-          <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/20'>
-            <Lock aria-hidden className='h-6 w-6' />
-          </span>
-        </div>
-
-        <div className='space-y-2'>
-          <p className='font-mono text-[0.6rem] text-muted-foreground uppercase tracking-[0.28em]'>
-            {t('privateWebsite')}
-          </p>
-          <h1 className='font-serif text-2xl text-foreground sm:text-3xl'>
+        <div className='flex flex-col gap-2'>
+          <h1 className={`${stepHeadingFont} text-2xl text-foreground sm:text-3xl`}>
             {t('passwordProtected')}
           </h1>
-          <p className='text-muted-foreground text-sm leading-6'>{t('passwordProtectedHint')}</p>
+          <p className='text-base text-muted-foreground leading-7'>{t('passwordProtectedHint')}</p>
         </div>
 
-        <div className='space-y-2 text-start'>
-          <label
-            className='font-mono text-[0.62rem] uppercase tracking-[0.18em]'
-            htmlFor='website-password'
-          >
+        <div className='flex w-full flex-col gap-2 text-start'>
+          <label className='text-foreground/80 text-sm' htmlFor='website-password'>
             {t('password')}
           </label>
-          <Input
+          <StepTextInput
             aria-describedby={showError ? 'website-password-error' : undefined}
             autoComplete='current-password'
             autoFocus
@@ -91,9 +74,9 @@ export default function PasswordPage({ verifyWebsitePassword }: PasswordPageProp
           />
         </div>
 
-        <Button className='w-full' disabled={isSubmitting} size='lg' type='submit'>
+        <button className={stepPrimaryClassName} disabled={isSubmitting} type='submit'>
           {isSubmitting ? t('unlocking') : t('unlockSite')}
-        </Button>
+        </button>
 
         <p
           aria-live='polite'

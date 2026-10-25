@@ -4,6 +4,16 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
+import {
+  StepActions,
+  StepBody,
+  StepErrorText,
+  StepField,
+  StepHeading,
+  StepPrimaryButton,
+  StepShell,
+  StepTextInput,
+} from '~/components/website/forms/steps/step-ui'
 import { api } from '~/trpc/react'
 
 type FindYourInvitationFormProps = StepFormProps & {
@@ -11,7 +21,10 @@ type FindYourInvitationFormProps = StepFormProps & {
   accessToken?: string
 }
 
-export default function FindYourInvitationForm({ goNext, accessToken }: FindYourInvitationFormProps) {
+export default function FindYourInvitationForm({
+  goNext,
+  accessToken,
+}: FindYourInvitationFormProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
   const { weddingData } = useRsvpForm()
@@ -46,32 +59,31 @@ export default function FindYourInvitationForm({ goNext, accessToken }: FindYour
   }
 
   return (
-    <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest text-stone-900'>
+    <StepShell>
+      <StepHeading>
         {t('weddingTitle', {
           brideFirstName: weddingData.brideFirstName ?? '',
           groomFirstName: weddingData.groomFirstName ?? '',
         })}
-      </h2>
-      <p className='mb-3 font-normal text-stone-800'>{t('groupNote')}</p>
-      <input
-        placeholder={t('fullNamePlaceholder')}
-        className='border border-gray-400 bg-white p-3 text-black placeholder:text-gray-500'
-        onChange={(e) => {
-          setShowError(false)
-          setName(e.target.value)
-        }}
-        value={name}
-      />
-      {showError && <p className='text-xs text-stone-800'>{t('notFound')}</p>}
-      <button
-        className={`mt-3 py-3 text-white text-xl tracking-wide ${name.length === 0 || isFetching ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
-        type='button'
-        disabled={name.length === 0}
-        onClick={handleOnSearch}
-      >
-        {isFetching ? tCommon('searching') : t('findInvitation')}
-      </button>
-    </div>
+      </StepHeading>
+      <StepBody>{t('groupNote')}</StepBody>
+      <StepField label={t('fullNamePlaceholder')} htmlFor='rsvp-guest-name'>
+        <StepTextInput
+          id='rsvp-guest-name'
+          placeholder={t('fullNamePlaceholder')}
+          onChange={(e) => {
+            setShowError(false)
+            setName(e.target.value)
+          }}
+          value={name}
+        />
+      </StepField>
+      {showError && <StepErrorText>{t('notFound')}</StepErrorText>}
+      <StepActions>
+        <StepPrimaryButton disabled={name.length === 0 || isFetching} onClick={handleOnSearch}>
+          {isFetching ? tCommon('searching') : t('findInvitation')}
+        </StepPrimaryButton>
+      </StepActions>
+    </StepShell>
   )
 }

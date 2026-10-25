@@ -11,6 +11,14 @@ import {
   removeAnswer,
   upsertAnswer,
 } from '~/components/website/forms/rsvp-state'
+import {
+  StepActions,
+  StepHeading,
+  StepPrimaryButton,
+  StepSecondaryButton,
+  StepShell,
+  StepTextArea,
+} from '~/components/website/forms/steps/step-ui'
 
 interface QuestionMultipleChoiceProps extends StepFormProps {
   guest?: Guest
@@ -57,105 +65,112 @@ export default function QuestionMultipleChoice({
     selectedOptionId !== undefined && (!isOtherSelected || otherResponse.trim().length > 0)
 
   return (
-    <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest'>{question.text}</h2>
+    <StepShell>
+      <StepHeading>{question.text}</StepHeading>
       {!!guest && (
-        <span>
+        <span className='text-base text-muted-foreground'>
           {guest.firstName} {guest.lastName}
         </span>
       )}
-      <ul>
+      <ul className='flex flex-col gap-3'>
         {question.options?.map((option) => (
           <li key={option.id}>
-            <button
-              type='button'
+            <OptionButton
+              isSelected={selectedOptionId === option.id}
               onClick={() => setSelectedOptionId(option.id)}
-              className={`relative mb-3 w-full cursor-pointer rounded-lg border border-gray-700 p-5 text-start hover:bg-gray-700 hover:text-white ${selectedOptionId === option.id && 'bg-gray-700 text-white'}`}
-            >
-              <div className='flex flex-col gap-3'>
-                <h3>{option.text}</h3>
-                <p>{option.description}</p>
-              </div>
-              {selectedOptionId === option.id && (
-                <div className='absolute top-1/2 end-5 -translate-y-1/2'>
-                  <IoIosCheckmarkCircleOutline size={20} />
-                </div>
-              )}
-            </button>
+              title={option.text}
+              description={option.description}
+            />
           </li>
         ))}
         {question.allowOther ? (
           <li>
-            <button
-              type='button'
+            <OptionButton
+              isSelected={isOtherSelected}
               onClick={() => setSelectedOptionId(OTHER_OPTION_ID)}
-              className={`relative mb-3 w-full cursor-pointer rounded-lg border border-gray-700 p-5 text-start hover:bg-gray-700 hover:text-white ${isOtherSelected && 'bg-gray-700 text-white'}`}
-            >
-              <div className='flex flex-col gap-3'>
-                <h3>{t('other')}</h3>
-                <p>{t('otherDescription')}</p>
-              </div>
-              {isOtherSelected && (
-                <div className='absolute top-1/2 end-5 -translate-y-1/2'>
-                  <IoIosCheckmarkCircleOutline size={20} />
-                </div>
-              )}
-            </button>
+              title={t('other')}
+              description={t('otherDescription')}
+            />
           </li>
         ) : null}
       </ul>
       {isOtherSelected && (
-        <textarea
-          className='w-full rounded-lg border border-gray-700 bg-white p-3 text-start text-base text-black placeholder:text-gray-500'
+        <StepTextArea
           placeholder={t('otherPlaceholder')}
           value={otherResponse}
           onChange={(event) => setOtherResponse(event.target.value)}
           rows={3}
         />
       )}
-      <button
-        className={`mt-3 bg-stone-400 py-3 text-white text-xl tracking-wide ${!canContinue ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
-        type='button'
-        disabled={!canContinue}
-        onClick={() => {
-          const nextAnswer: AnswerWithType = {
-            ...answerTarget,
-            questionType: isOtherSelected ? 'Text' : 'Option',
-            response: isOtherSelected ? otherResponse.trim() : (selectedOptionId ?? ''),
-            guestFirstName:
-              guest?.firstName ?? rsvpFormData.selectedHousehold?.primaryContact?.firstName,
-            guestLastName:
-              guest?.lastName ?? rsvpFormData.selectedHousehold?.primaryContact?.lastName,
-          }
-          updateRsvpForm({
-            answersToQuestions: upsertAnswer(rsvpFormData.answersToQuestions, nextAnswer),
-          })
-          goNext?.()
-        }}
-      >
-        {tCommon('continue')}
-      </button>
-      {!question.isRequired && (
-        <button
-          className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-          type='button'
+      <StepActions>
+        <StepPrimaryButton
+          disabled={!canContinue}
           onClick={() => {
+            const nextAnswer: AnswerWithType = {
+              ...answerTarget,
+              questionType: isOtherSelected ? 'Text' : 'Option',
+              response: isOtherSelected ? otherResponse.trim() : (selectedOptionId ?? ''),
+              guestFirstName:
+                guest?.firstName ?? rsvpFormData.selectedHousehold?.primaryContact?.firstName,
+              guestLastName:
+                guest?.lastName ?? rsvpFormData.selectedHousehold?.primaryContact?.lastName,
+            }
             updateRsvpForm({
-              answersToQuestions: removeAnswer(rsvpFormData.answersToQuestions, answerTarget),
+              answersToQuestions: upsertAnswer(rsvpFormData.answersToQuestions, nextAnswer),
             })
             goNext?.()
           }}
         >
-          {tCommon('skip')}
-        </button>
+          {tCommon('continue')}
+        </StepPrimaryButton>
+        {!question.isRequired && (
+          <StepSecondaryButton
+            onClick={() => {
+              updateRsvpForm({
+                answersToQuestions: removeAnswer(rsvpFormData.answersToQuestions, answerTarget),
+              })
+              goNext?.()
+            }}
+          >
+            {tCommon('skip')}
+          </StepSecondaryButton>
+        )}
+        <StepSecondaryButton type='submit' onClick={() => goBack?.()}>
+          {tCommon('back')}
+        </StepSecondaryButton>
+      </StepActions>
+    </StepShell>
+  )
+}
+
+function OptionButton({
+  isSelected,
+  onClick,
+  title,
+  description,
+}: {
+  isSelected: boolean
+  onClick: () => void
+  title: string
+  description?: string
+}) {
+  return (
+    <button
+      type='button'
+      onClick={onClick}
+      className={`relative w-full rounded-[16px] border px-5 py-4 text-start transition-colors ${
+        isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/40'
+      }`}
+    >
+      <div className='flex flex-col gap-1 pe-8'>
+        <h3 className='text-base text-foreground'>{title}</h3>
+        {description ? <p className='text-muted-foreground text-sm'>{description}</p> : null}
+      </div>
+      {isSelected && (
+        <div className='absolute top-1/2 end-5 -translate-y-1/2 text-primary'>
+          <IoIosCheckmarkCircleOutline size={22} aria-hidden />
+        </div>
       )}
-      <button
-        className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-        type='submit'
-        onClick={() => goBack?.()}
-      >
-        {tCommon('back')}
-      </button>
-    </div>
+    </button>
   )
 }

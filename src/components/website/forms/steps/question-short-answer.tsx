@@ -10,6 +10,14 @@ import {
   removeAnswer,
   upsertAnswer,
 } from '~/components/website/forms/rsvp-state'
+import {
+  StepActions,
+  StepHeading,
+  StepPrimaryButton,
+  StepSecondaryButton,
+  StepShell,
+  StepTextArea,
+} from '~/components/website/forms/steps/step-ui'
 
 interface QuestionShortAnswerProps extends StepFormProps {
   guest?: Guest
@@ -42,61 +50,51 @@ export default function QuestionShortAnswer({
   const [answer, setAnswer] = useState(existingAnswer?.response ?? '')
 
   return (
-    <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest'>{question.text}</h2>
+    <StepShell>
+      <StepHeading>{question.text}</StepHeading>
       {!!guest && (
-        <span>
+        <span className='text-base text-muted-foreground'>
           {guest.firstName} {guest.lastName}
         </span>
       )}
-      <textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        className='h-40 border bg-white p-3 text-black placeholder:text-gray-500'
-      />
-      <button
-        className={`mt-3 bg-stone-400 py-3 text-white text-xl tracking-wide ${answer.length === 0 ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
-        type='button'
-        disabled={answer.length === 0}
-        onClick={() => {
-          const nextAnswer: AnswerWithType = {
-            ...answerTarget,
-            questionType: 'Text',
-            response: answer,
-            guestFirstName:
-              guest?.firstName ?? rsvpFormData.selectedHousehold?.primaryContact?.firstName,
-            guestLastName:
-              guest?.lastName ?? rsvpFormData.selectedHousehold?.primaryContact?.lastName,
-          }
-          updateRsvpForm({
-            answersToQuestions: upsertAnswer(rsvpFormData.answersToQuestions, nextAnswer),
-          })
-          goNext?.()
-        }}
-      >
-        {tCommon('continue')}
-      </button>
-      {!question.isRequired && (
-        <button
-          className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-          type='button'
+      <StepTextArea value={answer} onChange={(e) => setAnswer(e.target.value)} className='h-40' />
+      <StepActions>
+        <StepPrimaryButton
+          disabled={answer.length === 0}
           onClick={() => {
+            const nextAnswer: AnswerWithType = {
+              ...answerTarget,
+              questionType: 'Text',
+              response: answer,
+              guestFirstName:
+                guest?.firstName ?? rsvpFormData.selectedHousehold?.primaryContact?.firstName,
+              guestLastName:
+                guest?.lastName ?? rsvpFormData.selectedHousehold?.primaryContact?.lastName,
+            }
             updateRsvpForm({
-              answersToQuestions: removeAnswer(rsvpFormData.answersToQuestions, answerTarget),
+              answersToQuestions: upsertAnswer(rsvpFormData.answersToQuestions, nextAnswer),
             })
             goNext?.()
           }}
         >
-          {tCommon('skip')}
-        </button>
-      )}
-      <button
-        className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-        type='submit'
-        onClick={() => goBack?.()}
-      >
-        {tCommon('back')}
-      </button>
-    </div>
+          {tCommon('continue')}
+        </StepPrimaryButton>
+        {!question.isRequired && (
+          <StepSecondaryButton
+            onClick={() => {
+              updateRsvpForm({
+                answersToQuestions: removeAnswer(rsvpFormData.answersToQuestions, answerTarget),
+              })
+              goNext?.()
+            }}
+          >
+            {tCommon('skip')}
+          </StepSecondaryButton>
+        )}
+        <StepSecondaryButton type='submit' onClick={() => goBack?.()}>
+          {tCommon('back')}
+        </StepSecondaryButton>
+      </StepActions>
+    </StepShell>
   )
 }
