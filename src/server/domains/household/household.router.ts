@@ -68,6 +68,16 @@ export const householdRouter = createTRPCRouter({
     }),
 
   /**
+   * Import matching keys (existing primary-contact phones and names) for the
+   * active wedding, used by the CSV import dialog to mark duplicate rows
+   * before import.
+   */
+  importKeys: protectedProcedure.query(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return householdManagementService.getHouseholdImportKeys(ctx.authz, weddingId)
+  }),
+
+  /**
    * Delete a household
    */
   delete: protectedProcedure.input(deleteHouseholdSchema).mutation(async ({ ctx, input }) => {

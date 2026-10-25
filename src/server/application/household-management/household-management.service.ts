@@ -21,6 +21,11 @@ import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import { GiftRepository } from '~/server/domains/gift/gift.repository'
 import { GuestRepository } from '~/server/domains/guest/guest.repository'
+import {
+  isDuplicateHousehold,
+  normalizeImportName,
+  normalizeImportPhone,
+} from '~/server/domains/household/household-import-matcher'
 import { HouseholdRepository } from '~/server/domains/household/household.repository'
 import type {
   Household,
@@ -313,15 +318,33 @@ export class HouseholdManagementService {
     ctx: AuthzContext,
     weddingId: string,
     households: Parameters<HouseholdManagementService['createHouseholdWithGuests']>[2][]
-  ): Promise<{ created: number; failed: number }> {
+  ): Promise<{ created: number; skipped: number; failed: number }> {
     requirePermission(ctx, { guest: ['import'] })
 
+    const existingKeys = await this.householdRepo.findImportKeys(weddingId)
+    const phones = new Set(existingKeys.phones)
+    const names = new Set(existingKeys.names)
+
     let created = 0
+    let skipped = 0
     let failed = 0
     for (const household of households) {
+      const primaryContact =
+        household.guestParty.find((guest) => guest.isPrimaryContact) ?? household.guestParty[0]
+
+      if (primaryContact && isDuplicateHousehold(primaryContact, { phones, names })) {
+        skipped++
+        continue
+      }
+
       try {
         await this.createHouseholdWithGuests(ctx, weddingId, household)
         created++
+        if (primaryContact) {
+          const phone = normalizeImportPhone(primaryContact.phone)
+          if (phone) phones.add(phone)
+          names.add(normalizeImportName(primaryContact.firstName, primaryContact.lastName))
+        }
       } catch (error) {
         if (error instanceof TRPCError && ['FORBIDDEN', 'UNAUTHORIZED'].includes(error.code)) {
           throw error
@@ -329,7 +352,15 @@ export class HouseholdManagementService {
         failed++
       }
     }
-    return { created, failed }
+    return { created, skipped, failed }
+  }
+
+  async getHouseholdImportKeys(
+    ctx: AuthzContext,
+    weddingId: string
+  ): Promise<{ phones: string[]; names: string[] }> {
+    requirePermission(ctx, { guest: ['import'] })
+    return this.householdRepo.findImportKeys(weddingId)
   }
 
   async searchHouseholds(
