@@ -45,15 +45,12 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useWorkspace } from '~/hooks/use-workspace'
+import { getHouseholdPartySize } from '~/lib/household-party-size'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
-const partySize = (household: HouseholdWithGuests): number => {
-  if (household.invitedCount != null) return household.invitedCount
-  const nonTagAlongCount = household.guests.filter((guest) => !guest.isTagAlong).length
-  return household.guests.length > 0 ? Math.max(1, nonTagAlongCount) : 0
-}
+const partySize = getHouseholdPartySize
 
 type GuestsViewProps = {
   events: Event[]

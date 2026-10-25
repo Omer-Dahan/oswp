@@ -2,6 +2,7 @@ import { memo, useCallback } from 'react'
 
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
+import { getHouseholdPartySize } from '~/lib/household-party-size'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 type GuestCardProps = {
@@ -99,7 +100,7 @@ function GuestCardComponent({
   const extraGuestsCount = Math.max(household.guests.length - 1, 0)
   const summaryName =
     extraGuestsCount > 0 ? `${primaryGuestName} +${extraGuestsCount}` : primaryGuestName
-  const guestCount = household.invitedCount ?? invitedGuests.length
+  const guestCount = getHouseholdPartySize(household)
 
   const rsvpSummary = getRsvpSummary(household)
   const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household)

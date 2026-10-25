@@ -300,6 +300,41 @@ describe('guestCsvRowSchema', () => {
       expect(result.data?.notes).toBe('VIP')
     })
   })
+
+  describe('invitedCount — a sheet value of 0 means unknown, not zero', () => {
+    it('maps an invitedCount of 0 to undefined', () => {
+      const result = guestCsvRowSchema.safeParse({
+        firstName: 'John',
+        lastName: 'Doe',
+        invitedCount: '0',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data?.invitedCount).toBeUndefined()
+    })
+
+    it('preserves a positive invitedCount', () => {
+      const result = guestCsvRowSchema.safeParse({
+        firstName: 'John',
+        lastName: 'Doe',
+        invitedCount: '4',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data?.invitedCount).toBe(4)
+    })
+
+    it('leaves an empty invitedCount cell as undefined', () => {
+      const result = guestCsvRowSchema.safeParse({
+        firstName: 'John',
+        lastName: 'Doe',
+        invitedCount: '',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data?.invitedCount).toBeUndefined()
+    })
+  })
 })
 
 // ---------------------------------------------------------------------------

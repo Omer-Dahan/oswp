@@ -3,6 +3,8 @@ import {
   canUseExtraGuests,
   clampCount,
   findExistingAnswer,
+  getInitialAttendingGuestIds,
+  getInitialExtraGuests,
   getMaxAttendingBound,
   isGuestAttendingByDefault,
   removeAnswer,
@@ -92,5 +94,64 @@ describe('who-is-coming party-size helpers', () => {
       { eventId: 'evt-1', guestId: 1, rsvp: 'Attending', guestName: 'A One' },
     ]
     expect(isGuestAttendingByDefault(1, invitations, localResponses)).toBe(true)
+  })
+})
+
+describe('who-is-coming initial selection — a household never opens at a total of 0', () => {
+  it('pre-selects the primary contact when nobody has answered and no guest defaults to attending', () => {
+    const namedGuests = [
+      { id: 1, isPrimaryContact: false, invitations: [{ eventId: 'evt-1', rsvp: 'Declined' }] },
+      {
+        id: 2,
+        isPrimaryContact: true,
+        invitations: [{ eventId: 'evt-1', rsvp: 'Declined' }],
+      },
+    ]
+
+    const ids = getInitialAttendingGuestIds(namedGuests, [], false)
+
+    expect(ids).toEqual(new Set([2]))
+  })
+
+  it('falls back to the first named guest when none is flagged primary', () => {
+    const namedGuests = [
+      { id: 1, isPrimaryContact: false, invitations: [{ eventId: 'evt-1', rsvp: 'Declined' }] },
+      { id: 2, isPrimaryContact: false, invitations: [{ eventId: 'evt-1', rsvp: 'Declined' }] },
+    ]
+
+    const ids = getInitialAttendingGuestIds(namedGuests, [], false)
+
+    expect(ids).toEqual(new Set([1]))
+  })
+
+  it('keeps an empty selection when the household already answered (a real decline stays 0)', () => {
+    const namedGuests = [
+      { id: 1, isPrimaryContact: true, invitations: [{ eventId: 'evt-1', rsvp: 'Declined' }] },
+    ]
+
+    const ids = getInitialAttendingGuestIds(namedGuests, [], true)
+
+    expect(ids).toEqual(new Set())
+  })
+
+  it('does not override guests who already default to attending', () => {
+    const namedGuests = [{ id: 1, isPrimaryContact: true, invitations: [] }]
+
+    const ids = getInitialAttendingGuestIds(namedGuests, [], false)
+
+    expect(ids).toEqual(new Set([1]))
+  })
+
+  it('opens the extra-guests count at 1 when there is no named guest to pre-select and nothing was saved', () => {
+    expect(getInitialExtraGuests(false, undefined, 0, 20)).toBe(1)
+    expect(getInitialExtraGuests(false, 0, 0, 20)).toBe(1)
+  })
+
+  it('does not add extra guests once a named guest was pre-selected', () => {
+    expect(getInitialExtraGuests(false, undefined, 1, 19)).toBe(0)
+  })
+
+  it('still honors a previously saved total over the "never answered" default', () => {
+    expect(getInitialExtraGuests(true, 5, 2, 18)).toBe(3)
   })
 })

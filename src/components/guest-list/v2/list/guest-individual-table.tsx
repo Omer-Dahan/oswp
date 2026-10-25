@@ -3,6 +3,7 @@
 import { memo, useCallback } from 'react'
 import { Badge } from '~/components/ui/badge'
 import { RSVP_STATUS_LABELS } from '~/lib/constants/rsvp'
+import { getHouseholdPartySize } from '~/lib/household-party-size'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 type GuestIndividualTableProps = {
@@ -77,8 +78,7 @@ const GuestTableRow = memo(function GuestTableRow({
 
   const guestName = `${guest.firstName} ${guest.lastName}`.trim()
   const contactComplete = Boolean(guest.email && guest.phone)
-  const invitedGuestCount =
-    household.invitedCount ?? household.guests.filter((g) => !g.isTagAlong).length
+  const invitedGuestCount = getHouseholdPartySize(household)
   const rsvpSummary = guest.invitations.some((invitation) => invitation.rsvp === 'Attending')
     ? 'Attending'
     : guest.invitations.some((invitation) => invitation.rsvp === 'Declined')

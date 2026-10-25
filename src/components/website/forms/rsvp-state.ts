@@ -98,6 +98,52 @@ export const isGuestAttendingByDefault = (
   return true
 }
 
+/**
+ * The named guests pre-selected as attending when the who-is-coming step
+ * first renders. A household that has never answered must open with at
+ * least one attendee, so when the usual per-guest defaults select nobody
+ * (e.g. every invitation is still "Invited", not "Attending"), the primary
+ * contact — or the first named guest when none is flagged primary — is
+ * pre-selected instead.
+ */
+export const getInitialAttendingGuestIds = (
+  namedGuests: Array<{
+    id: number
+    isPrimaryContact: boolean
+    invitations: Array<{ eventId: string; rsvp: string }>
+  }>,
+  localResponses: RsvpFormResponse[],
+  hasAnsweredBefore: boolean
+): Set<number> => {
+  const defaultIds = new Set(
+    namedGuests
+      .filter((guest) => isGuestAttendingByDefault(guest.id, guest.invitations, localResponses))
+      .map((guest) => guest.id)
+  )
+
+  if (!hasAnsweredBefore && defaultIds.size === 0) {
+    const fallbackGuest = namedGuests.find((guest) => guest.isPrimaryContact) ?? namedGuests[0]
+    if (fallbackGuest) defaultIds.add(fallbackGuest.id)
+  }
+
+  return defaultIds
+}
+
+/**
+ * The "additional, unnamed guests" count when the who-is-coming step first
+ * renders. A saved total of 0 is treated as "not answered" — a household
+ * never opens the step at a total of 0.
+ */
+export const getInitialExtraGuests = (
+  hasAnsweredBefore: boolean,
+  savedTotal: number | null | undefined,
+  namedAttendingCount: number,
+  maxExtras: number
+): number => {
+  if (hasAnsweredBefore) return clampCount((savedTotal ?? 0) - namedAttendingCount, 0, maxExtras)
+  return namedAttendingCount > 0 ? 0 : clampCount(1, 0, maxExtras)
+}
+
 const getRsvpKey = (response: Pick<RsvpFormResponse, 'eventId' | 'guestId'>): string => {
   return `${response.eventId}:${response.guestId}`
 }
