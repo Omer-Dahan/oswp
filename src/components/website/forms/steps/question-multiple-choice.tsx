@@ -163,7 +163,9 @@ function OptionButton({
       }`}
     >
       <div className='flex flex-col gap-1 pe-8'>
-        <h3 className='text-base text-foreground'>{title}</h3>
+        <p className='font-[family-name:var(--tpl-body-font)] text-base text-foreground'>
+          {title}
+        </p>
         {description ? <p className='text-muted-foreground text-sm'>{description}</p> : null}
       </div>
       {isSelected && (
