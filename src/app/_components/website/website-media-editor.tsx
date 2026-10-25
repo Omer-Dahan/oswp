@@ -35,7 +35,7 @@ export function WebsiteMediaEditor({
   const [coupleImageUrls, setCoupleImageUrls] = useState(initialCoupleImageUrls)
 
   const updateHeaderImage = api.website.updateHeaderImage.useMutation({
-    onError: () => toast.error('לא ניתן לשמור את תמונת הכותרת.'),
+    onError: (error) => toast.error(error.message || 'לא ניתן לשמור את תמונת הכותרת.'),
     onSuccess: () => {
       toast.success('תמונת הכותרת נשמרה')
       router.refresh()
@@ -43,7 +43,7 @@ export function WebsiteMediaEditor({
   })
 
   const updateCoupleImages = api.website.updateCoupleImages.useMutation({
-    onError: () => toast.error('לא ניתן לשמור את תמונות הזוג.'),
+    onError: (error) => toast.error(error.message || 'לא ניתן לשמור את תמונות הזוג.'),
     onSuccess: () => {
       toast.success('תמונות הזוג נשמרו')
       router.refresh()

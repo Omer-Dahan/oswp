@@ -2,6 +2,7 @@ import {
   ALLOWED_CONTENT_TYPES,
   BLOB_URL_PATTERN,
   DROPZONE_ACCEPT,
+  isUploadedAssetUrl,
   sanitizeFilename,
 } from '~/lib/upload-config'
 
@@ -37,6 +38,32 @@ describe('upload-config', () => {
 
     it('should reject non-Vercel URLs', () => {
       expect(BLOB_URL_PATTERN.test('https://evil.com/file.pdf')).toBe(false)
+    })
+  })
+
+  describe('isUploadedAssetUrl', () => {
+    it('should accept a local-driver upload path', () => {
+      expect(isUploadedAssetUrl('/api/uploads/abc.jpg')).toBe(true)
+    })
+
+    it('should accept an absolute https URL', () => {
+      expect(isUploadedAssetUrl('https://cdn.example.com/a.png')).toBe(true)
+    })
+
+    it('should reject a javascript: URL', () => {
+      expect(isUploadedAssetUrl('javascript:alert(1)')).toBe(false)
+    })
+
+    it('should reject a data: URL', () => {
+      expect(isUploadedAssetUrl('data:image/png;base64,AAAA')).toBe(false)
+    })
+
+    it('should reject a protocol-relative URL', () => {
+      expect(isUploadedAssetUrl('//evil.com/a.jpg')).toBe(false)
+    })
+
+    it('should reject bare text', () => {
+      expect(isUploadedAssetUrl('nope')).toBe(false)
     })
   })
 
