@@ -43,28 +43,29 @@ export const clampCount = (value: number, min: number, max: number): number => {
   return Math.min(Math.max(value, min), Math.max(max, min))
 }
 
+/** The most guests any household may ever report attending, regardless of the imported invited count. */
+export const MAX_ATTENDING = 20
+
 /**
- * The most guests a household can report attending: the couple's own
- * `invitedCount` import figure when set, otherwise the number of guests
- * actually named on the invitation.
+ * The most guests a household can report attending: always `MAX_ATTENDING`,
+ * independent of the couple's imported `invitedCount` figure.
  */
 export const getMaxAttendingBound = (
-  invitedCount: number | null | undefined,
-  namedGuestCount: number
+  _invitedCount: number | null | undefined,
+  _namedGuestCount: number
 ): number => {
-  return invitedCount ?? namedGuestCount
+  return MAX_ATTENDING
 }
 
 /**
- * The "additional, unnamed guests" stepper only makes sense when the
- * household's invited count import figure promises more seats than there are
- * named guests to fill them.
+ * The "additional, unnamed guests" stepper is available whenever the
+ * household's current total is still below the hard cap of `MAX_ATTENDING`.
  */
 export const canUseExtraGuests = (
   invitedCount: number | null | undefined,
   namedGuestCount: number
 ): boolean => {
-  return invitedCount != null && invitedCount > namedGuestCount
+  return namedGuestCount < MAX_ATTENDING
 }
 
 /**

@@ -121,8 +121,8 @@ export const submitPublicRsvpSchema = z
     // Household-level party details collected on the who-is-coming,
     // children-count, and dietary-notes steps. All optional: a guest may
     // decline to answer any of them.
-    attendingCount: z.number().int().min(0).nullish(),
-    childrenCount: z.number().int().min(0).max(10).nullish(),
+    attendingCount: z.number().int().min(0).max(20, 'ניתן לדווח על עד 20 מגיעים').nullish(),
+    childrenCount: z.number().int().min(0).max(20, 'ניתן לדווח על עד 20 מגיעים').nullish(),
     dietaryNotes: z.string().max(500).nullish(),
   })
   .superRefine(rejectDuplicateSubmissions)

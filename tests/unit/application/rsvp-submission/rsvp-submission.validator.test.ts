@@ -5,6 +5,7 @@
 import {
   answerToQuestionSchema,
   rsvpResponseSchema,
+  submitPublicRsvpSchema,
   submitRsvpSchema,
 } from '~/server/application/rsvp-submission/rsvp-submission.validator'
 
@@ -283,5 +284,40 @@ describe('submitRsvpSchema', () => {
 
     const result = submitRsvpSchema.safeParse(invalidInput)
     expect(result.success).toBe(false)
+  })
+})
+
+describe('submitPublicRsvpSchema attendingCount/childrenCount bounds', () => {
+  const basePayload = {
+    rsvpResponses: [],
+    answersToQuestions: [],
+    subUrl: 'the-wedding',
+    householdId: 'household-1',
+  }
+
+  it('accepts attendingCount at the 20-guest cap', () => {
+    const result = submitPublicRsvpSchema.safeParse({ ...basePayload, attendingCount: 20 })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects attendingCount above the 20-guest cap with a Hebrew message', () => {
+    const result = submitPublicRsvpSchema.safeParse({ ...basePayload, attendingCount: 21 })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('ניתן לדווח על עד 20 מגיעים')
+    }
+  })
+
+  it('accepts childrenCount at the 20-guest cap', () => {
+    const result = submitPublicRsvpSchema.safeParse({ ...basePayload, childrenCount: 20 })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects childrenCount above the 20-guest cap with a Hebrew message', () => {
+    const result = submitPublicRsvpSchema.safeParse({ ...basePayload, childrenCount: 21 })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('ניתן לדווח על עד 20 מגיעים')
+    }
   })
 })

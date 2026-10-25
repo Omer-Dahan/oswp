@@ -59,15 +59,22 @@ describe('who-is-coming party-size helpers', () => {
     expect(clampCount(2, 0, 4)).toBe(2)
   })
 
-  it('falls back to the named-guest count when invitedCount is null', () => {
-    expect(getMaxAttendingBound(null, 3)).toBe(3)
-    expect(getMaxAttendingBound(6, 3)).toBe(6)
+  it('clamps the who-is-coming counter at the 20-guest cap', () => {
+    expect(clampCount(25, 0, 20)).toBe(20)
+    expect(clampCount(20, 0, 20)).toBe(20)
+    expect(clampCount(19, 0, 20)).toBe(19)
   })
 
-  it('disables the extra-guests stepper when invitedCount equals the named guests', () => {
-    expect(canUseExtraGuests(2, 2)).toBe(false)
-    expect(canUseExtraGuests(null, 2)).toBe(false)
-    expect(canUseExtraGuests(4, 2)).toBe(true)
+  it('caps the bound at 20 regardless of the imported invited count', () => {
+    expect(getMaxAttendingBound(2, 3)).toBe(20)
+    expect(getMaxAttendingBound(null, 3)).toBe(20)
+    expect(getMaxAttendingBound(40, 3)).toBe(20)
+  })
+
+  it('allows the extra-guests stepper until the named guests reach the 20 cap', () => {
+    expect(canUseExtraGuests(2, 2)).toBe(true)
+    expect(canUseExtraGuests(null, 2)).toBe(true)
+    expect(canUseExtraGuests(4, 20)).toBe(false)
   })
 
   it('defaults a guest to attending when there is no prior answer', () => {
