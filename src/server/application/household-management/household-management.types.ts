@@ -35,6 +35,11 @@ export type CreateHouseholdWithGuestsInput = {
   zipCode?: string | null
   likelihoodOfAttending?: number | null
   notes?: string | null
+  invitedCount?: number | null
+  side?: string | null
+  groupName?: string | null
+  phoneAlt?: string | null
+  expectedCheck?: number | null
   guestParty: GuestPartyInput[]
 }
 

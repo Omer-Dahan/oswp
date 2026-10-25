@@ -22,6 +22,27 @@ const optionalString = z
   .optional()
   .transform((v) => (v === '' ? undefined : v))
 
+const optionalInt = (min: number, max: number) =>
+  optionalString.pipe(
+    z
+      .string()
+      .optional()
+      .transform((v) => (v === undefined ? undefined : Number(v)))
+      .pipe(z.number().int().min(min).max(max).optional())
+  )
+
+const optionalMoney = optionalString.pipe(
+  z
+    .string()
+    .optional()
+    .transform((v) => {
+      if (v === undefined) return undefined
+      const cleaned = v.replace(/[₪,\s]/g, '')
+      return cleaned === '' ? undefined : Number(cleaned)
+    })
+    .pipe(z.number().min(0).optional())
+)
+
 export const guestCsvRowSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z
@@ -45,6 +66,11 @@ export const guestCsvRowSchema = z.object({
   zipCode: optionalString,
   country: optionalString,
   notes: optionalString,
+  invitedCount: optionalInt(0, 50),
+  side: optionalString.pipe(z.string().max(40).optional()),
+  groupName: optionalString.pipe(z.string().max(60).optional()),
+  phoneAlt: optionalString.pipe(z.string().max(40).optional()),
+  expectedCheck: optionalMoney,
 })
 
 // ---------------------------------------------------------------------------
@@ -109,9 +135,14 @@ const KNOWN_FIELDS = new Set([
   'zipCode',
   'country',
   'notes',
+  'invitedCount',
+  'side',
+  'groupName',
+  'phoneAlt',
+  'expectedCheck',
 ])
 
-const EXTRA_FIELDS = new Set(['fullName', 'invitedCount', 'side', 'group', 'landline'])
+const EXTRA_FIELDS = new Set(['fullName'])
 const IGNORED_FIELD = '__ignored__'
 
 // Keys are stored in normalised form: quotes/geresh/gershayim/periods/colons
@@ -130,8 +161,8 @@ const HEBREW_HEADER_ALIASES: Record<string, string> = {
   'טלפון נייד': 'phone',
   טלפון: 'phone',
   'מספר טלפון': 'phone',
-  'טלפון רגיל': 'landline',
-  'טלפון קווי': 'landline',
+  'טלפון רגיל': 'phoneAlt',
+  'טלפון קווי': 'phoneAlt',
 
   אימייל: 'email',
   מייל: 'email',
@@ -149,9 +180,9 @@ const HEBREW_HEADER_ALIASES: Record<string, string> = {
   'תא דואר': 'address2',
 
   צד: 'side',
-  קבוצה: 'group',
-  'צד/קבוצה': 'group',
-  'קבוצת אורחים': 'group',
+  קבוצה: 'groupName',
+  'צד/קבוצה': 'groupName',
+  'קבוצת אורחים': 'groupName',
 
   'מס אורחים שהוזמנו': 'invitedCount',
   'מס אורחים': 'invitedCount',
@@ -161,7 +192,8 @@ const HEBREW_HEADER_ALIASES: Record<string, string> = {
   'כמות מוזמנים': 'invitedCount',
   'כמות אנשים': 'invitedCount',
 
-  'צק צפוי': IGNORED_FIELD,
+  'צק צפוי': 'expectedCheck',
+  'צ ק צפוי': 'expectedCheck',
 
   'קבוצת גיל': 'ageGroup',
   הערות: 'notes',
@@ -185,10 +217,6 @@ function transformHeader(header: string): string {
 
 type RawCsvRow = GuestCsvRowInput & {
   fullName?: string
-  invitedCount?: string
-  side?: string
-  group?: string
-  landline?: string
   [IGNORED_FIELD]?: string
 }
 
@@ -200,7 +228,7 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 }
 
 function normalizeRow(input: RawCsvRow): GuestCsvRowInput {
-  const { fullName, invitedCount, side, group, landline, [IGNORED_FIELD]: _ignored, ...rest } = input
+  const { fullName, [IGNORED_FIELD]: _ignored, ...rest } = input
   const normalized: GuestCsvRowInput = { ...rest }
 
   if (!normalized.firstName && fullName) {
@@ -211,17 +239,6 @@ function normalizeRow(input: RawCsvRow): GuestCsvRowInput {
 
   if (normalized.phone) {
     normalized.phone = normalizePhoneToE164(normalized.phone, 'IL') ?? normalized.phone
-  }
-
-  const extraNotes = [
-    invitedCount ? `הוזמנו: ${invitedCount}` : null,
-    side ? `צד: ${side}` : null,
-    group ? `קבוצה: ${group}` : null,
-    landline ? `טלפון נוסף: ${landline}` : null,
-  ].filter((v): v is string => Boolean(v))
-
-  if (extraNotes.length > 0) {
-    normalized.notes = [...extraNotes, normalized.notes].filter(Boolean).join(' · ').slice(0, 1000)
   }
 
   return normalized

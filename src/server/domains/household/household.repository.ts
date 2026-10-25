@@ -214,6 +214,11 @@ export class HouseholdRepository {
       zipCode?: string | null
       likelihoodOfAttending?: number | null
       notes?: string | null
+      invitedCount?: number | null
+      side?: string | null
+      groupName?: string | null
+      phoneAlt?: string | null
+      expectedCheck?: number | null
     },
     eventIds: string[]
   ): Promise<HouseholdWithGuestsAndGifts> {
@@ -228,6 +233,11 @@ export class HouseholdRepository {
         zipCode: data.zipCode,
         likelihoodOfAttending: data.likelihoodOfAttending,
         notes: data.notes,
+        invitedCount: data.invitedCount,
+        side: data.side,
+        groupName: data.groupName,
+        phoneAlt: data.phoneAlt,
+        expectedCheck: data.expectedCheck,
         gifts: {
           createMany: {
             data: eventIds.map((eventId) => ({

@@ -36,13 +36,35 @@ type ValidRow = ParsedCsvRow & { valid: true; data: GuestCsvRowOutput }
 
 type PreviewTableProps = { rows: ParsedCsvRow[] }
 
+const PREVIEW_HEADERS = [
+  '#',
+  'הזמנה לכבוד (שם פרטי, שם משפחה)',
+  'מס׳ אורחים',
+  'צד',
+  'קבוצה',
+  'סלולרי',
+  'טלפון רגיל',
+  'אימייל',
+  'עיר',
+  'רחוב',
+  'מיקוד',
+  'תא דואר',
+  'צ׳ק צפוי',
+  'קבוצת גיל',
+  'סטטוס',
+]
+
+function cell(value: string | number | undefined | null): string {
+  return value === undefined || value === null || value === '' ? '—' : String(value)
+}
+
 function PreviewTable({ rows }: PreviewTableProps) {
   return (
     <div className='max-h-80 overflow-auto rounded-md border'>
       <table className='w-full text-sm'>
         <thead className='sticky top-0 bg-muted'>
           <tr>
-            {['#', 'שם פרטי', 'שם משפחה', 'דוא״ל', 'טלפון', 'קבוצת גיל', 'סטטוס'].map((h) => (
+            {PREVIEW_HEADERS.map((h) => (
               <th key={h} className='px-3 py-2 text-start font-medium text-muted-foreground'>
                 {h}
               </th>
@@ -58,11 +80,21 @@ function PreviewTable({ rows }: PreviewTableProps) {
               }
             >
               <td className='px-3 py-2 text-muted-foreground'>{row.rowNumber}</td>
-              <td className='px-3 py-2'>{row.raw.firstName || '—'}</td>
-              <td className='px-3 py-2'>{row.raw.lastName || '—'}</td>
-              <td className='px-3 py-2 text-muted-foreground'>{row.raw.email || '—'}</td>
-              <td className='px-3 py-2 text-muted-foreground'>{row.raw.phone || '—'}</td>
-              <td className='px-3 py-2 text-muted-foreground'>{row.raw.ageGroup || 'ADULT'}</td>
+              <td className='px-3 py-2'>
+                {cell([row.raw.firstName, row.raw.lastName].filter(Boolean).join(' '))}
+              </td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.invitedCount)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.side)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.groupName)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.phone)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.phoneAlt)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.email)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.city)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.address1)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.zipCode)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.address2)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.expectedCheck)}</td>
+              <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.ageGroup)}</td>
               <td className='px-3 py-2'>
                 {row.valid ? (
                   <span className='font-medium text-success text-xs'>תקין</span>
@@ -157,6 +189,11 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
       country: data.country,
       zipCode: data.zipCode,
       notes: data.notes,
+      invitedCount: data.invitedCount,
+      side: data.side,
+      groupName: data.groupName,
+      phoneAlt: data.phoneAlt,
+      expectedCheck: data.expectedCheck,
       guestParty: [
         {
           firstName: data.firstName,
