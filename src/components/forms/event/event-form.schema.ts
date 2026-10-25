@@ -33,6 +33,7 @@ export const getEventFormDefaults = (): Partial<EventFormData> => {
     description: '',
     collectRsvp: false,
     allowTagAlongs: false,
+    hebrewDateOverride: '',
   }
 }
 
@@ -55,5 +56,6 @@ export const transformToServerInput = (data: EventFormData): z.infer<typeof crea
     description: data.description || undefined,
     collectRsvp: data.collectRsvp ?? false,
     allowTagAlongs: data.allowTagAlongs ?? false,
+    hebrewDateOverride: data.hebrewDateOverride || undefined,
   }
 }

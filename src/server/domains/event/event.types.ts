@@ -30,6 +30,9 @@ export type Event = {
   venueWazeUrl: string | null
   attire: string | null
   description: string | null
+  // Optional for the same reason as isPrimary above: public/thinned Event
+  // shapes that predate this field shouldn't all need updating to supply it.
+  hebrewDateOverride?: string | null
   weddingId: string
   collectRsvp: boolean
   allowTagAlongs: boolean
