@@ -44,7 +44,7 @@
     "saveDetails": "Save details"
   },
   "rsvp": {
-    "weddingTitle": "{brideFirstName} & {groomFirstName}'s wedding",
+    "weddingTitle": "{groomFirstName} & {brideFirstName}'s wedding",
     "groupNote": "Enter your first and last name to find your invitation. If you're responding for you and a guest (or for your family), you'll be able to RSVP for your entire group.",
     "fullNamePlaceholder": "First and last name",
     "notFound": "Oops! We're having trouble finding your invite. Please enter your full first and last name, try another spelling, or contact the couple.",
@@ -57,7 +57,7 @@
     "accepted": "Accepted",
     "decline": "Decline",
     "declined": "Declined",
-    "sendRsvpTitle": "last step! send your rsvp to {brideFirstName} & {groomFirstName}'s wedding",
+    "sendRsvpTitle": "last step! send your rsvp to {groomFirstName} & {brideFirstName}'s wedding",
     "sendEmailConfirmation": "Send me an RSVP confirmation by email",
     "emailPlaceholder": "Email",
     "sendRsvp": "SEND RSVP",

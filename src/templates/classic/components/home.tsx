@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
+import { coupleInitials, coupleNames } from '~/lib/wedding/couple-name'
 import { ClassicCoupleGallery, ClassicHeaderImage } from '~/templates/classic/components/media'
 import { ClassicNavbar } from '~/templates/classic/components/navbar'
 import { ClassicSections } from '~/templates/classic/components/sections'
@@ -20,9 +21,7 @@ export async function ClassicHome({
     <main className='flex flex-col items-center justify-center gap-20 pb-24 text-center text-zinc-500 tracking-widest'>
       <ClassicHeaderImage url={website.headerImageUrl} />
       <div className='text-center'>
-        <h1 className='my-5 font-medium text-6xl tracking-widest'>
-          {weddingData.brideFirstName} & {weddingData.groomFirstName}
-        </h1>
+        <h1 className='my-5 font-medium text-6xl tracking-widest'>{coupleNames(weddingData)}</h1>
         <span className='text-lg'>
           {weddingData.date?.standardFormat ?? t('common.dateToBeAnnounced')}
         </span>
@@ -80,7 +79,7 @@ export async function ClassicHome({
 
       <div className='text-center'>
         <h2 className='border-black border-b px-5 pb-6 text-6xl'>
-          {weddingData.brideFirstName?.[0] ?? 'B'} & {weddingData.groomFirstName?.[0] ?? 'G'}
+          {coupleInitials(weddingData) ?? 'G & B'}
         </h2>
         <p className='mt-4 text-lg tracking-widest'>
           {weddingData.date.numberFormat?.toString() ?? t('common.dateToBeAnnounced')}

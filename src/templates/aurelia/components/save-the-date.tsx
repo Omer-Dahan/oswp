@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { AddToCalendarButtons } from '~/components/website/add-to-calendar-buttons'
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
+import { coupleNames } from '~/lib/wedding/couple-name'
 import { AureliaHeaderImage } from '~/templates/aurelia/components/media'
 import type { TemplateSurfaceProps } from '~/templates/types'
 
@@ -12,10 +13,10 @@ export async function AureliaSaveTheDate({ weddingData, path }: Readonly<Templat
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
   const venue = weddingEvent?.venue
   const copy = weddingData.saveTheDate
-  const coupleNames = `${weddingData.brideFirstName} & ${weddingData.groomFirstName}`
+  const coupleNamesText = coupleNames(weddingData) ?? ''
   const calendarLinks = buildSaveTheDateCalendarLinks({
-    title: `${coupleNames} Wedding`,
-    description: `Save the date for the wedding of ${coupleNames}! Formal invitation to follow. ${weddingData.website.url}`,
+    title: `${coupleNamesText} Wedding`,
+    description: `Save the date for the wedding of ${coupleNamesText}! Formal invitation to follow. ${weddingData.website.url}`,
     location: venue ?? undefined,
     events: weddingData.events,
   })
@@ -31,9 +32,9 @@ export async function AureliaSaveTheDate({ weddingData, path }: Readonly<Templat
         {copy?.eyebrow ?? t('common.saveTheDateLabel')}
       </p>
       <h1 className={`${headingFont} text-6xl text-foreground italic sm:text-7xl`}>
-        {weddingData.brideFirstName}
-        <span className='mx-3 inline-block -translate-y-[0.08em] align-middle font-light text-[0.83em] text-primary not-italic'>&</span>
         {weddingData.groomFirstName}
+        <span className='mx-3 inline-block -translate-y-[0.08em] align-middle font-light text-[0.83em] text-primary not-italic'>&</span>
+        {weddingData.brideFirstName}
       </h1>
       <div className='flex items-center gap-4 text-muted-foreground'>
         <span className='h-px w-12 bg-border' />

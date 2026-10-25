@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import AuthenticatedAppShell from '~/components/layout/authenticated-app-shell'
 import { auth } from '~/lib/auth'
 import { getUserFirstName, getUserInitials } from '~/lib/user-display'
+import { coupleNames } from '~/lib/wedding/couple-name'
 import { resolveWorkspaceScope } from '~/server/application/workspace/workspace-scope'
 import { isAccessError } from '~/server/authz/auth-error-helpers'
 import { readWorkspaceCapabilities } from '~/server/authz/workspace-capabilities'
@@ -39,10 +40,7 @@ export async function AuthenticatedLayoutFrame(props: Readonly<AuthenticatedLayo
   let weddingLocation: string | undefined
   try {
     const details = await api.wedding.getDetails()
-    const brideFirstName = details?.brideFirstName?.trim() ?? ''
-    const groomFirstName = details?.groomFirstName?.trim() ?? ''
-    coupleName =
-      brideFirstName && groomFirstName ? `${brideFirstName} & ${groomFirstName}` : undefined
+    coupleName = coupleNames(details ?? {}) ?? undefined
     weddingDate = details?.weddingDate
       ? new Date(details.weddingDate).toLocaleDateString('he-IL', {
           weekday: 'long',
