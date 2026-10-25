@@ -7,6 +7,10 @@
 
 import type { Prisma, PrismaClient } from '@prisma/client'
 
+import {
+  normalizeImportName,
+  normalizeImportPhone,
+} from '~/server/domains/household/household-import-matcher'
 import type {
   Household,
   HouseholdSearchResult,
@@ -445,6 +449,28 @@ export class HouseholdRepository {
       select: { id: true },
     })
     return household !== null
+  }
+
+  /**
+   * Fetch the import matching keys for a wedding: the normalised phone and
+   * normalised "first last" name of every household's primary contact.
+   * Used both to skip duplicates during bulk import and to let the CSV
+   * dialog mark rows as duplicates before the import runs.
+   */
+  async findImportKeys(weddingId: string): Promise<{ phones: string[]; names: string[] }> {
+    const primaryContacts = await this.db.guest.findMany({
+      where: { weddingId, isPrimaryContact: true },
+      select: { phone: true, firstName: true, lastName: true },
+    })
+
+    const phones: string[] = []
+    const names: string[] = []
+    for (const contact of primaryContacts) {
+      const phone = normalizeImportPhone(contact.phone)
+      if (phone) phones.push(phone)
+      names.push(normalizeImportName(contact.firstName, contact.lastName))
+    }
+    return { phones, names }
   }
 
   /**

@@ -10,6 +10,7 @@ import {
   type ParsedCsvRow,
   parseSpreadsheetFile,
 } from '~/components/guest-list/guest-csv-import.schema'
+import { isDuplicateHousehold } from '~/server/domains/household/household-import-matcher'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
@@ -28,13 +29,15 @@ import { api } from '~/trpc/react'
 
 type Step = 'upload' | 'preview'
 
-type ValidRow = ParsedCsvRow & { valid: true; data: GuestCsvRowOutput }
+type RowWithDuplicate = ParsedCsvRow & { duplicate: boolean }
+
+type ValidRow = RowWithDuplicate & { valid: true; data: GuestCsvRowOutput; duplicate: false }
 
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
-type PreviewTableProps = { rows: ParsedCsvRow[] }
+type PreviewTableProps = { rows: RowWithDuplicate[] }
 
 const PREVIEW_HEADERS = [
   '#',
@@ -76,7 +79,11 @@ function PreviewTable({ rows }: PreviewTableProps) {
             <tr
               key={row.rowNumber}
               className={
-                row.valid ? 'border-border border-t' : 'border-border border-t bg-destructive/5'
+                !row.valid
+                  ? 'border-border border-t bg-destructive/5'
+                  : row.duplicate
+                    ? 'border-border border-t bg-muted/40'
+                    : 'border-border border-t'
               }
             >
               <td className='px-3 py-2 text-muted-foreground'>{row.rowNumber}</td>
@@ -96,12 +103,14 @@ function PreviewTable({ rows }: PreviewTableProps) {
               <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.expectedCheck)}</td>
               <td className='px-3 py-2 text-muted-foreground'>{cell(row.raw.ageGroup)}</td>
               <td className='px-3 py-2'>
-                {row.valid ? (
-                  <span className='font-medium text-success text-xs'>תקין</span>
-                ) : (
+                {!row.valid ? (
                   <span className='font-medium text-destructive text-xs'>
                     {row.errors.join('; ')}
                   </span>
+                ) : row.duplicate ? (
+                  <span className='font-medium text-muted-foreground text-xs'>קיים — ידולג</span>
+                ) : (
+                  <span className='font-medium text-success text-xs'>תקין</span>
                 )}
               </td>
             </tr>
@@ -125,12 +134,14 @@ type CsvUploadDialogProps = {
 export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogProps) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('upload')
-  const [parsedRows, setParsedRows] = useState<ParsedCsvRow[]>([])
+  const [parsedRows, setParsedRows] = useState<RowWithDuplicate[]>([])
   const [fileName, setFileName] = useState('')
   const [isParsing, setIsParsing] = useState(false)
 
-  const validRows = parsedRows.filter((r): r is ValidRow => r.valid)
-  const invalidCount = parsedRows.length - validRows.length
+  const validRows = parsedRows.filter((r): r is ValidRow => r.valid && !r.duplicate)
+  const duplicateCount = parsedRows.filter((r) => r.valid && r.duplicate).length
+  const invalidCount = parsedRows.length - validRows.length - duplicateCount
+  const allDuplicates = parsedRows.length > 0 && duplicateCount === parsedRows.length
 
   // Reset dialog state when it closes
   useEffect(() => {
@@ -142,11 +153,17 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
     }
   }, [open])
 
+  const importKeysQuery = api.household.importKeys.useQuery(undefined, { enabled: false })
+
   const bulkCreateMutation = api.household.bulkCreate.useMutation({
-    onSuccess: ({ created, failed }) => {
+    onSuccess: ({ created, skipped, failed }) => {
       if (failed > 0) {
         toast.warning(
           `הייבוא הושלם: ${created} ${created === 1 ? 'אורח' : 'אורחים'}, ${failed} דולגו בגלל שגיאות.`
+        )
+      } else if (skipped > 0) {
+        toast.success(
+          `${created} ${created === 1 ? 'אורח יובא' : 'אורחים יובאו'} בהצלחה, ${skipped} דולגו כי הם קיימים.`
         )
       } else {
         toast.success(`${created} ${created === 1 ? 'אורח יובא' : 'אורחים יובאו'} בהצלחה!`)
@@ -163,20 +180,37 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
     onOpenChange(false)
   }, [onOpenChange])
 
-  const handleFile = useCallback(async (file: File) => {
-    setFileName(file.name)
-    setIsParsing(true)
-    try {
-      const rows = await parseSpreadsheetFile(file)
-      setParsedRows(rows)
-      setStep('preview')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'קריאת הקובץ נכשלה'
-      toast.error(message)
-    } finally {
-      setIsParsing(false)
-    }
-  }, [])
+  const handleFile = useCallback(
+    async (file: File) => {
+      setFileName(file.name)
+      setIsParsing(true)
+      try {
+        const [rows, keysResult] = await Promise.all([
+          parseSpreadsheetFile(file),
+          importKeysQuery.refetch(),
+        ])
+        const phones = new Set(keysResult.data?.phones ?? [])
+        const names = new Set(keysResult.data?.names ?? [])
+        const markedRows: RowWithDuplicate[] = rows.map((row) => ({
+          ...row,
+          duplicate: row.valid
+            ? isDuplicateHousehold(
+                { phone: row.data.phone, firstName: row.data.firstName, lastName: row.data.lastName },
+                { phones, names }
+              )
+            : false,
+        }))
+        setParsedRows(markedRows)
+        setStep('preview')
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'קריאת הקובץ נכשלה'
+        toast.error(message)
+      } finally {
+        setIsParsing(false)
+      }
+    },
+    [importKeysQuery]
+  )
 
   const handleImport = () => {
     if (validRows.length === 0) return
@@ -253,6 +287,13 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
               <DialogDescription>
                 {fileName} &mdash; {validRows.length}{' '}
                 {validRows.length !== 1 ? 'שורות תקינות' : 'שורה תקינה'}
+                {duplicateCount > 0 && (
+                  <span className='text-muted-foreground'>
+                    {' '}
+                    &middot; {duplicateCount} {duplicateCount !== 1 ? 'שורות קיימות' : 'שורה קיימת'}{' '}
+                    (ידולגו)
+                  </span>
+                )}
                 {invalidCount > 0 && (
                   <span className='text-destructive'>
                     {' '}
@@ -275,24 +316,31 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
               >
                 חזרה
               </Button>
-              <div className='flex gap-2'>
-                <Button
-                  variant='outline'
-                  type='button'
-                  onClick={handleClose}
-                  disabled={bulkCreateMutation.isPending}
-                >
-                  ביטול
-                </Button>
-                <Button
-                  type='button'
-                  onClick={handleImport}
-                  disabled={validRows.length === 0 || bulkCreateMutation.isPending}
-                >
-                  {bulkCreateMutation.isPending
-                    ? 'מייבא…'
-                    : `ייבוא ${validRows.length} ${validRows.length !== 1 ? 'אורחים' : 'אורח'}`}
-                </Button>
+              <div className='flex flex-col items-end gap-1'>
+                <div className='flex gap-2'>
+                  <Button
+                    variant='outline'
+                    type='button'
+                    onClick={handleClose}
+                    disabled={bulkCreateMutation.isPending}
+                  >
+                    ביטול
+                  </Button>
+                  <Button
+                    type='button'
+                    onClick={handleImport}
+                    disabled={validRows.length === 0 || bulkCreateMutation.isPending}
+                  >
+                    {bulkCreateMutation.isPending
+                      ? 'מייבא…'
+                      : `ייבוא ${validRows.length} ${validRows.length !== 1 ? 'חדשים' : 'חדש'}${
+                          duplicateCount > 0 ? ` (${duplicateCount} קיימים)` : ''
+                        }`}
+                  </Button>
+                </div>
+                {allDuplicates && (
+                  <span className='text-destructive text-xs'>כל השורות כבר קיימות ברשימה</span>
+                )}
               </div>
             </DialogFooter>
           </>
