@@ -208,6 +208,8 @@ export class EventService {
           startTime: data.startTime,
           endTime: data.endTime,
           venue: data.venue,
+          venueAddress: data.venueAddress,
+          venueWazeUrl: data.venueWazeUrl,
           attire: data.attire,
           description: data.description,
           collectRsvp: data.collectRsvp,

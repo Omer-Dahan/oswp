@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
+import { resolveWazeUrl } from '~/lib/website/maps'
 import { ClassicHeaderImage } from '~/templates/classic/components/media'
 import type { TemplateSurfaceProps } from '~/templates/types'
 
@@ -11,6 +12,13 @@ export function ClassicInvitation({
   const { website } = weddingData
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
   const copy = weddingData.invitation
+  const wazeUrl = weddingEvent
+    ? resolveWazeUrl({
+        venue: weddingEvent.venue,
+        venueAddress: weddingEvent.venueAddress,
+        venueWazeUrl: weddingEvent.venueWazeUrl,
+      })
+    : null
 
   return (
     <main className='flex min-h-screen w-full items-center justify-center bg-background px-4 py-12 sm:py-20'>
@@ -54,6 +62,16 @@ export function ClassicInvitation({
               )}
               {weddingEvent?.venue && (
                 <p className='text-lg uppercase tracking-[0.3em]'>{weddingEvent.venue}</p>
+              )}
+              {wazeUrl && (
+                <a
+                  href={wazeUrl}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-xs tracking-normal underline-offset-4 hover:underline'
+                >
+                  נווט לאולם
+                </a>
               )}
             </div>
 

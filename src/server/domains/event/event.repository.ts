@@ -178,6 +178,8 @@ export class EventRepository {
     startTime?: string
     endTime?: string
     venue?: string
+    venueAddress?: string
+    venueWazeUrl?: string
     attire?: string
     description?: string
     collectRsvp?: boolean
@@ -191,6 +193,8 @@ export class EventRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         venue: data.venue,
+        venueAddress: data.venueAddress,
+        venueWazeUrl: data.venueWazeUrl,
         attire: data.attire,
         description: data.description,
         collectRsvp: data.collectRsvp ?? false,
@@ -210,6 +214,8 @@ export class EventRepository {
       startTime?: string
       endTime?: string
       venue?: string
+      venueAddress?: string
+      venueWazeUrl?: string
       attire?: string
       description?: string
       allowTagAlongs?: boolean
@@ -223,6 +229,8 @@ export class EventRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         venue: data.venue,
+        venueAddress: data.venueAddress,
+        venueWazeUrl: data.venueWazeUrl,
         attire: data.attire,
         description: data.description,
         allowTagAlongs: data.allowTagAlongs,

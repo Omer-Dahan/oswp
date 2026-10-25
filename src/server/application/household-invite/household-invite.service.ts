@@ -62,7 +62,10 @@ export type HouseholdInviteData = {
   events: Array<{
     name: string
     date: Date | null
+    startTime: string | null
     venue: string | null
+    venueAddress: string | null
+    venueWazeUrl: string | null
   }>
   household: {
     id: string
@@ -572,7 +575,15 @@ export class HouseholdInviteService {
               brideLastName: true,
               events: {
                 orderBy: { date: 'asc' },
-                select: { name: true, date: true, venue: true, isPrimary: true },
+                select: {
+                  name: true,
+                  date: true,
+                  startTime: true,
+                  venue: true,
+                  venueAddress: true,
+                  venueWazeUrl: true,
+                  isPrimary: true,
+                },
               },
             },
           },

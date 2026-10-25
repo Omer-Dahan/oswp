@@ -348,6 +348,12 @@ model Household {
   phoneAlt       String?  @map("phone_alt")
   expectedCheck  Decimal? @map("expected_check") @db.Decimal(10, 2)
 
+  // Set by the guest themselves in the RSVP flow: total attendee count (named
+  // guests + unnamed extras), children under 10, and free-text dietary notes.
+  attendingCount Int?    @map("attending_count")
+  childrenCount  Int?    @map("children_count")
+  dietaryNotes   String? @map("dietary_notes")
+
   // Short opaque code for the household's save-the-date / invite link, e.g.
   // "js-4f9k2c". Looked up directly instead of verifying a signed token so the
   // link stays short; nullable because a code is only assigned the first time
@@ -442,6 +448,8 @@ model Event {
   startTime      String?
   endTime        String?
   venue          String?
+  venueAddress   String?   @map("venue_address")
+  venueWazeUrl   String?   @map("venue_waze_url")
   attire         String?
   description    String?
   collectRsvp    Boolean   @default(false)

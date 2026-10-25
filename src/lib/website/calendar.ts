@@ -12,6 +12,8 @@
  * what the couple entered, regardless of the viewer's timezone.
  */
 
+import { departByLabel, resolveWazeUrl, venueQuery } from '~/lib/website/maps'
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 type EventLike = {
@@ -175,14 +177,37 @@ export function buildSaveTheDateCalendarLinks(
  * `null` when the event has no date to add.
  */
 export function buildSingleEventCalendarLinks(
-  event: { name: string; date: Date | null; venue?: string | null },
+  event: {
+    name: string
+    date: Date | null
+    venue?: string | null
+    venueAddress?: string | null
+    venueWazeUrl?: string | null
+    startTime?: string | null
+  },
   stamp: Date = new Date()
 ): Pick<SaveTheDateCalendarLinks, 'googleUrl' | 'ics' | 'fileName'> | null {
   if (!event.date) return null
 
+  const location = venueQuery({
+    venue: event.venue ?? null,
+    venueAddress: event.venueAddress ?? null,
+    venueWazeUrl: event.venueWazeUrl ?? null,
+  })
+  const wazeUrl = resolveWazeUrl({
+    venue: event.venue ?? null,
+    venueAddress: event.venueAddress ?? null,
+    venueWazeUrl: event.venueWazeUrl ?? null,
+  })
+  const depart = departByLabel(event.startTime)
+  const description = [wazeUrl ? `נווט לאולם בוויז: ${wazeUrl}` : null, depart]
+    .filter((line): line is string => line != null)
+    .join('\n')
+
   const calendar = buildSaveTheDateCalendar({
     title: event.name,
-    location: event.venue ?? undefined,
+    description: description || undefined,
+    location: location ?? undefined,
     events: [{ date: event.date }],
   })
   if (!calendar) return null

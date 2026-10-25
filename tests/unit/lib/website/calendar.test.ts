@@ -1,4 +1,8 @@
-import { buildSaveTheDateCalendar, buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
+import {
+  buildSaveTheDateCalendar,
+  buildSaveTheDateCalendarLinks,
+  buildSingleEventCalendarLinks,
+} from '~/lib/website/calendar'
 
 // `@db.Date` columns come back from Prisma as midnight UTC, so the fixtures
 // mirror that.
@@ -92,6 +96,54 @@ describe('calendar', () => {
       expect(links?.ics).toContain('DTSTAMP:20260625T120000Z')
       // CRLF line endings per RFC 5545.
       expect(links?.ics).toContain('\r\n')
+    })
+  })
+
+  describe('buildSingleEventCalendarLinks', () => {
+    const stamp = new Date('2026-06-25T12:00:00.000Z')
+
+    it('puts the venue address in LOCATION and the resolved Waze URL + depart-by line in DESCRIPTION', () => {
+      const links = buildSingleEventCalendarLinks(
+        {
+          name: 'Wedding Day',
+          date: utcDate('2026-09-12'),
+          venue: 'אגדתא',
+          venueAddress: 'אגדתא אולם אירועים, צומת ראם, מסמיה',
+          venueWazeUrl: 'https://waze.com/ul/hsv8sxty41',
+          startTime: '18:00',
+        },
+        stamp
+      )
+
+      expect(links?.ics).toContain('LOCATION:אגדתא אולם אירועים\\, צומת ראם\\, מסמיה')
+      expect(links?.ics).toContain('DESCRIPTION:נווט לאולם בוויז: https://waze.com/ul/hsv8sxty41\\nצאו לדרך עד 17:30')
+      expect(links?.googleUrl).toContain(encodeURIComponent('https://waze.com/ul/hsv8sxty41'))
+    })
+
+    it('falls back to the venue name for LOCATION when there is no address', () => {
+      const links = buildSingleEventCalendarLinks(
+        {
+          name: 'Wedding Day',
+          date: utcDate('2026-09-12'),
+          venue: 'אגדתא',
+          venueAddress: null,
+          venueWazeUrl: null,
+          startTime: null,
+        },
+        stamp
+      )
+
+      expect(links?.ics).toContain('LOCATION:אגדתא')
+    })
+
+    it('returns null when the event has no date', () => {
+      expect(
+        buildSingleEventCalendarLinks({
+          name: 'Wedding Day',
+          date: null,
+          venue: 'אגדתא',
+        })
+      ).toBeNull()
     })
   })
 })

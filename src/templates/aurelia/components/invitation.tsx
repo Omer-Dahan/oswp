@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
+import { resolveWazeUrl } from '~/lib/website/maps'
 import { AureliaHeaderImage } from '~/templates/aurelia/components/media'
 import type { TemplateSurfaceProps } from '~/templates/types'
 
@@ -15,6 +16,13 @@ export async function AureliaInvitation({
   const { website } = weddingData
   const weddingEvent = weddingData.events.find((event) => event.name === 'Wedding Day')
   const copy = weddingData.invitation
+  const wazeUrl = weddingEvent
+    ? resolveWazeUrl({
+        venue: weddingEvent.venue,
+        venueAddress: weddingEvent.venueAddress,
+        venueWazeUrl: weddingEvent.venueWazeUrl,
+      })
+    : null
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-24'>
@@ -60,6 +68,16 @@ export async function AureliaInvitation({
             <p className='text-foreground text-sm uppercase tracking-[0.18em]'>
               {weddingEvent.venue}
             </p>
+          )}
+          {wazeUrl && (
+            <a
+              href={wazeUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='text-muted-foreground text-xs underline-offset-4 hover:underline'
+            >
+              נווט לאולם
+            </a>
           )}
         </div>
 

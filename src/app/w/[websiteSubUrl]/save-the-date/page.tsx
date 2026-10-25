@@ -11,6 +11,7 @@ import { EnvelopeReveal } from '~/components/website/household-invite/envelope-r
 import { InvalidHouseholdInvite } from '~/components/website/household-invite/invalid-household-invite'
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
 import { householdInviteCookieName } from '~/lib/website/cookies'
+import { departByLabel, resolveWazeUrl, venueQuery } from '~/lib/website/maps'
 import { householdInviteService } from '~/server/application/household-invite'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
 
@@ -132,12 +133,34 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
   const formattedDate =
     firstEvent && lastEvent ? formatEventDateRange(firstEvent.date, lastEvent.date, locale) : null
   const ceremonyEvent = datedEvents.find((event) => event.name === 'Ceremony')
-  const location = ceremonyEvent?.venue ?? firstEvent?.venue ?? null
+  const locationEvent = ceremonyEvent ?? firstEvent ?? null
+  const location = locationEvent?.venue ?? null
+  const wazeUrl = locationEvent
+    ? resolveWazeUrl({
+        venue: locationEvent.venue ?? null,
+        venueAddress: locationEvent.venueAddress ?? null,
+        venueWazeUrl: locationEvent.venueWazeUrl ?? null,
+      })
+    : null
+  const locationQuery = locationEvent
+    ? venueQuery({
+        venue: locationEvent.venue ?? null,
+        venueAddress: locationEvent.venueAddress ?? null,
+        venueWazeUrl: locationEvent.venueWazeUrl ?? null,
+      })
+    : null
+  const depart = departByLabel(locationEvent?.startTime)
 
   const calendarLinks = buildSaveTheDateCalendarLinks({
     title: `${coupleNames} Wedding`,
-    description: `Save the date for the wedding of ${coupleNames}! Formal invitation to follow.`,
-    location: location ?? undefined,
+    description: [
+      `Save the date for the wedding of ${coupleNames}! Formal invitation to follow.`,
+      wazeUrl ? `נווט לאולם בוויז: ${wazeUrl}` : null,
+      depart,
+    ]
+      .filter((line): line is string => line != null)
+      .join('\n'),
+    location: locationQuery ?? location ?? undefined,
     events: inviteData.events,
   })
 
@@ -197,6 +220,16 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                       {t('location')}
                     </p>
                     <p className='mt-2 text-2xl'>{location ?? t('toBeAnnounced')}</p>
+                    {wazeUrl ? (
+                      <a
+                        href={wazeUrl}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className={`mt-2 inline-block text-muted-foreground text-xs underline-offset-4 hover:underline ${labelFont}`}
+                      >
+                        נווט לאולם
+                      </a>
+                    ) : null}
                   </div>
                 </div>
 

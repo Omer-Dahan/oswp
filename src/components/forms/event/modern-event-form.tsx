@@ -74,6 +74,8 @@ export function ModernEventForm({
           startTime: event.startTime ?? '',
           endTime: event.endTime ?? '',
           venue: event.venue ?? '',
+          venueAddress: event.venueAddress ?? '',
+          venueWazeUrl: event.venueWazeUrl ?? '',
           attire: event.attire ?? '',
           description: event.description ?? '',
           collectRsvp: event.collectRsvp ?? false,
@@ -104,6 +106,8 @@ export function ModernEventForm({
               startTime: event.startTime ?? '',
               endTime: event.endTime ?? '',
               venue: event.venue ?? '',
+              venueAddress: event.venueAddress ?? '',
+              venueWazeUrl: event.venueWazeUrl ?? '',
               attire: event.attire ?? '',
               description: event.description ?? '',
               collectRsvp: event.collectRsvp ?? false,
@@ -245,6 +249,43 @@ export function ModernEventForm({
             />
             {errors.venue && (
               <p className='text-destructive text-xs md:text-sm'>{errors.venue.message}</p>
+            )}
+          </div>
+
+          {/* Venue Address */}
+          <div className='space-y-2'>
+            <Label htmlFor='venueAddress' className='text-sm md:text-base'>
+              כתובת האולם
+            </Label>
+            <Input
+              id='venueAddress'
+              {...register('venueAddress')}
+              placeholder='לדוגמה: אגדתא אולם אירועים, צומת ראם, מסמיה'
+              disabled={isSubmitting}
+              className={cn(errors.venueAddress && 'border-destructive')}
+            />
+            {errors.venueAddress && (
+              <p className='text-destructive text-xs md:text-sm'>{errors.venueAddress.message}</p>
+            )}
+          </div>
+
+          {/* Venue Waze Link */}
+          <div className='space-y-2'>
+            <Label htmlFor='venueWazeUrl' className='text-sm md:text-base'>
+              קישור וויז
+            </Label>
+            <Input
+              id='venueWazeUrl'
+              {...register('venueWazeUrl')}
+              placeholder='https://waze.com/ul/...'
+              disabled={isSubmitting}
+              className={cn(errors.venueWazeUrl && 'border-destructive')}
+            />
+            <p className='text-muted-foreground text-xs'>
+              פתחו את האולם בוויז ← שתפו ← הדביקו את הקישור
+            </p>
+            {errors.venueWazeUrl && (
+              <p className='text-destructive text-xs md:text-sm'>{errors.venueWazeUrl.message}</p>
             )}
           </div>
 

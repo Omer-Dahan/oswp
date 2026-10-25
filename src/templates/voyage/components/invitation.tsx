@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { formatDateStandard } from '~/app/utils/helpers'
+import { resolveWazeUrl } from '~/lib/website/maps'
 import type { TemplateSurfaceProps } from '~/templates/types'
 import {
   BotanicalSprig,
@@ -23,6 +24,13 @@ export function VoyageInvitation({
   const venue = weddingEvent?.venue ?? null
   const dateLabel = weddingData.date?.standardFormat ?? 'Date to be announced'
   const copy = weddingData.invitation
+  const wazeUrl = weddingEvent
+    ? resolveWazeUrl({
+        venue: weddingEvent.venue,
+        venueAddress: weddingEvent.venueAddress,
+        venueWazeUrl: weddingEvent.venueWazeUrl,
+      })
+    : null
 
   return (
     <main className='flex min-h-screen w-full items-center justify-center bg-[#F7F3EC] px-6 py-20'>
@@ -71,6 +79,16 @@ export function VoyageInvitation({
               >
                 {venue}
               </p>
+            ) : null}
+            {wazeUrl ? (
+              <a
+                href={wazeUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className={`${labelFont} text-[#B15C41] text-[0.6rem] uppercase tracking-[0.2em] underline-offset-4 hover:underline`}
+              >
+                נווט לאולם
+              </a>
             ) : null}
           </div>
           {website.isRsvpEnabled ? (

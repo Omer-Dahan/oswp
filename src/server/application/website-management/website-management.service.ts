@@ -286,6 +286,8 @@ export class WebsiteManagementService {
         startTime: event.startTime,
         endTime: event.endTime,
         venue: event.venue,
+        venueAddress: event.venueAddress,
+        venueWazeUrl: event.venueWazeUrl,
         attire: event.attire,
         description: event.description,
         weddingId: event.weddingId,
