@@ -15,6 +15,8 @@ type ActiveSort = {
 type ListToolbarProps = {
   totalHouseholds: number
   totalUnfilteredHouseholds?: number
+  totalGuests: number
+  totalUnfilteredGuests?: number
   onSortByName?: () => void
   onSortByPartySize?: () => void
   viewMode?: ViewMode
@@ -34,6 +36,8 @@ function SortIcon({ active, direction }: { active: boolean; direction?: SortDire
 export function ListToolbar({
   totalHouseholds,
   totalUnfilteredHouseholds,
+  totalGuests,
+  totalUnfilteredGuests,
   onSortByName,
   onSortByPartySize,
   viewMode = 'cards',
@@ -46,9 +50,11 @@ export function ListToolbar({
   const isFiltered =
     totalUnfilteredHouseholds !== undefined && totalUnfilteredHouseholds > totalHouseholds
 
+  const householdsLabel = (count: number) => `${count} ${count === 1 ? 'משק בית' : 'משקי בית'}`
+
   const householdCountLabel = isFiltered
-    ? `${totalHouseholds} מתוך ${totalUnfilteredHouseholds} משקי בית`
-    : `${totalHouseholds} ${totalHouseholds === 1 ? 'משק בית' : 'משקי בית'}`
+    ? `${totalGuests} מוזמנים · ${householdsLabel(totalHouseholds)} מתוך ${totalUnfilteredGuests} מוזמנים · ${householdsLabel(totalUnfilteredHouseholds)}`
+    : `${totalGuests} מוזמנים · ${householdsLabel(totalHouseholds)}`
 
   return (
     <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
