@@ -6,17 +6,17 @@
  */
 
 import type { Prisma, PrismaClient } from '@prisma/client'
-
-import {
-  normalizeImportName,
-  normalizeImportPhone,
-} from '~/server/domains/household/household-import-matcher'
 import type {
   Household,
   HouseholdSearchResult,
   HouseholdWithGuestsAndGifts,
   PublicHouseholdSearchResult,
 } from '~/server/domains/household/household.types'
+import {
+  normalizeImportEmail,
+  normalizeImportName,
+  normalizeImportPhone,
+} from '~/server/domains/household/household-import-matcher'
 
 /**
  * Shape returned to the authenticated, staff-facing household search (used by
@@ -496,11 +496,19 @@ export class HouseholdRepository {
    * Used both to skip duplicates during bulk import and to let the CSV
    * dialog mark rows as duplicates before the import runs.
    */
-  async findImportKeys(weddingId: string): Promise<{ phones: string[]; names: string[] }> {
-    const primaryContacts = await this.db.guest.findMany({
-      where: { weddingId, isPrimaryContact: true },
-      select: { phone: true, firstName: true, lastName: true },
-    })
+  async findImportKeys(
+    weddingId: string
+  ): Promise<{ phones: string[]; names: string[]; emails: string[] }> {
+    const [primaryContacts, emailRows] = await Promise.all([
+      this.db.guest.findMany({
+        where: { weddingId, isPrimaryContact: true },
+        select: { phone: true, firstName: true, lastName: true },
+      }),
+      this.db.guest.findMany({
+        where: { weddingId, email: { not: null } },
+        select: { email: true },
+      }),
+    ])
 
     const phones: string[] = []
     const names: string[] = []
@@ -509,7 +517,12 @@ export class HouseholdRepository {
       if (phone) phones.push(phone)
       names.push(normalizeImportName(contact.firstName, contact.lastName))
     }
-    return { phones, names }
+    const emails: string[] = []
+    for (const row of emailRows) {
+      const email = normalizeImportEmail(row.email)
+      if (email) emails.push(email)
+    }
+    return { phones, names, emails }
   }
 
   /**

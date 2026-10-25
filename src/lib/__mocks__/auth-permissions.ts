@@ -33,7 +33,7 @@ const ownerGrants: PermissionMap = {
   guest_event: ['read', 'add_guest_to_event', 'remove_guest_from_event'],
   rsvp: ['read_responses', 'edit_response', 'export', 'reopen_submission'],
   event: ['read', 'create', 'update', 'delete', 'rsvp_policy_update'],
-  guest: ['read', 'create', 'update', 'delete', 'import'],
+  guest: ['read', 'create', 'update', 'delete', 'import', 'delete_all'],
   vendor: ['read', 'create', 'update', 'delete'],
   vendor_quote: ['read', 'create', 'update', 'delete'],
   website: ['read', 'update', 'publish', 'password_update'],
@@ -43,6 +43,7 @@ const ownerGrants: PermissionMap = {
 const adminGrants: PermissionMap = {
   ...ownerGrants,
   organization: ['update'],
+  guest: ['read', 'create', 'update', 'delete', 'import'],
 }
 
 const memberGrants: PermissionMap = {

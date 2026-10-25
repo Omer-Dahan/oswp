@@ -21,17 +21,19 @@ import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import { GiftRepository } from '~/server/domains/gift/gift.repository'
 import { GuestRepository } from '~/server/domains/guest/guest.repository'
-import {
-  isDuplicateHousehold,
-  normalizeImportName,
-  normalizeImportPhone,
-} from '~/server/domains/household/household-import-matcher'
 import { HouseholdRepository } from '~/server/domains/household/household.repository'
 import type {
   Household,
   HouseholdSearchResult,
   PublicHouseholdSearchResult,
 } from '~/server/domains/household/household.types'
+import {
+  DUPLICATE_EMAIL_WARNING,
+  isDuplicateHousehold,
+  normalizeImportEmail,
+  normalizeImportName,
+  normalizeImportPhone,
+} from '~/server/domains/household/household-import-matcher'
 import { InvitationRepository } from '~/server/domains/invitation/invitation.repository'
 import type { WebsiteRepository } from '~/server/domains/website/website.repository'
 import { WebsitePasswordService } from '~/server/domains/website/website-password.service'
@@ -315,7 +317,7 @@ export class HouseholdManagementService {
   }
 
   async deleteAllHouseholds(ctx: AuthzContext, weddingId: string): Promise<{ deleted: number }> {
-    requirePermission(ctx, { guest: ['delete'] })
+    requirePermission(ctx, { guest: ['delete_all'] })
     const deleted = await this.householdRepo.deleteAllForWedding(weddingId)
     return { deleted }
   }
@@ -324,16 +326,25 @@ export class HouseholdManagementService {
     ctx: AuthzContext,
     weddingId: string,
     households: Parameters<HouseholdManagementService['createHouseholdWithGuests']>[2][]
-  ): Promise<{ created: number; skipped: number; failed: number }> {
+  ): Promise<{
+    created: number
+    skipped: number
+    failed: number
+    warnings: string[]
+    failureReasons: string[]
+  }> {
     requirePermission(ctx, { guest: ['import'] })
 
     const existingKeys = await this.householdRepo.findImportKeys(weddingId)
     const phones = new Set(existingKeys.phones)
     const names = new Set(existingKeys.names)
+    const usedEmails = new Set(existingKeys.emails)
 
     let created = 0
     let skipped = 0
     let failed = 0
+    const warnings: string[] = []
+    const failureReasons: string[] = []
     for (const household of households) {
       const primaryContact =
         household.guestParty.find((guest) => guest.isPrimaryContact) ?? household.guestParty[0]
@@ -343,8 +354,21 @@ export class HouseholdManagementService {
         continue
       }
 
+      // Duplicate emails must never fail the row: the email is dropped and a
+      // warning is recorded, but the guest (and its household) is still created.
+      const guestParty = household.guestParty.map((guest) => {
+        const normalizedEmail = normalizeImportEmail(guest.email)
+        if (!normalizedEmail) return guest
+        if (usedEmails.has(normalizedEmail)) {
+          warnings.push(DUPLICATE_EMAIL_WARNING)
+          return { ...guest, email: null }
+        }
+        usedEmails.add(normalizedEmail)
+        return { ...guest, email: normalizedEmail }
+      })
+
       try {
-        await this.createHouseholdWithGuests(ctx, weddingId, household)
+        await this.createHouseholdWithGuests(ctx, weddingId, { ...household, guestParty })
         created++
         if (primaryContact) {
           const phone = normalizeImportPhone(primaryContact.phone)
@@ -356,15 +380,16 @@ export class HouseholdManagementService {
           throw error
         }
         failed++
+        failureReasons.push(error instanceof Error ? error.message : 'שגיאה לא ידועה בייבוא השורה')
       }
     }
-    return { created, skipped, failed }
+    return { created, skipped, failed, warnings, failureReasons }
   }
 
   async getHouseholdImportKeys(
     ctx: AuthzContext,
     weddingId: string
-  ): Promise<{ phones: string[]; names: string[] }> {
+  ): Promise<{ phones: string[]; names: string[]; emails: string[] }> {
     requirePermission(ctx, { guest: ['import'] })
     return this.householdRepo.findImportKeys(weddingId)
   }

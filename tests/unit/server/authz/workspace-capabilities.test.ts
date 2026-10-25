@@ -10,6 +10,7 @@ describe('readWorkspaceCapabilities', () => {
       canSendInvites: false,
       canViewPlanning: false,
       canAccessSettings: false,
+      canDeleteAllGuests: false,
     })
     expect(readWorkspaceCapabilities('nonexistent-role')).toEqual({
       canInviteMembers: false,
@@ -17,6 +18,7 @@ describe('readWorkspaceCapabilities', () => {
       canSendInvites: false,
       canViewPlanning: false,
       canAccessSettings: false,
+      canDeleteAllGuests: false,
     })
   })
 
@@ -27,6 +29,7 @@ describe('readWorkspaceCapabilities', () => {
       canSendInvites: true,
       canViewPlanning: true,
       canAccessSettings: true,
+      canDeleteAllGuests: true,
     })
     expect(readWorkspaceCapabilities('admin')).toEqual({
       canInviteMembers: true,
@@ -34,6 +37,7 @@ describe('readWorkspaceCapabilities', () => {
       canSendInvites: true,
       canViewPlanning: true,
       canAccessSettings: true,
+      canDeleteAllGuests: false,
     })
   })
 
@@ -44,6 +48,7 @@ describe('readWorkspaceCapabilities', () => {
       canSendInvites: false,
       canViewPlanning: true,
       canAccessSettings: true,
+      canDeleteAllGuests: false,
     })
   })
 
@@ -54,6 +59,7 @@ describe('readWorkspaceCapabilities', () => {
       canSendInvites: false,
       canViewPlanning: false,
       canAccessSettings: false,
+      canDeleteAllGuests: false,
     })
   })
 })

@@ -10,7 +10,6 @@ import {
   type ParsedCsvRow,
   parseSpreadsheetFile,
 } from '~/components/guest-list/guest-csv-import.schema'
-import { isDuplicateHousehold } from '~/server/domains/household/household-import-matcher'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
@@ -21,6 +20,10 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 import { FileDropzone } from '~/components/ui/file-dropzone'
+import {
+  DUPLICATE_EMAIL_WARNING,
+  isDuplicateHousehold,
+} from '~/server/domains/household/household-import-matcher'
 import { api } from '~/trpc/react'
 
 // ---------------------------------------------------------------------------
@@ -110,7 +113,10 @@ function PreviewTable({ rows }: PreviewTableProps) {
                 ) : row.duplicate ? (
                   <span className='font-medium text-muted-foreground text-xs'>קיים — ידולג</span>
                 ) : row.warnings && row.warnings.length > 0 ? (
-                  <span className='font-medium text-success text-xs' title={row.warnings.join('; ')}>
+                  <span
+                    className='font-medium text-success text-xs'
+                    title={row.warnings.join('; ')}
+                  >
                     תקין · אזהרה
                     <span className='block text-[11px] text-muted-foreground'>
                       {row.warnings.join('; ')}
@@ -164,10 +170,11 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
   const importKeysQuery = api.household.importKeys.useQuery(undefined, { enabled: false })
 
   const bulkCreateMutation = api.household.bulkCreate.useMutation({
-    onSuccess: ({ created, skipped, failed }) => {
+    onSuccess: ({ created, skipped, failed, failureReasons }) => {
       if (failed > 0) {
+        const reason = failureReasons?.[0] ? ` (${failureReasons[0]})` : ''
         toast.warning(
-          `הייבוא הושלם: ${created} ${created === 1 ? 'אורח' : 'אורחים'}, ${failed} דולגו בגלל שגיאות.`
+          `הייבוא הושלם: ${created} ${created === 1 ? 'אורח' : 'אורחים'}, ${failed} דולגו בגלל שגיאות${reason}.`
         )
       } else if (skipped > 0) {
         toast.success(
@@ -199,15 +206,31 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
         ])
         const phones = new Set(keysResult.data?.phones ?? [])
         const names = new Set(keysResult.data?.names ?? [])
-        const markedRows: RowWithDuplicate[] = rows.map((row) => ({
-          ...row,
-          duplicate: row.valid
-            ? isDuplicateHousehold(
-                { phone: row.data.phone, firstName: row.data.firstName, lastName: row.data.lastName },
-                { phones, names }
-              )
-            : false,
-        }))
+        const emails = new Set(keysResult.data?.emails ?? [])
+        const seenEmails = new Set<string>()
+        const markedRows: RowWithDuplicate[] = rows.map((row) => {
+          if (!row.valid) return { ...row, duplicate: false }
+
+          const duplicate = isDuplicateHousehold(
+            { phone: row.data.phone, firstName: row.data.firstName, lastName: row.data.lastName },
+            { phones, names }
+          )
+
+          const normalizedEmail = row.data.email?.trim().toLowerCase()
+          const isDuplicateEmail =
+            !duplicate &&
+            !!normalizedEmail &&
+            (emails.has(normalizedEmail) || seenEmails.has(normalizedEmail))
+          if (normalizedEmail && !duplicate && !isDuplicateEmail) {
+            seenEmails.add(normalizedEmail)
+          }
+
+          const warnings = isDuplicateEmail
+            ? [...(row.warnings ?? []), DUPLICATE_EMAIL_WARNING]
+            : row.warnings
+
+          return { ...row, warnings, duplicate }
+        })
         setParsedRows(markedRows)
         setStep('preview')
       } catch (err) {
@@ -260,8 +283,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
             <DialogHeader>
               <DialogTitle>ייבוא אורחים מקובץ</DialogTitle>
               <DialogDescription>
-                העלו קובץ CSV או Excel (.xlsx) כדי להוסיף אורחים בכמות. כל שורה הופכת למשק בית
-                אחד.
+                העלו קובץ CSV או Excel (.xlsx) כדי להוסיף אורחים בכמות. כל שורה הופכת למשק בית אחד.
                 <span className='block'>
                   מספר הטלפון חייב להיות בפורמט E.164 (לדוגמה: +12025550123).
                 </span>
@@ -293,8 +315,8 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
             <DialogHeader>
               <DialogTitle>תצוגה מקדימה של ייבוא</DialogTitle>
               <DialogDescription>
-                {fileName} &mdash; {validRows.length} שורות ייובאו &middot; {warningCount} עם
-                אזהרות &middot; {duplicateCount} כפילויות &middot; {invalidCount} שגיאות
+                {fileName} &mdash; {validRows.length} שורות ייובאו &middot; {warningCount} עם אזהרות
+                &middot; {duplicateCount} כפילויות &middot; {invalidCount} שגיאות
               </DialogDescription>
             </DialogHeader>
 

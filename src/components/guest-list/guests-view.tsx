@@ -44,6 +44,7 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
+import { useWorkspace } from '~/hooks/use-workspace'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
@@ -74,6 +75,7 @@ export default function GuestsView({
   onImportClick,
 }: GuestsViewProps) {
   const utils = api.useUtils()
+  const { workspace } = useWorkspace()
   const { data: allTags = [] } = api.guestTag.getAll.useQuery()
   const toggleGuestForm = useToggleGuestForm()
   const [filteredHouseholds, setFilteredHouseholds] = useState(households)
@@ -337,7 +339,10 @@ export default function GuestsView({
                   return {
                     ...guest,
                     email: draftSnapshot.email || null,
-                    phone: normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? draftSnapshot.phone ?? null,
+                    phone:
+                      normalizePhoneToE164(draftSnapshot.phone, 'IL') ??
+                      draftSnapshot.phone ??
+                      null,
                   }
                 }),
               }
@@ -686,14 +691,16 @@ export default function GuestsView({
           selectedEventId={selectedEventId}
         />
         <div className='flex shrink-0 gap-3'>
-          <Button
-            type='button'
-            variant='outline'
-            className='border-destructive text-destructive hover:bg-destructive/10'
-            onClick={() => setShowDeleteAllDialog(true)}
-          >
-            מחיקת כל האורחים
-          </Button>
+          {workspace.capabilities.canDeleteAllGuests && (
+            <Button
+              type='button'
+              variant='outline'
+              className='border-destructive text-destructive hover:bg-destructive/10'
+              onClick={() => setShowDeleteAllDialog(true)}
+            >
+              מחיקת כל האורחים
+            </Button>
+          )}
           <Button type='button' variant='outline' onClick={onImportClick}>
             ייבוא אורחים
           </Button>
@@ -861,8 +868,7 @@ export default function GuestsView({
               })()}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              פעולה זו תמחק לצמיתות את הקבוצה ואת כל האורחים המשויכים אליה. לא ניתן לבטל פעולה
-              זו.
+              פעולה זו תמחק לצמיתות את הקבוצה ואת כל האורחים המשויכים אליה. לא ניתן לבטל פעולה זו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -894,8 +900,8 @@ export default function GuestsView({
           <AlertDialogHeader>
             <AlertDialogTitle>מחיקת כל האורחים?</AlertDialogTitle>
             <AlertDialogDescription>
-              פעולה זו תמחק לצמיתות את כל משקי הבית, האורחים, ההזמנות, אישורי ההגעה, ההושבה
-              והמתנות של החתונה הנוכחית. לא ניתן לבטל פעולה זו.
+              פעולה זו תמחק לצמיתות את כל משקי הבית, האורחים, ההזמנות, אישורי ההגעה, ההושבה והמתנות
+              של החתונה הנוכחית. לא ניתן לבטל פעולה זו.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className='space-y-2'>
