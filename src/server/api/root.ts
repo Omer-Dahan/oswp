@@ -26,6 +26,7 @@ import { websiteRouter } from '~/server/domains/website/website.router'
 import { websiteSectionRouter } from '~/server/domains/website-section/website-section.router'
 import { weddingRouter } from '~/server/domains/wedding/wedding.router'
 import { whatsappRouter } from '~/server/domains/whatsapp/whatsapp.router'
+import { workspaceInviteRouter } from '~/server/domains/workspace-invite/workspace-invite.router'
 
 /**
  * This is the primary router for your server.
@@ -83,6 +84,9 @@ export const appRouter = createTRPCRouter({
 
   // WhatsApp Cloud API (account setup, connection test)
   whatsapp: whatsappRouter,
+
+  // Shareable token-link workspace invites (no email path required)
+  workspaceInvite: workspaceInviteRouter,
 })
 
 // export type definition of API
