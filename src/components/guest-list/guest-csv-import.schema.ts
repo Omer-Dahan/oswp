@@ -89,6 +89,104 @@ export function downloadGuestCsvTemplate() {
 }
 
 // ---------------------------------------------------------------------------
+// Header aliases (the couple's Hebrew Excel export uses its own column names)
+// ---------------------------------------------------------------------------
+
+const KNOWN_FIELDS = new Set([
+  'firstName',
+  'lastName',
+  'email',
+  'phone',
+  'ageGroup',
+  'address1',
+  'address2',
+  'city',
+  'state',
+  'zipCode',
+  'country',
+  'notes',
+])
+
+// Extra columns that don't map 1:1 to a schema field; folded into `notes`.
+const EXTRA_FIELDS = new Set(['fullName', 'invitedCount', 'group'])
+
+const HEBREW_HEADER_ALIASES: Record<string, string> = {
+  'שם מלא': 'fullName',
+  שם: 'fullName',
+  'שם האורח': 'fullName',
+  'שם פרטי': 'firstName',
+  'שם משפחה': 'lastName',
+  טלפון: 'phone',
+  נייד: 'phone',
+  פלאפון: 'phone',
+  'מספר טלפון': 'phone',
+  אימייל: 'email',
+  מייל: 'email',
+  'דוא"ל': 'email',
+  "דוא'ל": 'email',
+  כתובת: 'address1',
+  'כתובת מלאה': 'address1',
+  רחוב: 'address1',
+  עיר: 'city',
+  'עיר מגורים': 'city',
+  מיקוד: 'zipCode',
+  מחוז: 'state',
+  אזור: 'state',
+  מדינה: 'country',
+  'קבוצת גיל': 'ageGroup',
+  גיל: 'ageGroup',
+  הערות: 'notes',
+  הערה: 'notes',
+  'מספר מוזמנים': 'invitedCount',
+  'כמות מוזמנים': 'invitedCount',
+  'כמות אורחים': 'invitedCount',
+  'מספר אורחים': 'invitedCount',
+  'כמות אנשים': 'invitedCount',
+  צד: 'group',
+  קבוצה: 'group',
+  'צד/קבוצה': 'group',
+  'קבוצת אורחים': 'group',
+}
+
+function transformHeader(header: string): string {
+  const trimmed = header.trim()
+  if (KNOWN_FIELDS.has(trimmed) || EXTRA_FIELDS.has(trimmed)) return trimmed
+  return HEBREW_HEADER_ALIASES[trimmed] ?? trimmed
+}
+
+type RawCsvRow = GuestCsvRowInput & { fullName?: string; invitedCount?: string; group?: string }
+
+// Splits a single "full name" column into first/last name when the couple's
+// sheet doesn't have separate columns for them.
+function splitFullName(fullName: string): { firstName: string; lastName: string } {
+  const parts = fullName.trim().split(/\s+/)
+  const [firstName, ...rest] = parts
+  return { firstName: firstName ?? '', lastName: rest.join(' ') || (firstName ?? '') }
+}
+
+function normalizeRow(raw: RawCsvRow): GuestCsvRowInput {
+  const { fullName, invitedCount, group, ...rest } = raw
+  const normalized: GuestCsvRowInput = { ...rest }
+
+  if (!normalized.firstName && !normalized.lastName && fullName) {
+    const { firstName, lastName } = splitFullName(fullName)
+    normalized.firstName = firstName
+    normalized.lastName = lastName
+  }
+
+  const extraNotes = [
+    group ? `צד/קבוצה: ${group}` : null,
+    invitedCount ? `מספר מוזמנים: ${invitedCount}` : null,
+  ].filter((v): v is string => Boolean(v))
+
+  if (extraNotes.length > 0) {
+    normalized.notes = [normalized.notes, ...extraNotes].filter(Boolean).join('; ')
+  }
+
+  return normalized
+}
+
+// ---------------------------------------------------------------------------
 // Parsing
 // ---------------------------------------------------------------------------
 
@@ -96,15 +194,17 @@ const MAX_CSV_ROWS = 500
 
 export function parseCsvFile(file: File): Promise<ParsedCsvRow[]> {
   return new Promise((resolve, reject) => {
-    Papa.parse<GuestCsvRowInput>(file, {
+    Papa.parse<RawCsvRow>(file, {
       header: true,
       skipEmptyLines: true,
+      transformHeader,
       complete: ({ data }) => {
         if (data.length > MAX_CSV_ROWS) {
           reject(new Error(`CSV exceeds the ${MAX_CSV_ROWS}-row limit (found ${data.length} rows)`))
           return
         }
-        const rows = data.map((raw, index) => {
+        const rows = data.map((rawRow, index) => {
+          const raw = normalizeRow(rawRow)
           const result = guestCsvRowSchema.safeParse(raw)
           if (result.success) {
             return { rowNumber: index + 2, raw, valid: true as const, data: result.data }
