@@ -49,7 +49,9 @@ export const guestCsvRowSchema = z.object({
     .string()
     .optional()
     .transform((v) => v ?? ''),
-  email: optionalString.pipe(z.string().email('Invalid email').optional()),
+  email: optionalString.transform((v) =>
+    v === undefined ? undefined : z.string().email().safeParse(v).success ? v : undefined
+  ),
   phone: optionalString.pipe(optionalPhoneSchemaNotNull),
   ageGroup: z
     .string()
@@ -83,7 +85,10 @@ export type GuestCsvRowOutput = z.output<typeof guestCsvRowSchema>
 export type ParsedCsvRow = {
   rowNumber: number
   raw: GuestCsvRowInput
-} & ({ valid: true; data: GuestCsvRowOutput } | { valid: false; errors: string[] })
+} & (
+  | { valid: true; data: GuestCsvRowOutput; warnings?: string[] }
+  | { valid: false; errors: string[] }
+)
 
 // ---------------------------------------------------------------------------
 // Template
@@ -301,7 +306,17 @@ function rowsToParsedRows(data: string[][]): ParsedCsvRow[] {
     const result = guestCsvRowSchema.safeParse(raw)
     const rowNumber = headerRowIndex + index + 2
     if (result.success) {
-      return { rowNumber, raw, valid: true as const, data: result.data }
+      const warnings: string[] = []
+      if (raw.email && result.data.email === undefined) {
+        warnings.push('כתובת המייל אינה תקינה — האורח ייובא בלי מייל')
+      }
+      return {
+        rowNumber,
+        raw,
+        valid: true as const,
+        data: result.data,
+        ...(warnings.length > 0 ? { warnings } : {}),
+      }
     }
     return {
       rowNumber,

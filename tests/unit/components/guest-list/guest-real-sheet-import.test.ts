@@ -120,3 +120,36 @@ describe('import against the real sheet header (two-row header)', () => {
     assertRows(rows)
   })
 })
+
+describe('a bad email warns instead of dropping the household', () => {
+  const BAD_EMAIL_ROWS: (string | number)[][] = [
+    ['דני כהן', 1, 'חתן', 'אבא - חברים', '052-1111111', '', 'not-an-email', '', '', '', '', ''],
+    ['רונית לוי', 1, 'כלה', 'אבא - חברים', '052-2222222', '', 'a@b.co.il', '', '', '', '', ''],
+  ]
+
+  function makeBadEmailCsvFile(): File {
+    const lines = [UPPER_LABEL_ROW, REAL_HEADER_ROW, ...BAD_EMAIL_ROWS].map((row) =>
+      row.map((cell) => `${cell}`).join(',')
+    )
+    return new File([lines.join('\n')], 'guests.csv', { type: 'text/csv' })
+  }
+
+  it('keeps the row valid, drops the email, and adds a warning for an invalid address', async () => {
+    const rows = await parseSpreadsheetFile(makeBadEmailCsvFile())
+    expect(rows).toHaveLength(2)
+
+    const [row1, row2] = rows
+
+    expect(row1?.valid).toBe(true)
+    if (row1?.valid) {
+      expect(row1.data.email).toBeUndefined()
+      expect(row1.warnings).toEqual(['כתובת המייל אינה תקינה — האורח ייובא בלי מייל'])
+    }
+
+    expect(row2?.valid).toBe(true)
+    if (row2?.valid) {
+      expect(row2.data.email).toBe('a@b.co.il')
+      expect(row2.warnings).toBeUndefined()
+    }
+  })
+})

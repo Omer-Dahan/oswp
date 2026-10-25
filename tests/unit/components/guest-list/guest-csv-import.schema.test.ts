@@ -178,27 +178,27 @@ describe('guestCsvRowSchema', () => {
     })
   })
 
-  describe('invalid rows — bad email', () => {
-    it('should reject a row with an invalid email format', () => {
+  describe('invalid email — non-fatal', () => {
+    it('should drop an invalid email format instead of failing the row', () => {
       const result = guestCsvRowSchema.safeParse({
         firstName: 'John',
         lastName: 'Doe',
         email: 'not-an-email',
       })
 
-      expect(result.success).toBe(false)
-      const paths = result.error?.issues.flatMap((i) => i.path)
-      expect(paths).toContain('email')
+      expect(result.success).toBe(true)
+      expect(result.data?.email).toBeUndefined()
     })
 
-    it('should reject an email missing the domain', () => {
+    it('should drop an email missing the domain instead of failing the row', () => {
       const result = guestCsvRowSchema.safeParse({
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@',
       })
 
-      expect(result.success).toBe(false)
+      expect(result.success).toBe(true)
+      expect(result.data?.email).toBeUndefined()
     })
 
     it('should accept a valid email', () => {
