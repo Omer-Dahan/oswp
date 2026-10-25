@@ -37,6 +37,9 @@ model Wedding {
   // Seating chart
   seatingTables SeatingTable[]
 
+  // Shareable token links for workspace access
+  workspaceInviteLinks WorkspaceInviteLink[]
+
   // Add-on relationships
   website    Website?
   vendors    Vendor[]
@@ -251,12 +254,42 @@ model Member {
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           String
+  // The invitee's side when they joined via a workspace invite link: כלה / חתן / אחר
+  side           String?      @map("side")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
   @@index([userId])
   @@map("member")
+}
+
+// Shareable token link granting access to a wedding's workspace (e.g. for a
+// friend or parent to register without an email-based organization invite).
+model WorkspaceInviteLink {
+  id        String  @id @default(uuid())
+  weddingId String
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  token String @unique
+
+  // Role granted to the member created when this link is accepted.
+  role  String  @default("family")
+  // Who the link was made for (e.g. "אמא של החתן"), for the couple's own reference.
+  label String?
+  // The invitee's side: כלה / חתן / אחר. When set, overrides the side supplied at accept time.
+  side  String?
+
+  maxUses   Int?
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([weddingId])
+  @@map("workspace_invite_links")
 }
 
 model OrganizationInvitation {
