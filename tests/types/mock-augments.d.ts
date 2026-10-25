@@ -138,9 +138,14 @@ declare module '~/server/domains/household/household.repository' {
   export const mockCreateWithGifts: jest.Mock
   export const mockUpdate: jest.Mock
   export const mockDelete: jest.Mock
+  export const mockDeleteAllForWedding: jest.Mock
   export const mockSearch: jest.Mock
   export const mockExists: jest.Mock
   export const mockBelongsToUser: jest.Mock
+  export const mockBelongsToWedding: jest.Mock
+  export const mockCountByIdsInWedding: jest.Mock
+  export const mockFindImportKeys: jest.Mock
+  export const mockUpdateRsvpPartyDetails: jest.Mock
   export const resetMocks: () => void
 }
 

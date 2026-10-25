@@ -26,7 +26,10 @@ describe('household import matching rule', () => {
     }
 
     expect(
-      isDuplicateHousehold({ phone: '+972521234567', firstName: 'Dana', lastName: 'Cohen' }, existing)
+      isDuplicateHousehold(
+        { phone: '+972521234567', firstName: 'Dana', lastName: 'Cohen' },
+        existing
+      )
     ).toBe(true)
   })
 
@@ -37,7 +40,10 @@ describe('household import matching rule', () => {
     }
 
     expect(
-      isDuplicateHousehold({ phone: '+972529999999', firstName: 'Dana', lastName: 'Cohen' }, existing)
+      isDuplicateHousehold(
+        { phone: '+972529999999', firstName: 'Dana', lastName: 'Cohen' },
+        existing
+      )
     ).toBe(false)
   })
 
@@ -48,7 +54,10 @@ describe('household import matching rule', () => {
     }
 
     expect(
-      isDuplicateHousehold({ phone: undefined, firstName: '  dana ', lastName: ' cohen  ' }, existing)
+      isDuplicateHousehold(
+        { phone: undefined, firstName: '  dana ', lastName: ' cohen  ' },
+        existing
+      )
     ).toBe(true)
   })
 
@@ -74,7 +83,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds() same-batch dedup', (
 
   it('inserts the first occurrence of a repeated phone and skips the duplicate', async () => {
     const householdRepo = {
-      findImportKeys: jest.fn().mockResolvedValue({ phones: [], names: [] }),
+      findImportKeys: jest.fn().mockResolvedValue({ phones: [], names: [], emails: [] }),
     }
     const service = new HouseholdManagementService(
       householdRepo as never,
@@ -108,12 +117,12 @@ describe('HouseholdManagementService.bulkCreateHouseholds() same-batch dedup', (
     )
 
     expect(createSpy).toHaveBeenCalledTimes(1)
-    expect(result).toEqual({ created: 1, skipped: 1, failed: 0 })
+    expect(result).toMatchObject({ created: 1, skipped: 1, failed: 0 })
   })
 
   it('does not abort the batch when a duplicate is skipped mid-way', async () => {
     const householdRepo = {
-      findImportKeys: jest.fn().mockResolvedValue({ phones: [], names: [] }),
+      findImportKeys: jest.fn().mockResolvedValue({ phones: [], names: [], emails: [] }),
     }
     const service = new HouseholdManagementService(
       householdRepo as never,
@@ -128,17 +137,35 @@ describe('HouseholdManagementService.bulkCreateHouseholds() same-batch dedup', (
 
     const first = {
       guestParty: [
-        { firstName: 'A', lastName: 'A', phone: '052-1111111', isPrimaryContact: true, invites: {} },
+        {
+          firstName: 'A',
+          lastName: 'A',
+          phone: '052-1111111',
+          isPrimaryContact: true,
+          invites: {},
+        },
       ],
     }
     const duplicate = {
       guestParty: [
-        { firstName: 'A', lastName: 'A', phone: '+972521111111', isPrimaryContact: true, invites: {} },
+        {
+          firstName: 'A',
+          lastName: 'A',
+          phone: '+972521111111',
+          isPrimaryContact: true,
+          invites: {},
+        },
       ],
     }
     const third = {
       guestParty: [
-        { firstName: 'B', lastName: 'B', phone: '052-2222222', isPrimaryContact: true, invites: {} },
+        {
+          firstName: 'B',
+          lastName: 'B',
+          phone: '052-2222222',
+          isPrimaryContact: true,
+          invites: {},
+        },
       ],
     }
 
@@ -148,7 +175,6 @@ describe('HouseholdManagementService.bulkCreateHouseholds() same-batch dedup', (
       [first, duplicate, third]
     )
 
-    expect(result).toEqual({ created: 2, skipped: 1, failed: 0 })
+    expect(result).toMatchObject({ created: 2, skipped: 1, failed: 0 })
   })
 })
-

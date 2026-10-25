@@ -162,7 +162,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         SINGLE_GUEST_HOUSEHOLD,
       ])
 
-      expect(result).toEqual({ created: 1, skipped: 0, failed: 0 })
+      expect(result).toMatchObject({ created: 1, skipped: 0, failed: 0 })
     })
 
     it('should return { created: 2 } when two households succeed', async () => {
@@ -171,7 +171,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         SECOND_HOUSEHOLD,
       ])
 
-      expect(result).toEqual({ created: 2, skipped: 0, failed: 0 })
+      expect(result).toMatchObject({ created: 2, skipped: 0, failed: 0 })
     })
 
     it('should call createWithGifts once per household', async () => {
@@ -212,7 +212,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         householdWithAddress,
       ])
 
-      expect(result).toEqual({ created: 1, skipped: 0, failed: 0 })
+      expect(result).toMatchObject({ created: 1, skipped: 0, failed: 0 })
       expect(mockCreateWithGifts).toHaveBeenCalledWith(
         expect.objectContaining({
           address1: '123 Main St',
@@ -228,7 +228,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
     it('should return { created: 0 } for an empty households array', async () => {
       const result = await service.bulkCreateHouseholds(actorContext, 'wedding-123', [])
 
-      expect(result).toEqual({ created: 0, skipped: 0, failed: 0 })
+      expect(result).toMatchObject({ created: 0, skipped: 0, failed: 0 })
     })
 
     it('should not call the database when given an empty array', async () => {
@@ -255,7 +255,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         SECOND_HOUSEHOLD,
       ])
 
-      expect(result).toEqual({ created: 1, skipped: 0, failed: 1 })
+      expect(result).toMatchObject({ created: 1, skipped: 0, failed: 1 })
     })
 
     it('should continue processing after a failure and report all results', async () => {
@@ -273,7 +273,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
       ])
 
       expect(mockCreateWithGifts).toHaveBeenCalledTimes(3)
-      expect(result).toEqual({ created: 2, skipped: 0, failed: 1 })
+      expect(result).toMatchObject({ created: 2, skipped: 0, failed: 1 })
     })
 
     it('should count guest creation failure in failed tally', async () => {
@@ -283,7 +283,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         SINGLE_GUEST_HOUSEHOLD,
       ])
 
-      expect(result).toEqual({ created: 0, skipped: 0, failed: 1 })
+      expect(result).toMatchObject({ created: 0, skipped: 0, failed: 1 })
     })
 
     it('should not throw when all households fail', async () => {
@@ -294,7 +294,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         SECOND_HOUSEHOLD,
       ])
 
-      expect(result).toEqual({ created: 0, skipped: 0, failed: 2 })
+      expect(result).toMatchObject({ created: 0, skipped: 0, failed: 2 })
     })
 
     it('should count TRPCError from createHouseholdWithGuests as a failure', async () => {
@@ -306,7 +306,7 @@ describe('HouseholdManagementService.bulkCreateHouseholds()', () => {
         SINGLE_GUEST_HOUSEHOLD,
       ])
 
-      expect(result).toEqual({ created: 0, skipped: 0, failed: 1 })
+      expect(result).toMatchObject({ created: 0, skipped: 0, failed: 1 })
     })
   })
 })

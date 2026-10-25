@@ -12,6 +12,7 @@ const fallbackWorkspace = {
     canSendInvites: false,
     canViewPlanning: false,
     canAccessSettings: false,
+    canDeleteAllGuests: false,
   },
 }
 

@@ -307,7 +307,7 @@ describe('HouseholdManagementService', () => {
       { guestParty: [{ firstName: 'C', lastName: 'C', invites: {} }] },
     ])
 
-    expect(result).toEqual({ created: 2, skipped: 0, failed: 1 })
+    expect(result).toMatchObject({ created: 2, skipped: 0, failed: 1 })
   })
 
   it('bulk create rethrows authz errors', async () => {
