@@ -44,6 +44,10 @@ const inviteTranslations: Record<string, string> = {
   toBeAnnounced: 'To be announced',
   addToCalendar: 'Add to your calendar',
   invitedHousehold: 'Invited household',
+  householdGreetingFamily: 'Hello, the {name} family',
+  householdGreetingFirstName: 'Hello, {name}',
+  rsvpHelper: "We'd love to know if you're coming",
+  confirmAttendance: 'Confirm attendance',
   formalInvitationNote:
     'Formal invitation details will follow. For now, please make sure we have the correct names and mailing address for your household.',
   updateDetails: 'Update our details',
@@ -55,7 +59,15 @@ const inviteTranslations: Record<string, string> = {
 
 jest.mock('next-intl/server', () => ({
   getLocale: () => Promise.resolve('en'),
-  getTranslations: () => Promise.resolve((key: string) => inviteTranslations[key] ?? key),
+  getTranslations: () =>
+    Promise.resolve((key: string, params?: Record<string, string | number>) => {
+      const template = inviteTranslations[key] ?? key
+      if (!params) return template
+      return Object.entries(params).reduce(
+        (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
+        template
+      )
+    }),
 }))
 
 jest.mock('~/components/website/household-invite/invalid-household-invite', () => ({
@@ -209,6 +221,44 @@ describe('household invite pages', () => {
     expect(screen.getByRole('button', { name: /apple calendar/i })).toBeInTheDocument()
   })
 
+  it('greets the recognised household by its primary contact and offers to RSVP when enabled', async () => {
+    mockCookieGet.mockReturnValue({ value: 'cookie-code' })
+    mockGetInviteData.mockResolvedValue({ ...inviteData, isRsvpEnabled: true })
+    const InvitePage = (await import('~/app/w/[websiteSubUrl]/save-the-date/page')).default
+
+    render(
+      await InvitePage({
+        params: Promise.resolve({ websiteSubUrl: 'harry-and-hermione' }),
+        searchParams: Promise.resolve({}),
+      })
+    )
+
+    // Ada Lovelace is the household's only (primary) guest, so the greeting
+    // uses her last name as the family name.
+    expect(screen.getByText('Hello, the Lovelace family')).toBeInTheDocument()
+    expect(screen.getByText("We'd love to know if you're coming")).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Confirm attendance' })).toHaveAttribute(
+      'href',
+      '/w/harry-and-hermione/rsvp'
+    )
+  })
+
+  it('omits the RSVP action when the website has not enabled RSVP', async () => {
+    mockCookieGet.mockReturnValue({ value: 'cookie-code' })
+    mockGetInviteData.mockResolvedValue({ ...inviteData, isRsvpEnabled: false })
+    const InvitePage = (await import('~/app/w/[websiteSubUrl]/save-the-date/page')).default
+
+    render(
+      await InvitePage({
+        params: Promise.resolve({ websiteSubUrl: 'harry-and-hermione' }),
+        searchParams: Promise.resolve({}),
+      })
+    )
+
+    expect(screen.getByText('Hello, the Lovelace family')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Confirm attendance' })).not.toBeInTheDocument()
+  })
+
   it('themes the invite card with the chosen template and the couple’s Save the Date copy', async () => {
     mockCookieGet.mockReturnValue({ value: 'cookie-token' })
     mockGetInviteData.mockResolvedValue({
@@ -323,5 +373,7 @@ describe('household invite pages', () => {
 
     expect(screen.getByText('We could not open this invitation.')).toBeInTheDocument()
     expect(screen.getByText(/ask the couple for a new one/i)).toBeInTheDocument()
+    expect(screen.queryByText(/^Hello,/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Confirm attendance' })).not.toBeInTheDocument()
   })
 })

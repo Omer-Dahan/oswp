@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { formatDateStandard } from '~/app/utils/helpers'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
+import { resolvePrimaryContactGreeting } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 import { AddToCalendarButtons } from '~/components/website/add-to-calendar-buttons'
 import { EnvelopeReveal } from '~/components/website/household-invite/envelope-reveal'
 import { InvalidHouseholdInvite } from '~/components/website/household-invite/invalid-household-invite'
@@ -125,6 +126,12 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
 
   const coupleNamesText = coupleNames(inviteData.wedding) ?? ''
 
+  // Greet the household by its primary contact so the page feels personal
+  // before the guest even reads the event details below.
+  const primaryContactGreeting = resolvePrimaryContactGreeting(
+    inviteData.guests.filter((guest) => guest.isTagAlong !== true)
+  )
+
   // Everything below is inherited from the wedding's events — no hardcoded copy.
   const datedEvents = inviteData.events
     .filter((event): event is typeof event & { date: Date } => event.date != null)
@@ -204,6 +211,22 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                   </h1>
                   <span className='mx-auto mt-6 block h-px w-16 bg-border' />
                 </div>
+
+                {primaryContactGreeting ? (
+                  <div className='mt-8 text-center sm:text-start'>
+                    <p className={`text-2xl ${headingFont}`}>
+                      {primaryContactGreeting.kind === 'family'
+                        ? t('householdGreetingFamily', { name: primaryContactGreeting.name })
+                        : t('householdGreetingFirstName', { name: primaryContactGreeting.name })}
+                    </p>
+                    <p className={`mt-1 text-muted-foreground ${labelFont}`}>{t('rsvpHelper')}</p>
+                    {inviteData.isRsvpEnabled ? (
+                      <Button asChild size='lg' className='mt-4'>
+                        <Link href={`/w/${websiteSubUrl}/rsvp`}>{t('confirmAttendance')}</Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className='mt-8 grid gap-6 border-border border-y py-8 text-center sm:grid-cols-2 sm:text-start'>
                   <div>
