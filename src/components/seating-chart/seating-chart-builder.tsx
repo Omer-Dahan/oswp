@@ -1,7 +1,7 @@
 'use client'
 
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
-import { Download, Plus } from 'lucide-react'
+import { Download, Plus, Wand2 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -9,6 +9,7 @@ import {
   createSeatingAnnouncements,
   SEATING_SCREEN_READER_INSTRUCTIONS,
 } from '~/components/seating-chart/seating-announcements'
+import { SeatingAutoSeatDialog } from '~/components/seating-chart/seating-auto-seat-dialog'
 import {
   type PendingChange,
   useOptimisticChart,
@@ -149,6 +150,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   // What opened the guest drawer, so focus can land somewhere sensible on close
   const drawerOpener = useRef<{ key: string; sidebarKeys: string[]; guestId: number } | null>(null)
   const [tableDialog, setTableDialog] = useState<TableDialogState>(null)
+  const [autoSeatOpen, setAutoSeatOpen] = useState(false)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   // Where focus returns when the table or delete dialog closes
   const tableDialogReturnKey = useRef(ADD_TABLE_FOCUS_KEY)
@@ -245,6 +247,16 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     onError: (error) => toast.error(error.message),
     onSettled: (_data, _error, input) =>
       utils.seating.getChart.invalidate({ eventId: input.eventId }),
+  })
+  const autoSeat = api.seating.autoSeat.useMutation({
+    onError: (error) => toast.error(error.message),
+    onSuccess: (result) => {
+      toast.success(
+        `שובצו ${result.seated} אורחים · ${result.createdTables} שולחנות חדשים · ${result.unseated} משפחות לא נכנסו`
+      )
+      setAutoSeatOpen(false)
+      router.refresh()
+    },
   })
   const deleteTable = api.seating.deleteTable.useMutation({
     onMutate: ({ id }) =>
@@ -506,6 +518,10 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
             <Download className='me-2 h-4 w-4' aria-hidden='true' />
             ייצוא CSV
           </Button>
+          <Button variant='outline' onClick={() => setAutoSeatOpen(true)} disabled={!chart}>
+            <Wand2 className='me-2 h-4 w-4' aria-hidden='true' />
+            שיבוץ אוטומטי
+          </Button>
           <Button
             data-seating-focus-key={ADD_TABLE_FOCUS_KEY}
             onClick={() => openTableDialog({ mode: 'create' })}
@@ -604,6 +620,15 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
               }
             : undefined
         }
+      />
+
+      <SeatingAutoSeatDialog
+        open={autoSeatOpen}
+        isSubmitting={autoSeat.isPending}
+        onOpenChange={setAutoSeatOpen}
+        onSubmit={(tableCapacity) => {
+          if (eventId) autoSeat.mutate({ eventId, tableCapacity, fillFreeSeatsOnly: true })
+        }}
       />
 
       <AlertDialog

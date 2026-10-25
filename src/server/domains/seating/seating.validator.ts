@@ -53,3 +53,9 @@ export const unassignGuestsSchema = z.object({
   eventId: z.string().min(1),
   guestIds: guestIdsSchema,
 })
+
+export const autoSeatSchema = z.object({
+  eventId: z.string().min(1),
+  tableCapacity: z.number().int().min(2).max(30).default(8),
+  fillFreeSeatsOnly: z.boolean().default(true),
+})
