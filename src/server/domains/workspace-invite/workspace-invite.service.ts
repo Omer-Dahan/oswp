@@ -12,6 +12,7 @@ import type {
   WorkspaceInviteInvalidReason,
   WorkspaceInviteLinkSummary,
   WorkspaceInvitePreviewResult,
+  WorkspaceMemberSummary,
 } from '~/server/domains/workspace-invite/workspace-invite.types'
 import type {
   AcceptWorkspaceInviteLinkInput,
@@ -62,10 +63,23 @@ type WorkspaceInviteLinkDelegate = {
   }) => Promise<WorkspaceInviteLinkRow>
 }
 
+type MemberRow = {
+  id: string
+  role: string
+  side: string | null
+  createdAt: Date
+  user: { name: string | null; email: string | null; image: string | null }
+}
+
 type MemberDelegate = {
   create: (args: {
     data: { id: string; organizationId: string; userId: string; role: string; side: string | null }
   }) => Promise<unknown>
+  findMany: (args: {
+    where: { organizationId: string }
+    orderBy: { createdAt: 'asc' }
+    include: { user: { select: { name: true; email: true; image: true } } }
+  }) => Promise<MemberRow[]>
 }
 
 type WorkspaceInviteTx = Pick<PrismaClient, 'wedding' | 'user'> & {
@@ -75,6 +89,7 @@ type WorkspaceInviteTx = Pick<PrismaClient, 'wedding' | 'user'> & {
 
 type WorkspaceInviteDb = Pick<PrismaClient, 'wedding' | 'user'> & {
   workspaceInviteLink: WorkspaceInviteLinkDelegate
+  member: MemberDelegate
   $transaction: <T>(fn: (tx: WorkspaceInviteTx) => Promise<T>) => Promise<T>
 }
 
@@ -168,6 +183,29 @@ export class WorkspaceInviteService {
       expiresAt: link.expiresAt,
       revokedAt: link.revokedAt,
       createdAt: link.createdAt,
+    }))
+  }
+
+  async listMembers(weddingId: string): Promise<WorkspaceMemberSummary[]> {
+    const wedding = await this.db.wedding.findUnique({
+      where: { id: weddingId },
+      select: { organizationId: true },
+    })
+
+    if (!wedding?.organizationId) return []
+
+    const members = await this.db.member.findMany({
+      where: { organizationId: wedding.organizationId },
+      orderBy: { createdAt: 'asc' },
+      include: { user: { select: { name: true, email: true, image: true } } },
+    })
+
+    return members.map((member) => ({
+      id: member.id,
+      role: member.role,
+      side: member.side,
+      createdAt: member.createdAt,
+      user: member.user,
     }))
   }
 
