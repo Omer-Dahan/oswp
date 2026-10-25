@@ -8,7 +8,7 @@ import {
   downloadGuestCsvTemplate,
   type GuestCsvRowOutput,
   type ParsedCsvRow,
-  parseCsvFile,
+  parseSpreadsheetFile,
 } from '~/components/guest-list/guest-csv-import.schema'
 import { Button } from '~/components/ui/button'
 import {
@@ -135,11 +135,11 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
     setFileName(file.name)
     setIsParsing(true)
     try {
-      const rows = await parseCsvFile(file)
+      const rows = await parseSpreadsheetFile(file)
       setParsedRows(rows)
       setStep('preview')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'קריאת קובץ ה-CSV נכשלה'
+      const message = err instanceof Error ? err.message : 'קריאת הקובץ נכשלה'
       toast.error(message)
     } finally {
       setIsParsing(false)
@@ -179,9 +179,10 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
         {step === 'upload' ? (
           <>
             <DialogHeader>
-              <DialogTitle>ייבוא אורחים מ-CSV</DialogTitle>
+              <DialogTitle>ייבוא אורחים מקובץ</DialogTitle>
               <DialogDescription>
-                העלו קובץ CSV כדי להוסיף אורחים בכמות. כל שורה הופכת למשק בית אחד.
+                העלו קובץ CSV או Excel (.xlsx) כדי להוסיף אורחים בכמות. כל שורה הופכת למשק בית
+                אחד.
                 <span className='block'>
                   מספר הטלפון חייב להיות בפורמט E.164 (לדוגמה: +12025550123).
                 </span>
@@ -190,9 +191,12 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
 
             <FileDropzone
               onFile={handleFile}
-              accept={{ 'text/csv': ['.csv'] }}
-              label='גררו ושחררו קובץ CSV, או לחצו לבחירה'
-              sublabel='קובצי .csv בלבד'
+              accept={{
+                'text/csv': ['.csv'],
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+              }}
+              label='גררו ושחררו קובץ CSV או Excel, או לחצו לבחירה'
+              sublabel='קובצי .csv ו-.xlsx'
               disabled={isParsing}
             />
 

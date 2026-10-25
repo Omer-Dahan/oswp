@@ -5,6 +5,7 @@
  * component stays focused on UI orchestration only.
  */
 
+import type ExcelJS from 'exceljs'
 import Papa from 'papaparse'
 import { z } from 'zod'
 
@@ -269,40 +270,88 @@ function rowsToRawCsvRow(headers: string[], values: string[]): RawCsvRow {
 
 const MAX_CSV_ROWS = 500
 
+function rowsToParsedRows(data: string[][]): ParsedCsvRow[] {
+  const dataRowCount = Math.max(data.length - 1, 0)
+  if (dataRowCount > MAX_CSV_ROWS) {
+    throw new Error(`CSV exceeds the ${MAX_CSV_ROWS}-row limit (found ${dataRowCount} rows)`)
+  }
+  const headerRowIndex = detectHeaderRowIndex(data)
+  const headers = data[headerRowIndex]?.map(transformHeader) ?? []
+  const dataRows = data.slice(headerRowIndex + 1)
+
+  return dataRows.map((values, index) => {
+    const raw = normalizeRow(rowsToRawCsvRow(headers, values))
+    const result = guestCsvRowSchema.safeParse(raw)
+    const rowNumber = headerRowIndex + index + 2
+    if (result.success) {
+      return { rowNumber, raw, valid: true as const, data: result.data }
+    }
+    return {
+      rowNumber,
+      raw,
+      valid: false as const,
+      errors: result.error.issues.map((i) => i.message),
+    }
+  })
+}
+
 export function parseCsvFile(file: File): Promise<ParsedCsvRow[]> {
   return new Promise((resolve, reject) => {
     Papa.parse<string[]>(file, {
       header: false,
       skipEmptyLines: true,
       complete: ({ data }) => {
-        const dataRowCount = Math.max(data.length - 1, 0)
-        if (dataRowCount > MAX_CSV_ROWS) {
-          reject(new Error(`CSV exceeds the ${MAX_CSV_ROWS}-row limit (found ${dataRowCount} rows)`))
-          return
+        try {
+          resolve(rowsToParsedRows(data))
+        } catch (err) {
+          reject(err)
         }
-        const headerRowIndex = detectHeaderRowIndex(data)
-        const headers = data[headerRowIndex]?.map(transformHeader) ?? []
-        const dataRows = data.slice(headerRowIndex + 1)
-
-        const rows = dataRows.map((values, index) => {
-          const raw = normalizeRow(rowsToRawCsvRow(headers, values))
-          const result = guestCsvRowSchema.safeParse(raw)
-          const rowNumber = headerRowIndex + index + 2
-          if (result.success) {
-            return { rowNumber, raw, valid: true as const, data: result.data }
-          }
-          return {
-            rowNumber,
-            raw,
-            valid: false as const,
-            errors: result.error.issues.map((i) => i.message),
-          }
-        })
-        resolve(rows)
       },
       error: (err) => {
         reject(err)
       },
     })
   })
+}
+
+function cellToText(cell: ExcelJS.Cell): string {
+  const text = cell.text
+  return text ?? ''
+}
+
+function isRowEmpty(row: string[]): boolean {
+  return row.every((cell) => cell.trim() === '')
+}
+
+async function parseXlsxFile(file: File): Promise<ParsedCsvRow[]> {
+  const ExcelJS = (await import('exceljs')).default
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(await file.arrayBuffer())
+  const worksheet = workbook.worksheets[0]
+  if (!worksheet) return []
+
+  const data: string[][] = []
+  worksheet.eachRow({ includeEmpty: true }, (row) => {
+    const values: string[] = []
+    for (let i = 1; i <= row.cellCount; i++) {
+      values.push(cellToText(row.getCell(i)))
+    }
+    data.push(values)
+  })
+
+  while (data.length > 0 && isRowEmpty(data[data.length - 1]!)) {
+    data.pop()
+  }
+
+  return rowsToParsedRows(data)
+}
+
+export async function parseSpreadsheetFile(file: File): Promise<ParsedCsvRow[]> {
+  const extension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+  if (extension === '.csv') return parseCsvFile(file)
+  if (extension === '.xlsx') return parseXlsxFile(file)
+  if (extension === '.xls') {
+    throw new Error('קבצי .xls אינם נתמכים — שמרו את הגיליון כ-.xlsx')
+  }
+  throw new Error('סוג קובץ לא נתמך — .csv או .xlsx בלבד')
 }
