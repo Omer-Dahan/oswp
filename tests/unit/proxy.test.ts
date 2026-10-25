@@ -266,6 +266,21 @@ describe('proxy', () => {
     expect(mixedBatchResponse.headers.get('location')).toContain('/auth/sign-in')
   })
 
+  it('allows anonymous access to the team invite page and its tRPC procedures', async () => {
+    mockGetSessionCookie.mockReturnValue(null)
+
+    const [pageResponse, previewResponse, acceptResponse] = await Promise.all([
+      proxy(createRequest('/team/sample-token')),
+      proxy(createRequest('/api/trpc/workspaceInvite.preview', undefined, '?batch=1')),
+      proxy(createRequest('/api/trpc/workspaceInvite.accept', undefined, '?batch=1')),
+    ])
+
+    expect(pageResponse.headers.get('location')).toBeNull()
+    expect(previewResponse.headers.get('location')).toBeNull()
+    expect(acceptResponse.headers.get('location')).toBeNull()
+    expect(mockGetSessionCookie).not.toHaveBeenCalled()
+  })
+
   it('does not treat the legacy root-level invite path as public anymore', async () => {
     mockGetSessionCookie.mockReturnValue(null)
 
