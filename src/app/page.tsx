@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '~/components/ui/button'
 import { auth } from '~/lib/auth'
 import { formatDateStandard } from '~/app/utils/helpers'
+import { coupleNamesHe } from '~/lib/wedding/couple-name'
 import { db } from '~/server/db'
 
 export const dynamic = 'force-dynamic'
@@ -45,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: { absolute: `${cover.brideFirstName} ו${cover.groomFirstName}` },
+    title: { absolute: coupleNamesHe(cover) ?? 'האתר בהקמה' },
   }
 }
 
@@ -75,7 +76,7 @@ export default async function Home() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center'>
       <h1 className='font-display font-normal text-[clamp(2.5rem,6vw,4.5rem)] leading-tight tracking-tight'>
-        {cover.brideFirstName} ו{cover.groomFirstName}
+        {coupleNamesHe(cover)}
       </h1>
 
       <div className='flex flex-col gap-1 font-serif text-muted-foreground text-lg'>

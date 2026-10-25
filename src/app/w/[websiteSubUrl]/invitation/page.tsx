@@ -5,6 +5,7 @@ import { loadVisitorWedding } from '~/app/w/[websiteSubUrl]/_lib/load-visitor-we
 import { grantWebsiteAccess } from '~/app/w/[websiteSubUrl]/_lib/website-access'
 import PasswordPage from '~/components/website/password-page'
 import WeddingSurface from '~/components/website/wedding-surface'
+import { coupleNames } from '~/lib/wedding/couple-name'
 
 type InvitationPageProps = {
   params: Promise<{
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: InvitationPageProps): Promise
   return {
     title:
       loadResult.status === 'ready'
-        ? `Invitation — ${loadResult.weddingData.groomFirstName} & ${loadResult.weddingData.brideFirstName}`
+        ? `Invitation — ${coupleNames(loadResult.weddingData) ?? ''}`
         : 'Invitation',
   }
 }

@@ -12,6 +12,7 @@ import { InvalidHouseholdInvite } from '~/components/website/household-invite/in
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
 import { householdInviteCookieName } from '~/lib/website/cookies'
 import { departByLabel, resolveWazeUrl, venueQuery } from '~/lib/website/maps'
+import { coupleNames } from '~/lib/wedding/couple-name'
 import { householdInviteService } from '~/server/application/household-invite'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
 
@@ -53,13 +54,13 @@ const formatEventDateRange = (first: Date, last: Date, locale: string) => {
 }
 
 const buildSaveTheDateDescription = (
-  coupleNames: string,
+  coupleNamesText: string,
   dateLabel: string | undefined,
   venue: string | null
 ) => {
   const when = dateLabel ? ` on ${dateLabel}` : ''
   const where = venue ? ` in ${venue}` : ''
-  return `${coupleNames} are getting married${when}${where}. Open your household save the date to confirm your details.`
+  return `${coupleNamesText} are getting married${when}${where}. Open your household save the date to confirm your details.`
 }
 
 export async function generateMetadata({ params }: SaveTheDatePageProps): Promise<Metadata> {
@@ -81,10 +82,10 @@ export async function generateMetadata({ params }: SaveTheDatePageProps): Promis
   const summary = await householdInviteService.getPublicWeddingSummary(websiteSubUrl)
   if (!summary) return baseMetadata
 
-  const coupleNames = `${summary.groomFirstName} & ${summary.brideFirstName}`
-  const title = `Save the Date — ${coupleNames}'s Wedding`
+  const coupleNamesText = coupleNames(summary) ?? ''
+  const title = `Save the Date — ${coupleNamesText}'s Wedding`
   const description = buildSaveTheDateDescription(
-    coupleNames,
+    coupleNamesText,
     formatDateStandard(summary.date),
     summary.venue
   )
@@ -122,7 +123,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
   const template = resolveTemplate(inviteData.templateId)
   const saveTheDateCopy = inviteData.saveTheDate
 
-  const coupleNames = `${inviteData.wedding.groomFirstName} & ${inviteData.wedding.brideFirstName}`
+  const coupleNamesText = coupleNames(inviteData.wedding) ?? ''
 
   // Everything below is inherited from the wedding's events — no hardcoded copy.
   const datedEvents = inviteData.events
@@ -152,9 +153,9 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
   const depart = departByLabel(locationEvent?.startTime)
 
   const calendarLinks = buildSaveTheDateCalendarLinks({
-    title: `${coupleNames} Wedding`,
+    title: `${coupleNamesText} Wedding`,
     description: [
-      `Save the date for the wedding of ${coupleNames}! Formal invitation to follow.`,
+      `Save the date for the wedding of ${coupleNamesText}! Formal invitation to follow.`,
       wazeUrl ? `נווט לאולם בוויז: ${wazeUrl}` : null,
       depart,
     ]
@@ -175,7 +176,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
 
         <div className='mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-2xl items-center'>
           <EnvelopeReveal
-            coupleNames={coupleNames}
+            coupleNames={coupleNamesText}
             coupleNameClassName={headingFont}
             websiteSubUrl={websiteSubUrl}
           >
@@ -199,7 +200,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                     {saveTheDateCopy?.eyebrow ?? t('saveTheDate')}
                   </p>
                   <h1 className={`mt-4 text-5xl italic leading-none sm:text-7xl ${headingFont}`}>
-                    {coupleNames}
+                    {coupleNamesText}
                   </h1>
                   <span className='mx-auto mt-6 block h-px w-16 bg-border' />
                 </div>

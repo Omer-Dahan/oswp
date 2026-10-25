@@ -44,7 +44,7 @@
     "saveDetails": "שמירת הפרטים"
   },
   "rsvp": {
-    "weddingTitle": "החתונה של {brideFirstName} ו{groomFirstName}",
+    "weddingTitle": "החתונה של {groomFirstName} ו{brideFirstName}",
     "groupNote": "הזינו שם פרטי ושם משפחה כדי למצוא את ההזמנה שלכם. אם אתם משיבים בשם עצמכם ואורח נוסף (או בשם המשפחה), תוכלו לאשר הגעה עבור כל הקבוצה.",
     "fullNamePlaceholder": "שם פרטי ושם משפחה",
     "notFound": "אופס! יש לנו קושי למצוא את ההזמנה שלכם. אנא הזינו שם פרטי ושם משפחה מלאים, נסו איות אחר, או פנו לבני הזוג.",
@@ -57,7 +57,7 @@
     "accepted": "אושרה הגעה",
     "decline": "סירוב",
     "declined": "הגעה נדחתה",
-    "sendRsvpTitle": "שלב אחרון! שליחת אישור ההגעה לחתונה של {brideFirstName} ו{groomFirstName}",
+    "sendRsvpTitle": "שלב אחרון! שליחת אישור ההגעה לחתונה של {groomFirstName} ו{brideFirstName}",
     "sendEmailConfirmation": "שלחו לי אישור הגעה בדוא\"ל",
     "emailPlaceholder": "דוא\"ל",
     "sendRsvp": "שליחת אישור הגעה",

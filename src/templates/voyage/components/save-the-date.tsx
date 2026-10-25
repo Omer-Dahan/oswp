@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { AddToCalendarButtons } from '~/components/website/add-to-calendar-buttons'
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
+import { coupleNames } from '~/lib/wedding/couple-name'
 import type { TemplateSurfaceProps } from '~/templates/types'
 import { HeroBackground } from '~/templates/voyage/components/media'
 import {
@@ -20,10 +21,10 @@ export function VoyageSaveTheDate({ weddingData, path }: Readonly<TemplateSurfac
   const venue = weddingEvent?.venue ?? null
   const dateLabel = weddingData.date?.standardFormat ?? 'Date to be announced'
   const copy = weddingData.saveTheDate
-  const coupleNames = `${weddingData.brideFirstName} & ${weddingData.groomFirstName}`
+  const coupleNamesText = coupleNames(weddingData) ?? ''
   const calendarLinks = buildSaveTheDateCalendarLinks({
-    title: `${coupleNames} Wedding`,
-    description: `Save the date for the wedding of ${coupleNames}! Formal invitation to follow. ${website.url}`,
+    title: `${coupleNamesText} Wedding`,
+    description: `Save the date for the wedding of ${coupleNamesText}! Formal invitation to follow. ${website.url}`,
     location: venue ?? undefined,
     events: weddingData.events,
   })
@@ -34,9 +35,9 @@ export function VoyageSaveTheDate({ weddingData, path }: Readonly<TemplateSurfac
         <div className='mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-8 px-6 py-24 text-center text-[#F7F3EC]'>
           <Eyebrow className='text-[#D3BD8A]'>{copy?.eyebrow ?? 'Save the Date'}</Eyebrow>
           <h1 className={`${headingFont} font-light text-5xl italic sm:text-7xl`}>
-            {weddingData.brideFirstName}
-            <span className='mx-3 inline-block -translate-y-[0.08em] align-middle text-[0.83em] text-[#D1B879] not-italic'>&amp;</span>
             {weddingData.groomFirstName}
+            <span className='mx-3 inline-block -translate-y-[0.08em] align-middle text-[0.83em] text-[#D1B879] not-italic'>&amp;</span>
+            {weddingData.brideFirstName}
           </h1>
           <GoldRule className='bg-[#D3BD8A]/70' />
           <p

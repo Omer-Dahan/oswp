@@ -15,6 +15,7 @@ import {
 import { DASHBOARD_ADD_TASK_EVENT } from '~/components/dashboard/task-dialog-events'
 import { Button } from '~/components/ui/button'
 import { Skeleton } from '~/components/ui/skeleton'
+import { coupleNames } from '~/lib/wedding/couple-name'
 import type { EventWithStats } from '~/server/domains/event'
 import { api } from '~/trpc/react'
 
@@ -85,9 +86,7 @@ function getCountdownHeading(days: number): { lead: string; tail: string } {
 
 function TodayHero({ dashboardData }: { dashboardData: DashboardData | null }) {
   const weddingData = dashboardData?.weddingData
-  const bride = weddingData?.brideFirstName ?? ''
-  const groom = weddingData?.groomFirstName ?? ''
-  const coupleName = bride && groom ? `${bride} & ${groom}` : bride || groom || 'החתונה שלכם'
+  const coupleName = coupleNames(weddingData ?? {}) ?? 'החתונה שלכם'
   const hasDate = weddingData?.daysRemaining != null && weddingData.daysRemaining >= 0
   const dateLabel = weddingData?.date?.standardFormat ?? ''
   const location = weddingData?.location ?? ''

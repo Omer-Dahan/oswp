@@ -44,7 +44,7 @@
     "saveDetails": "Guardar datos"
   },
   "rsvp": {
-    "weddingTitle": "Boda de {brideFirstName} & {groomFirstName}",
+    "weddingTitle": "Boda de {groomFirstName} & {brideFirstName}",
     "groupNote": "Ingresa tu nombre y apellido para encontrar tu invitación. Si vas a responder por ti y un acompañante (o por tu familia), podrás confirmar asistencia para todo tu grupo.",
     "fullNamePlaceholder": "Nombre y apellido",
     "notFound": "¡Ups! Tuvimos problemas para encontrar tu invitación. Ingresa tu nombre y apellido completos, prueba otra ortografía o contacta a la pareja.",
@@ -57,7 +57,7 @@
     "accepted": "Aceptado",
     "decline": "Declinar",
     "declined": "Declinado",
-    "sendRsvpTitle": "¡último paso! envía tu confirmación de asistencia a la boda de {brideFirstName} & {groomFirstName}",
+    "sendRsvpTitle": "¡último paso! envía tu confirmación de asistencia a la boda de {groomFirstName} & {brideFirstName}",
     "sendEmailConfirmation": "Enviarme una confirmación por correo electrónico",
     "emailPlaceholder": "Correo electrónico",
     "sendRsvp": "ENVIAR CONFIRMACIÓN",
