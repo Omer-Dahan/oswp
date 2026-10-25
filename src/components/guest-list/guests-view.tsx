@@ -48,6 +48,9 @@ import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
+const partySize = (household: HouseholdWithGuests): number =>
+  household.invitedCount ?? household.guests.length
+
 type GuestsViewProps = {
   events: Event[]
   households: HouseholdWithGuests[]
@@ -112,16 +115,18 @@ export default function GuestsView({
     let guests = 0
     let tagAlongs = 0
     for (const household of filteredHouseholds ?? []) {
+      guests += partySize(household)
       for (const guest of household.guests) {
-        if (guest.isTagAlong) {
-          tagAlongs += 1
-        } else {
-          guests += 1
-        }
+        if (guest.isTagAlong) tagAlongs += 1
       }
     }
     return { totalGuests: guests, totalTagAlongs: tagAlongs }
   }, [filteredHouseholds])
+
+  const totalUnfilteredGuests = useMemo(
+    () => households.reduce((sum, household) => sum + partySize(household), 0),
+    [households]
+  )
 
   useEffect(() => {
     setFilteredHouseholds(households)
@@ -156,7 +161,7 @@ export default function GuestsView({
 
     if (partySort !== 'none') {
       const direction = partySort === 'ascending' ? 1 : -1
-      return [...filteredHouseholds].sort((a, b) => (a.guests.length - b.guests.length) * direction)
+      return [...filteredHouseholds].sort((a, b) => (partySize(a) - partySize(b)) * direction)
     }
 
     return filteredHouseholds
@@ -704,6 +709,8 @@ export default function GuestsView({
         <ListToolbar
           totalHouseholds={sortedHouseholds.length}
           totalUnfilteredHouseholds={households.length}
+          totalGuests={totalGuests}
+          totalUnfilteredGuests={totalUnfilteredGuests}
           onSortByName={sortByName}
           onSortByPartySize={sortByParty}
           viewMode={viewMode}
