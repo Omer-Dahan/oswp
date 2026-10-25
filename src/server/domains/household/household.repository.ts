@@ -314,6 +314,18 @@ export class HouseholdRepository {
   }
 
   /**
+   * Delete every household for a wedding in one statement. Cascades to
+   * guests, invitations, seat assignments, tag assignments, answers, option
+   * responses, gifts, and household notes.
+   */
+  async deleteAllForWedding(weddingId: string): Promise<number> {
+    const result = await this.db.household.deleteMany({
+      where: { weddingId },
+    })
+    return result.count
+  }
+
+  /**
    * Search households by guest name.
    *
    * The search text is split on whitespace and every term must match some

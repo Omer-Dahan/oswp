@@ -86,6 +86,14 @@ export const householdRouter = createTRPCRouter({
   }),
 
   /**
+   * Delete every household (and all cascading guest data) for the current wedding
+   */
+  deleteAll: protectedProcedure.mutation(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return householdManagementService.deleteAllHouseholds(ctx.authz, weddingId)
+  }),
+
+  /**
    * Search households by guest name (authenticated coordinator flow)
    */
   findBySearch: protectedProcedure.input(searchHouseholdSchema).query(async ({ ctx, input }) => {
