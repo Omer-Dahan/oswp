@@ -24,6 +24,7 @@ import {
 import {
   HouseholdRepository,
   mockCountByIdsInWedding as mockHouseholdCountByIdsInWedding,
+  mockUpdateRsvpPartyDetails,
   resetMocks as resetHouseholdMocks,
 } from '~/server/domains/household/household.repository'
 import {
@@ -282,6 +283,48 @@ describe('RsvpSubmissionService', () => {
         response: 'Other: pescatarian',
       })
     )
+  })
+
+  it('writes the household RSVP party details alongside the per-guest invitation updates', async () => {
+    const result = await service.submitRsvp(
+      {
+        rsvpResponses: [
+          { eventId: 'event-123', guestId: 1, rsvp: 'Attending' },
+          { eventId: 'event-123', guestId: 2, rsvp: 'Declined' },
+        ],
+        answersToQuestions: [],
+      },
+      {
+        householdId: 'household-123',
+        attendingCount: 4,
+        childrenCount: 2,
+        dietaryNotes: 'No nuts for guest 1',
+      }
+    )
+
+    expect(result).toEqual({ success: true })
+    expect(mockUpdate).toHaveBeenCalledWith(1, 'event-123', {
+      rsvp: 'Attending',
+      submittedAt: expect.any(Date),
+    })
+    expect(mockUpdate).toHaveBeenCalledWith(2, 'event-123', {
+      rsvp: 'Declined',
+      submittedAt: expect.any(Date),
+    })
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
+      attendingCount: 4,
+      childrenCount: 2,
+      dietaryNotes: 'No nuts for guest 1',
+    })
+  })
+
+  it('does not touch the household row when no party details are submitted', async () => {
+    await service.submitRsvp({
+      rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
+      answersToQuestions: [],
+    })
+
+    expect(mockUpdateRsvpPartyDetails).not.toHaveBeenCalled()
   })
 
   it('resolves the wedding from the subUrl and submits (no token needed)', async () => {

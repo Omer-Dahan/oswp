@@ -47,6 +47,10 @@ export const rsvpHouseholdSelect = {
  */
 export const publicRsvpHouseholdSelect = {
   id: true,
+  invitedCount: true,
+  attendingCount: true,
+  childrenCount: true,
+  dietaryNotes: true,
   guests: {
     select: {
       id: true,
@@ -300,6 +304,29 @@ export class HouseholdRepository {
         zipCode: data.zipCode ?? undefined,
         likelihoodOfAttending: data.likelihoodOfAttending ?? undefined,
         notes: data.notes ?? undefined,
+      },
+    })
+  }
+
+  /**
+   * Set the party-size, children count, and dietary notes a guest reported on
+   * the public RSVP flow. Nulls are written explicitly (not skipped) so a
+   * returning guest can clear a previously reported value.
+   */
+  async updateRsvpPartyDetails(
+    id: string,
+    data: {
+      attendingCount: number | null
+      childrenCount: number | null
+      dietaryNotes: string | null
+    }
+  ): Promise<void> {
+    await this.db.household.update({
+      where: { id },
+      data: {
+        attendingCount: data.attendingCount,
+        childrenCount: data.childrenCount,
+        dietaryNotes: data.dietaryNotes,
       },
     })
   }

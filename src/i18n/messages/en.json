@@ -64,7 +64,15 @@
     "confirmationTitle": "all set! here's what we sent {brideFirstName} & {groomFirstName}",
     "backToHomepage": "BACK TO HOMEPAGE",
     "yourRsvpResponse": "Your RSVP Response",
-    "updateResponse": "Update Response"
+    "updateResponse": "Update Response",
+    "whoIsComingTitle": "Who's coming?",
+    "totalAttendingLabel": "Total attending",
+    "extraGuestsLabel": "Additional guests",
+    "maxGuestsHint": "You can select up to {max} guests",
+    "childrenCountTitle": "How many children (under 10) are coming?",
+    "childrenCountHelper": "The venue orders kids' meals based on this number",
+    "dietaryNotesTitle": "Dietary restrictions or allergies",
+    "dietaryNotesHelper": "Tell us who and what, the kitchen will get this as-is"
   },
   "questions": {
     "other": "Other",

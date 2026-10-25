@@ -18,7 +18,7 @@ import type {
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import type { GuestRepository } from '~/server/domains/guest/guest.repository'
-import type { HouseholdRepository } from '~/server/domains/household/household.repository'
+import { HouseholdRepository } from '~/server/domains/household/household.repository'
 import { InvitationRepository } from '~/server/domains/invitation/invitation.repository'
 import { QuestionRepository } from '~/server/domains/question/question.repository'
 import type { WeddingRepository } from '~/server/domains/wedding/wedding.repository'
@@ -87,10 +87,18 @@ export class RsvpSubmissionService {
       })
     }
 
-    return this.submitRsvp({
-      rsvpResponses: allowedRsvpResponses,
-      answersToQuestions: data.answersToQuestions,
-    })
+    return this.submitRsvp(
+      {
+        rsvpResponses: allowedRsvpResponses,
+        answersToQuestions: data.answersToQuestions,
+      },
+      {
+        householdId: data.householdId,
+        attendingCount: data.attendingCount,
+        childrenCount: data.childrenCount,
+        dietaryNotes: data.dietaryNotes,
+      }
+    )
   }
 
   /**
@@ -125,10 +133,19 @@ export class RsvpSubmissionService {
     })
   }
 
-  async submitRsvp(data: SubmitRsvpSchemaInput): Promise<{ success: boolean }> {
+  async submitRsvp(
+    data: SubmitRsvpSchemaInput,
+    householdPartyDetails?: {
+      householdId: string
+      attendingCount?: number | null
+      childrenCount?: number | null
+      dietaryNotes?: string | null
+    }
+  ): Promise<{ success: boolean }> {
     await this.db.$transaction(async (tx) => {
       const txInvitationRepo = new InvitationRepository(tx)
       const txQuestionRepo = new QuestionRepository(tx)
+      const txHouseholdRepo = new HouseholdRepository(tx)
 
       await Promise.all(
         data.rsvpResponses.map(async (response: RsvpResponse) => {
@@ -148,6 +165,14 @@ export class RsvpSubmissionService {
           }
         })
       )
+
+      if (householdPartyDetails) {
+        await txHouseholdRepo.updateRsvpPartyDetails(householdPartyDetails.householdId, {
+          attendingCount: householdPartyDetails.attendingCount ?? null,
+          childrenCount: householdPartyDetails.childrenCount ?? null,
+          dietaryNotes: householdPartyDetails.dietaryNotes ?? null,
+        })
+      }
     })
 
     return { success: true }

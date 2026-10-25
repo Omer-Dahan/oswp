@@ -7,12 +7,15 @@ import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-
 import { useConfirmReloadPage } from '~/components/hooks'
 import { AsyncState } from '~/components/ui/async-state'
 import MultistepRsvpForm from '~/components/website/forms/multi-step-form'
+import ChildrenCountForm from '~/components/website/forms/steps/children-count'
 import ConfirmNameForm from '~/components/website/forms/steps/confirm-name'
+import DietaryNotesForm from '~/components/website/forms/steps/dietary-notes'
 import EventRsvpForm from '~/components/website/forms/steps/event-rsvp'
 import FindYourInvitationForm from '~/components/website/forms/steps/find-your-invitation'
 import QuestionMultipleChoice from '~/components/website/forms/steps/question-multiple-choice'
 import QuestionShortAnswer from '~/components/website/forms/steps/question-short-answer'
 import SendRsvp from '~/components/website/forms/steps/send-rsvp'
+import WhoIsComingForm from '~/components/website/forms/steps/who-is-coming'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
@@ -48,7 +51,9 @@ const getMutationErrorMessage = (error: unknown, fallback: string): string => {
   return fallback
 }
 
-const NUM_STATIC_STEPS = 4 // find invitation step, confirm household step, final step, and confirmation
+// find invitation, confirm household, who-is-coming, children-count,
+// dietary-notes, final step, and confirmation
+const NUM_STATIC_STEPS = 7
 
 export const shouldConfirmRsvpClose = ({
   currentStep,
@@ -198,6 +203,9 @@ export default function MainRsvpForm({
             subUrl,
             householdId,
             ...(token ? { token } : {}),
+            attendingCount: rsvpFormData.attendingCount,
+            childrenCount: rsvpFormData.childrenCount,
+            dietaryNotes: rsvpFormData.dietaryNotes,
             rsvpResponses: rsvpFormData.rsvpResponses.map((response) => ({
               eventId: response.eventId,
               guestId: response.guestId,
@@ -213,6 +221,9 @@ export default function MainRsvpForm({
         <MultistepRsvpForm currentStep={currentStep} setCurrentStep={setCurrentStep}>
           <FindYourInvitationForm accessToken={accessToken} />
           <ConfirmNameForm />
+          <WhoIsComingForm />
+          <ChildrenCountForm />
+          <DietaryNotesForm />
           {...generateDynamicStepForms()}
           <SendRsvp isFetching={submitRsvpForm.isPending} />
           <RsvpConfirmation basePath={basePath} setCurrentStep={setCurrentStep} />
@@ -242,7 +253,7 @@ const ProgressBar = ({
       <button
         type='button'
         aria-label='סגרו טופס RSVP'
-        className='absolute top-3 end-20 z-20 rounded-md text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+        className='absolute end-20 top-3 z-20 rounded-md text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
         onClick={() => {
           if (
             !shouldConfirmRsvpClose({ currentStep, numSteps }) ||
@@ -254,12 +265,12 @@ const ProgressBar = ({
       >
         <IoMdClose size={22} />
       </button>
-      <h1 className='font-[family-name:var(--tpl-heading-font)] py-2 text-foreground text-lg tracking-wide'>
+      <h1 className='py-2 font-[family-name:var(--tpl-heading-font)] text-foreground text-lg tracking-wide'>
         RSVP
       </h1>
       <div className='relative h-1 w-full overflow-hidden rounded-full bg-border'>
         <div
-          className='absolute top-0 start-0 h-1 rounded-full bg-primary transition-[width]'
+          className='absolute start-0 top-0 h-1 rounded-full bg-primary transition-[width]'
           style={{
             width: currentStep < 3 ? '3%' : currentStep === numSteps - 1 ? '99%' : `${progress}%`,
           }}

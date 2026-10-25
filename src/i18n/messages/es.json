@@ -64,7 +64,15 @@
     "confirmationTitle": "¡listo! esto es lo que le enviamos a {brideFirstName} & {groomFirstName}",
     "backToHomepage": "REGRESAR AL INICIO",
     "yourRsvpResponse": "Tu confirmación de asistencia",
-    "updateResponse": "Actualizar respuesta"
+    "updateResponse": "Actualizar respuesta",
+    "whoIsComingTitle": "¿Quién viene?",
+    "totalAttendingLabel": "Total de asistentes",
+    "extraGuestsLabel": "Invitados adicionales",
+    "maxGuestsHint": "Puedes elegir hasta {max} invitados",
+    "childrenCountTitle": "¿Cuántos niños (menores de 10 años) vienen?",
+    "childrenCountHelper": "El lugar pide los menús infantiles según este número",
+    "dietaryNotesTitle": "Restricciones o alergias alimentarias",
+    "dietaryNotesHelper": "Indica para quién y qué, la cocina lo recibirá tal cual"
   },
   "questions": {
     "other": "Otra opción",

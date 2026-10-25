@@ -118,6 +118,12 @@ export const submitPublicRsvpSchema = z
     // rewrite another household's RSVPs even though every guestId still
     // belongs to the same wedding.
     householdId: z.string().min(1, 'Household is required'),
+    // Household-level party details collected on the who-is-coming,
+    // children-count, and dietary-notes steps. All optional: a guest may
+    // decline to answer any of them.
+    attendingCount: z.number().int().min(0).nullish(),
+    childrenCount: z.number().int().min(0).max(10).nullish(),
+    dietaryNotes: z.string().max(500).nullish(),
   })
   .superRefine(rejectDuplicateSubmissions)
 

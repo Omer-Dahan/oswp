@@ -320,6 +320,8 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
 
         <AnswersSection answers={householdAnswers} isLoading={isLoadingAnswers} />
 
+        <RsvpPartyDetailsSection selectedHousehold={selectedHousehold} />
+
         <NotesSection
           isEditing={editingSections.has('notes')}
           onToggleEdit={() => toggleEditingSection('notes')}
@@ -727,6 +729,49 @@ function AttendanceLikelihoodSection(props: Readonly<AttendanceLikelihoodSection
           </p>
         )}
       </div>
+    </GuestDetailSection>
+  )
+}
+
+/**
+ * What the guest reported on the who-is-coming / children-count /
+ * dietary-notes steps of the public RSVP flow. Read-only: the couple corrects
+ * these by editing the invitation directly, not by overwriting the guest's
+ * own words here.
+ */
+function RsvpPartyDetailsSection({
+  selectedHousehold,
+}: Readonly<{ selectedHousehold: HouseholdWithGuests }>) {
+  const { attendingCount, childrenCount, dietaryNotes } = selectedHousehold
+
+  if (attendingCount == null && childrenCount == null && !dietaryNotes) {
+    return null
+  }
+
+  return (
+    <GuestDetailSection title='מה האורח דיווח באישור ההגעה'>
+      <dl className='flex flex-col gap-2 text-sm'>
+        {attendingCount != null && (
+          <div className='flex justify-between gap-4'>
+            <dt className='text-foreground/60'>סה"כ מגיעים</dt>
+            <dd className='text-foreground/85'>{attendingCount}</dd>
+          </div>
+        )}
+        {childrenCount != null && (
+          <div className='flex justify-between gap-4'>
+            <dt className='text-foreground/60'>ילדים</dt>
+            <dd className='text-foreground/85'>{childrenCount}</dd>
+          </div>
+        )}
+        {dietaryNotes && (
+          <div className='flex flex-col gap-1'>
+            <dt className='text-foreground/60'>הגבלות תזונה</dt>
+            <dd className='whitespace-pre-wrap text-foreground/85 leading-relaxed'>
+              {dietaryNotes}
+            </dd>
+          </div>
+        )}
+      </dl>
     </GuestDetailSection>
   )
 }
