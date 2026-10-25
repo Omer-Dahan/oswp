@@ -721,14 +721,12 @@ export default function GuestsView({
             householdNumberMap={householdNumberMap}
             selectedHouseholdId={selectedHouseholdId}
             onSelectHousehold={handleSelectHousehold}
-            allTags={allTags}
           />
         ) : (
           <GuestCardsList
             households={sortedHouseholds}
             selectedHouseholdId={selectedHouseholdId}
             onSelectHousehold={handleSelectHousehold}
-            allTags={allTags}
           />
         )}
       </div>

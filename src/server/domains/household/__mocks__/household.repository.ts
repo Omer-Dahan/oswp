@@ -23,6 +23,9 @@ export const mockHousehold: Household = {
   country: 'USA',
   likelihoodOfAttending: null,
   notes: 'Family of the groom',
+  invitedCount: null,
+  side: null,
+  groupName: null,
 }
 
 export const mockHouseholdWithGuestsAndGifts: HouseholdWithGuestsAndGifts = {
