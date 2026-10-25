@@ -48,8 +48,11 @@ import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
-const partySize = (household: HouseholdWithGuests): number =>
-  household.invitedCount ?? household.guests.length
+const partySize = (household: HouseholdWithGuests): number => {
+  if (household.invitedCount != null) return household.invitedCount
+  const nonTagAlongCount = household.guests.filter((guest) => !guest.isTagAlong).length
+  return household.guests.length > 0 ? Math.max(1, nonTagAlongCount) : 0
+}
 
 type GuestsViewProps = {
   events: Event[]
