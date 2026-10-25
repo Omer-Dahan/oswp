@@ -14,6 +14,7 @@ import {
   queueBatchSchema,
   resolveInboundSchema,
   saveAccountSchema,
+  setTemplateHeaderImageSchema,
 } from '~/server/domains/whatsapp/whatsapp.validator'
 
 export const whatsappRouter = createTRPCRouter({
@@ -93,5 +94,12 @@ export const whatsappRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
       return inboundReviewService.linkInboundToHousehold(ctx.authz, weddingId, input)
+    }),
+
+  setTemplateHeaderImage: protectedProcedure
+    .input(setTemplateHeaderImageSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return whatsAppService.setTemplateHeaderImage(ctx.authz, weddingId, input)
     }),
 })

@@ -67,3 +67,15 @@ export const linkInboundSchema = z.object({
 })
 
 export type LinkInboundInput = z.infer<typeof linkInboundSchema>
+
+export const setTemplateHeaderImageSchema = z.object({
+  templateId: z.string().min(1),
+  headerImageUrl: z
+    .string()
+    .max(2048, 'הקישור ארוך מדי')
+    .refine((value) => value === '' || value.startsWith('https://'), {
+      message: 'יש להזין קישור https בלבד',
+    }),
+})
+
+export type SetTemplateHeaderImageInput = z.infer<typeof setTemplateHeaderImageSchema>
