@@ -449,10 +449,8 @@ th {
 
 /*
  * ── Invitation hero (guest site home) ────────────────────────────────────
- * The one-time entrance (fade + rise) and the slow infinite float for the
- * floating RSVP pill in InvitationHero. Split into two elements (wrapper runs
- * the entrance, the pill itself runs the float) so the two animations never
- * fight over the same element's `transform`.
+ * One-time entrance (fade + rise) for the floating RSVP pill in
+ * InvitationHero. The pill is still after it settles.
  */
 @layer components {
   .invitation-hero-enter {
@@ -470,23 +468,8 @@ th {
     }
   }
 
-  .invitation-hero-float {
-    animation: invitation-hero-float 4s ease-in-out infinite;
-  }
-
-  @keyframes invitation-hero-float {
-    0%,
-    100% {
-      transform: translateY(-3px);
-    }
-    50% {
-      transform: translateY(3px);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .invitation-hero-enter,
-    .invitation-hero-float {
+    .invitation-hero-enter {
       animation: none !important;
     }
   }
