@@ -6,6 +6,8 @@ export type InvitedHousehold = {
   guestFirstNames: string[]
   /** Ready-to-render greeting, e.g. "Alice & Bob" or "Alice, Bob & Carol". */
   greeting: string
+  /** Greeting built from the household's primary contact only (family name when set). */
+  primaryContactGreeting: PrimaryContactGreeting | null
 }
 
 /**
@@ -65,8 +67,13 @@ export async function resolveInvitedHousehold(
 
   if (guestFirstNames.length === 0) return null
 
+  const primaryContactGreeting = resolvePrimaryContactGreeting(
+    inviteData.guests.filter((guest) => guest.isTagAlong !== true)
+  )
+
   return {
     guestFirstNames,
     greeting: formatHouseholdGreeting(guestFirstNames),
+    primaryContactGreeting,
   }
 }

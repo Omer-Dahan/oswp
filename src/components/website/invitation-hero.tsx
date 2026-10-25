@@ -1,6 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
+import { HeroCard } from '~/components/website/hero-card'
+
 /**
  * The whole hero is tuned by these numbers: how far the floating RSVP pill
  * straddles the invitation's bottom edge (in px — nudge to taste), the
@@ -20,6 +23,8 @@ type InvitationHeroProps = {
   isRsvpEnabled: boolean
   /** e.g. "דוד ומורשה", groom first; falls back to a generic label when unset. */
   coupleNames: string | null
+  /** Set when the visitor arrived through a recognised household invite link. */
+  invitedHousehold: InvitedHousehold | null
 }
 
 function RsvpPill({ rsvpHref, isRsvpEnabled }: Pick<InvitationHeroProps, 'rsvpHref' | 'isRsvpEnabled'>) {
@@ -37,6 +42,14 @@ function RsvpPill({ rsvpHref, isRsvpEnabled }: Pick<InvitationHeroProps, 'rsvpHr
   )
 }
 
+/** The household's primary-contact greeting, or one neutral line when nobody is recognised. */
+function desktopGreetingText(invitedHousehold: InvitedHousehold | null): string {
+  const contact = invitedHousehold?.primaryContactGreeting
+  if (!contact) return 'נשמח לראותכם'
+  const name = contact.kind === 'family' ? `משפחת ${contact.name}` : contact.name
+  return `שלום ${name}, נשמח לראותכם ביום שלנו 🤍`
+}
+
 /**
  * Invitation-first home: the couple's invitation and backdrop artwork fill the
  * screen on load, with a single floating RSVP pill anchored on the invitation
@@ -45,18 +58,25 @@ function RsvpPill({ rsvpHref, isRsvpEnabled }: Pick<InvitationHeroProps, 'rsvpHr
  * Mobile and desktop get different compositions (not just a resized version
  * of the same one): on narrow screens the artwork can't sit behind the card
  * without being entirely covered, so it gets its own band above the
- * invitation; on wide screens there's room for it as a full-bleed backdrop.
+ * invitation; on wide (md+) screens there's room for a linen backdrop with
+ * both cards shown side by side, each enlargeable on hover/focus/click.
  */
-export function InvitationHero({ rsvpHref, isRsvpEnabled, coupleNames }: Readonly<InvitationHeroProps>) {
+export function InvitationHero({
+  rsvpHref,
+  isRsvpEnabled,
+  coupleNames,
+  invitedHousehold,
+}: Readonly<InvitationHeroProps>) {
   const invitationAlt = coupleNames ? `הזמנת החתונה של ${coupleNames}` : 'הזמנת החתונה'
+  const greeting = desktopGreetingText(invitedHousehold)
 
   return (
     <div className='relative h-[100svh] w-full overflow-hidden bg-background'>
-      {/* Mobile: artwork band above the invitation, both fully visible, no overlap. */}
-      <div className='flex h-full w-full flex-col sm:hidden'>
+      {/* Mobile/tablet: artwork band above the invitation, both fully visible, no overlap. */}
+      <div className='flex h-full w-full flex-col md:hidden'>
         <div className='relative w-full' style={{ height: `${MOBILE_ARTWORK_BAND_SVH}svh` }}>
           <Image
-            src='/brand/jerusalem-art.jpg'
+            src='/brand/jerusalem-art.png'
             alt=''
             aria-hidden='true'
             fill
@@ -74,7 +94,7 @@ export function InvitationHero({ rsvpHref, isRsvpEnabled, coupleNames }: Readonl
             }}
           >
             <Image
-              src='/brand/invitation.jpg'
+              src='/brand/invitation.png'
               alt={invitationAlt}
               fill
               priority
@@ -87,11 +107,11 @@ export function InvitationHero({ rsvpHref, isRsvpEnabled, coupleNames }: Readonl
         </div>
       </div>
 
-      {/* Desktop: artwork as a full-bleed backdrop, invitation sized down so both read. */}
-      <div className='relative hidden h-full w-full items-center justify-center sm:flex'>
+      {/* Desktop: linen backdrop, two interactive cards, greeting + RSVP below them. */}
+      <div className='relative hidden h-full w-full flex-col items-center justify-center gap-8 px-10 md:flex'>
         <div className='absolute inset-0'>
           <Image
-            src='/brand/jerusalem-art.jpg'
+            src='/brand/linen-bg.png'
             alt=''
             aria-hidden='true'
             fill
@@ -100,25 +120,29 @@ export function InvitationHero({ rsvpHref, isRsvpEnabled, coupleNames }: Readonl
             className='object-cover object-center'
           />
         </div>
-        <div className='absolute inset-0 bg-gradient-to-b from-background/15 via-background/35 to-background/55' />
+        {/* Soft warm veil so the white cards and copy read clearly against the linen. */}
+        <div className='absolute inset-0 bg-background/35' />
 
-        <div
-          className='relative'
-          style={{
-            width: `min(${DESKTOP_INVITATION_MAX_SVH}svh, ${DESKTOP_INVITATION_MAX_PX}px)`,
-            height: `min(${DESKTOP_INVITATION_MAX_SVH}svh, ${DESKTOP_INVITATION_MAX_PX}px)`,
-          }}
-        >
-          <Image
-            src='/brand/invitation.jpg'
-            alt={invitationAlt}
-            fill
-            priority
-            sizes={`min(${DESKTOP_INVITATION_MAX_SVH}svh, ${DESKTOP_INVITATION_MAX_PX}px)`}
-            quality={90}
-            className='object-contain drop-shadow-sm'
-          />
-          <RsvpPill rsvpHref={rsvpHref} isRsvpEnabled={isRsvpEnabled} />
+        <div className='hero-cards relative z-10 flex items-stretch justify-center gap-6 lg:gap-10'>
+          <div className='hero-card-enter'>
+            <HeroCard src='/brand/invitation.png' label='הזמנת החתונה' expandedAlt={invitationAlt} priority />
+          </div>
+          <div className='hero-card-enter'>
+            <HeroCard src='/brand/jerusalem-art.png' label='שמרו את התאריך' expandedAlt='שמרו את התאריך' />
+          </div>
+        </div>
+
+        <div className='relative z-10 flex flex-col items-center gap-3 text-center'>
+          <p className='font-serif text-foreground text-lg'>{greeting}</p>
+          {isRsvpEnabled ? (
+            <Link
+              href={rsvpHref}
+              aria-label='אישור הגעה לאירוע'
+              className='inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:shadow-sm'
+            >
+              אישור הגעה
+            </Link>
+          ) : null}
         </div>
       </div>
     </div>
