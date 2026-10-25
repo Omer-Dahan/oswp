@@ -3,6 +3,7 @@
 import { X } from 'lucide-react'
 import Image from 'next/image'
 import { useRef, useState } from 'react'
+import { cn } from '~/lib/utils'
 
 type HeroCardProps = {
   src: string
@@ -11,14 +12,26 @@ type HeroCardProps = {
   /** Set on the expanded image only; the card thumbnail stays decorative. */
   expandedAlt: string
   priority?: boolean
+  /** Thumbnail sizing; defaults to the desktop square. Mobile passes its own max-height box. */
+  className?: string
+  /** Thumbnail object-fit; desktop crops to fill the square, mobile shows the whole artwork. */
+  fit?: 'cover' | 'contain'
 }
 
 /**
- * One of the two desktop home cards: a clickable thumbnail that opens the
+ * One of the home's interactive cards: a clickable thumbnail that opens the
  * same artwork large in a native <dialog>, which already gives us
- * Escape-to-close and return-focus-to-trigger for free.
+ * Escape-to-close and return-focus-to-trigger for free. Shared by the
+ * desktop side-by-side layout and the mobile stacked layout.
  */
-export function HeroCard({ src, label, expandedAlt, priority }: Readonly<HeroCardProps>) {
+export function HeroCard({
+  src,
+  label,
+  expandedAlt,
+  priority,
+  className,
+  fit = 'cover',
+}: Readonly<HeroCardProps>) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -38,7 +51,10 @@ export function HeroCard({ src, label, expandedAlt, priority }: Readonly<HeroCar
         aria-label={label}
         aria-expanded={isOpen}
         onClick={openDialog}
-        className='hero-card relative aspect-square h-[42svh] max-h-[440px] overflow-hidden rounded-lg border border-border/60 bg-card shadow-md'
+        className={cn(
+          'hero-card relative block overflow-hidden rounded-lg border border-border/60 bg-card shadow-md',
+          className ?? 'aspect-square h-[42svh] max-h-[440px]',
+        )}
       >
         <Image
           src={src}
@@ -47,7 +63,7 @@ export function HeroCard({ src, label, expandedAlt, priority }: Readonly<HeroCar
           fill
           priority={priority}
           sizes='(min-width: 768px) 40vw, 90vw'
-          className='object-cover'
+          className={fit === 'contain' ? 'object-contain' : 'object-cover'}
         />
       </button>
 
