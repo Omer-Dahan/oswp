@@ -49,6 +49,7 @@ export const createEventSchema = z
     description: z.string().optional(),
     collectRsvp: z.boolean().default(false),
     allowTagAlongs: z.boolean().default(false),
+    hebrewDateOverride: z.string().max(60).optional(),
   })
   .refine((data) => isTodayOrFutureDate(data.date), {
     message: 'תאריך האירוע לא יכול להיות בעבר',
@@ -80,6 +81,7 @@ export const updateEventSchema = z.object({
   description: z.string().optional(),
   collectRsvp: z.boolean().optional(),
   allowTagAlongs: z.boolean().optional(),
+  hebrewDateOverride: z.string().max(60).optional(),
 })
 
 /**

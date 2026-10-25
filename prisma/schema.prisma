@@ -454,6 +454,9 @@ model Event {
   description    String?
   collectRsvp    Boolean   @default(false)
   allowTagAlongs Boolean   @default(false)
+  // Manual correction for computeHebrewDate()'s output (src/lib/hebrew-date.ts).
+  // The computed value is never stored; this column only holds the override.
+  hebrewDateOverride String? @map("hebrew_date_override")
   // The wedding's ceremony/main event, set once per wedding at creation time.
   // "The wedding date" shown on the dashboard/website/countdown reads this
   // event rather than whichever event happened to be created first.

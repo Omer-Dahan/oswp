@@ -60,6 +60,7 @@ export class EventService {
       description,
       collectRsvp,
       allowTagAlongs,
+      hebrewDateOverride,
     } = data
 
     return this.db.$transaction(async (tx) => {
@@ -79,6 +80,7 @@ export class EventService {
           description,
           collectRsvp: collectRsvp ?? false,
           allowTagAlongs: allowTagAlongs ?? false,
+          hebrewDateOverride: hebrewDateOverride || null,
           isPrimary: existingEventCount === 0,
         },
       })
@@ -214,6 +216,8 @@ export class EventService {
           description: data.description,
           collectRsvp: data.collectRsvp,
           allowTagAlongs: data.allowTagAlongs,
+          hebrewDateOverride:
+            data.hebrewDateOverride === undefined ? undefined : data.hebrewDateOverride || null,
         },
       })
 

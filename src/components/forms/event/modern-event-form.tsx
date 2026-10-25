@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { he } from 'date-fns/locale'
 import { Calendar as CalendarIcon, Clock } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { type Resolver, type SubmitHandler, useForm } from 'react-hook-form'
 
 import {
@@ -34,6 +34,7 @@ import { Label } from '~/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
 import { Switch } from '~/components/ui/switch'
 import { Textarea } from '~/components/ui/textarea'
+import { computeHebrewDate } from '~/lib/hebrew-date'
 import { cn } from '~/lib/utils'
 import type { Event } from '~/server/domains/event/event.types'
 
@@ -80,6 +81,7 @@ export function ModernEventForm({
           description: event.description ?? '',
           collectRsvp: event.collectRsvp ?? false,
           allowTagAlongs: event.allowTagAlongs ?? false,
+          hebrewDateOverride: event.hebrewDateOverride ?? '',
         }
       : getEventFormDefaults(),
   })
@@ -87,6 +89,11 @@ export function ModernEventForm({
   const { register, handleSubmit, formState, setValue, watch } = form
   const { errors, isDirty } = formState
   const dateValue = watch('date')
+  const hebrewDateOverride = watch('hebrewDateOverride')
+  const hasHebrewDateOverride = Boolean(hebrewDateOverride && hebrewDateOverride.trim().length > 0)
+  const [computedHebrewDate, setComputedHebrewDate] = useState<string | null>(null)
+  const [isEditingHebrewDate, setIsEditingHebrewDate] = useState(false)
+  const displayedHebrewDate = hasHebrewDateOverride ? hebrewDateOverride : computedHebrewDate
 
   const handleFormSubmit: SubmitHandler<EventFormData> = async (data) => {
     await onSubmit(data)
@@ -112,14 +119,27 @@ export function ModernEventForm({
               description: event.description ?? '',
               collectRsvp: event.collectRsvp ?? false,
               allowTagAlongs: event.allowTagAlongs ?? false,
+              hebrewDateOverride: event.hebrewDateOverride ?? '',
             }
           : getEventFormDefaults()
       )
+      setComputedHebrewDate(null)
+      setIsEditingHebrewDate(false)
     }
   }, [open, event, form, isEditMode])
 
   // Parse date string to Date object for calendar
   const selectedDate = dateValue ? new Date(dateValue) : undefined
+
+  const handleComputeHebrewDate = () => {
+    if (!selectedDate) return
+    setComputedHebrewDate(computeHebrewDate(selectedDate))
+  }
+
+  const handleResetHebrewDateOverride = () => {
+    setValue('hebrewDateOverride', '', { shouldDirty: true })
+    setIsEditingHebrewDate(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -191,6 +211,75 @@ export function ModernEventForm({
             </Popover>
             {errors.date && (
               <p className='text-destructive text-xs md:text-sm'>{errors.date.message}</p>
+            )}
+          </div>
+
+          {/* Hebrew Date */}
+          <div className='space-y-2'>
+            <Label htmlFor='hebrewDateOverride' className='text-sm md:text-base'>
+              תאריך עברי
+            </Label>
+            {isEditingHebrewDate ? (
+              <Input
+                id='hebrewDateOverride'
+                {...register('hebrewDateOverride')}
+                maxLength={60}
+                placeholder='לדוגמה: י״ז בחשוון תשפ״ז'
+                disabled={isSubmitting}
+                className={cn(errors.hebrewDateOverride && 'border-destructive')}
+              />
+            ) : (
+              <div className='flex flex-wrap items-center gap-2'>
+                <span className='text-sm md:text-base'>
+                  {displayedHebrewDate ?? (
+                    <span className='text-muted-foreground text-xs md:text-sm'>לא חושב</span>
+                  )}
+                </span>
+                {!hasHebrewDateOverride && (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={handleComputeHebrewDate}
+                    disabled={!selectedDate || isSubmitting}
+                    className='text-xs'
+                  >
+                    חשב תאריך עברי
+                  </Button>
+                )}
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => setIsEditingHebrewDate(true)}
+                  disabled={isSubmitting}
+                  className='text-xs'
+                >
+                  עריכה
+                </Button>
+                {hasHebrewDateOverride && (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    onClick={handleResetHebrewDateOverride}
+                    disabled={isSubmitting}
+                    className='text-xs'
+                  >
+                    חזרה לחישוב
+                  </Button>
+                )}
+              </div>
+            )}
+            {hasHebrewDateOverride && (
+              <p className='text-muted-foreground text-xs'>
+                מוזן ידנית — לא מחושב מהתאריך הלועזי
+              </p>
+            )}
+            {errors.hebrewDateOverride && (
+              <p className='text-destructive text-xs md:text-sm'>
+                {errors.hebrewDateOverride.message}
+              </p>
             )}
           </div>
 

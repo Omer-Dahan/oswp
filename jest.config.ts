@@ -34,6 +34,7 @@ export default async () => {
 
   const esmPackages = [
     'geist',
+    '@hebcal/hdate',
     'copy-anything',
     'is-what',
     'superjson',

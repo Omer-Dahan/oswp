@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { Switch } from '~/components/ui/switch'
+import { hebrewDateFor } from '~/lib/hebrew-date'
 import type { EventWithStats } from '~/server/domains/event/event.types'
 
 type EventCardProps = Readonly<{
@@ -45,6 +46,10 @@ function EventCardBase({
   isTogglingCollectRsvp = false,
 }: EventCardProps) {
   const { guestResponses } = event
+  const hebrewDate = hebrewDateFor({
+    date: event.date ? new Date(event.date) : null,
+    hebrewDateOverride: event.hebrewDateOverride ?? null,
+  })
   const totalGuests =
     guestResponses.attending +
     guestResponses.invited +
@@ -65,6 +70,9 @@ function EventCardBase({
                   {format(new Date(event.date), 'd בMMMM yyyy', { locale: he })}
                 </span>
               </CardDescription>
+            )}
+            {hebrewDate && (
+              <p className='mt-0.5 text-muted-foreground text-xs'>{hebrewDate}</p>
             )}
           </div>
           <div className='flex shrink-0 items-center gap-2'>
