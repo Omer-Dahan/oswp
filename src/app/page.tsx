@@ -1,132 +1,52 @@
 import type { Metadata } from 'next'
 import { unstable_noStore as noStore } from 'next/cache'
+import Link from 'next/link'
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 
-import AuthenticatedView from '~/components/home/authenticated-view'
-import NonAuthenticatedView from '~/components/home/non-authenticated-view'
+import { Button } from '~/components/ui/button'
 import { auth } from '~/lib/auth'
-import { resolveWorkspaceScope } from '~/server/application/workspace/workspace-scope'
-import { readWorkspaceCapabilities } from '~/server/authz/workspace-capabilities'
+import { formatDateStandard } from '~/app/utils/helpers'
+import { db } from '~/server/db'
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: {
-    absolute: 'OSWP — פלטפורמת ניהול החתונה שלכם',
-  },
-  description:
-    'פלטפורמה שמספקת את כל מה שהחתונה שלכם צריכה: הזמנות, אישורי הגעה, תכנון ו-Etta, מתכננת החתונה החכמה שלכם.',
-  openGraph: {
-    title: 'OSWP — פלטפורמת ניהול החתונה שלכם',
-    description:
-      'הזמנות, אישורי הגעה, ניהול אורחים, הושבה, ניהול ספקים ו-Etta, מתכננת החתונה החכמה שלכם.',
-    url: siteUrl,
-    type: 'website',
-  },
-  twitter: {
-    title: 'OSWP — פלטפורמת ניהול החתונה שלכם',
-    description: 'הזמנות, אישורי הגעה, ניהול אורחים ו-Etta, מתכננת החתונה החכמה שלכם.',
-  },
-  alternates: {
-    canonical: siteUrl,
-  },
+async function loadCoverWedding() {
+  const wedding = await db.wedding.findFirst({
+    include: {
+      website: true,
+      events: {
+        where: { isPrimary: true },
+        take: 1,
+      },
+    },
+  })
+
+  if (!wedding || !wedding.website) {
+    return null
+  }
+
+  const primaryEvent = wedding.events[0]
+
+  return {
+    brideFirstName: wedding.brideFirstName,
+    groomFirstName: wedding.groomFirstName,
+    subUrl: wedding.website.subUrl,
+    date: primaryEvent?.date ?? null,
+    venue: primaryEvent?.venue ?? null,
+  }
 }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebApplication',
-      '@id': `${siteUrl}/#application`,
-      name: 'OSWP',
-      alternateName: 'Open Source Wedding Platform',
-      url: siteUrl,
-      description:
-        'A modern, self-hosted wedding planning platform with invitations, RSVPs, guest management, and Etta — your AI wedding planner.',
-      applicationCategory: 'LifestyleApplication',
-      operatingSystem: 'Web',
-      isAccessibleForFree: true,
-      license: 'https://fsl.software/FSL-1.1-MIT.template.md',
-      featureList: [
-        'Smart Invitations',
-        'RSVP Management',
-        'Planning Board',
-        'Seating & Logistics',
-        'Vendor Hub',
-        'Wedding Website Builder',
-        'AI Wedding Planner (Etta)',
-      ],
-      offers: [
-        {
-          '@type': 'Offer',
-          name: 'Community',
-          description: 'Self-hosted, free forever. Full source code access with no limits.',
-          price: '0',
-          priceCurrency: 'GBP',
-        },
-        {
-          '@type': 'Offer',
-          name: 'Couple',
-          description: 'Fully managed cloud hosting with automated backups and Etta included.',
-          price: '12',
-          priceCurrency: 'GBP',
-          priceSpecification: {
-            '@type': 'UnitPriceSpecification',
-            price: '12',
-            priceCurrency: 'GBP',
-            unitCode: 'MON',
-            referenceQuantity: {
-              '@type': 'QuantitativeValue',
-              value: '1',
-              unitCode: 'MON',
-            },
-          },
-        },
-        {
-          '@type': 'Offer',
-          name: 'Planner',
-          description:
-            'For wedding planners managing multiple couples. White-label ready with SLA guarantee.',
-          price: '49',
-          priceCurrency: 'GBP',
-          priceSpecification: {
-            '@type': 'UnitPriceSpecification',
-            price: '49',
-            priceCurrency: 'GBP',
-            unitCode: 'MON',
-            referenceQuantity: {
-              '@type': 'QuantitativeValue',
-              value: '1',
-              unitCode: 'MON',
-            },
-          },
-        },
-      ],
-      provider: {
-        '@type': 'Organization',
-        '@id': `${siteUrl}/#organization`,
-      },
-    },
-    {
-      '@type': 'Organization',
-      '@id': `${siteUrl}/#organization`,
-      name: 'OSWP',
-      url: siteUrl,
-      sameAs: ['https://github.com/dccakes/SCV'],
-    },
-    {
-      '@type': 'WebSite',
-      '@id': `${siteUrl}/#website`,
-      name: 'OSWP',
-      url: siteUrl,
-      description:
-        'The Open Source Wedding Platform — invitations, RSVPs, planning, and an AI wedding planner.',
-      publisher: {
-        '@type': 'Organization',
-        '@id': `${siteUrl}/#organization`,
-      },
-    },
-  ],
+export async function generateMetadata(): Promise<Metadata> {
+  const cover = await loadCoverWedding()
+
+  if (!cover) {
+    return { title: { absolute: 'האתר בהקמה' } }
+  }
+
+  return {
+    title: { absolute: `${cover.brideFirstName} ו${cover.groomFirstName}` },
+  }
 }
 
 export default async function Home() {
@@ -136,30 +56,50 @@ export default async function Home() {
     headers: await headers(),
   })
 
-  let isSignedIn = !!session
-  if (session?.user?.id) {
-    const scope = await resolveWorkspaceScope({
-      session,
-      userId: session.user.id,
-    })
-
-    const hasWorkspace = scope.activeOrganization !== null || scope.activeWeddingId !== null
-    if (hasWorkspace) {
-      const capabilities = readWorkspaceCapabilities(scope.activeOrganization?.role)
-      if (!capabilities.canViewPlanning) {
-        isSignedIn = false
-      }
-    }
+  if (session) {
+    redirect('/dashboard')
   }
 
+  const cover = await loadCoverWedding()
+
+  if (!cover) {
+    return (
+      <main className='flex min-h-screen items-center justify-center'>
+        <p className='font-serif text-lg'>האתר בהקמה</p>
+      </main>
+    )
+  }
+
+  const formattedDate = formatDateStandard(cover.date, 'he')
+
   return (
-    <>
-      <script
-        type='application/ld+json'
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML per Next.js convention
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      {!isSignedIn ? <NonAuthenticatedView /> : <AuthenticatedView />}
-    </>
+    <main className='flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center'>
+      <h1 className='font-display font-normal text-[clamp(2.5rem,6vw,4.5rem)] leading-tight tracking-tight'>
+        {cover.brideFirstName} ו{cover.groomFirstName}
+      </h1>
+
+      <div className='flex flex-col gap-1 font-serif text-muted-foreground text-lg'>
+        {formattedDate ? <p>{formattedDate}</p> : null}
+        {cover.venue ? <p>{cover.venue}</p> : null}
+      </div>
+
+      <Button asChild size='lg' className='mt-4'>
+        <Link href={`/w/${cover.subUrl}`}>לאתר החתונה</Link>
+      </Button>
+
+      <div className='mt-6 flex flex-col items-center gap-2'>
+        <div className='flex items-center gap-4 text-sm'>
+          <Link href='/auth/sign-in' className='underline-offset-4 hover:underline'>
+            כניסה
+          </Link>
+          <Link href='/auth/sign-up' className='underline-offset-4 hover:underline'>
+            הרשמה
+          </Link>
+        </div>
+        <p className='max-w-md text-muted-foreground text-xs'>
+          הרשמה באתר מתאפשרת בהזמנה — בלי הזמנה לא ייפתח לכם מרחב עבודה.
+        </p>
+      </div>
+    </main>
   )
 }
