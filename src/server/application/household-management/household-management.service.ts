@@ -81,6 +81,11 @@ export class HouseholdManagementService {
           zipCode: data.zipCode,
           likelihoodOfAttending: data.likelihoodOfAttending,
           notes: data.notes,
+          invitedCount: data.invitedCount,
+          side: data.side,
+          groupName: data.groupName,
+          phoneAlt: data.phoneAlt,
+          expectedCheck: data.expectedCheck,
         },
         eventIds
       )

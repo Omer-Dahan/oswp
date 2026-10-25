@@ -69,6 +69,13 @@ describe('parseSpreadsheetFile (.xlsx)', () => {
       expect(`${row.raw.firstName} ${row.raw.lastName}`).toContain('ישראלי')
       expect(row.data.city).toBe('תל אביב')
       expect(row.data.phone?.startsWith('+972')).toBe(true)
+      expect(row.data.invitedCount).toBe(3)
+      expect(row.data.side).toBe('כלה')
+      expect(row.data.groupName).toBe('משפחה')
+      expect(row.data.phoneAlt).toBe('03-1234567')
+      expect(row.data.expectedCheck).toBe(500)
+      expect(row.data.zipCode).toBe('6100000')
+      expect(row.data.notes).toBeUndefined()
     }
   })
 })
