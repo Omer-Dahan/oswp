@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
 import { Textarea } from '~/components/ui/textarea'
+import { SECTION_COPY } from '~/i18n/section-copy'
 import {
   SECTION_CATALOG,
   type SectionCatalogEntry,
@@ -45,6 +46,11 @@ function updateAt<T, K extends keyof T>(items: T[], index: number, key: K, value
 
 /** Editable section types — HOME is handled by the Welcome editor. */
 const EDITABLE_SECTIONS = SECTION_CATALOG.filter((entry) => entry.type !== 'HOME')
+
+/** Resolve the Hebrew label/description for a section, falling back to the catalog default. */
+function resolveSectionCopy(entry: SectionCatalogEntry): { label: string; description: string } {
+  return SECTION_COPY.he[entry.type] ?? { label: entry.label, description: entry.description }
+}
 
 export function SectionsEditor({ initialSections }: SectionsEditorProps) {
   const byType = new Map(initialSections.map((section) => [section.type, section]))
@@ -87,13 +93,14 @@ function SectionCard({ entry, initialContent, initialEnabled }: SectionCardProps
   const [content, setContent] = useState<WebsiteSectionContent>(initialContent)
   const [isEnabled, setIsEnabled] = useState(initialEnabled)
   const [baseline, setBaseline] = useState(() => JSON.stringify({ initialContent, initialEnabled }))
+  const { label, description } = resolveSectionCopy(entry)
 
   const upsertSection = api.websiteSection.upsertSection.useMutation({
     onError: (error) => {
-      toast.error(error.message || `לא ניתן לשמור את המקטע ${entry.label}.`)
+      toast.error(error.message || `לא ניתן לשמור את המקטע ${label}.`)
     },
     onSuccess: () => {
-      toast.success(`המקטע ${entry.label} נשמר`)
+      toast.success(`המקטע ${label} נשמר`)
       setBaseline(JSON.stringify({ initialContent: content, initialEnabled: isEnabled }))
       router.refresh()
     },
@@ -114,13 +121,13 @@ function SectionCard({ entry, initialContent, initialEnabled }: SectionCardProps
     <div className='space-y-4 rounded-[10px] border border-border/80 bg-background/60 p-4'>
       <div className='flex items-start justify-between gap-4'>
         <div className='space-y-1'>
-          <p className='font-serif text-foreground text-lg'>{entry.label}</p>
-          <p className='font-sans text-muted-foreground text-sm leading-6'>{entry.description}</p>
+          <p className='font-serif text-foreground text-lg'>{label}</p>
+          <p className='font-sans text-muted-foreground text-sm leading-6'>{description}</p>
         </div>
         <div className='flex shrink-0 items-center gap-2'>
           <span className={labelClass}>{isEnabled ? 'פעיל' : 'כבוי'}</span>
           <Switch
-            aria-label={`הפעלת המקטע ${entry.label}`}
+            aria-label={`הפעלת המקטע ${label}`}
             checked={isEnabled}
             onCheckedChange={setIsEnabled}
           />
