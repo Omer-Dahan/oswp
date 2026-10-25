@@ -28,7 +28,7 @@ const makeDb = () => {
     updateMany: jest.fn(),
     update: jest.fn(),
   }
-  const member = { create: jest.fn() }
+  const member = { create: jest.fn(), findFirst: jest.fn().mockResolvedValue(null) }
   const wedding = { findUnique: jest.fn().mockResolvedValue(weddingRow) }
   const user = { findUnique: jest.fn().mockResolvedValue(null) }
 
@@ -176,6 +176,41 @@ describe('WorkspaceInviteService', () => {
         where: { id: 'link-1' },
         data: { usedCount: { increment: 1 } },
       })
+    })
+
+    it('links to an existing organization directly without provisioning, creating exactly one member row', async () => {
+      const { db, member, wedding } = makeDb()
+      wedding.findUnique.mockResolvedValue({ ...weddingRow, organizationId: 'org-existing' })
+      db.workspaceInviteLink.findUnique.mockResolvedValue(makeRow({ role: 'family' }))
+      const signUpEmail = jest.fn().mockResolvedValue({ user: { id: 'new-user' } })
+      const provisionWeddingWorkspace = jest.fn()
+      const service = new WorkspaceInviteService(db as never, signUpEmail, provisionWeddingWorkspace)
+
+      const result = await service.accept(acceptInput)
+
+      expect(result).toEqual({ ok: true })
+      expect(provisionWeddingWorkspace).not.toHaveBeenCalled()
+      expect(member.create).toHaveBeenCalledTimes(1)
+      expect(member.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ organizationId: 'org-existing', role: 'family' }),
+        })
+      )
+    })
+
+    it('does not create a second member row when one already exists for the organization', async () => {
+      const { db, member, wedding } = makeDb()
+      wedding.findUnique.mockResolvedValue({ ...weddingRow, organizationId: 'org-existing' })
+      member.findFirst.mockResolvedValue({ id: 'member-existing' })
+      db.workspaceInviteLink.findUnique.mockResolvedValue(makeRow())
+      const signUpEmail = jest.fn().mockResolvedValue({ user: { id: 'new-user' } })
+      const provisionWeddingWorkspace = jest.fn()
+      const service = new WorkspaceInviteService(db as never, signUpEmail, provisionWeddingWorkspace)
+
+      const result = await service.accept(acceptInput)
+
+      expect(result).toEqual({ ok: true })
+      expect(member.create).not.toHaveBeenCalled()
     })
   })
 })

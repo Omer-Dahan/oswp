@@ -11,13 +11,13 @@ export async function getRequiredDashboardOverview() {
     dashboardData = await getDashboardOverview()
   } catch (error) {
     if (isAccessError(error)) {
-      redirect('/')
+      redirect('/no-access')
     }
     throw error
   }
 
   if (!dashboardData) {
-    redirect('/')
+    redirect('/no-access')
   }
 
   return dashboardData
@@ -30,13 +30,13 @@ export async function getRequiredWedding() {
     wedding = await api.wedding.getActive()
   } catch (error) {
     if (isAccessError(error)) {
-      redirect('/')
+      redirect('/no-access')
     }
     throw error
   }
 
   if (!wedding) {
-    redirect('/')
+    redirect('/no-access')
   }
 
   return wedding
