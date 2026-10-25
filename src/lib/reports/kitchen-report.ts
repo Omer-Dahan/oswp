@@ -1,0 +1,166 @@
+/**
+ * Kitchen Report - Pure Builder
+ *
+ * Turns the guest/seating data for one event into the rows and summary a
+ * venue kitchen needs: who's eating, which households need a kids meal, and
+ * who has a dietary restriction. No Prisma imports - callers pass in plain
+ * records already scoped to the wedding.
+ */
+
+export type KitchenReportAgeGroup = 'INFANT' | 'CHILD' | 'TEEN' | 'ADULT'
+
+const CHILD_AGE_GROUPS: ReadonlySet<KitchenReportAgeGroup> = new Set(['INFANT', 'CHILD'])
+
+export interface KitchenReportHousehold {
+  id: string
+  childrenCount: number | null
+  dietaryNotes: string | null
+}
+
+export interface KitchenReportGuest {
+  id: number
+  firstName: string
+  lastName: string
+  householdId: string
+  ageGroup: KitchenReportAgeGroup | null
+}
+
+export interface KitchenReportInvitation {
+  guestId: number
+  eventId: string
+  rsvp: string
+  dietaryRestrictions: string | null
+}
+
+export interface KitchenReportTable {
+  id: string
+  eventId: string
+  name: string
+}
+
+export interface KitchenReportAssignment {
+  guestId: number
+  tableId: string
+  eventId: string
+}
+
+export interface BuildKitchenReportInput {
+  households: KitchenReportHousehold[]
+  guests: KitchenReportGuest[]
+  invitations: KitchenReportInvitation[]
+  tables: KitchenReportTable[]
+  assignments: KitchenReportAssignment[]
+  eventId: string
+}
+
+export interface KitchenReportRow {
+  guestId: number
+  guestName: string
+  householdName: string
+  tableName: string | null
+  isChild: boolean
+  dietaryNote: string | null
+}
+
+export interface KitchenReportSummary {
+  attending: number
+  kidsMeals: number
+  dietary: number
+}
+
+export interface KitchenReport {
+  summary: KitchenReportSummary
+  rows: KitchenReportRow[]
+}
+
+function householdName(
+  household: KitchenReportHousehold,
+  guestsInHousehold: KitchenReportGuest[]
+): string {
+  const primary = guestsInHousehold[0]
+  return primary ? `${primary.firstName} ${primary.lastName}`.trim() : household.id
+}
+
+const UNSEATED_SORT_KEY = '￿'
+
+export function buildKitchenReport(input: BuildKitchenReportInput): KitchenReport {
+  const { households, guests, invitations, tables, assignments, eventId } = input
+
+  const guestsById = new Map(guests.map((guest) => [guest.id, guest]))
+  const householdsById = new Map(households.map((household) => [household.id, household]))
+  const guestsByHousehold = new Map<string, KitchenReportGuest[]>()
+  for (const guest of guests) {
+    const list = guestsByHousehold.get(guest.householdId) ?? []
+    list.push(guest)
+    guestsByHousehold.set(guest.householdId, list)
+  }
+
+  const tableNameById = new Map(
+    tables.filter((table) => table.eventId === eventId).map((table) => [table.id, table.name])
+  )
+  const tableIdByGuestId = new Map(
+    assignments
+      .filter((assignment) => assignment.eventId === eventId)
+      .map((assignment) => [assignment.guestId, assignment.tableId])
+  )
+
+  const attendingInvitations = invitations.filter(
+    (invitation) => invitation.eventId === eventId && invitation.rsvp === 'Attending'
+  )
+
+  const rows: KitchenReportRow[] = []
+  const attendingGuestsByHousehold = new Map<string, KitchenReportGuest[]>()
+
+  for (const invitation of attendingInvitations) {
+    const guest = guestsById.get(invitation.guestId)
+    if (!guest) continue
+
+    const household = householdsById.get(guest.householdId)
+    const guestsInHousehold = guestsByHousehold.get(guest.householdId) ?? []
+    const isChild = guest.ageGroup !== null && CHILD_AGE_GROUPS.has(guest.ageGroup)
+    const tableId = tableIdByGuestId.get(guest.id) ?? null
+    const tableName = tableId ? tableNameById.get(tableId) ?? null : null
+    const dietaryNote = invitation.dietaryRestrictions || household?.dietaryNotes || null
+
+    rows.push({
+      guestId: guest.id,
+      guestName: `${guest.firstName} ${guest.lastName}`.trim(),
+      householdName: household ? householdName(household, guestsInHousehold) : guest.householdId,
+      tableName,
+      isChild,
+      dietaryNote,
+    })
+
+    const attendingInHousehold = attendingGuestsByHousehold.get(guest.householdId) ?? []
+    attendingInHousehold.push(guest)
+    attendingGuestsByHousehold.set(guest.householdId, attendingInHousehold)
+  }
+
+  rows.sort((a, b) => {
+    const tableKey = (name: string | null) => name ?? UNSEATED_SORT_KEY
+    return (
+      tableKey(a.tableName).localeCompare(tableKey(b.tableName)) ||
+      a.householdName.localeCompare(b.householdName) ||
+      a.guestName.localeCompare(b.guestName)
+    )
+  })
+
+  let kidsMeals = 0
+  for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
+    const household = householdsById.get(householdId)
+    if (household?.childrenCount != null) {
+      kidsMeals += household.childrenCount
+    } else {
+      kidsMeals += attendingInHousehold.filter(
+        (guest) => guest.ageGroup !== null && CHILD_AGE_GROUPS.has(guest.ageGroup)
+      ).length
+    }
+  }
+
+  const dietary = rows.filter((row) => row.dietaryNote !== null).length
+
+  return {
+    summary: { attending: rows.length, kidsMeals, dietary },
+    rows,
+  }
+}
