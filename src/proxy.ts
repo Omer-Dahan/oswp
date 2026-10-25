@@ -16,6 +16,7 @@ const PUBLIC_PREFIXES = [
   '/auth',
   '/api/auth',
   '/join',
+  '/team',
   '/blog',
   '/api/webhooks',
   '/api/cron',
@@ -31,6 +32,8 @@ const PUBLIC_PREFIXES = [
 const PUBLIC_TRPC_PROCEDURES = new Set([
   'household.findBySearchPublic',
   'website.submitPublicRsvpForm',
+  'workspaceInvite.preview',
+  'workspaceInvite.accept',
 ])
 
 const TRPC_PREFIX = '/api/trpc/'
