@@ -109,6 +109,13 @@ function PreviewTable({ rows }: PreviewTableProps) {
                   </span>
                 ) : row.duplicate ? (
                   <span className='font-medium text-muted-foreground text-xs'>קיים — ידולג</span>
+                ) : row.warnings && row.warnings.length > 0 ? (
+                  <span className='font-medium text-success text-xs' title={row.warnings.join('; ')}>
+                    תקין · אזהרה
+                    <span className='block text-[11px] text-muted-foreground'>
+                      {row.warnings.join('; ')}
+                    </span>
+                  </span>
                 ) : (
                   <span className='font-medium text-success text-xs'>תקין</span>
                 )}
@@ -142,6 +149,7 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
   const duplicateCount = parsedRows.filter((r) => r.valid && r.duplicate).length
   const invalidCount = parsedRows.length - validRows.length - duplicateCount
   const allDuplicates = parsedRows.length > 0 && duplicateCount === parsedRows.length
+  const warningCount = validRows.filter((r) => r.warnings && r.warnings.length > 0).length
 
   // Reset dialog state when it closes
   useEffect(() => {
@@ -285,22 +293,8 @@ export function CsvUploadDialog({ open, onOpenChange, events }: CsvUploadDialogP
             <DialogHeader>
               <DialogTitle>תצוגה מקדימה של ייבוא</DialogTitle>
               <DialogDescription>
-                {fileName} &mdash; {validRows.length}{' '}
-                {validRows.length !== 1 ? 'שורות תקינות' : 'שורה תקינה'}
-                {duplicateCount > 0 && (
-                  <span className='text-muted-foreground'>
-                    {' '}
-                    &middot; {duplicateCount} {duplicateCount !== 1 ? 'שורות קיימות' : 'שורה קיימת'}{' '}
-                    (ידולגו)
-                  </span>
-                )}
-                {invalidCount > 0 && (
-                  <span className='text-destructive'>
-                    {' '}
-                    &middot; {invalidCount} {invalidCount !== 1 ? 'שורות' : 'שורה'} עם שגיאות
-                    (ידולגו)
-                  </span>
-                )}
+                {fileName} &mdash; {validRows.length} שורות ייובאו &middot; {warningCount} עם
+                אזהרות &middot; {duplicateCount} כפילויות &middot; {invalidCount} שגיאות
               </DialogDescription>
             </DialogHeader>
 
