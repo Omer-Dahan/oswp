@@ -447,6 +447,51 @@ th {
   }
 }
 
+/*
+ * ── Invitation hero (guest site home) ────────────────────────────────────
+ * The one-time entrance (fade + rise) and the slow infinite float for the
+ * floating RSVP pill in InvitationHero. Split into two elements (wrapper runs
+ * the entrance, the pill itself runs the float) so the two animations never
+ * fight over the same element's `transform`.
+ */
+@layer components {
+  .invitation-hero-enter {
+    animation: invitation-hero-enter 400ms ease-out both;
+  }
+
+  @keyframes invitation-hero-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .invitation-hero-float {
+    animation: invitation-hero-float 4s ease-in-out infinite;
+  }
+
+  @keyframes invitation-hero-float {
+    0%,
+    100% {
+      transform: translateY(-3px);
+    }
+    50% {
+      transform: translateY(3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .invitation-hero-enter,
+    .invitation-hero-float {
+      animation: none !important;
+    }
+  }
+}
+
 /* Hebrew guest site: every rem-based size scales up ~12% so Hebrew (which has no
    ascender/descender relief and reads smaller than Latin at the same px) does not
    look cramped next to the Latin-tuned design. Scoped to the guest template only. */
