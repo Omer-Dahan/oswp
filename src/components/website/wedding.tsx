@@ -26,8 +26,12 @@ export default async function WeddingWebsite({
   const path = `/w/${websiteSubUrl}`
   const template = resolveTemplate(weddingData.website.templateId)
 
+  // The banner only runs on mobile: desktop folds the same greeting into the
+  // hero's own 100svh stage (below the two cards) so the page never scrolls.
   const welcome = invitedHousehold ? (
-    <PersonalizedWelcome invitedHousehold={invitedHousehold} />
+    <div className='md:hidden'>
+      <PersonalizedWelcome invitedHousehold={invitedHousehold} />
+    </div>
   ) : null
 
   return (
@@ -37,6 +41,7 @@ export default async function WeddingWebsite({
         rsvpHref={`${path}/rsvp`}
         isRsvpEnabled={weddingData.website.isRsvpEnabled}
         coupleNames={coupleNamesHe(weddingData)}
+        invitedHousehold={invitedHousehold ?? null}
       />
     </TemplateThemeProvider>
   )

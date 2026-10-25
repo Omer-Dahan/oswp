@@ -475,6 +475,127 @@ th {
   }
 }
 
+/*
+ * ── Desktop guest home hero cards ─────────────────────────────────────────
+ * The two interactive cards in InvitationHero's desktop branch: hover/focus
+ * enlarges the pointed-at card and settles its sibling to a lower opacity
+ * (via :has(), so no JS state is needed for it); a one-time fade+rise
+ * entrance on load with a short stagger; clicking opens a native <dialog>.
+ */
+@layer components {
+  .hero-card-enter {
+    animation: hero-card-enter 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  .hero-card-enter:nth-of-type(2) {
+    animation-delay: 40ms;
+  }
+
+  @keyframes hero-card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-card {
+    transform-origin: center;
+    transition:
+      transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 200ms ease,
+      opacity 200ms ease;
+  }
+
+  .hero-card:active {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hero-cards:has(.hero-card:hover) .hero-card:not(:hover) {
+      opacity: 0.92;
+    }
+
+    .hero-card:hover {
+      will-change: transform;
+      transform: scale(1.06);
+      box-shadow: var(--shadow-xl);
+    }
+  }
+
+  .hero-cards:has(.hero-card:focus-visible) .hero-card:not(:focus-visible) {
+    opacity: 0.92;
+  }
+
+  .hero-card:focus-visible {
+    transform: scale(1.06);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .hero-dialog {
+    animation: hero-dialog-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  .hero-dialog::backdrop {
+    background: oklch(0.2 0.01 48 / 55%);
+    backdrop-filter: blur(10px);
+    animation: hero-dialog-backdrop-in 240ms ease both;
+  }
+
+  @keyframes hero-dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes hero-dialog-backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-card-enter {
+      animation: hero-card-fade 200ms ease both;
+    }
+
+    .hero-card,
+    .hero-card:hover,
+    .hero-card:focus-visible {
+      transform: none !important;
+      will-change: auto;
+    }
+
+    .hero-dialog {
+      animation: hero-card-fade 200ms ease both;
+    }
+
+    .hero-dialog::backdrop {
+      animation: hero-card-fade 200ms ease both;
+    }
+  }
+
+  @keyframes hero-card-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 /* Hebrew guest site: every rem-based size scales up ~12% so Hebrew (which has no
    ascender/descender relief and reads smaller than Latin at the same px) does not
    look cramped next to the Latin-tuned design. Scoped to the guest template only. */
