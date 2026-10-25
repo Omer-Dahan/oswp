@@ -62,6 +62,23 @@ const getRsvpSummary = (household: HouseholdWithGuests): RsvpSummary => {
   )
 }
 
+/** Compact "מגיעים 4 · 2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
+const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests): string | null => {
+  const parts: string[] = []
+
+  if (household.attendingCount != null) {
+    parts.push(`מגיעים ${household.attendingCount}`)
+  }
+  if (household.childrenCount != null && household.childrenCount > 0) {
+    parts.push(`${household.childrenCount} ילדים`)
+  }
+  if (household.dietaryNotes) {
+    parts.push('תזונה')
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
 const getPrimaryGuestName = (household: HouseholdWithGuests): string => {
   const primaryGuest =
     household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
@@ -85,6 +102,7 @@ function GuestCardComponent({
   const guestCount = household.invitedCount ?? invitedGuests.length
 
   const rsvpSummary = getRsvpSummary(household)
+  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household)
   const initials = getInitials(primaryGuestName)
   const phone = getPrimaryGuestPhone(household)
   const handleSelect = useCallback(() => {
@@ -169,6 +187,15 @@ function GuestCardComponent({
                 <span className='text-muted-foreground'>אין נתוני אישור הגעה</span>
               )}
           </div>
+
+          {rsvpPartyDetailsLabel && (
+            <Badge
+              variant='outline'
+              className='w-fit border-foreground/15 bg-foreground/[0.04] font-normal text-foreground/70'
+            >
+              {rsvpPartyDetailsLabel}
+            </Badge>
+          )}
 
           <div className='flex items-center justify-end border-border/80 border-t pt-2'>
             <span className='font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>

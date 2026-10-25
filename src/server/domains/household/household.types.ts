@@ -38,6 +38,9 @@ export type Household = {
   invitedCount: number | null
   side: string | null
   groupName: string | null
+  attendingCount: number | null
+  childrenCount: number | null
+  dietaryNotes: string | null
 }
 
 /**
@@ -96,5 +99,9 @@ export type PublicRsvpGuest = {
  */
 export type PublicHouseholdSearchResult = {
   id: string
+  invitedCount: number | null
+  attendingCount: number | null
+  childrenCount: number | null
+  dietaryNotes: string | null
   guests: PublicRsvpGuest[]
 }

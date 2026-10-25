@@ -101,6 +101,22 @@ export function StepPrimaryButton({
   )
 }
 
+export function StepStepperButton({
+  className = '',
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type='button'
+      {...props}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-input text-foreground text-lg transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function StepSecondaryButton({
   className = '',
   children,

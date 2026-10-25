@@ -1,6 +1,10 @@
 import {
   type AnswerWithType,
+  canUseExtraGuests,
+  clampCount,
   findExistingAnswer,
+  getMaxAttendingBound,
+  isGuestAttendingByDefault,
   removeAnswer,
   upsertAnswer,
   upsertRsvpResponses,
@@ -45,5 +49,41 @@ describe('rsvp-state utilities', () => {
 
     const removed = removeAnswer(updated, answer)
     expect(removed).toEqual([])
+  })
+})
+
+describe('who-is-coming party-size helpers', () => {
+  it('clamps the attending total at the invited-count bound and at zero', () => {
+    expect(clampCount(10, 0, 4)).toBe(4)
+    expect(clampCount(-3, 0, 4)).toBe(0)
+    expect(clampCount(2, 0, 4)).toBe(2)
+  })
+
+  it('falls back to the named-guest count when invitedCount is null', () => {
+    expect(getMaxAttendingBound(null, 3)).toBe(3)
+    expect(getMaxAttendingBound(6, 3)).toBe(6)
+  })
+
+  it('disables the extra-guests stepper when invitedCount equals the named guests', () => {
+    expect(canUseExtraGuests(2, 2)).toBe(false)
+    expect(canUseExtraGuests(null, 2)).toBe(false)
+    expect(canUseExtraGuests(4, 2)).toBe(true)
+  })
+
+  it('defaults a guest to attending when there is no prior answer', () => {
+    expect(isGuestAttendingByDefault(1, [], [])).toBe(true)
+  })
+
+  it('prefills a returning guest from their persisted invitation status', () => {
+    const invitations = [{ eventId: 'evt-1', rsvp: 'Declined' }]
+    expect(isGuestAttendingByDefault(1, invitations, [])).toBe(false)
+  })
+
+  it('prefers this session local edits over the persisted invitation status', () => {
+    const invitations = [{ eventId: 'evt-1', rsvp: 'Declined' }]
+    const localResponses = [
+      { eventId: 'evt-1', guestId: 1, rsvp: 'Attending', guestName: 'A One' },
+    ]
+    expect(isGuestAttendingByDefault(1, invitations, localResponses)).toBe(true)
   })
 })

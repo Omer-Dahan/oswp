@@ -24,6 +24,12 @@ type RsvpFormState = {
   rsvpResponses: RsvpFormResponse[]
   answersToQuestions: AnswerWithType[]
   weddingData: Partial<RsvpPageData>
+  /** Total household party size (named guests + unnamed extras), set on the who-is-coming step. */
+  attendingCount?: number
+  /** Children under 10 attending, set on the children-count step. */
+  childrenCount?: number
+  /** Free-text dietary notes for the household, set on the dietary-notes step. */
+  dietaryNotes?: string
   /**
    * True when the guest was identified from their save-the-date invite cookie,
    * so the flow starts on the confirm step (skipping the name search) and offers
