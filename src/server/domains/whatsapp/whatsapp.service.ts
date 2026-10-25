@@ -211,7 +211,7 @@ export class WhatsAppService {
       language: string
       category: string
       status: string
-      components?: Array<{ type: string; text?: string }>
+      components?: Array<{ type: string; text?: string; format?: string }>
     }
 
     const metaTemplates: MetaTemplate[] = []
@@ -240,6 +240,8 @@ export class WhatsAppService {
 
     const rows = metaTemplates.map((template) => {
       const bodyPreview = template.components?.find((c) => c.type === 'BODY')?.text ?? null
+      const hasImageHeader =
+        template.components?.some((c) => c.type === 'HEADER' && c.format === 'IMAGE') ?? false
       return {
         weddingId,
         name: template.name,
@@ -249,6 +251,7 @@ export class WhatsAppService {
           : 'MARKETING') as WhatsAppTemplateCategory,
         bodyPreview,
         paramCount: countTemplateParams(bodyPreview),
+        hasImageHeader,
         status: template.status ?? null,
       }
     })

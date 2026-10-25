@@ -36,7 +36,12 @@ export type SendContext = {
   websiteSubUrl: string | null
   guest: { firstName: string } | null
   event: { name: string; date: Date | null } | null
-  template: { language: string; paramCount: number } | null
+  template: {
+    language: string
+    paramCount: number
+    hasImageHeader: boolean
+    headerImageUrl: string | null
+  } | null
 }
 
 export type RecipientCandidate = {
@@ -382,7 +387,7 @@ export class WhatsAppRepository {
       this.db.whatsAppTemplate.findFirst({
         where: { weddingId: outbound.weddingId, name: outbound.templateName },
         orderBy: { lastSyncedAt: 'desc' },
-        select: { language: true, paramCount: true },
+        select: { language: true, paramCount: true, hasImageHeader: true, headerImageUrl: true },
       }),
     ])
 
@@ -559,6 +564,7 @@ export class WhatsAppRepository {
       category: WhatsAppTemplateCategory
       bodyPreview: string | null
       paramCount: number
+      hasImageHeader: boolean
       status: string | null
     }>
   ): Promise<void> {
@@ -579,6 +585,7 @@ export class WhatsAppRepository {
           category: row.category,
           bodyPreview: row.bodyPreview,
           paramCount: row.paramCount,
+          hasImageHeader: row.hasImageHeader,
           status: row.status,
           lastSyncedAt: new Date(),
         },
@@ -586,6 +593,7 @@ export class WhatsAppRepository {
           category: row.category,
           bodyPreview: row.bodyPreview,
           paramCount: row.paramCount,
+          hasImageHeader: row.hasImageHeader,
           status: row.status,
           lastSyncedAt: new Date(),
         },
