@@ -1244,6 +1244,9 @@ model WhatsAppTemplate {
   // Admin-configured image URL to send as the header for an IMAGE-header
   // template; set out of band, never overwritten by template sync.
   headerImageUrl String?                @map("header_image_url")
+  // Ordered list of TemplateVariables keys the sender fills {{1}}.. with;
+  // the default preserves today's fixed order for every existing template.
+  variableKeys String[]                 @default(["firstName", "eventName", "eventDateLabel", "rsvpLink"]) @map("variable_keys")
   status       String?
   lastSyncedAt DateTime?                @map("last_synced_at")
   createdAt    DateTime                 @default(now()) @map("created_at")

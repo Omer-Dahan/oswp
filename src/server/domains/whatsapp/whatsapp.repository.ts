@@ -35,12 +35,13 @@ export type SendContext = {
   household: { inviteCode: string | null } | null
   websiteSubUrl: string | null
   guest: { firstName: string } | null
-  event: { name: string; date: Date | null } | null
+  event: { name: string; date: Date | null; venue: string | null } | null
   template: {
     language: string
     paramCount: number
     hasImageHeader: boolean
     headerImageUrl: string | null
+    variableKeys: string[]
   } | null
 }
 
@@ -381,13 +382,19 @@ export class WhatsAppRepository {
       outbound.eventId
         ? this.db.event.findUnique({
             where: { id: outbound.eventId },
-            select: { name: true, date: true },
+            select: { name: true, date: true, venue: true },
           })
         : Promise.resolve(null),
       this.db.whatsAppTemplate.findFirst({
         where: { weddingId: outbound.weddingId, name: outbound.templateName },
         orderBy: { lastSyncedAt: 'desc' },
-        select: { language: true, paramCount: true, hasImageHeader: true, headerImageUrl: true },
+        select: {
+          language: true,
+          paramCount: true,
+          hasImageHeader: true,
+          headerImageUrl: true,
+          variableKeys: true,
+        },
       }),
     ])
 
@@ -649,7 +656,7 @@ export class WhatsAppRepository {
     guest: { firstName: string } | null
     household: { inviteCode: string | null } | null
     websiteSubUrl: string | null
-    event: { name: string; date: Date | null } | null
+    event: { name: string; date: Date | null; venue: string | null } | null
   }> {
     const [guest, household, website, event] = await Promise.all([
       this.db.guest.findUnique({ where: { id: candidate.guestId }, select: { firstName: true } }),
@@ -659,7 +666,10 @@ export class WhatsAppRepository {
       }),
       this.db.website.findUnique({ where: { weddingId }, select: { subUrl: true } }),
       eventId
-        ? this.db.event.findUnique({ where: { id: eventId }, select: { name: true, date: true } })
+        ? this.db.event.findUnique({
+            where: { id: eventId },
+            select: { name: true, date: true, venue: true },
+          })
         : Promise.resolve(null),
     ])
 
