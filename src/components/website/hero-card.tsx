@@ -53,7 +53,7 @@ export function HeroCard({
         onClick={openDialog}
         className={cn(
           'hero-card relative block overflow-hidden rounded-lg border border-border/60 bg-card shadow-md',
-          className ?? 'aspect-square h-[42svh] max-h-[440px]',
+          className ?? 'aspect-square h-[50.4svh] max-h-[528px]'
         )}
       >
         <Image
