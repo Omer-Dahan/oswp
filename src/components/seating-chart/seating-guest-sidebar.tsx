@@ -13,6 +13,7 @@ import {
 import { Input } from '~/components/ui/input'
 import { formatGuestName } from '~/lib/seating/guest-name'
 import { cn } from '~/lib/utils'
+import { getPartySize } from '~/server/domains/seating/seating.rules'
 import type { SeatingGuest, SeatingHousehold } from '~/server/domains/seating/seating.types'
 
 type SeatingGuestSidebarProps = {
@@ -95,8 +96,11 @@ function HouseholdGroup(
           <GripVertical className='h-3.5 w-3.5' aria-hidden='true' />
           {label}
         </span>
-        <span className='text-[0.6rem] text-muted-foreground tabular-nums'>
-          {unassigned.length}/{household.guests.length}
+        <span className='flex items-center gap-2 text-[0.6rem] text-muted-foreground tabular-nums'>
+          <span>{getPartySize(household)} מקומות</span>
+          <span>
+            {unassigned.length}/{household.guests.length}
+          </span>
         </span>
       </button>
       <ul className='p-1'>

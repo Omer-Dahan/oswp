@@ -5,7 +5,7 @@ import {
   SeatingTableNotFoundError,
 } from '~/server/domains/seating/seating.errors'
 
-import { NON_SEATABLE_RSVPS } from '~/server/domains/seating/seating.rules'
+import { getGuestWeights, NON_SEATABLE_RSVPS } from '~/server/domains/seating/seating.rules'
 import type {
   CreateSeatingTableInput,
   SeatableGuestRecord,
@@ -81,6 +81,7 @@ export class SeatingRepository {
                 zipCode: true,
                 country: true,
                 notes: true,
+                invitedCount: true,
               },
             },
             guestTagAssignments: { select: { guestTag: { select: { name: true } } } },
@@ -90,6 +91,41 @@ export class SeatingRepository {
       },
       orderBy: { guestId: 'asc' },
     })
+  }
+
+  /**
+   * Maps every seatable guest of the event to the number of seats their
+   * household's party occupies, so capacity checks count parties, not rows.
+   */
+  async findSeatWeights(eventId: string): Promise<Map<number, number>> {
+    const invitations = await this.db.invitation.findMany({
+      where: seatableInvitation(eventId),
+      select: {
+        guest: {
+          select: {
+            id: true,
+            isPrimaryContact: true,
+            householdId: true,
+            household: { select: { invitedCount: true } },
+          },
+        },
+      },
+    })
+
+    const households = new Map<
+      string,
+      { invitedCount: number | null; guests: Array<{ id: number; isPrimaryContact: boolean }> }
+    >()
+    for (const { guest } of invitations) {
+      let household = households.get(guest.householdId)
+      if (!household) {
+        household = { invitedCount: guest.household.invitedCount, guests: [] }
+        households.set(guest.householdId, household)
+      }
+      household.guests.push({ id: guest.id, isPrimaryContact: guest.isPrimaryContact })
+    }
+
+    return getGuestWeights([...households.values()])
   }
 
   async findTableById(id: string): Promise<SeatingTable | null> {

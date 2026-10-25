@@ -17,12 +17,13 @@ import {
   SEAT_SIZE,
 } from '~/components/seating-chart/seating-layout'
 import { cn } from '~/lib/utils'
-import { tableHasRoom } from '~/server/domains/seating/seating.rules'
+import { getOccupiedSeats, tableHasRoom } from '~/server/domains/seating/seating.rules'
 import type { SeatingGuest, SeatingTableView } from '~/server/domains/seating/seating.types'
 
 type SeatingTableNodeProps = {
   table: SeatingTableView
   guestsById: ReadonlyMap<number, SeatingGuest>
+  seatWeights: ReadonlyMap<number, number>
   onEdit: (tableId: string) => void
   onSelectGuest: (guestId: number) => void
 }
@@ -68,7 +69,7 @@ function SeatedGuest(
 }
 
 export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
-  const { table, guestsById, onEdit, onSelectGuest } = props
+  const { table, guestsById, seatWeights, onEdit, onSelectGuest } = props
   const { footprint, surface, seats } = useMemo(
     () => ({
       footprint: getTableFootprint(table.shape, table.capacity),
@@ -102,7 +103,8 @@ export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
   const activeData = active?.data.current as DragData | undefined
   // Only guest drags target a table; a table dragged over another gets no cue
   const isGuestOver = isOver && activeData?.type === 'guests'
-  const fits = !isGuestOver || tableHasRoom(table, activeData.guestIds)
+  const fits = !isGuestOver || tableHasRoom(table, activeData.guestIds, seatWeights)
+  const occupiedSeats = getOccupiedSeats(table.guestIds, seatWeights)
 
   return (
     <div
@@ -142,7 +144,7 @@ export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
         ref={setDragRef}
         data-seating-focus-key={`table:${table.id}`}
         type='button'
-        aria-label={`${table.name}, ${table.guestIds.length} of ${table.capacity} seats filled. Press Space to move, or Enter to edit.`}
+        aria-label={`${table.name}, ${occupiedSeats} of ${table.capacity} seats filled. Press Space to move, or Enter to edit.`}
         onClick={() => onEdit(table.id)}
         {...attributes}
         {...listeners}
@@ -166,10 +168,10 @@ export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
         <span
           className={cn(
             'text-[0.6rem] tabular-nums',
-            table.guestIds.length >= table.capacity ? 'text-success' : 'text-muted-foreground'
+            occupiedSeats >= table.capacity ? 'text-success' : 'text-muted-foreground'
           )}
         >
-          {table.guestIds.length}/{table.capacity}
+          {occupiedSeats} / {table.capacity} מקומות תפוסים
         </span>
       </button>
     </div>
