@@ -8,6 +8,7 @@ const vars: TemplateVariables = {
   firstName: 'דנה',
   eventName: 'חתונה',
   eventDateLabel: '1 בינואר 2027',
+  venue: null,
   rsvpLink: 'https://example.com/rsvp',
 }
 

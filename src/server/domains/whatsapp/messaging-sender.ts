@@ -18,8 +18,16 @@ export type TemplateVariables = {
   firstName: string
   eventName: string | null
   eventDateLabel: string | null
+  venue: string | null
   rsvpLink: string | null
 }
+
+const LEGACY_VARIABLE_KEYS: Array<keyof TemplateVariables> = [
+  'firstName',
+  'eventName',
+  'eventDateLabel',
+  'rsvpLink',
+]
 
 export type TemplateComponent =
   | { type: 'header'; parameters: Array<{ type: 'image'; image: { link: string } }> }
@@ -36,10 +44,12 @@ export type BuildComponentsResult =
 
 /**
  * Maps guest/household/event data to the template's body parameters, in the
- * fixed order {{1}} first name, {{2}} event name, {{3}} event date, {{4}}
- * RSVP link — truncated to `paramCount`, since Meta rejects a message whose
- * parameter count doesn't exactly match the approved template. A template
- * with no placeholders (paramCount 0) gets no body component at all.
+ * order declared by `variableKeys` (each entry a `TemplateVariables` key) —
+ * truncated to `paramCount`, since Meta rejects a message whose parameter
+ * count doesn't exactly match the approved template. A template with no
+ * placeholders (paramCount 0) gets no body component at all. `variableKeys`
+ * defaults to the legacy fixed order so templates synced before this change
+ * keep sending exactly what they send today.
  *
  * When the template declares an IMAGE header, Meta also rejects the send
  * unless a header image parameter is included, so a valid `https://` URL is
@@ -51,7 +61,8 @@ export type BuildComponentsResult =
 export function buildTemplateComponents(
   vars: TemplateVariables,
   paramCount: number,
-  header?: TemplateHeaderInfo
+  header?: TemplateHeaderInfo,
+  variableKeys?: string[]
 ): BuildComponentsResult {
   const components: TemplateComponent[] = []
 
@@ -64,12 +75,11 @@ export function buildTemplateComponents(
   }
 
   if (paramCount > 0) {
-    const allParams: Array<{ type: 'text'; text: string }> = [
-      { type: 'text', text: vars.firstName },
-      { type: 'text', text: vars.eventName ?? '' },
-      { type: 'text', text: vars.eventDateLabel ?? '' },
-      { type: 'text', text: vars.rsvpLink ?? '' },
-    ]
+    const keys = variableKeys && variableKeys.length > 0 ? variableKeys : LEGACY_VARIABLE_KEYS
+    const allParams: Array<{ type: 'text'; text: string }> = keys.map((key) => ({
+      type: 'text',
+      text: vars[key as keyof TemplateVariables] ?? '',
+    }))
     components.push({
       type: 'body',
       parameters: allParams.slice(0, Math.min(paramCount, allParams.length)),
@@ -94,13 +104,14 @@ const EVENT_DATE_FORMATTER = new Intl.DateTimeFormat('he-IL', { dateStyle: 'long
 /** Builds the template variables for one household's primary contact. */
 export function resolveTemplateVariables(context: {
   firstName: string
-  event: { name: string; date: Date | null } | null
+  event: { name: string; date: Date | null; venue: string | null } | null
   inviteUrl: string | null
 }): TemplateVariables {
   return {
     firstName: context.firstName,
     eventName: context.event?.name ?? null,
     eventDateLabel: context.event?.date ? EVENT_DATE_FORMATTER.format(context.event.date) : null,
+    venue: context.event?.venue ?? null,
     rsvpLink: context.inviteUrl,
   }
 }
@@ -213,10 +224,15 @@ export class MessagingSender {
     const language = context.template?.language ?? 'he'
     const paramCount = context.template?.paramCount ?? 4
 
-    const built = buildTemplateComponents(vars, paramCount, {
-      hasImageHeader: context.template?.hasImageHeader ?? false,
-      headerImageUrl: context.template?.headerImageUrl ?? null,
-    })
+    const built = buildTemplateComponents(
+      vars,
+      paramCount,
+      {
+        hasImageHeader: context.template?.hasImageHeader ?? false,
+        headerImageUrl: context.template?.headerImageUrl ?? null,
+      },
+      context.template?.variableKeys
+    )
 
     if (!built.ok) {
       await this.repo.markFailed(
