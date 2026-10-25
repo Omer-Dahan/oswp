@@ -10,6 +10,7 @@ import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { seatingService } from '~/server/domains/seating'
 import {
   assignGuestsSchema,
+  autoSeatSchema,
   createSeatingTableSchema,
   seatingEventIdSchema,
   seatingTableIdSchema,
@@ -53,4 +54,9 @@ export const seatingRouter = createTRPCRouter({
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
       return seatingService.unassignGuests(ctx.authz, weddingId, input)
     }),
+
+  autoSeat: protectedProcedure.input(autoSeatSchema).mutation(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return seatingService.autoSeat(ctx.authz, weddingId, input)
+  }),
 })

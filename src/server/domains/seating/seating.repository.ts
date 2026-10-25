@@ -7,6 +7,7 @@ import {
 
 import { getGuestWeights, NON_SEATABLE_RSVPS } from '~/server/domains/seating/seating.rules'
 import type {
+  AutoSeatGuestRecord,
   CreateSeatingTableInput,
   SeatableGuestRecord,
   SeatingTable,
@@ -203,5 +204,60 @@ export class SeatingRepository {
 
   async deleteAssignments(eventId: string, guestIds: number[]): Promise<void> {
     await this.db.seatAssignment.deleteMany({ where: { eventId, guestId: { in: guestIds } } })
+  }
+
+  /**
+   * Every invitation for the event, with what the auto-seat planner needs to
+   * bucket guests by household and tell who is already seated. Unlike
+   * findSeatableGuests this is unfiltered: eligibility is the planner's rule.
+   */
+  async findAutoSeatGuests(eventId: string): Promise<AutoSeatGuestRecord[]> {
+    return this.db.invitation.findMany({
+      where: { eventId },
+      select: {
+        rsvp: true,
+        guest: {
+          select: {
+            id: true,
+            isPrimaryContact: true,
+            householdId: true,
+            household: { select: { id: true, side: true, groupName: true, invitedCount: true } },
+            seatAssignments: { where: { eventId }, select: { tableId: true } },
+          },
+        },
+      },
+    })
+  }
+
+  /**
+   * Creates the auto-seat plan's new tables and AUTO assignments in one
+   * transaction. Never touches an existing SeatAssignment row.
+   */
+  async createAutoSeating(
+    weddingId: string,
+    eventId: string,
+    newTables: Array<{ name: string; capacity: number; positionX: number; positionY: number }>,
+    assignments: Array<{ guestId: number; tableId: string }>
+  ): Promise<void> {
+    await this.db.$transaction(async (tx) => {
+      const created = []
+      for (const table of newTables) {
+        created.push(
+          await tx.seatingTable.create({
+            data: { ...table, weddingId, eventId, shape: 'ROUND' },
+          })
+        )
+      }
+      const realIdByVirtual = new Map(created.map((table, index) => [`new:${index}`, table.id]))
+      const data = assignments.map(({ guestId, tableId }) => ({
+        eventId,
+        guestId,
+        tableId: realIdByVirtual.get(tableId) ?? tableId,
+        source: 'AUTO' as const,
+      }))
+      if (data.length > 0) {
+        await tx.seatAssignment.createMany({ data })
+      }
+    })
   }
 }

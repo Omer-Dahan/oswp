@@ -29,6 +29,36 @@ export type UnassignGuestsInput = {
   guestIds: number[]
 }
 
+export type AutoSeatInput = {
+  eventId: string
+  tableCapacity: number
+  fillFreeSeatsOnly: boolean
+}
+
+export type AutoSeatResult = {
+  seated: number
+  createdTables: number
+  unseated: number
+}
+
+// Repository shape: every invitation for an event, with what the auto-seat
+// planner needs to bucket guests by household and tell who is already seated
+export type AutoSeatGuestRecord = {
+  rsvp: string
+  guest: {
+    id: number
+    isPrimaryContact: boolean
+    householdId: string
+    household: {
+      id: string
+      side: string | null
+      groupName: string | null
+      invitedCount: number | null
+    }
+    seatAssignments: Array<{ tableId: string }>
+  }
+}
+
 // Repository shapes
 export type SeatingTableRecord = SeatingTable & {
   seatAssignments: Array<{ guestId: number }>

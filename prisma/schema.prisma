@@ -625,6 +625,11 @@ model SeatAssignment {
   eventId String
   event   Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
+  // Who put the guest here: a human planner, or the auto-seat planner.
+  // Defaulting existing rows to MANUAL protects every seat a planner already
+  // placed from ever being treated as something auto-seat may move.
+  source SeatSource @default(MANUAL)
+
   createdAt DateTime @default(now())
 
   @@unique([guestId, eventId])
@@ -635,6 +640,11 @@ model SeatAssignment {
 enum SeatingTableShape {
   ROUND
   RECTANGULAR
+}
+
+enum SeatSource {
+  MANUAL
+  AUTO
 }
 
 // Enum: Guest age groups for planning purposes (meals, activities, etc.)

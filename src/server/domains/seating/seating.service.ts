@@ -1,5 +1,7 @@
 import { TRPCError } from '@trpc/server'
 
+import { planAutoSeating } from '~/lib/seating/auto-seat'
+import { getNextTablePosition } from '~/components/seating-chart/seating-layout'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import {
@@ -16,6 +18,8 @@ import {
 } from '~/server/domains/seating/seating.rules'
 import type {
   AssignGuestsInput,
+  AutoSeatInput,
+  AutoSeatResult,
   CreateSeatingTableInput,
   SeatableGuestRecord,
   SeatingChart,
@@ -193,6 +197,87 @@ export class SeatingService {
     requirePermission(ctx, { event: ['update'] })
     await this.assertEventInWedding(input.eventId, weddingId)
     await this.repo.deleteAssignments(input.eventId, input.guestIds)
+  }
+
+  /**
+   * Seats every eligible, not-yet-seated household the planner can place.
+   * Additive only: it creates new tables and AUTO assignments, and never
+   * touches a seat a planner (or an earlier auto-seat run) already made.
+   */
+  async autoSeat(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: AutoSeatInput
+  ): Promise<AutoSeatResult> {
+    requirePermission(ctx, { event: ['update'] })
+    await this.assertEventInWedding(input.eventId, weddingId)
+
+    const [tables, invitations] = await Promise.all([
+      this.repo.findTablesByEventId(input.eventId),
+      this.repo.findAutoSeatGuests(input.eventId),
+    ])
+
+    const householdsById = new Map<
+      string,
+      { id: string; side: string | null; groupName: string | null; invitedCount: number | null }
+    >()
+    const guests = invitations.map((invitation) => {
+      const { household } = invitation.guest
+      if (!householdsById.has(household.id)) householdsById.set(household.id, household)
+      return {
+        id: invitation.guest.id,
+        householdId: invitation.guest.householdId,
+        isPrimaryContact: invitation.guest.isPrimaryContact,
+        rsvp: invitation.rsvp,
+        seated: invitation.guest.seatAssignments.length > 0,
+      }
+    })
+
+    const plan = planAutoSeating({
+      households: [...householdsById.values()],
+      guests,
+      tables: tables.map((table) => ({
+        id: table.id,
+        name: table.name,
+        capacity: table.capacity,
+        guestIds: table.seatAssignments.map((assignment) => assignment.guestId),
+      })),
+      tableCapacity: input.tableCapacity,
+      fillFreeSeatsOnly: input.fillFreeSeatsOnly,
+    })
+
+    if (plan.assignments.length === 0 && plan.newTables.length === 0) {
+      return { seated: 0, createdTables: 0, unseated: plan.unseated.length }
+    }
+
+    // Places each new table on the floor plan in turn, so none overlaps an
+    // existing table or one placed earlier in this same run
+    const placed: Array<{
+      positionX: number
+      positionY: number
+      shape: 'ROUND'
+      capacity: number
+    }> = tables.map((table) => ({
+      positionX: table.positionX,
+      positionY: table.positionY,
+      shape: 'ROUND',
+      capacity: table.capacity,
+    }))
+    const newTables = plan.newTables.map((table) => {
+      const position = getNextTablePosition(placed, { shape: 'ROUND', capacity: table.capacity })
+      const positionX = position?.x ?? 0
+      const positionY = position?.y ?? 0
+      placed.push({ positionX, positionY, shape: 'ROUND', capacity: table.capacity })
+      return { ...table, positionX, positionY }
+    })
+
+    await this.repo.createAutoSeating(weddingId, input.eventId, newTables, plan.assignments)
+
+    return {
+      seated: plan.assignments.length,
+      createdTables: plan.newTables.length,
+      unseated: plan.unseated.length,
+    }
   }
 
   /**
