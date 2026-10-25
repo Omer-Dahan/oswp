@@ -4,6 +4,13 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import type { HouseholdSearch, StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
+import {
+  StepActions,
+  StepHeading,
+  StepPrimaryButton,
+  StepSecondaryButton,
+  StepShell,
+} from '~/components/website/forms/steps/step-ui'
 
 type HouseholdSearchItem = HouseholdSearch[number]
 type GuestWithInvitations = HouseholdSearchItem['guests'][number]
@@ -59,43 +66,44 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
   }
 
   return (
-    <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest'>
-        {recognized ? t('recognizedInvitation') : t('foundInGuestList')}
-      </h2>
-      {matchedHouseholds?.map((household: HouseholdSearchItem) => {
-        return (
-          <div key={household.id} className='flex gap-5'>
-            <input
-              type='radio'
-              id={household.id}
-              checked={selectedHouseholdId === household.id}
-              onChange={() => setSelectedHouseholdId(household.id)}
-            />
-            <label htmlFor={household.id}>
+    <StepShell>
+      <StepHeading>{recognized ? t('recognizedInvitation') : t('foundInGuestList')}</StepHeading>
+      <div className='flex flex-col gap-3'>
+        {matchedHouseholds?.map((household: HouseholdSearchItem) => {
+          const isSelected = selectedHouseholdId === household.id
+          return (
+            <label
+              key={household.id}
+              htmlFor={household.id}
+              className={`flex min-h-12 cursor-pointer items-center gap-4 rounded-[16px] border px-5 py-4 text-base transition-colors ${
+                isSelected
+                  ? 'border-primary bg-primary/5 text-foreground'
+                  : 'border-border text-foreground/80 hover:border-primary/50'
+              }`}
+            >
+              <input
+                type='radio'
+                id={household.id}
+                checked={isSelected}
+                onChange={() => setSelectedHouseholdId(household.id)}
+                className='h-5 w-5 accent-primary'
+              />
               {household.guests
                 ?.map((guest: GuestWithInvitations) => `${guest.firstName} ${guest.lastName}`)
                 .join(', ')}
             </label>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
 
-      <button
-        className={`mt-3 bg-stone-400 py-3 text-white text-xl tracking-wide ${selectedHouseholdId === undefined ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
-        type='button'
-        disabled={selectedHouseholdId === undefined}
-        onClick={onContinue}
-      >
-        {tCommon('continue')}
-      </button>
-      <button
-        className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-        type='button'
-        onClick={recognized ? onNotYou : () => goBack?.()}
-      >
-        {recognized ? t('notYou') : t('searchAgain')}
-      </button>
-    </div>
+      <StepActions>
+        <StepPrimaryButton disabled={selectedHouseholdId === undefined} onClick={onContinue}>
+          {tCommon('continue')}
+        </StepPrimaryButton>
+        <StepSecondaryButton onClick={recognized ? onNotYou : () => goBack?.()}>
+          {recognized ? t('notYou') : t('searchAgain')}
+        </StepSecondaryButton>
+      </StepActions>
+    </StepShell>
   )
 }

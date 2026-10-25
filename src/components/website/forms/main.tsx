@@ -141,8 +141,10 @@ export default function MainRsvpForm({
 
   return (
     // pt-24 reserves space for the fixed ProgressBar so the first step's copy
-    // isn't hidden beneath it.
-    <div className={`${embedded ? 'pt-6' : 'pt-24'} pb-20 font-serif`}>
+    // isn't hidden beneath it. No font utility here: the template's own body
+    // face (--tpl-body-font / Mesheq for Hebrew) already cascades in from
+    // TemplateThemeProvider, same as every other guest surface.
+    <div className={`${embedded ? 'pt-6' : 'pt-24'} pb-20`}>
       <ProgressBar
         currentStep={currentStep}
         progress={progress}
@@ -151,7 +153,7 @@ export default function MainRsvpForm({
         embedded={embedded}
       />
       <form
-        className='m-auto w-full max-w-[450px] px-4 py-5 md:px-0'
+        className='m-auto w-full max-w-[450px] px-5 py-8 md:px-0'
         onSubmit={(e) => {
           e.preventDefault()
           setSubmitError(null)
@@ -235,12 +237,12 @@ const ProgressBar = ({
 }) => {
   return (
     <div
-      className={`${embedded ? 'relative mx-auto max-w-xl bg-background' : 'fixed top-0 z-10 bg-white'} w-full px-10 py-1 text-center`}
+      className={`${embedded ? 'relative mx-auto max-w-xl' : 'fixed top-0 z-10'} w-full bg-background px-10 py-3 text-center`}
     >
       <button
         type='button'
         aria-label='סגרו טופס RSVP'
-        className='absolute top-2 end-20 z-20 rounded-md text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+        className='absolute top-3 end-20 z-20 rounded-md text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
         onClick={() => {
           if (
             !shouldConfirmRsvpClose({ currentStep, numSteps }) ||
@@ -250,12 +252,14 @@ const ProgressBar = ({
           }
         }}
       >
-        <IoMdClose size={25} />
+        <IoMdClose size={22} />
       </button>
-      <h1 className='py-3 text-2xl'>RSVP</h1>
-      <div className='relative mb-2.5 h-3 w-full rounded-full bg-gray-200'>
+      <h1 className='font-[family-name:var(--tpl-heading-font)] py-2 text-foreground text-lg tracking-wide'>
+        RSVP
+      </h1>
+      <div className='relative h-1 w-full overflow-hidden rounded-full bg-border'>
         <div
-          className='absolute top-0 start-0 mb-2.5 h-3 rounded-full bg-gray-700 transition-[width]'
+          className='absolute top-0 start-0 h-1 rounded-full bg-primary transition-[width]'
           style={{
             width: currentStep < 3 ? '3%' : currentStep === numSteps - 1 ? '99%' : `${progress}%`,
           }}

@@ -2,26 +2,16 @@ import { IoMdClose } from 'react-icons/io'
 
 export default function RsvpPageSkeleton() {
   return (
-    <div
-      role='status'
-      className='flex animate-pulse flex-col space-y-8 md:space-y-0 rtl:space-x-reverse'
-    >
+    <div role='status' className='animate-pulse pt-24 pb-20'>
       <StaticProgressBar />
-      <div>
-        <div className='mt-24 h-48'>
-          <div className='mb-2.5 h-40 w-full bg-gray-200 dark:bg-gray-700'></div>
+      <div className='m-auto flex w-full max-w-[450px] flex-col gap-6 px-5 py-8 md:px-0'>
+        <div className='h-8 w-3/4 rounded-[8px] bg-muted' />
+        <div className='flex flex-col gap-2'>
+          <div className='h-4 w-full rounded-[6px] bg-muted' />
+          <div className='h-4 w-2/3 rounded-[6px] bg-muted' />
         </div>
-        <div className='m-auto w-[450px] py-5'>
-          <div className='flex flex-col gap-5'>
-            <div className='mb-2.5 h-12 w-72 bg-gray-200 dark:bg-gray-700'></div>
-            <div className='flex flex-col'>
-              <div className='mb-2.5 h-4 w-[95%] bg-gray-200 dark:bg-gray-700'></div>
-              <div className='mb-2.5 h-4 w-40 bg-gray-200 dark:bg-gray-700'></div>
-            </div>
-            <div className='mb-2.5 h-10 w-full bg-gray-200 dark:bg-gray-700'></div>
-            <div className='mb-2.5 h-10 w-full bg-gray-200 dark:bg-gray-700'></div>
-          </div>
-        </div>
+        <div className='h-12 w-full rounded-[16px] bg-muted' />
+        <div className='h-12 w-full rounded-full bg-muted' />
       </div>
     </div>
   )
@@ -29,11 +19,13 @@ export default function RsvpPageSkeleton() {
 
 const StaticProgressBar = () => {
   return (
-    <div className='fixed top-0 z-10 w-full bg-white px-10 py-1 text-center font-serif'>
-      <IoMdClose size={25} className='absolute top-2 end-20 z-20 cursor-pointer' />
-      <h1 className='py-3 text-2xl'>RSVP</h1>
-      <div className='relative mb-2.5 h-3 w-full rounded-full bg-gray-200'>
-        <div className='absolute top-0 start-0 mb-2.5 h-3 w-[3%] rounded-full bg-gray-700 transition-[width]'></div>
+    <div className='fixed top-0 z-10 w-full bg-background px-10 py-3 text-center'>
+      <IoMdClose size={22} className='absolute top-3 end-20 z-20 text-foreground/40' />
+      <h1 className='font-[family-name:var(--tpl-heading-font)] py-2 text-foreground text-lg tracking-wide'>
+        RSVP
+      </h1>
+      <div className='relative h-1 w-full overflow-hidden rounded-full bg-border'>
+        <div className='absolute top-0 start-0 h-1 w-[3%] rounded-full bg-primary transition-[width]' />
       </div>
     </div>
   )

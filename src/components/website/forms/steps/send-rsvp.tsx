@@ -3,6 +3,13 @@
 import { useTranslations } from 'next-intl'
 import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
+import {
+  StepActions,
+  StepHeading,
+  StepPrimaryButton,
+  StepSecondaryButton,
+  StepShell,
+} from '~/components/website/forms/steps/step-ui'
 
 interface SendRsvpProps extends StepFormProps {
   isFetching: boolean
@@ -14,28 +21,22 @@ export default function SendRsvp({ goBack, isFetching }: SendRsvpProps) {
   const { weddingData } = useRsvpForm()
 
   return (
-    <div className='flex flex-col gap-5'>
-      <h2 className='text-2xl tracking-widest'>
+    <StepShell>
+      <StepHeading>
         {t('sendRsvpTitle', {
           groomFirstName: weddingData.groomFirstName ?? '',
           brideFirstName: weddingData.brideFirstName ?? '',
         })}
-      </h2>
-      <button
-        disabled={isFetching}
-        className={`mt-3 py-3 text-white text-xl tracking-wide ${isFetching ? 'cursor-not-allowed bg-stone-400' : 'bg-stone-700'}`}
-        type='submit'
-      >
-        {t('sendRsvp')}
-      </button>
-      <button
-        className={`mt-3 bg-gray-700 py-3 text-white text-xl tracking-wide`}
-        type='button'
-        onClick={() => goBack?.()}
-      >
-        {tCommon('back')}
-      </button>
-      <p className='text-xs underline'>{tCommon('privacyPolicy')}</p>
-    </div>
+      </StepHeading>
+      <StepActions>
+        <StepPrimaryButton disabled={isFetching} type='submit'>
+          {t('sendRsvp')}
+        </StepPrimaryButton>
+        <StepSecondaryButton onClick={() => goBack?.()}>{tCommon('back')}</StepSecondaryButton>
+      </StepActions>
+      <p className='text-center text-muted-foreground text-sm underline underline-offset-4'>
+        {tCommon('privacyPolicy')}
+      </p>
+    </StepShell>
   )
 }
