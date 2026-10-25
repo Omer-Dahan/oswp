@@ -8,7 +8,7 @@
 import Papa from 'papaparse'
 import { z } from 'zod'
 
-import { optionalPhoneSchemaNotNull } from '~/lib/phone/phone-validator'
+import { normalizePhoneToE164, optionalPhoneSchemaNotNull } from '~/lib/phone/phone-validator'
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -23,7 +23,10 @@ const optionalString = z
 
 export const guestCsvRowSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  lastName: z
+    .string()
+    .optional()
+    .transform((v) => v ?? ''),
   email: optionalString.pipe(z.string().email('Invalid email').optional()),
   phone: optionalString.pipe(optionalPhoneSchemaNotNull),
   ageGroup: z
@@ -107,80 +110,117 @@ const KNOWN_FIELDS = new Set([
   'notes',
 ])
 
-// Extra columns that don't map 1:1 to a schema field; folded into `notes`.
-const EXTRA_FIELDS = new Set(['fullName', 'invitedCount', 'group'])
+const EXTRA_FIELDS = new Set(['fullName', 'invitedCount', 'side', 'group', 'landline'])
+const IGNORED_FIELD = '__ignored__'
 
+// Keys are stored in normalised form: quotes/geresh/gershayim/periods/colons
+// stripped, inner whitespace collapsed, trimmed.
 const HEBREW_HEADER_ALIASES: Record<string, string> = {
+  'הזמנה לכבוד': 'fullName',
   'שם מלא': 'fullName',
-  שם: 'fullName',
   'שם האורח': 'fullName',
+  שם: 'fullName',
   'שם פרטי': 'firstName',
   'שם משפחה': 'lastName',
-  טלפון: 'phone',
+
+  סלולרי: 'phone',
   נייד: 'phone',
   פלאפון: 'phone',
+  'טלפון נייד': 'phone',
+  טלפון: 'phone',
   'מספר טלפון': 'phone',
+  'טלפון רגיל': 'landline',
+  'טלפון קווי': 'landline',
+
   אימייל: 'email',
   מייל: 'email',
-  'דוא"ל': 'email',
-  "דוא'ל": 'email',
+  דואל: 'email',
+
+  רחוב: 'address1',
   כתובת: 'address1',
   'כתובת מלאה': 'address1',
-  רחוב: 'address1',
   עיר: 'city',
   'עיר מגורים': 'city',
   מיקוד: 'zipCode',
   מחוז: 'state',
   אזור: 'state',
   מדינה: 'country',
-  'קבוצת גיל': 'ageGroup',
-  גיל: 'ageGroup',
-  הערות: 'notes',
-  הערה: 'notes',
-  'מספר מוזמנים': 'invitedCount',
-  'כמות מוזמנים': 'invitedCount',
-  'כמות אורחים': 'invitedCount',
-  'מספר אורחים': 'invitedCount',
-  'כמות אנשים': 'invitedCount',
-  צד: 'group',
+  'תא דואר': 'address2',
+
+  צד: 'side',
   קבוצה: 'group',
   'צד/קבוצה': 'group',
   'קבוצת אורחים': 'group',
+
+  'מס אורחים שהוזמנו': 'invitedCount',
+  'מס אורחים': 'invitedCount',
+  'מספר אורחים': 'invitedCount',
+  'כמות אורחים': 'invitedCount',
+  'מספר מוזמנים': 'invitedCount',
+  'כמות מוזמנים': 'invitedCount',
+  'כמות אנשים': 'invitedCount',
+
+  'צק צפוי': IGNORED_FIELD,
+
+  'קבוצת גיל': 'ageGroup',
+  הערות: 'notes',
+  הערה: 'notes',
+}
+
+function normalizeHeaderKey(header: string): string {
+  return header
+    .replace(/[׳״"'`]/g, ' ')
+    .replace(/[.:]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function transformHeader(header: string): string {
-  const trimmed = header.trim()
-  if (KNOWN_FIELDS.has(trimmed) || EXTRA_FIELDS.has(trimmed)) return trimmed
-  return HEBREW_HEADER_ALIASES[trimmed] ?? trimmed
+  const raw = header.trim()
+  if (KNOWN_FIELDS.has(raw) || EXTRA_FIELDS.has(raw)) return raw
+  const key = normalizeHeaderKey(raw)
+  return HEBREW_HEADER_ALIASES[key] ?? IGNORED_FIELD
 }
 
-type RawCsvRow = GuestCsvRowInput & { fullName?: string; invitedCount?: string; group?: string }
+type RawCsvRow = GuestCsvRowInput & {
+  fullName?: string
+  invitedCount?: string
+  side?: string
+  group?: string
+  landline?: string
+  [IGNORED_FIELD]?: string
+}
 
-// Splits a single "full name" column into first/last name when the couple's
-// sheet doesn't have separate columns for them.
 function splitFullName(fullName: string): { firstName: string; lastName: string } {
-  const parts = fullName.trim().split(/\s+/)
-  const [firstName, ...rest] = parts
-  return { firstName: firstName ?? '', lastName: rest.join(' ') || (firstName ?? '') }
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return { firstName: '', lastName: '' }
+  if (parts.length === 1) return { firstName: parts[0]!, lastName: '' }
+  return { firstName: parts.slice(0, -1).join(' '), lastName: parts[parts.length - 1]! }
 }
 
-function normalizeRow(raw: RawCsvRow): GuestCsvRowInput {
-  const { fullName, invitedCount, group, ...rest } = raw
+function normalizeRow(input: RawCsvRow): GuestCsvRowInput {
+  const { fullName, invitedCount, side, group, landline, [IGNORED_FIELD]: _ignored, ...rest } = input
   const normalized: GuestCsvRowInput = { ...rest }
 
-  if (!normalized.firstName && !normalized.lastName && fullName) {
+  if (!normalized.firstName && fullName) {
     const { firstName, lastName } = splitFullName(fullName)
     normalized.firstName = firstName
     normalized.lastName = lastName
   }
 
+  if (normalized.phone) {
+    normalized.phone = normalizePhoneToE164(normalized.phone, 'IL') ?? normalized.phone
+  }
+
   const extraNotes = [
-    group ? `צד/קבוצה: ${group}` : null,
-    invitedCount ? `מספר מוזמנים: ${invitedCount}` : null,
+    invitedCount ? `הוזמנו: ${invitedCount}` : null,
+    side ? `צד: ${side}` : null,
+    group ? `קבוצה: ${group}` : null,
+    landline ? `טלפון נוסף: ${landline}` : null,
   ].filter((v): v is string => Boolean(v))
 
   if (extraNotes.length > 0) {
-    normalized.notes = [normalized.notes, ...extraNotes].filter(Boolean).join('; ')
+    normalized.notes = [...extraNotes, normalized.notes].filter(Boolean).join(' · ').slice(0, 1000)
   }
 
   return normalized
@@ -195,13 +235,21 @@ const HEADER_SEARCH_LIMIT = 10
 const MIN_RECOGNIZED_HEADERS = 2
 
 function isRecognizedField(field: string): boolean {
-  return KNOWN_FIELDS.has(field) || EXTRA_FIELDS.has(field)
+  return KNOWN_FIELDS.has(field) || EXTRA_FIELDS.has(field) || transformHeader(field) !== IGNORED_FIELD
+}
+
+const SECTION_LABEL_MARKERS = ['שיוך', 'פרטי התקשרות', 'כתובת']
+
+function isSectionLabelRow(row: string[]): boolean {
+  return row.some((cell) => SECTION_LABEL_MARKERS.includes(cell.trim()))
 }
 
 function detectHeaderRowIndex(rows: string[][]): number {
   const limit = Math.min(rows.length, HEADER_SEARCH_LIMIT)
   for (let i = 0; i < limit; i++) {
-    const recognizedCount = (rows[i] ?? []).map(transformHeader).filter(isRecognizedField).length
+    const row = rows[i] ?? []
+    if (isSectionLabelRow(row)) continue
+    const recognizedCount = row.map(transformHeader).filter(isRecognizedField).length
     if (recognizedCount >= MIN_RECOGNIZED_HEADERS) return i
   }
   return 0
