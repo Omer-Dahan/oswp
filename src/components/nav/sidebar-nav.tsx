@@ -50,6 +50,7 @@ type WorkspaceSnapshot = {
   role: string | null
   capabilities: {
     canViewPlanning: boolean
+    canAccessSettings: boolean
   }
 }
 
@@ -60,6 +61,10 @@ function getSidebarSections(workspace: WorkspaceSnapshot): readonly SidebarSecti
 
   if (!workspace.capabilities.canViewPlanning) {
     return SIDEBAR_SECTIONS.filter((section) => section.title === 'הגדרות')
+  }
+
+  if (!workspace.capabilities.canAccessSettings) {
+    return SIDEBAR_SECTIONS.filter((section) => section.title !== 'הגדרות')
   }
 
   return SIDEBAR_SECTIONS
@@ -232,6 +237,7 @@ export default function SidebarNavFrame(props: SidebarNavFrameProps) {
     role: workspace.role,
     capabilities: {
       canViewPlanning: workspace.capabilities.canViewPlanning,
+      canAccessSettings: workspace.capabilities.canAccessSettings,
     },
   })
   // Start collapsed=false for SSR safety; sync from localStorage on client after mount

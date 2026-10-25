@@ -13,6 +13,7 @@ jest.mock('~/hooks/use-workspace', () => ({
       role: 'admin',
       capabilities: {
         canViewPlanning: true,
+        canAccessSettings: true,
       },
     },
   })),
@@ -32,6 +33,7 @@ describe('SidebarNavFrame', () => {
         role: 'admin',
         capabilities: {
           canViewPlanning: true,
+          canAccessSettings: true,
         },
       },
     })
@@ -115,6 +117,7 @@ describe('SidebarNavFrame', () => {
         role: 'viewer',
         capabilities: {
           canViewPlanning: false,
+          canAccessSettings: false,
         },
       },
     })
