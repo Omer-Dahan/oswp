@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod'
+import { uploadedAssetUrlSchema } from '~/lib/upload-config'
 import { reservedWebsiteRootSegmentsSet } from '~/lib/website/reserved-root-segments'
 import { isKnownTemplateId } from '~/templates/catalog'
 
@@ -96,7 +97,7 @@ export const updateCoverPhotoSchema = z.object({
  * Schema for updating the header/hero image
  */
 export const updateHeaderImageSchema = z.object({
-  headerImageUrl: z.string().url('Enter a valid image URL').nullable(),
+  headerImageUrl: uploadedAssetUrlSchema.nullable(),
 })
 
 /**
@@ -104,7 +105,7 @@ export const updateHeaderImageSchema = z.object({
  */
 export const updateCoupleImagesSchema = z.object({
   coupleImageUrls: z
-    .array(z.string().url('Enter a valid image URL'))
+    .array(uploadedAssetUrlSchema)
     .max(12, 'You can add up to 12 couple photos'),
 })
 

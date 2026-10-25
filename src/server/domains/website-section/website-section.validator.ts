@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { isUploadedAssetUrl } from '~/lib/upload-config'
 import {
   type SectionContentByType,
   type WebsiteSectionContent,
@@ -41,8 +42,8 @@ export const weddingPartySectionContentSchema = z.object({
         role: z.string().max(120, 'Role must be 120 characters or fewer'),
         imageUrl: z
           .string()
-          .url('Enter a valid image URL')
           .max(2000, 'Image URL must be 2000 characters or fewer')
+          .refine(isUploadedAssetUrl, 'Enter a valid image URL')
           .optional(),
         blurb: z.string().max(1000, 'Blurb must be 1000 characters or fewer').optional(),
       })
@@ -53,8 +54,8 @@ export const weddingPartySectionContentSchema = z.object({
 const eyebrowSchema = z.string().max(60, 'Label must be 60 characters or fewer').optional()
 const optionalImageUrlSchema = z
   .string()
-  .url('Enter a valid image URL')
   .max(2000, 'Image URL must be 2000 characters or fewer')
+  .refine(isUploadedAssetUrl, 'Enter a valid image URL')
   .optional()
 const optionalLinkUrlSchema = z
   .string()

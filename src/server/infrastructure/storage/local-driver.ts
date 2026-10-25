@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { env } from '~/env'
+import { UPLOAD_URL_PREFIX } from '~/lib/upload-config'
 import { EXTENSION_BY_TYPE } from '~/server/infrastructure/storage/magic-bytes'
 import type { StorageDriver } from '~/server/infrastructure/storage/types'
 import { validateUpload } from '~/server/infrastructure/storage/validate-upload'
@@ -30,8 +31,6 @@ export function resolveUploadPath(filename: string): string | null {
   }
   return resolved
 }
-
-const UPLOAD_URL_PREFIX = '/api/uploads/'
 
 function extractFilename(pathnameOrUrl: string): string {
   const idx = pathnameOrUrl.indexOf(UPLOAD_URL_PREFIX)

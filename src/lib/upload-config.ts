@@ -5,6 +5,30 @@
  * client-side dropzone validation and server-side upload handling.
  */
 
+import { z } from 'zod'
+
+/** Root-relative prefix returned by the local storage driver, served by `/api/uploads/[...path]`. */
+export const UPLOAD_URL_PREFIX = '/api/uploads/'
+
+/**
+ * Checks whether a value is a valid uploaded image/asset URL: either a
+ * root-relative local-driver path, or an absolute `http(s)` URL (Blob/S3).
+ * Rejects `javascript:`, `data:`, and other non-http(s) schemes, as well as
+ * protocol-relative URLs and bare text.
+ */
+export function isUploadedAssetUrl(value: string): boolean {
+  if (value.startsWith(UPLOAD_URL_PREFIX)) return true
+  try {
+    const protocol = new URL(value).protocol
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/** Zod schema for a stored uploaded image/asset URL. See {@link isUploadedAssetUrl}. */
+export const uploadedAssetUrlSchema = z.string().refine(isUploadedAssetUrl, 'Enter a valid image URL')
+
 /**
  * Maximum file size in bytes (10 MB).
  *
