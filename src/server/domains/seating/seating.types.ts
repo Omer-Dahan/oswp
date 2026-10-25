@@ -56,6 +56,7 @@ export type SeatableGuestRecord = {
       zipCode: string | null
       country: string | null
       notes: string | null
+      invitedCount: number | null
     }
     guestTagAssignments: Array<{ guestTag: { name: string } }>
     seatAssignments: Array<{ tableId: string }>
@@ -102,6 +103,7 @@ export type SeatingHousehold = {
   id: string
   address: string | null
   notes: string | null
+  invitedCount: number | null
   guests: SeatingGuest[]
 }
 

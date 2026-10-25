@@ -8,6 +8,7 @@ import {
 } from '~/server/domains/seating/seating.errors'
 import type { SeatingRepository } from '~/server/domains/seating/seating.repository'
 import {
+  getOccupiedSeats,
   getOpenSeats,
   getSeatsNeeded,
   openSeatsMessage,
@@ -45,6 +46,7 @@ const groupByHousehold = (records: SeatableGuestRecord[]): SeatingHousehold[] =>
         id: guest.household.id,
         address: formatAddress(guest.household),
         notes: guest.household.notes,
+        invitedCount: guest.household.invitedCount,
         guests: [],
       }
       households.set(guest.householdId, household)
@@ -126,11 +128,15 @@ export class SeatingService {
 
     return this.withLockedTable(table, async (lock) => {
       if (data.capacity !== undefined) {
-        const seatedCount = (await lock.seatedGuestIds()).length
+        const [seatedGuestIds, weights] = await Promise.all([
+          lock.seatedGuestIds(),
+          this.repo.findSeatWeights(table.eventId),
+        ])
+        const seatedCount = getOccupiedSeats(seatedGuestIds, weights)
         if (data.capacity < seatedCount) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: `יש בשולחן ${lock.table.name} ${seatedCount} אורחים, הזיזו אותם לפני הקטנת מספר המקומות`,
+            message: `יש בשולחן ${lock.table.name} ${seatedCount} מקומות תפוסים, הזיזו אורחים לפני הקטנת מספר המקומות`,
           })
         }
       }
@@ -161,18 +167,20 @@ export class SeatingService {
       })
     }
 
+    const weights = await this.repo.findSeatWeights(table.eventId)
+
     await this.withLockedTable(table, async (lock) => {
       const { capacity, name } = lock.table
       const seatedGuestIds = await lock.seatedGuestIds()
       const seats = { capacity, guestIds: seatedGuestIds }
-      if (!tableHasRoom(seats, guestIds)) {
+      if (!tableHasRoom(seats, guestIds, weights)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: openSeatsMessage(name, getOpenSeats(seats)),
+          message: openSeatsMessage(name, getOpenSeats(seats, weights)),
         })
       }
 
-      if (getSeatsNeeded(seatedGuestIds, guestIds) === 0) return
+      if (getSeatsNeeded(seatedGuestIds, guestIds, weights) === 0) return
       await lock.replaceAssignments(guestIds)
     })
   }

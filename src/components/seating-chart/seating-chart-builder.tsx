@@ -58,7 +58,10 @@ import {
 } from '~/components/ui/select'
 import { buildSeatingCsv } from '~/lib/seating/seating-csv'
 import {
+  getGuestWeights,
   getOpenSeats,
+  getSeatsNeeded,
+  householdSeatsMessage,
   openSeatsMessage,
   tableHasRoom,
 } from '~/server/domains/seating/seating.rules'
@@ -197,6 +200,9 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     () => new Map((chart?.tables ?? []).map((table) => [table.id, table])),
     [chart]
   )
+  // Each household's party size is attributed to one guest; everyone else
+  // in it carries weight 0 so the party is never counted twice
+  const seatWeights = useMemo(() => getGuestWeights(households ?? []), [households])
   const selectedGuest = selectedGuestId === null ? null : (guestsById.get(selectedGuestId) ?? null)
   const selectedHousehold =
     chart?.households.find((household) => household.id === selectedGuest?.householdId) ?? null
@@ -328,8 +334,19 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
 
   // Shared by drag drops and the drawer: explains a full table instead of seating
   const canSeat = (table: SeatingTableView, guestIds: number[]) => {
-    if (tableHasRoom(table, guestIds)) return true
-    toast.error(openSeatsMessage(table.name, getOpenSeats(table)))
+    if (tableHasRoom(table, guestIds, seatWeights)) return true
+    const openSeats = getOpenSeats(table, seatWeights)
+    const firstGuest = guestIds[0] !== undefined ? guestsById.get(guestIds[0]) : undefined
+    const household = firstGuest
+      ? chart?.households.find((candidate) => candidate.id === firstGuest.householdId)
+      : undefined
+    const lastName = household?.guests[0]?.lastName
+    if (household && lastName) {
+      const needed = getSeatsNeeded(table.guestIds, guestIds, seatWeights)
+      toast.error(householdSeatsMessage(table.name, openSeats, `המשפחה של ${lastName}`, needed))
+    } else {
+      toast.error(openSeatsMessage(table.name, openSeats))
+    }
     return false
   }
 
@@ -549,6 +566,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
                     key={table.id}
                     table={table}
                     guestsById={guestsById}
+                    seatWeights={seatWeights}
                     onEdit={(tableId) => openTableDialog({ mode: 'edit', tableId })}
                     onSelectGuest={openGuestFrom('seat-guest')}
                   />

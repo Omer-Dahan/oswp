@@ -25,6 +25,7 @@ const households: SeatingHousehold[] = [
     id: 'h1',
     address: null,
     notes: null,
+    invitedCount: null,
     guests: [
       guest({ id: 1, firstName: 'Ann' }),
       guest({ id: 2, firstName: 'Ben', tableId: 'table-1' }),
@@ -34,6 +35,7 @@ const households: SeatingHousehold[] = [
     id: 'h2',
     address: null,
     notes: null,
+    invitedCount: null,
     guests: [guest({ id: 3, firstName: 'Cara', lastName: 'Jones', householdId: 'h2' })],
   },
 ]
@@ -103,6 +105,7 @@ describe('SeatingGuestSidebar', () => {
               id: 'h9',
               address: null,
               notes: null,
+              invitedCount: null,
               guests: [
                 guest({ id: 21, firstName: 'Papa', lastName: 'Bear', householdId: 'h9' }),
                 guest({ id: 22, firstName: 'Mama', lastName: 'Bear', householdId: 'h9' }),
