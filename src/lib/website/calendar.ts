@@ -169,3 +169,27 @@ export function buildSaveTheDateCalendarLinks(
     fileName: 'save-the-date.ics',
   }
 }
+
+/**
+ * Build the Google Calendar link and `.ics` contents for a single event, or
+ * `null` when the event has no date to add.
+ */
+export function buildSingleEventCalendarLinks(
+  event: { name: string; date: Date | null; venue?: string | null },
+  stamp: Date = new Date()
+): Pick<SaveTheDateCalendarLinks, 'googleUrl' | 'ics' | 'fileName'> | null {
+  if (!event.date) return null
+
+  const calendar = buildSaveTheDateCalendar({
+    title: event.name,
+    location: event.venue ?? undefined,
+    events: [{ date: event.date }],
+  })
+  if (!calendar) return null
+
+  return {
+    googleUrl: buildGoogleCalendarUrl(calendar),
+    ics: buildIcs(calendar, stamp),
+    fileName: `${event.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'event'}.ics`,
+  }
+}

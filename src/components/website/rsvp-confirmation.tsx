@@ -7,6 +7,7 @@ import { FaCircleCheck } from 'react-icons/fa6'
 import { RxCrossCircled } from 'react-icons/rx'
 import type { Event, RsvpFormResponse } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
+import { buildSingleEventCalendarLinks } from '~/lib/website/calendar'
 
 type RsvpConfirmationProps = {
   basePath: string
@@ -63,13 +64,40 @@ const ConfirmationListItem = ({
   rsvpResponses: RsvpFormResponse[]
 }) => {
   const tCommon = useTranslations('common')
+  const calendarLinks = buildSingleEventCalendarLinks(event)
+
+  const downloadIcs = () => {
+    if (!calendarLinks) return
+    const blob = new Blob([calendarLinks.ics], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = calendarLinks.fileName
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <li className='flex flex-col gap-3 border-b-2 py-6'>
       <div className='flex items-start justify-between'>
         <h3 className='font-bold text-lg'>{event.name}</h3>
-        <button type='button' className='border-b-2 py-1'>
-          {tCommon('addToCalendar')}
-        </button>
+        {calendarLinks && (
+          <div className='flex items-center gap-3'>
+            <a
+              className='border-b-2 py-1'
+              href={calendarLinks.googleUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              {tCommon('addToCalendar')} {event.name}
+            </a>
+            <button type='button' className='border-b-2 py-1' onClick={downloadIcs}>
+              {tCommon('downloadIcs')}
+            </button>
+          </div>
+        )}
       </div>
       {rsvpResponses.map((response) => {
         if (response.eventId === event.id) {
