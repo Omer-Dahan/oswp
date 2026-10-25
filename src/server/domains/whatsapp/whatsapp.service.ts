@@ -31,6 +31,7 @@ import type {
   ProcessQueueInput,
   QueueBatchInput,
   SaveAccountInput,
+  SetTemplateHeaderImageInput,
 } from '~/server/domains/whatsapp/whatsapp.validator'
 import { decryptSecret, encryptSecret, maskSecret } from '~/server/infrastructure/crypto/secrets'
 
@@ -425,5 +426,24 @@ export class WhatsAppService {
   ): Promise<WhatsAppOutbound[]> {
     requirePermission(ctx, { wedding: ['read'] })
     return this.repo.listRecentOutbound(weddingId, limit)
+  }
+
+  /** Empty string clears the header image. */
+  async setTemplateHeaderImage(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: SetTemplateHeaderImageInput
+  ): Promise<WhatsAppTemplate> {
+    requirePermission(ctx, { guest_invitation: ['send'] })
+
+    const template = await this.repo.setTemplateHeaderImage(
+      weddingId,
+      input.templateId,
+      input.headerImageUrl === '' ? null : input.headerImageUrl
+    )
+    if (!template) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'התבנית לא נמצאה' })
+    }
+    return template
   }
 }

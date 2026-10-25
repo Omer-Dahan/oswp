@@ -605,6 +605,20 @@ export class WhatsAppRepository {
     return this.db.whatsAppTemplate.findMany({ where: { weddingId }, orderBy: { name: 'asc' } })
   }
 
+  /** Scoped to the wedding so a template id from another wedding can't be targeted. */
+  async setTemplateHeaderImage(
+    weddingId: string,
+    templateId: string,
+    headerImageUrl: string | null
+  ): Promise<WhatsAppTemplate | null> {
+    const result = await this.db.whatsAppTemplate.updateMany({
+      where: { id: templateId, weddingId },
+      data: { headerImageUrl },
+    })
+    if (result.count === 0) return null
+    return this.db.whatsAppTemplate.findUnique({ where: { id: templateId } })
+  }
+
   /** Removes cached templates for this wedding that Meta no longer returned from a sync. */
   async deleteStaleTemplates(
     weddingId: string,

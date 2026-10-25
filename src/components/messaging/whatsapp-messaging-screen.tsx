@@ -18,6 +18,7 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Checkbox } from '~/components/ui/checkbox'
+import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import {
   Select,
@@ -88,6 +89,14 @@ export function WhatsappMessagingScreen() {
       void utils.whatsapp.listTemplates.invalidate()
     },
     onError: (error) => toast.error(error.message || 'סנכרון התבניות נכשל'),
+  })
+
+  const setTemplateHeaderImage = api.whatsapp.setTemplateHeaderImage.useMutation({
+    onSuccess: () => {
+      toast.success('תמונת הכותרת נשמרה')
+      void utils.whatsapp.listTemplates.invalidate()
+    },
+    onError: (error) => toast.error(error.message || 'שמירת תמונת הכותרת נכשלה'),
   })
 
   const [audienceMode, setAudienceMode] = useState<AudienceMode>('all')
@@ -243,23 +252,32 @@ export function WhatsappMessagingScreen() {
                 ) : (
                   <ul className='divide-y divide-border'>
                     {(templates.data ?? []).map((template) => (
-                      <li
-                        key={template.id}
-                        className='flex items-center justify-between gap-3 py-3'
-                      >
-                        <div className='min-w-0'>
-                          <p className='truncate font-medium text-foreground text-sm'>
-                            {template.name}
-                          </p>
-                          {template.bodyPreview && (
-                            <p className='mt-0.5 truncate text-muted-foreground text-xs'>
-                              {template.bodyPreview}
+                      <li key={template.id} className='space-y-2 py-3'>
+                        <div className='flex items-center justify-between gap-3'>
+                          <div className='min-w-0'>
+                            <p className='truncate font-medium text-foreground text-sm'>
+                              {template.name}
                             </p>
-                          )}
+                            {template.bodyPreview && (
+                              <p className='mt-0.5 truncate text-muted-foreground text-xs'>
+                                {template.bodyPreview}
+                              </p>
+                            )}
+                          </div>
+                          <Badge variant={templateStatusVariant(template.status)}>
+                            {templateStatusLabel(template.status)}
+                          </Badge>
                         </div>
-                        <Badge variant={templateStatusVariant(template.status)}>
-                          {templateStatusLabel(template.status)}
-                        </Badge>
+                        {template.hasImageHeader && (
+                          <TemplateHeaderImageField
+                            templateId={template.id}
+                            headerImageUrl={template.headerImageUrl}
+                            onSave={(headerImageUrl) =>
+                              setTemplateHeaderImage.mutate({ templateId: template.id, headerImageUrl })
+                            }
+                            isPending={setTemplateHeaderImage.isPending}
+                          />
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -526,6 +544,71 @@ type AccountView =
       lastError: string | null
     }
   | undefined
+
+function TemplateHeaderImageField({
+  templateId,
+  headerImageUrl,
+  onSave,
+  isPending,
+}: {
+  templateId: string
+  headerImageUrl: string | null
+  onSave: (headerImageUrl: string) => void
+  isPending: boolean
+}) {
+  const [value, setValue] = useState(headerImageUrl ?? '')
+
+  useEffect(() => {
+    setValue(headerImageUrl ?? '')
+  }, [headerImageUrl])
+
+  return (
+    <div className='space-y-1 rounded-md border border-border/50 bg-muted/10 p-2'>
+      <Label htmlFor={`wa-header-image-${templateId}`} className='text-xs'>
+        תמונת כותרת (קישור https)
+      </Label>
+      <div className='flex items-center gap-2'>
+        <Input
+          id={`wa-header-image-${templateId}`}
+          dir='ltr'
+          className='text-left font-mono text-xs'
+          placeholder='https://example.com/header.jpg'
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          disabled={isPending}
+        />
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          onClick={() => onSave(value)}
+          disabled={isPending}
+        >
+          שמירה
+        </Button>
+        {headerImageUrl && (
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            onClick={() => {
+              setValue('')
+              onSave('')
+            }}
+            disabled={isPending}
+          >
+            הסרה
+          </Button>
+        )}
+      </div>
+      {!headerImageUrl && (
+        <p className='text-destructive text-xs'>
+          בלי תמונת כותרת השליחה תיכשל — מטא דורשת את התמונה בכל שליחה.
+        </p>
+      )}
+    </div>
+  )
+}
 
 function ConnectionBanner({ account, isLoading }: { account: AccountView; isLoading: boolean }) {
   if (isLoading || !account) {
