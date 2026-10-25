@@ -1237,6 +1237,13 @@ model WhatsAppTemplate {
   // Count of {{n}} body placeholders Meta reported for this template, so the
   // sender passes exactly this many parameters instead of a hardcoded 4.
   paramCount   Int                      @default(0) @map("param_count")
+  // Whether Meta reports a HEADER component of format IMAGE for this
+  // template; such templates are rejected by Meta unless a header image
+  // parameter is injected at send time.
+  hasImageHeader Boolean                @default(false) @map("has_image_header")
+  // Admin-configured image URL to send as the header for an IMAGE-header
+  // template; set out of band, never overwritten by template sync.
+  headerImageUrl String?                @map("header_image_url")
   status       String?
   lastSyncedAt DateTime?                @map("last_synced_at")
   createdAt    DateTime                 @default(now()) @map("created_at")

@@ -21,10 +21,18 @@ export type TemplateVariables = {
   rsvpLink: string | null
 }
 
-export type TemplateComponent = {
-  type: 'body'
-  parameters: Array<{ type: 'text'; text: string }>
+export type TemplateComponent =
+  | { type: 'header'; parameters: Array<{ type: 'image'; image: { link: string } }> }
+  | { type: 'body'; parameters: Array<{ type: 'text'; text: string }> }
+
+export type TemplateHeaderInfo = {
+  hasImageHeader: boolean
+  headerImageUrl?: string | null
 }
+
+export type BuildComponentsResult =
+  | { ok: true; components: TemplateComponent[] }
+  | { ok: false; error: 'missing_header_image'; retryable: false }
 
 /**
  * Maps guest/household/event data to the template's body parameters, in the
@@ -32,22 +40,43 @@ export type TemplateComponent = {
  * RSVP link — truncated to `paramCount`, since Meta rejects a message whose
  * parameter count doesn't exactly match the approved template. A template
  * with no placeholders (paramCount 0) gets no body component at all.
+ *
+ * When the template declares an IMAGE header, Meta also rejects the send
+ * unless a header image parameter is included, so a valid `https://` URL is
+ * prepended before the body component; a missing or non-https URL is a
+ * typed failure rather than a Meta 4xx.
+ *
  * Pure: same input always gives the same output, no I/O.
  */
 export function buildTemplateComponents(
   vars: TemplateVariables,
-  paramCount: number
-): TemplateComponent[] {
-  if (paramCount <= 0) return []
+  paramCount: number,
+  header?: TemplateHeaderInfo
+): BuildComponentsResult {
+  const components: TemplateComponent[] = []
 
-  const allParams: Array<{ type: 'text'; text: string }> = [
-    { type: 'text', text: vars.firstName },
-    { type: 'text', text: vars.eventName ?? '' },
-    { type: 'text', text: vars.eventDateLabel ?? '' },
-    { type: 'text', text: vars.rsvpLink ?? '' },
-  ]
+  if (header?.hasImageHeader) {
+    const url = header.headerImageUrl
+    if (!url || !url.startsWith('https://')) {
+      return { ok: false, error: 'missing_header_image', retryable: false }
+    }
+    components.push({ type: 'header', parameters: [{ type: 'image', image: { link: url } }] })
+  }
 
-  return [{ type: 'body', parameters: allParams.slice(0, Math.min(paramCount, allParams.length)) }]
+  if (paramCount > 0) {
+    const allParams: Array<{ type: 'text'; text: string }> = [
+      { type: 'text', text: vars.firstName },
+      { type: 'text', text: vars.eventName ?? '' },
+      { type: 'text', text: vars.eventDateLabel ?? '' },
+      { type: 'text', text: vars.rsvpLink ?? '' },
+    ]
+    components.push({
+      type: 'body',
+      parameters: allParams.slice(0, Math.min(paramCount, allParams.length)),
+    })
+  }
+
+  return { ok: true, components }
 }
 
 /** Renders a template's {{1}}..{{4}} placeholders with real data, for UI preview only. */
@@ -184,13 +213,26 @@ export class MessagingSender {
     const language = context.template?.language ?? 'he'
     const paramCount = context.template?.paramCount ?? 4
 
+    const built = buildTemplateComponents(vars, paramCount, {
+      hasImageHeader: context.template?.hasImageHeader ?? false,
+      headerImageUrl: context.template?.headerImageUrl ?? null,
+    })
+
+    if (!built.ok) {
+      await this.repo.markFailed(
+        outboundId,
+        'לתבנית הזו חסרה תמונת כותרת — הגדירו תמונה לפני שליחה.'
+      )
+      return false
+    }
+
     const outcome = await postTemplateMessage({
       phoneNumberId: account.phoneNumberId,
       accessToken: decryptSecret(account.accessTokenEnc),
       toPhone: outbound.toPhone,
       templateName: outbound.templateName,
       languageCode: language,
-      components: buildTemplateComponents(vars, paramCount),
+      components: built.components,
     })
 
     if (outcome.ok) {
