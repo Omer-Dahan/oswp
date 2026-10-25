@@ -108,11 +108,11 @@ export class WebsiteRepository {
         generalQuestions: {
           create: [
             {
-              text: 'Will you be bringing any children under the age of 10?',
+              text: 'האם תגיעו עם ילדים מתחת לגיל 10?',
               type: 'Text',
             },
             {
-              text: 'Send a note to the couple?',
+              text: 'רוצים להשאיר ברכה לזוג?',
               type: 'Text',
             },
           ],
@@ -146,11 +146,11 @@ export class WebsiteRepository {
         generalQuestions: {
           create: [
             {
-              text: 'Will you be bringing any children under the age of 10?',
+              text: 'האם תגיעו עם ילדים מתחת לגיל 10?',
               type: 'Text',
             },
             {
-              text: 'Send a note to the couple?',
+              text: 'רוצים להשאיר ברכה לזוג?',
               type: 'Text',
             },
           ],
