@@ -17,6 +17,18 @@ export type WorkspaceInvitePreviewResult =
   | { valid: true; coupleNames: string; side: string | null }
   | { valid: false; reason: WorkspaceInviteInvalidReason }
 
+export type WorkspaceMemberSummary = {
+  id: string
+  role: string
+  side: string | null
+  createdAt: Date
+  user: {
+    name: string | null
+    email: string | null
+    image: string | null
+  }
+}
+
 export type WorkspaceInviteAcceptResult =
   | { ok: true }
   | { ok: false; error: WorkspaceInviteInvalidReason | 'email_exists' | 'invalid_role' }

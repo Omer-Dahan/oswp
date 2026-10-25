@@ -7,6 +7,7 @@ import { OrganizationMembersSettingsCard } from '~/components/settings/organizat
 import { OrganizationOutstandingInvitesCard } from '~/components/settings/organization-outstanding-invites-card'
 import { TelegramConnectCard } from '~/components/settings/telegram-connect-card'
 import { WhatsappConnectionCard } from '~/components/settings/whatsapp-connection-card'
+import { WorkspaceInviteLinksCard } from '~/components/settings/workspace-invite-links-card'
 import { auth } from '~/lib/auth'
 import { getRequiredWedding } from '~/server/application/authenticated-route/authenticated-route-data'
 import { resolveWorkspaceScope } from '~/server/application/workspace/workspace-scope'
@@ -20,6 +21,8 @@ export default async function SettingsPage() {
     headers: await headers(),
   })
 
+  let canManageMembers = false
+
   if (session?.user?.id) {
     const scope = await resolveWorkspaceScope({
       session,
@@ -29,6 +32,7 @@ export default async function SettingsPage() {
     if (!capabilities.canAccessSettings) {
       redirect('/dashboard')
     }
+    canManageMembers = capabilities.canManageMembers
   }
 
   const wedding = await getRequiredWedding()
@@ -92,6 +96,7 @@ export default async function SettingsPage() {
                 </p>
               </div>
               <OrganizationMembersSettingsCard />
+              <WorkspaceInviteLinksCard canManageMembers={canManageMembers} />
               <OrganizationOutstandingInvitesCard />
             </div>
             <div className='space-y-3'>

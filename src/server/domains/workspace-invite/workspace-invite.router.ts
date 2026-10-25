@@ -28,6 +28,11 @@ export const workspaceInviteRouter = createTRPCRouter({
     return workspaceInviteService.list(ctx.authz, weddingId)
   }),
 
+  listMembers: protectedProcedure.query(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return workspaceInviteService.listMembers(weddingId)
+  }),
+
   revoke: protectedProcedure
     .input(revokeWorkspaceInviteLinkSchema)
     .mutation(async ({ ctx, input }) => {

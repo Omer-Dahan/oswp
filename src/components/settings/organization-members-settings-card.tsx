@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, Loader2, MailPlus, RefreshCw, Trash2, X } from 'lucide-react'
+import { Loader2, RefreshCw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -30,6 +30,7 @@ import {
   organizationRoleOptions,
 } from '~/lib/organization-roles'
 import { getUserInitials } from '~/lib/user-display'
+import { api } from '~/trpc/react'
 
 type Organization = {
   id: string
@@ -46,14 +47,22 @@ type Member = {
   } | null
 }
 
+type DisplayMember = {
+  id: string
+  role: string
+  side: string | null
+  name: string | null
+  email: string | null
+  canEditRole: boolean
+  canRemove: boolean
+}
+
 type OrganizationState = {
-  canInvite: boolean
   canUpdateMembers: boolean
   error: string | null
   isLoading: boolean
   members: Member[]
   organization: Organization | null
-  pendingInvitations: Invitation[]
 }
 
 type AuthFetchError = {
@@ -69,26 +78,16 @@ type FullOrganizationResponse = Organization & {
   members?: Member[]
 }
 
-type Invitation = {
-  email?: string | null
-  expiresAt?: string | Date | null
-  id: string
-  role?: string | null
-  status?: string | null
-}
-
 type HasPermissionResponse = {
   success: boolean
 }
 
 const initialState: OrganizationState = {
-  canInvite: false,
   canUpdateMembers: false,
   error: null,
   isLoading: true,
   members: [],
   organization: null,
-  pendingInvitations: [],
 }
 
 function getRoleLabel(role: string) {
@@ -148,52 +147,26 @@ async function fetchOrganizationState(): Promise<Omit<OrganizationState, 'error'
     throw new Error('לא נמצא ארגון פעיל.')
   }
 
-  const [invitePermissionResult, updateMemberPermissionResult] = await Promise.all([
-    authPost<HasPermissionResponse>(
-      '/organization/has-permission',
-      {
-        organizationId: organization.id,
-        permissions: {
-          invitation: ['create'],
-        },
+  const updateMemberPermissionResult = await authPost<HasPermissionResponse>(
+    '/organization/has-permission',
+    {
+      organizationId: organization.id,
+      permissions: {
+        member: ['update'],
       },
-      'לא ניתן לטעון הרשאות הזמנה.'
-    ),
-    authPost<HasPermissionResponse>(
-      '/organization/has-permission',
-      {
-        organizationId: organization.id,
-        permissions: {
-          member: ['update'],
-        },
-      },
-      'לא ניתן לטעון הרשאות חבר.'
-    ),
-  ])
-
-  let pendingInvitations: Invitation[] = []
-  try {
-    const invitations = await authGet<Invitation[]>(
-      '/organization/list-invitations',
-      'לא ניתן לטעון הזמנות הארגון.'
-    )
-    pendingInvitations = invitations.filter((invitation) => invitation.status === 'pending')
-  } catch {
-    pendingInvitations = []
-  }
+    },
+    'לא ניתן לטעון הרשאות חבר.'
+  )
 
   return {
-    canInvite: !!invitePermissionResult.success,
     canUpdateMembers: !!updateMemberPermissionResult.success,
     members: organization.members ?? [],
     organization,
-    pendingInvitations,
   }
 }
 
 export function OrganizationMembersSettingsCard() {
   const [state, setState] = useState<OrganizationState>(initialState)
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [roleDialogMember, setRoleDialogMember] = useState<Member | null>(null)
 
   const loadOrganizationState = useCallback(() => {
@@ -217,13 +190,11 @@ export function OrganizationMembersSettingsCard() {
       .catch((error: unknown) => {
         if (!isActive) return
         setState({
-          canInvite: false,
           canUpdateMembers: false,
           error: error instanceof Error ? error.message : 'לא ניתן לטעון את חברי הארגון.',
           isLoading: false,
           members: [],
           organization: null,
-          pendingInvitations: [],
         })
       })
 
@@ -234,6 +205,43 @@ export function OrganizationMembersSettingsCard() {
 
   useEffect(() => loadOrganizationState(), [loadOrganizationState])
 
+  const needsFallback = !state.isLoading && (!!state.error || state.members.length === 0)
+
+  const fallbackMembersQuery = api.workspaceInvite.listMembers.useQuery(undefined, {
+    enabled: needsFallback,
+  })
+
+  const displayMembers: DisplayMember[] = useMemo(() => {
+    if (!needsFallback) {
+      return state.members.map((member) => ({
+        id: member.id,
+        role: member.role,
+        side: null,
+        name: member.user?.name ?? null,
+        email: member.user?.email ?? null,
+        canEditRole: state.canUpdateMembers,
+        canRemove: state.canUpdateMembers,
+      }))
+    }
+
+    return (fallbackMembersQuery.data ?? []).map((member) => ({
+      id: member.id,
+      role: member.role,
+      side: member.side,
+      name: member.user.name,
+      email: member.user.email,
+      canEditRole: false,
+      canRemove: false,
+    }))
+  }, [fallbackMembersQuery.data, needsFallback, state.canUpdateMembers, state.members])
+
+  const isLoading = state.isLoading || (needsFallback && fallbackMembersQuery.isLoading)
+
+  const handleRefresh = useCallback(() => {
+    loadOrganizationState()
+    void fallbackMembersQuery.refetch()
+  }, [fallbackMembersQuery, loadOrganizationState])
+
   return (
     <div className='rounded-xl border border-border/90 bg-card/85 p-1'>
       <Card className='border-0 bg-transparent shadow-none'>
@@ -242,46 +250,25 @@ export function OrganizationMembersSettingsCard() {
             <div className='space-y-1'>
               <CardTitle className='font-serif text-foreground text-xl'>חברים</CardTitle>
               <CardDescription className='text-foreground/70'>
-                הזמינו משתפי פעולה ונהלו מי יכול לגשת לסביבת העבודה של החתונה הזו.
+                נהלו מי יכול לגשת לסביבת העבודה של החתונה הזו.
               </CardDescription>
             </div>
-            <div className='flex items-center gap-2'>
-              {state.error ? (
-                <Button
-                  className='gap-2'
-                  onClick={loadOrganizationState}
-                  size='sm'
-                  type='button'
-                  variant='outline'
-                >
-                  <RefreshCw className='h-4 w-4' />
-                  ניסיון חוזר
-                </Button>
-              ) : null}
-              <Button
-                className='gap-2'
-                disabled={!state.organization || !state.canInvite || state.isLoading}
-                onClick={() => setInviteDialogOpen(true)}
-                size='sm'
-                type='button'
-              >
-                <MailPlus className='h-4 w-4' />
-                הזמנת חבר
-              </Button>
-            </div>
+            <Button className='gap-2' onClick={handleRefresh} size='sm' type='button' variant='outline'>
+              <RefreshCw className='h-4 w-4' />
+              רענון
+            </Button>
           </div>
         </CardHeader>
         <CardContent className='pt-2'>
-          {state.isLoading ? <OrganizationMembersLoadingState /> : null}
-          {!state.isLoading && state.error ? (
-            <OrganizationMembersErrorState error={state.error} onRetry={loadOrganizationState} />
-          ) : null}
-          {!state.isLoading && !state.error ? (
-            <div className='space-y-3'>
+          <div className='space-y-3'>
+            <p className='text-foreground/60 text-sm'>
+              להוספת משתתפים השתמשו בקישורי ההזמנה.
+            </p>
+            {isLoading ? (
+              <OrganizationMembersLoadingState />
+            ) : (
               <OrganizationMembersList
-                canRemoveMembers={state.canUpdateMembers}
-                canUpdateMembers={state.canUpdateMembers}
-                members={state.members}
+                members={displayMembers}
                 onEditRole={setRoleDialogMember}
                 onRemoveMember={async (member) => {
                   if (!state.organization) return false
@@ -304,42 +291,10 @@ export function OrganizationMembersSettingsCard() {
                   }
                 }}
               />
-              <PendingInvitationsList
-                canCancelInvitations={state.canInvite}
-                invitations={state.pendingInvitations}
-                onCancelInvitation={async (invitationId) => {
-                  try {
-                    await authPost(
-                      '/organization/cancel-invitation',
-                      { invitationId },
-                      'לא ניתן לבטל את ההזמנה.'
-                    )
-                    toast.success('ההזמנה בוטלה')
-                    loadOrganizationState()
-                  } catch (error) {
-                    toast.error(error instanceof Error ? error.message : 'לא ניתן לבטל את ההזמנה.')
-                  }
-                }}
-              />
-              <OrganizationPermissionsHint
-                canInvite={state.canInvite}
-                canUpdateMembers={state.canUpdateMembers}
-              />
-            </div>
-          ) : null}
+            )}
+          </div>
         </CardContent>
       </Card>
-      {state.organization ? (
-        <InviteMemberDialog
-          onInviteSent={() => {
-            setInviteDialogOpen(false)
-            loadOrganizationState()
-          }}
-          open={inviteDialogOpen}
-          onOpenChange={setInviteDialogOpen}
-          organizationId={state.organization.id}
-        />
-      ) : null}
       {state.organization && roleDialogMember ? (
         <EditMemberRoleDialog
           member={roleDialogMember}
@@ -374,38 +329,17 @@ function OrganizationMembersLoadingState() {
   )
 }
 
-function OrganizationMembersErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
-  return (
-    <div className='rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-foreground/80 text-sm'>
-      <div className='flex items-start gap-3'>
-        <AlertCircle className='mt-0.5 h-4 w-4 shrink-0 text-destructive' />
-        <div className='space-y-3'>
-          <p>לא ניתן לטעון את חברי הארגון.</p>
-          <p className='text-foreground/60'>{error}</p>
-          <Button onClick={onRetry} size='sm' type='button' variant='outline'>
-            ניסיון חוזר
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function OrganizationMembersList({
-  canRemoveMembers,
-  canUpdateMembers,
   members,
   onEditRole,
   onRemoveMember,
 }: {
-  canRemoveMembers: boolean
-  canUpdateMembers: boolean
-  members: Member[]
+  members: DisplayMember[]
   onEditRole: (member: Member) => void
-  onRemoveMember: (member: Member) => Promise<boolean>
+  onRemoveMember: (member: DisplayMember) => Promise<boolean>
 }) {
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null)
-  const [memberPendingRemoval, setMemberPendingRemoval] = useState<Member | null>(null)
+  const [memberPendingRemoval, setMemberPendingRemoval] = useState<DisplayMember | null>(null)
   const [removalConfirmation, setRemovalConfirmation] = useState('')
 
   const canConfirmRemoval = removalConfirmation.trim() === 'מחיקה'
@@ -413,7 +347,7 @@ function OrganizationMembersList({
   if (members.length === 0) {
     return (
       <div className='rounded-lg border border-border/70 border-dashed bg-background/40 p-4 text-foreground/65 text-sm'>
-        לא נמצאו חברי ארגון עדיין.
+        אין עדיין משתתפים — צרו קישור הזמנה כדי להוסיף.
       </div>
     )
   }
@@ -423,35 +357,41 @@ function OrganizationMembersList({
       {members
         .slice()
         .sort((left, right) => {
-          const leftName = left.user?.name || left.user?.email || ''
-          const rightName = right.user?.name || right.user?.email || ''
+          const leftName = left.name || left.email || ''
+          const rightName = right.name || right.email || ''
           return leftName.localeCompare(rightName)
         })
         .map((member) => (
           <div
-            className='flex items-center gap-3 rounded-lg border border-border/70 bg-background/55 px-4 py-3'
+            className='flex flex-wrap items-center gap-3 rounded-lg border border-border/70 bg-background/55 px-4 py-3'
             key={member.id}
           >
             <div className='flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-mono font-semibold text-primary text-xs uppercase'>
-              {getInitials(member.user?.name, member.user?.email)}
+              {getInitials(member.name, member.email)}
             </div>
             <div className='min-w-0 flex-1'>
               <p className='truncate font-medium text-foreground text-sm'>
-                {member.user?.name || member.user?.email || 'חבר לא ידוע'}
+                {member.name || member.email || 'חבר לא ידוע'}
               </p>
               <p className='truncate text-foreground/60 text-sm'>
-                {member.user?.email || 'אין כתובת אימייל'}
+                {member.email || 'אין כתובת אימייל'}
               </p>
             </div>
             <Badge variant='outline'>{getRoleLabel(member.role)}</Badge>
-            {canUpdateMembers ? (
-              <Button onClick={() => onEditRole(member)} size='sm' type='button' variant='outline'>
+            {member.side ? <Badge variant='outline'>{member.side}</Badge> : null}
+            {member.canEditRole ? (
+              <Button
+                onClick={() => onEditRole({ id: member.id, role: member.role })}
+                size='sm'
+                type='button'
+                variant='outline'
+              >
                 עריכת תפקיד
               </Button>
             ) : null}
-            {canRemoveMembers ? (
+            {member.canRemove ? (
               <Button
-                aria-label={`הסרת ${member.user?.name || member.user?.email || 'חבר'}`}
+                aria-label={`הסרת ${member.name || member.email || 'חבר'}`}
                 className='h-8 w-8'
                 disabled={removingMemberId === member.id}
                 onClick={() => {
@@ -485,7 +425,7 @@ function OrganizationMembersList({
             <DialogTitle>אישור הסרת חבר</DialogTitle>
             <DialogDescription>
               הקלידו מחיקה כדי לאשר הסרת{' '}
-              {memberPendingRemoval?.user?.name || memberPendingRemoval?.user?.email || 'חבר זה'}.
+              {memberPendingRemoval?.name || memberPendingRemoval?.email || 'חבר זה'}.
             </DialogDescription>
           </DialogHeader>
           <div className='space-y-2'>
@@ -543,238 +483,6 @@ function OrganizationMembersList({
   )
 }
 
-function PendingInvitationsList({
-  canCancelInvitations,
-  invitations,
-  onCancelInvitation,
-}: {
-  canCancelInvitations: boolean
-  invitations: Invitation[]
-  onCancelInvitation: (invitationId: string) => Promise<void>
-}) {
-  const [cancelingInvitationId, setCancelingInvitationId] = useState<string | null>(null)
-
-  if (invitations.length === 0) {
-    return null
-  }
-
-  return (
-    <div className='space-y-2 rounded-lg border border-border/70 bg-background/35 p-3'>
-      <p className='font-mono text-[0.62rem] text-foreground/60 uppercase tracking-wider'>
-        הזמנות בהמתנה
-      </p>
-      <div className='space-y-2'>
-        {invitations.map((invitation) => (
-          <div
-            className='flex items-center gap-3 rounded-md border border-border/60 bg-background/50 px-3 py-2'
-            key={invitation.id}
-          >
-            <div className='min-w-0 flex-1'>
-              <p className='truncate font-medium text-sm'>{invitation.email || 'אימייל לא ידוע'}</p>
-              <p className='text-foreground/60 text-xs'>
-                פג תוקף{' '}
-                {invitation.expiresAt
-                  ? new Date(invitation.expiresAt).toLocaleDateString()
-                  : 'בקרוב'}
-              </p>
-            </div>
-            <Badge variant='outline'>{getRoleLabel(invitation.role || 'member')}</Badge>
-            {canCancelInvitations ? (
-              <Button
-                className='gap-2'
-                disabled={cancelingInvitationId === invitation.id}
-                onClick={() => {
-                  setCancelingInvitationId(invitation.id)
-                  void onCancelInvitation(invitation.id).finally(() =>
-                    setCancelingInvitationId((current) =>
-                      current === invitation.id ? null : current
-                    )
-                  )
-                }}
-                size='sm'
-                type='button'
-                variant='outline'
-              >
-                {cancelingInvitationId === invitation.id ? (
-                  <>
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                    מבטל...
-                  </>
-                ) : (
-                  <>
-                    <X className='h-4 w-4' />
-                    ביטול הזמנה
-                  </>
-                )}
-              </Button>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function OrganizationPermissionsHint({
-  canInvite,
-  canUpdateMembers,
-}: {
-  canInvite: boolean
-  canUpdateMembers: boolean
-}) {
-  if (canInvite && canUpdateMembers) {
-    return null
-  }
-
-  if (!canInvite && !canUpdateMembers) {
-    return (
-      <p className='text-foreground/60 text-sm'>
-        התפקיד שלכם אינו מאפשר לנהל חברי ארגון או לשלוח הזמנות לחברים.
-      </p>
-    )
-  }
-
-  if (!canInvite) {
-    return (
-      <p className='text-foreground/60 text-sm'>
-        התפקיד שלכם מאפשר לערוך חברים אך לא לשלוח הזמנות לחברים.
-      </p>
-    )
-  }
-
-  return (
-    <p className='text-foreground/60 text-sm'>
-      התפקיד שלכם מאפשר להזמין חברים אך לא לשנות תפקידים קיימים.
-    </p>
-  )
-}
-
-function InviteMemberDialog({
-  onInviteSent,
-  onOpenChange,
-  open,
-  organizationId,
-}: {
-  onInviteSent: () => void
-  onOpenChange: (open: boolean) => void
-  open: boolean
-  organizationId: string
-}) {
-  const [email, setEmail] = useState('')
-  const [role, setRole] = useState<OrganizationRoleOption>('member')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const reset = useCallback(() => {
-    setEmail('')
-    setRole('member')
-    setIsSubmitting(false)
-  }, [])
-
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      onOpenChange(nextOpen)
-      if (!nextOpen) {
-        reset()
-      }
-    },
-    [onOpenChange, reset]
-  )
-
-  const canSubmit = useMemo(() => email.trim().length > 0 && !isSubmitting, [email, isSubmitting])
-
-  const handleSubmit = useCallback(async () => {
-    if (!canSubmit) return
-
-    setIsSubmitting(true)
-
-    try {
-      await authPost(
-        '/organization/invite-member',
-        {
-          email: email.trim(),
-          organizationId,
-          role,
-        },
-        'לא ניתן לשלוח את ההזמנה.'
-      )
-
-      toast.success('ההזמנה נשלחה בהצלחה')
-      onInviteSent()
-      handleOpenChange(false)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'לא ניתן לשלוח את ההזמנה.')
-      setIsSubmitting(false)
-    }
-  }, [canSubmit, email, handleOpenChange, onInviteSent, organizationId, role])
-
-  return (
-    <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader>
-          <DialogTitle>הזמינו חבר</DialogTitle>
-          <DialogDescription>שלחו הזמנה לארגון בלי לרענן את הדף.</DialogDescription>
-        </DialogHeader>
-        <div className='space-y-4'>
-          <div className='space-y-2'>
-            <label
-              className='font-medium text-foreground text-sm'
-              htmlFor='organization-invite-email'
-            >
-              אימייל
-            </label>
-            <Input
-              autoComplete='email'
-              id='organization-invite-email'
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder='name@example.com'
-              type='email'
-              value={email}
-            />
-          </div>
-          <div className='space-y-2'>
-            <label
-              className='font-medium text-foreground text-sm'
-              htmlFor='organization-invite-role'
-            >
-              תפקיד
-            </label>
-            <Select
-              value={role}
-              onValueChange={(value) => setRole(value as OrganizationRoleOption)}
-            >
-              <SelectTrigger id='organization-invite-role' aria-label='תפקיד חבר'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {organizationRoleOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className='flex justify-end gap-2'>
-            <Button onClick={() => handleOpenChange(false)} type='button' variant='outline'>
-              ביטול
-            </Button>
-            <Button disabled={!canSubmit} onClick={() => void handleSubmit()} type='button'>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className='me-2 h-4 w-4 animate-spin' />
-                  שולח...
-                </>
-              ) : (
-                'שליחת הזמנה'
-              )}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 function EditMemberRoleDialog({
   member,
   onOpenChange,
@@ -826,9 +534,7 @@ function EditMemberRoleDialog({
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle>ערכו תפקיד</DialogTitle>
-          <DialogDescription>
-            עדכנו את התפקיד בארגון עבור {member.user?.name || member.user?.email || 'חבר זה'}.
-          </DialogDescription>
+          <DialogDescription>עדכנו את התפקיד בארגון עבור חבר זה.</DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
           <div className='space-y-2'>
