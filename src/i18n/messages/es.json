@@ -6,6 +6,9 @@
     "searching": "Buscando...",
     "saving": "Guardando...",
     "addToCalendar": "+ Agregar al calendario",
+    "googleCalendar": "Google Calendar",
+    "outlook": "Outlook",
+    "appleCalendar": "Calendario de Apple",
     "downloadIcs": "Descargar .ics",
     "privacyPolicy": "Ver nuestra política de privacidad"
   },
