@@ -168,17 +168,24 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
     return table
   }
 
+  // Tightest fit first, so a table fills up before another one is opened
+  const bestFit = (candidates: readonly WorkingTable[], size: number): WorkingTable | undefined =>
+    candidates
+      .filter((table) => table.freeSeats >= size)
+      .sort((a, b) => a.freeSeats - b.freeSeats)[0]
+
   for (const bucket of buckets) {
     if (bucket.size > maxCapacity) {
       unseated.push({ householdId: bucket.householdId, reason: 'too_large' })
       continue
     }
 
-    // Only tables already holding the same side+group are reused; any other
-    // household that doesn't fit one opens its own table rather than mixing
+    // A table already holding the same side+group is preferred; failing
+    // that, any table with room is packed full before a new one opens
     const tag = tagOf(bucket.side, bucket.groupName)
     const target =
-      pool.find((table) => table.freeSeats >= bucket.size && table.tags.has(tag)) ??
+      bestFit(pool.filter((table) => table.tags.has(tag)), bucket.size) ??
+      bestFit(pool, bucket.size) ??
       openNewTable()
 
     target.freeSeats -= bucket.size

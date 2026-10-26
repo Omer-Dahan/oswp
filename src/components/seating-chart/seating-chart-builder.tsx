@@ -1,6 +1,7 @@
 'use client'
 
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
+import { keepPreviousData } from '@tanstack/react-query'
 import { ChefHat, Download, Plus, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -58,6 +59,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { TooltipProvider } from '~/components/ui/tooltip'
 import { buildSeatingCsv } from '~/lib/seating/seating-csv'
 import {
   getGuestWeights,
@@ -173,7 +175,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   const chartEventId = eventId ?? ''
   const chartQuery = api.seating.getChart.useQuery(
     { eventId: chartEventId },
-    { enabled: eventId !== null }
+    { enabled: eventId !== null, placeholderData: keepPreviousData }
   )
   // Server data plus still-pending changes; everything below reads this chart
   const refetchChart = useCallback(
@@ -578,16 +580,18 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
                     גררו אורחים או משקי בית שלמים אליהם.
                   </p>
                 ) : null}
-                {chart.tables.map((table) => (
-                  <SeatingTableNode
-                    key={table.id}
-                    table={table}
-                    guestsById={guestsById}
-                    seatWeights={seatWeights}
-                    onEdit={(tableId) => openTableDialog({ mode: 'edit', tableId })}
-                    onSelectGuest={openGuestFrom('seat-guest')}
-                  />
-                ))}
+                <TooltipProvider delayDuration={0}>
+                  {chart.tables.map((table) => (
+                    <SeatingTableNode
+                      key={table.id}
+                      table={table}
+                      guestsById={guestsById}
+                      seatWeights={seatWeights}
+                      onEdit={(tableId) => openTableDialog({ mode: 'edit', tableId })}
+                      onSelectGuest={openGuestFrom('seat-guest')}
+                    />
+                  ))}
+                </TooltipProvider>
               </div>
             </section>
           </div>
