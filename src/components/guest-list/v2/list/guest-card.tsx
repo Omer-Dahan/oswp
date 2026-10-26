@@ -1,9 +1,10 @@
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useState } from 'react'
 
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
 import { getHouseholdPartySize } from '~/lib/household-party-size'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
+import { api } from '~/trpc/react'
 
 type GuestCardProps = {
   household: HouseholdWithGuests
@@ -89,6 +90,33 @@ const getPrimaryGuestName = (household: HouseholdWithGuests): string => {
   return `${primaryGuest.firstName} ${primaryGuest.lastName}`
 }
 
+const copyToClipboard = async (value: string): Promise<boolean> => {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(value)
+      return true
+    } catch {
+      // Fall through to the legacy selection path below.
+    }
+  }
+
+  const textArea = document.createElement('textarea')
+  textArea.value = value
+  textArea.setAttribute('readonly', '')
+  textArea.style.position = 'fixed'
+  textArea.style.opacity = '0'
+  document.body.appendChild(textArea)
+  textArea.select()
+  let copied = false
+  try {
+    copied = document.execCommand('copy')
+  } catch {
+    copied = false
+  }
+  document.body.removeChild(textArea)
+  return copied
+}
+
 function GuestCardComponent({
   household,
   onSelectHousehold,
@@ -109,6 +137,19 @@ function GuestCardComponent({
   const handleSelect = useCallback(() => {
     onSelectHousehold(household)
   }, [household, onSelectHousehold])
+
+  const [copiedInviteLink, setCopiedInviteLink] = useState(false)
+  const generateInviteLink = api.householdInvite.generateLink.useMutation()
+  const handleCopyInviteLink = useCallback(async () => {
+    try {
+      const result = await generateInviteLink.mutateAsync({ householdId: household.id })
+      await copyToClipboard(result.url)
+      setCopiedInviteLink(true)
+      window.setTimeout(() => setCopiedInviteLink(false), 2000)
+    } catch {
+      setCopiedInviteLink(false)
+    }
+  }, [generateInviteLink, household.id])
 
   return (
     <button
@@ -171,7 +212,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-foreground/20 bg-gold/12 font-normal text-foreground/80'
               >
-                {rsvpSummary.invited} הוזמנו
+                {rsvpSummary.invited} טרם השיבו
               </Badge>
             )}
             {rsvpSummary.declined > 0 && (
@@ -187,6 +228,25 @@ function GuestCardComponent({
               rsvpSummary.declined === 0 && (
                 <span className='text-muted-foreground'>אין נתוני אישור הגעה</span>
               )}
+            <span
+              role='button'
+              tabIndex={0}
+              aria-label='העתקת קישור אישי למשק הבית'
+              onClick={(event) => {
+                event.stopPropagation()
+                void handleCopyInviteLink()
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  void handleCopyInviteLink()
+                }
+              }}
+              className='ms-auto inline-flex cursor-pointer items-center gap-1 rounded-full border border-border/70 bg-transparent px-2.5 py-1 text-xs text-foreground/70 transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
+            >
+              {copiedInviteLink ? 'הועתק' : 'העתקת קישור'}
+            </span>
           </div>
 
           {rsvpPartyDetailsLabel && (
