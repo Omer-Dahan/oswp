@@ -10,6 +10,8 @@ type WeddingWebsiteProps = {
   weddingData: WeddingPageData
   /** Set when the visitor is a guest we recognised from their invite link. */
   invitedHousehold?: InvitedHousehold | null
+  /** The household's own save-the-date invite code, when recognised — lets the home copy their dedicated link. */
+  householdInviteCode?: string | null
 }
 
 /**
@@ -22,6 +24,7 @@ export default async function WeddingWebsite({
   websiteSubUrl,
   weddingData,
   invitedHousehold,
+  householdInviteCode,
 }: Readonly<WeddingWebsiteProps>) {
   const path = `/w/${websiteSubUrl}`
   const template = resolveTemplate(weddingData.website.templateId)
@@ -38,10 +41,13 @@ export default async function WeddingWebsite({
     <TemplateThemeProvider template={template}>
       {welcome}
       <InvitationHero
+        websiteSubUrl={websiteSubUrl}
         rsvpHref={`${path}/rsvp`}
         isRsvpEnabled={weddingData.website.isRsvpEnabled}
         coupleNames={coupleNamesHe(weddingData)}
         invitedHousehold={invitedHousehold ?? null}
+        events={weddingData.events}
+        householdInviteCode={householdInviteCode ?? null}
       />
     </TemplateThemeProvider>
   )

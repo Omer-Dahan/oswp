@@ -100,6 +100,7 @@ export default async function RootRouteHandler({ params }: RootRouteHandlerProps
         websiteSubUrl={websiteSubUrl}
         weddingData={loadResult.weddingData}
         invitedHousehold={invitedHousehold}
+        householdInviteCode={inviteToken ?? null}
       />
     </main>
   )

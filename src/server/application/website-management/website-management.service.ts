@@ -292,6 +292,7 @@ export class WebsiteManagementService {
         description: event.description,
         weddingId: event.weddingId,
         collectRsvp: event.collectRsvp,
+        isPrimary: event.isPrimary ?? false,
         questions: event.questions,
       })),
     }

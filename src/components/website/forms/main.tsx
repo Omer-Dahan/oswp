@@ -97,6 +97,9 @@ export default function MainRsvpForm({
     const newSteps: ReactNode[] =
       weddingData?.events?.reduce((acc: ReactNode[], event: Event) => {
         if (!event.collectRsvp) return acc
+        if (rsvpFormData.preselectedEventId && event.id !== rsvpFormData.preselectedEventId) {
+          return acc
+        }
         const invitedGuests = rsvpFormData.selectedHousehold?.guests.filter((guest) =>
           guest.invitations.some(
             (invite) =>
@@ -142,7 +145,12 @@ export default function MainRsvpForm({
 
     numSteps.current = newSteps.length + NUM_STATIC_STEPS
     return newSteps
-  }, [weddingData, rsvpFormData.selectedHousehold, rsvpFormData.rsvpResponses])
+  }, [
+    weddingData,
+    rsvpFormData.selectedHousehold,
+    rsvpFormData.rsvpResponses,
+    rsvpFormData.preselectedEventId,
+  ])
 
   return (
     // pt-24 reserves space for the fixed ProgressBar so the first step's copy

@@ -147,6 +147,7 @@ export type WeddingPageData = {
     description: string | null
     weddingId: string
     collectRsvp: boolean
+    isPrimary: boolean
     questions: Question[]
   }>
 }

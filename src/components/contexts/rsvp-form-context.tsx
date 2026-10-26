@@ -38,6 +38,8 @@ type RsvpFormState = {
    * a "Not you" escape back to search.
    */
   recognized?: boolean
+  /** Event preselected via `?event=` on the RSVP link (e.g. the home's per-event pills). */
+  preselectedEventId?: string
 }
 
 const INITIAL_STATE: RsvpFormState = {
@@ -71,6 +73,8 @@ interface RsvpFormProviderProps {
    * present, the flow pre-fills the match and starts on the confirm step.
    */
   recognizedHousehold?: HouseholdSearch[number] | null
+  /** Event preselected via `?event=` on the RSVP link, so only that event's steps show. */
+  preselectedEventId?: string
 }
 
 export const useRsvpForm = () => {
@@ -81,12 +85,18 @@ export const useUpdateRsvpForm = () => {
   return useContext(RsvpFormUpdateContext)
 }
 
-export const RsvpFormProvider = ({ children, recognizedHousehold }: RsvpFormProviderProps) => {
-  const [rsvpFormData, setRsvpFormData] = useState<RsvpFormState>(() =>
-    recognizedHousehold
-      ? { ...INITIAL_STATE, matchedHouseholds: [recognizedHousehold], recognized: true }
-      : INITIAL_STATE
-  )
+export const RsvpFormProvider = ({
+  children,
+  recognizedHousehold,
+  preselectedEventId,
+}: RsvpFormProviderProps) => {
+  const [rsvpFormData, setRsvpFormData] = useState<RsvpFormState>(() => ({
+    ...INITIAL_STATE,
+    ...(recognizedHousehold
+      ? { matchedHouseholds: [recognizedHousehold], recognized: true }
+      : null),
+    ...(preselectedEventId ? { preselectedEventId } : null),
+  }))
 
   const updateFields = (fields: Partial<RsvpFormState>) => {
     setRsvpFormData((prev) => {
