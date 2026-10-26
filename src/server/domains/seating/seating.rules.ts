@@ -69,17 +69,21 @@ export type WeightableHousehold = {
 export const getPartySize = (household: WeightableHousehold): number =>
   Math.max(1, household.invitedCount ?? household.guests.length)
 
-// Attributes each household's full party size to its primary contact (or
-// first guest when none is flagged); every other guest carries weight 0 so
-// the party is never counted twice.
+// Every named guest occupies one real seat. The primary contact additionally
+// absorbs any unnamed plus-ones implied by invitedCount exceeding the number
+// of named guests, so the household's total weight still equals its party
+// size. A non-primary guest therefore always carries weight >= 1, so seating
+// (or moving) them alone is never mistaken for a no-op.
 export const getGuestWeights = (households: readonly WeightableHousehold[]): Map<number, number> => {
   const weights = new Map<number, number>()
   for (const household of households) {
     const primary = household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
     if (!primary) continue
     const size = getPartySize(household)
+    const othersCount = household.guests.length - 1
+    const primaryWeight = Math.max(1, size - othersCount)
     for (const guest of household.guests) {
-      weights.set(guest.id, guest.id === primary.id ? size : 0)
+      weights.set(guest.id, guest.id === primary.id ? primaryWeight : 1)
     }
   }
   return weights
