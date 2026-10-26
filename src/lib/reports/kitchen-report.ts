@@ -64,9 +64,13 @@ export interface KitchenReportRow {
 }
 
 export interface KitchenReportSummary {
-  /** Everyone attending, adults and children. */
+  /**
+   * Everyone attending this event: named guest rows plus unnamed extras
+   * implied by the household's attendingCount. Includes children — always
+   * equal to meals + children (see those fields).
+   */
   attending: number
-  /** The plates the kitchen actually cooks: attending guests over age 10 (TEEN/ADULT). */
+  /** The plates the kitchen actually cooks: attending minus children. */
   meals: number
   /** Attending children (CHILD/INFANT) — they eat off the family, no meal of their own. */
   children: number
@@ -75,8 +79,15 @@ export interface KitchenReportSummary {
 
 export interface KitchenReport {
   summary: KitchenReportSummary
+  /** Explains how attending/meals/children/dietary were derived, for display alongside the summary. */
+  summaryNote: string
   rows: KitchenReportRow[]
 }
+
+export const KITCHEN_REPORT_SUMMARY_NOTE =
+  'מגיעים כולל גם אורחים לא-מזוהים (לפי "מגיעים" שדיווח משק הבית, פחות מי שכבר ' +
+  'מופיע בשם ברשימה לאירוע הזה). מנות = מגיעים פחות ילדים. כל הספירה מבוצעת לפי ' +
+  'ההזמנות לאירוע הנוכחי בלבד.'
 
 function householdName(
   household: KitchenReportHousehold,
@@ -151,10 +162,10 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
   })
 
   // Children attending (the RSVP answer, falling back to the guest rows) are
-  // not a meal each: the kitchen cooks only for guests over age 10. The meal
-  // count is therefore the named attending guests who are NOT children —
-  // unnamed children (counted via childrenCount, never a guest row) never
-  // enter the rows in the first place.
+  // not a meal each: the kitchen cooks only for guests over age 10. Counted
+  // only for households with a named guest row on THIS event's invitations
+  // (attendingGuestsByHousehold is already scoped to eventId), never from a
+  // household's events in general.
   let children = 0
   for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
     const household = householdsById.get(householdId)
@@ -167,17 +178,26 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
     }
   }
 
-  // A household's self-reported attendingCount (from the RSVP stepper) can
-  // exceed the number of named Guest rows that RSVPed Attending — those
-  // extras are unnamed guests the kitchen still has to feed.
-  let extraUnnamedMeals = 0
+  // A household's self-reported attendingCount (from the RSVP stepper) is a
+  // total headcount that already INCLUDES children — it can exceed the
+  // number of named Guest rows that RSVPed Attending to this event; those
+  // extras are unnamed guests the kitchen still has to feed. The named count
+  // it's compared against comes from this event's own invitations only
+  // (attendingGuestsByHousehold), so a household split across several events
+  // is never double-charged the same extras in both reports.
+  let extraUnnamed = 0
   for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
     const household = householdsById.get(householdId)
     if (household?.attendingCount == null) continue
-    extraUnnamedMeals += Math.max(0, household.attendingCount - attendingInHousehold.length)
+    extraUnnamed += Math.max(0, household.attendingCount - attendingInHousehold.length)
   }
 
-  const meals = rows.filter((row) => !row.isChild).length + extraUnnamedMeals
+  // attending is the full headcount (named rows + unnamed extras), so it can
+  // never read smaller than meals. meals is defined as the complement of
+  // children within that total, which keeps attending = meals + children an
+  // invariant rather than something that can drift apart.
+  const attending = rows.length + extraUnnamed
+  const meals = attending - children
 
   // A household's dietaryNotes is one restriction shared by the family, not
   // one per guest - count it once per household, not once per row that
@@ -197,7 +217,8 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
   dietary += householdsWithFallbackDietary.size
 
   return {
-    summary: { attending: rows.length, meals, children, dietary },
+    summary: { attending, meals, children, dietary },
+    summaryNote: KITCHEN_REPORT_SUMMARY_NOTE,
     rows,
   }
 }

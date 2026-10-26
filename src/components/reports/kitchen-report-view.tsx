@@ -122,6 +122,8 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
             </Card>
           </div>
 
+          <p className='text-muted-foreground text-xs'>{reportQuery.data.summaryNote}</p>
+
           <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
             <Input
               value={search}
