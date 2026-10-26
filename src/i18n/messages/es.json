@@ -14,7 +14,6 @@
   },
   "invite": {
     "saveTheDate": "Reserva la fecha",
-    "detailsUpdated": "Tus datos fueron actualizados.",
     "date": "Fecha",
     "location": "Lugar",
     "toBeAnnounced": "Por anunciar",
@@ -26,7 +25,6 @@
     "rsvpHelper": "Nos encantaría saber si vendrás 🤍",
     "confirmAttendance": "Confirmar asistencia",
     "formalInvitationNote": "Los detalles de la invitación formal seguirán. Por ahora, asegúrate de que tengamos los nombres correctos y la dirección postal de tu hogar.",
-    "updateDetails": "Actualizar nuestros datos",
     "viewWebsite": "Ver nuestro sitio web",
     "couldNotOpen": "No pudimos abrir esta invitación.",
     "invalidLinkDescription": "Este enlace de invitación puede haber expirado, estar mal escrito, o haber sido abierto sin el enlace original del hogar. Por favor usa el enlace de reserva de fecha que recibiste, o pídele uno nuevo a la pareja."
