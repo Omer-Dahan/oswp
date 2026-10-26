@@ -33,7 +33,14 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
   const rsvpFormData = useRsvpForm()
   const updateRsvpForm = useUpdateRsvpForm()
   const household = rsvpFormData.selectedHousehold
-  const namedGuests = useMemo(() => household?.guests ?? [], [household])
+  const namedGuests = useMemo(
+    () => household?.guests.filter((guest) => !guest.isTagAlong) ?? [],
+    [household]
+  )
+  const existingTagAlongGuests = useMemo(
+    () => household?.guests.filter((guest) => guest.isTagAlong) ?? [],
+    [household]
+  )
 
   const savedTotal = rsvpFormData.attendingCount ?? household?.attendingCount
   // A saved 0 means "not answered" (defaults are never 0), not "zero attendees".
@@ -52,12 +59,15 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
     getInitialExtraGuests(hasAnsweredBefore, savedTotal, namedAttendingCount, maxExtras)
   )
 
-  const [extraGuestRows, setExtraGuestRows] = useState<ExtraGuestRow[]>(() =>
-    (rsvpFormData.extraGuestNames ?? []).map((name) => ({
+  const [extraGuestRows, setExtraGuestRows] = useState<ExtraGuestRow[]>(() => {
+    const names =
+      rsvpFormData.extraGuestNames ??
+      existingTagAlongGuests.map((guest) => `${guest.firstName} ${guest.lastName}`.trim())
+    return names.map((name) => ({
       id: crypto.randomUUID(),
       name,
     }))
-  )
+  })
 
   const stepperMax = clampCount(maxTotal - namedAttendingCount - extraGuestRows.length, 0, maxTotal)
   const clampedExtraGuests = clampCount(extraGuests, 0, stepperMax)

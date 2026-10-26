@@ -99,7 +99,7 @@ export class RsvpSubmissionService {
         dietaryNotes: data.dietaryNotes,
         wishesMessage: data.wishesMessage,
         weddingId,
-        extraGuestNames: data.extraGuestNames ?? [],
+        extraGuestNames: data.extraGuestNames,
       }
     )
   }
@@ -181,7 +181,7 @@ export class RsvpSubmissionService {
           wishesMessage: householdPartyDetails.wishesMessage ?? null,
         })
 
-        if (householdPartyDetails.weddingId) {
+        if (householdPartyDetails.weddingId && householdPartyDetails.extraGuestNames) {
           const attendingEventIds = Array.from(
             new Set(
               data.rsvpResponses
@@ -193,7 +193,7 @@ export class RsvpSubmissionService {
           await txGuestRepo.replaceTagAlongs(
             householdPartyDetails.householdId,
             householdPartyDetails.weddingId,
-            householdPartyDetails.extraGuestNames ?? [],
+            householdPartyDetails.extraGuestNames,
             attendingEventIds
           )
         }

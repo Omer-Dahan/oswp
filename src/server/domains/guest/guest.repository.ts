@@ -353,21 +353,57 @@ export class GuestRepository {
    * event the household is attending, so they surface in seating and the
    * kitchen report alongside the named guests.
    */
+  /**
+   * Reconcile a household's tag-along guests against the submitted name list,
+   * rather than deleting and recreating them all. A tag-along is only removed
+   * when its name is explicitly absent from `names` — this keeps manually
+   * added tag-alongs (and their seating/tags/answers, which cascade off the
+   * guest row) alive across resubmissions that don't touch this list.
+   */
   async replaceTagAlongs(
     householdId: string,
     weddingId: string,
     names: string[],
     attendingEventIds: string[]
   ): Promise<void> {
-    await this.db.guest.deleteMany({
+    const existingTagAlongs = await this.db.guest.findMany({
       where: { householdId, isTagAlong: true },
+      select: { id: true, firstName: true, lastName: true },
     })
 
+    const toFullName = (firstName: string, lastName: string) =>
+      [firstName, lastName].filter(Boolean).join(' ')
+
+    const submittedNames = new Set(names.map((name) => name.trim()))
+    const matchedExistingIds = new Set<number>()
+
+    for (const existing of existingTagAlongs) {
+      if (submittedNames.has(toFullName(existing.firstName, existing.lastName))) {
+        matchedExistingIds.add(existing.id)
+      }
+    }
+
+    const toRemove = existingTagAlongs.filter((existing) => !matchedExistingIds.has(existing.id))
+    if (toRemove.length > 0) {
+      await this.db.guest.deleteMany({
+        where: { id: { in: toRemove.map((guest) => guest.id) } },
+      })
+    }
+
+    const existingNames = new Set(
+      existingTagAlongs
+        .filter((existing) => matchedExistingIds.has(existing.id))
+        .map((existing) => toFullName(existing.firstName, existing.lastName))
+    )
+
     for (const name of names) {
-      const [firstName, ...rest] = name.trim().split(/\s+/)
+      const trimmedName = name.trim()
+      if (existingNames.has(trimmedName)) continue
+
+      const [firstName, ...rest] = trimmedName.split(/\s+/)
       await this.db.guest.create({
         data: {
-          firstName: firstName ?? name.trim(),
+          firstName: firstName ?? trimmedName,
           lastName: rest.join(' '),
           householdId,
           weddingId,
