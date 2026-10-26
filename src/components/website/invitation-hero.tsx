@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 import { CopyHouseholdInviteLinkButton } from '~/components/website/copy-household-invite-link-button'
 import { HeroCard, HeroCardsGroup } from '~/components/website/hero-card'
+import { SaveTheDateAction } from '~/components/website/save-the-date-reveal'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 
 type InvitationHeroProps = {
@@ -74,15 +75,15 @@ function RsvpPills({
 function SecondaryActions({
   websiteSubUrl,
   householdInviteCode,
+  invitationAlt,
 }: {
   websiteSubUrl: string
   householdInviteCode: string | null
+  invitationAlt: string
 }) {
   return (
     <div className='flex items-center gap-4'>
-      <Link href={`/w/${websiteSubUrl}/save-the-date`} className={SECONDARY_LINK_CLASSES}>
-        שמרו את התאריך
-      </Link>
+      <SaveTheDateAction invitationAlt={invitationAlt} className={SECONDARY_LINK_CLASSES} />
       {householdInviteCode ? (
         <CopyHouseholdInviteLinkButton
           websiteSubUrl={websiteSubUrl}
@@ -179,6 +180,7 @@ export function InvitationHero({
             <SecondaryActions
               websiteSubUrl={websiteSubUrl}
               householdInviteCode={invitedHousehold ? householdInviteCode : null}
+              invitationAlt={invitationAlt}
             />
           </div>
         </div>
@@ -230,6 +232,7 @@ export function InvitationHero({
           <SecondaryActions
             websiteSubUrl={websiteSubUrl}
             householdInviteCode={invitedHousehold ? householdInviteCode : null}
+            invitationAlt={invitationAlt}
           />
         </div>
       </div>
