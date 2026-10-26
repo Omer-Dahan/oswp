@@ -26,6 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
           }}
           Link={Link}
           emailOTP
+          redirectTo='/dashboard'
           localization={authHebrewLocalization}
           organization={{
             customRoles: authUiCustomOrganizationRoles,

@@ -92,8 +92,9 @@ jest.mock('~/lib/email', () => ({
   sendResetPasswordEmail: jest.fn(),
 }))
 
-import { authPlugins, resolveTrustedOrigins } from 'lib/auth'
+import { auth, authPlugins, resolveTrustedOrigins } from 'lib/auth'
 import { authClientPlugins, resolveAuthClientBaseUrl } from 'lib/auth-client'
+import { authHebrewLocalization } from 'lib/auth-localization'
 import { authOrganizationSchema } from 'lib/auth-organization-schema'
 import {
   authzStatement,
@@ -221,6 +222,24 @@ describe('organization plugin wiring', () => {
     expect(
       resolveTrustedOrigins('https://preview.example.com/api/auth/sign-in/email')
     ).not.toContain('https://preview.example.com')
+  })
+
+  it('keeps the invite-link session long-lived so a guest is not asked to re-authenticate', () => {
+    const config = (auth as unknown as { config: { session: { expiresIn: number; updateAge: number } } })
+      .config
+
+    expect(config.session.expiresIn).toBeGreaterThanOrEqual(60 * 60 * 24 * 30)
+    expect(config.session.updateAge).toBeGreaterThan(0)
+    expect(config.session.updateAge).toBeLessThan(config.session.expiresIn)
+  })
+
+  it('rejects a sign-in whose email does not match the invitation with the existing Hebrew message', () => {
+    // Guards the wiring Better Auth's organization plugin relies on: the
+    // accept-invitation flow surfaces APIError code YOU_ARE_NOT_THE_RECIPIENT_OF_THE_INVITATION
+    // when the signed-in email differs from the invitation's, and it must stay localized.
+    expect(authHebrewLocalization.YOU_ARE_NOT_THE_RECIPIENT_OF_THE_INVITATION).toBe(
+      'אינכם הנמען של ההזמנה הזו'
+    )
   })
 
   it('builds organization invitation accept urls without extra redirect params', async () => {
