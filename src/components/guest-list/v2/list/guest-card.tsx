@@ -140,7 +140,7 @@ function GuestCardComponent({
               variant='secondary'
               className='shrink-0 font-mono text-[0.54rem] uppercase tracking-wider'
             >
-              {guestCount} אורחים
+              {guestCount ?? '—'} אורחים
               {tagAlongCount > 0 && ` +${tagAlongCount}`}
             </Badge>
           </div>

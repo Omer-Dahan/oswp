@@ -110,7 +110,9 @@ const GuestTableRow = memo(function GuestTableRow({
       <td className='px-4 py-3 text-foreground/70'>
         {household.groupName ?? <span className='text-foreground/35'>—</span>}
       </td>
-      <td className='px-4 py-3 text-foreground/70'>{invitedGuestCount}</td>
+      <td className='px-4 py-3 text-foreground/70'>
+        {invitedGuestCount ?? <span className='text-foreground/35'>—</span>}
+      </td>
       <td className='px-4 py-3'>
         <Badge variant='outline'>{RSVP_STATUS_LABELS[rsvpSummary]}</Badge>
       </td>
