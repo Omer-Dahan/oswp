@@ -5,7 +5,8 @@
  * This layer handles all direct database access for households.
  */
 
-import type { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
 import type {
   Household,
   HouseholdSearchResult,
@@ -110,6 +111,16 @@ export function normalizeNameForSearch(value: string): string {
  */
 export function tokenizeNameForSearch(value: string): string[] {
   return normalizeNameForSearch(value).split(' ').filter(Boolean)
+}
+
+/**
+ * SQL expression that applies the same folding as `normalizeNameForSearch`
+ * (lowercase, strip apostrophes/quotes/geresh/gershayim, fold hyphens/dashes
+ * to spaces) to a raw name column, so it can be compared against an
+ * already-normalized search term with `strpos`/`LIKE` at the DB level.
+ */
+function normalizedNameSql(column: Prisma.Sql): Prisma.Sql {
+  return Prisma.sql`regexp_replace(regexp_replace(lower(${column}), '[''’"׳״]', '', 'g'), '[-–—]', ' ', 'g')`
 }
 
 /**
@@ -447,10 +458,15 @@ export class HouseholdRepository {
    * The DB query itself requires every term to match some guest's first or
    * last name (substring, case-insensitive), so only plausible candidates are
    * ever loaded rather than every invited household in the wedding; the
-   * result is also capped with `take`. The final, precise check (hyphens and
-   * spaces interchangeable, e.g. "Sarah-Jane" == "Sarah Jane", and the full-
-   * token-match rule below) then runs in memory only on that small candidate
-   * set.
+   * result is also capped with `take`. Both sides of that comparison are
+   * normalized the same way as `normalizeNameForSearch` (quotes/geresh
+   * stripped, hyphens folded to spaces) directly in SQL, via `normalizedNameSql`
+   * below — a plain Prisma `contains` would compare the already-normalized
+   * search term against the guest's raw, punctuated name and never match
+   * (e.g. a "ג'קי" stored with its apostrophe against a "גקי" search term).
+   * The final, precise check (hyphens and spaces interchangeable, e.g.
+   * "Sarah-Jane" == "Sarah Jane", and the full-token-match rule below) then
+   * runs in memory only on that small candidate set.
    */
   async searchPublicByName(
     searchText: string,
@@ -459,35 +475,42 @@ export class HouseholdRepository {
     const terms = tokenizeNameForSearch(searchText)
     if (terms.length === 0 || terms.some((term) => term.length < 2)) return []
 
-    const termConditions: Prisma.HouseholdWhereInput[] = terms.map((term) => ({
-      guests: {
-        some: {
-          OR: [
-            { firstName: { contains: term, mode: 'insensitive' } },
-            { lastName: { contains: term, mode: 'insensitive' } },
-          ],
-        },
-      },
-    }))
+    const termConditions = Prisma.join(
+      terms.map(
+        (term) => Prisma.sql`
+          EXISTS (
+            SELECT 1 FROM "Guest" g
+            WHERE g."householdId" = "Household"."id"
+              AND (
+                strpos(${normalizedNameSql(Prisma.sql`g."firstName"`)}, ${term}) > 0
+                OR strpos(${normalizedNameSql(Prisma.sql`g."lastName"`)}, ${term}) > 0
+              )
+          )
+        `
+      ),
+      ' AND '
+    )
+
+    const candidates = await this.db.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT "Household"."id"
+      FROM "Household"
+      WHERE "Household"."weddingId" = ${weddingId}
+        AND EXISTS (
+          SELECT 1 FROM "Guest" g2
+          JOIN "Invitation" i ON i."guestId" = g2."id"
+          WHERE g2."householdId" = "Household"."id"
+            AND i."rsvp" IN ('Invited', 'Attending', 'Declined')
+        )
+        AND (${termConditions})
+      ORDER BY "Household"."id"
+      LIMIT ${PUBLIC_SEARCH_RESULT_LIMIT}
+    `)
+
+    if (candidates.length === 0) return []
 
     const households = await this.db.household.findMany({
-      where: {
-        weddingId,
-        guests: {
-          some: {
-            invitations: {
-              some: {
-                rsvp: {
-                  in: ['Invited', 'Attending', 'Declined'],
-                },
-              },
-            },
-          },
-        },
-        AND: termConditions,
-      },
+      where: { id: { in: candidates.map((c) => c.id) }, weddingId },
       select: publicRsvpHouseholdSelect,
-      take: PUBLIC_SEARCH_RESULT_LIMIT,
     })
 
     // Every term must appear in a single guest's full name, so the searcher has

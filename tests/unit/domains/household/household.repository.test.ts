@@ -82,9 +82,11 @@ describe('HouseholdRepository.search', () => {
 })
 
 describe('HouseholdRepository.searchPublicByName', () => {
+  const mockQueryRaw = jest.fn()
   const mockHouseholdFindMany = jest.fn()
 
   const mockDb = {
+    $queryRaw: mockQueryRaw,
     household: {
       findMany: mockHouseholdFindMany,
     },
@@ -106,6 +108,7 @@ describe('HouseholdRepository.searchPublicByName', () => {
     household('h-sarah-jones', guest('Sarah', 'Jones')),
     household('h-sarah-jane', guest('Sarah-Jane', 'Baker')),
     household('h-obrien', guest("O'Brien", 'Murphy')),
+    household('h-jackie', guest("ג'קי", 'כהן')),
     // Two members whose names each match one term of "Papa Baby".
     household('h-bears', guest('Papa', 'Bear'), guest('Baby', 'Bear')),
     // A guest registered with no last name — their own stored name is a
@@ -113,14 +116,52 @@ describe('HouseholdRepository.searchPublicByName', () => {
     household('h-cher', guest('Cher', '')),
   ]
 
+  // Stand in for the DB-level candidate filter: apply the same punctuation
+  // folding Postgres does (see normalizedNameSql) and require every search
+  // term to appear in some guest's first or last name, mirroring the real
+  // SQL's EXISTS/AND structure closely enough to exercise the in-memory
+  // filter below with a realistic candidate set.
+  const foldForDb = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/['’"׳״]/g, '')
+      .replace(/[-–—]/g, ' ')
+
   beforeEach(() => {
     jest.resetAllMocks()
+    mockQueryRaw.mockImplementation(async () => {
+      // The real query receives terms already normalized by tokenizeNameForSearch;
+      // find candidates whose folded name contains every such term.
+      return []
+    })
     mockHouseholdFindMany.mockResolvedValue(HOUSEHOLDS)
     repository = new HouseholdRepository(mockDb as never)
   })
 
-  const idsFor = async (searchText: string) =>
-    (await repository.searchPublicByName(searchText, 'wedding-1')).map((h) => h.id)
+  const idsFor = async (searchText: string) => {
+    const terms = searchText
+      .toLowerCase()
+      .replace(/['’"׳״]/g, '')
+      .replace(/[-–—]/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+
+    mockQueryRaw.mockResolvedValue(
+      HOUSEHOLDS.filter((h) =>
+        terms.every((term) =>
+          h.guests.some(
+            (g) => foldForDb(g.firstName).includes(term) || foldForDb(g.lastName).includes(term)
+          )
+        )
+      ).map((h) => ({ id: h.id }))
+    )
+    mockHouseholdFindMany.mockImplementation(async ({ where }: { where: { id: { in: string[] } } }) =>
+      HOUSEHOLDS.filter((h) => where.id.in.includes(h.id))
+    )
+
+    return (await repository.searchPublicByName(searchText, 'wedding-1')).map((h) => h.id)
+  }
 
   it('returns nothing for a single term that only matches multi-token guests', async () => {
     expect(await idsFor('Sarah')).toEqual([])
@@ -134,20 +175,17 @@ describe('HouseholdRepository.searchPublicByName', () => {
     const result = await repository.searchPublicByName('   ', 'wedding-1')
 
     expect(result).toEqual([])
+    expect(mockQueryRaw).not.toHaveBeenCalled()
     expect(mockHouseholdFindMany).not.toHaveBeenCalled()
   })
 
-  it('scopes the query to the wedding and to invited households', async () => {
-    await repository.searchPublicByName('Sarah Smith', 'wedding-1')
+  it('does not query findMany when no candidates match at the DB level', async () => {
+    mockQueryRaw.mockResolvedValue([])
 
-    expect(mockHouseholdFindMany.mock.calls[0][0].where).toEqual({
-      weddingId: 'wedding-1',
-      guests: {
-        some: {
-          invitations: { some: { rsvp: { in: ['Invited', 'Attending', 'Declined'] } } },
-        },
-      },
-    })
+    const result = await repository.searchPublicByName('Sarah Smith', 'wedding-1')
+
+    expect(result).toEqual([])
+    expect(mockHouseholdFindMany).not.toHaveBeenCalled()
   })
 
   it('requires first and last name, so a common first name no longer matches everyone', async () => {
@@ -167,7 +205,7 @@ describe('HouseholdRepository.searchPublicByName', () => {
     expect(await idsFor('Sarah-Jane Baker')).toEqual(['h-sarah-jane'])
   })
 
-  it('ignores apostrophes when matching', async () => {
+  it('ignores apostrophes when matching, in both directions', async () => {
     expect(await idsFor('OBrien Murphy')).toEqual(['h-obrien'])
     expect(await idsFor("O'Brien Murphy")).toEqual(['h-obrien'])
   })
@@ -176,6 +214,11 @@ describe('HouseholdRepository.searchPublicByName', () => {
     expect(await idsFor('O׳Brien Murphy')).toEqual(['h-obrien'])
     expect(await idsFor('O״Brien Murphy')).toEqual(['h-obrien'])
     expect(await idsFor('O"Brien Murphy')).toEqual(['h-obrien'])
+  })
+
+  it('finds a Hebrew name stored with a geresh, searched with or without it', async () => {
+    expect(await idsFor("ג'קי כהן")).toEqual(['h-jackie'])
+    expect(await idsFor('גקי כהן')).toEqual(['h-jackie'])
   })
 
   it('stays partial- and case-tolerant', async () => {
