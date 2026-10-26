@@ -77,23 +77,25 @@ export function InvitationHero({
 
         <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 px-6'>
           <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
-            <div className='hero-card-enter'>
+            <div>
               <HeroCard
                 src='/brand/jerusalem-art.png'
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
                 className='aspect-square w-[min(92vw,36svh)]'
+                mobile
                 priority
               />
             </div>
-            <div className='hero-card-enter'>
+            <div>
               <HeroCard
                 src='/brand/invitation.png'
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,50svh)]'
+                className='aspect-square w-[min(92vw,36svh)]'
+                mobile
               />
             </div>
           </HeroCardsGroup>

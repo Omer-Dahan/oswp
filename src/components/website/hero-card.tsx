@@ -111,7 +111,15 @@ type HeroCardProps = {
   className?: string
   /** Thumbnail object-fit; desktop crops to fill the square, mobile shows the whole artwork. */
   fit?: 'cover' | 'contain'
+  /**
+   * Below `md`: no dwell timer, no stepped zoom, no FLIP animation. A tap
+   * jumps straight to the full-screen overlay with an instant (or at most
+   * 120ms opacity) change instead of climbing through the hover levels.
+   */
+  mobile?: boolean
 }
+
+const MOBILE_OVERLAY_TRANSITION = 'opacity 120ms ease'
 
 /**
  * One of the home's interactive cards. Click/Enter/Space steps it through
@@ -128,6 +136,7 @@ export function HeroCard({
   priority,
   className,
   fit = 'cover',
+  mobile = false,
 }: Readonly<HeroCardProps>) {
   const id = useId()
   const group = useContext(HeroCardsGroupContext)
@@ -174,13 +183,16 @@ export function HeroCard({
     [clearDwellTimer, clearSequenceTimers]
   )
 
-  const goToLevel = useCallback((next: Level) => {
-    if (next === 3) {
-      const rect = triggerRef.current?.getBoundingClientRect()
-      if (rect) setFlipFrom(flipTransformFor(rect))
-    }
-    setLevel(next)
-  }, [])
+  const goToLevel = useCallback(
+    (next: Level) => {
+      if (next === 3 && !mobile) {
+        const rect = triggerRef.current?.getBoundingClientRect()
+        if (rect) setFlipFrom(flipTransformFor(rect))
+      }
+      setLevel(next)
+    },
+    [mobile]
+  )
 
   // Once the full overlay mounts at its FLIP start position, release it to
   // the identity transform on the next frame so it animates in.
@@ -201,7 +213,7 @@ export function HeroCard({
     setIsDwelling(false)
     setDirection('out')
 
-    if (level === 3) {
+    if (level === 3 && !mobile) {
       const rect = triggerRef.current?.getBoundingClientRect()
       if (rect) setFlipFrom(flipTransformFor(rect))
     }
@@ -212,9 +224,9 @@ export function HeroCard({
         setFlipFrom(null)
         triggerRef.current?.focus()
       },
-      reducedMotion ? 0 : EXIT_MS
+      reducedMotion || mobile ? 0 : EXIT_MS
     )
-  }, [level, reducedMotion, clearDwellTimer, clearSequenceTimers])
+  }, [level, reducedMotion, mobile, clearDwellTimer, clearSequenceTimers])
 
   const startDwellSequence = useCallback(() => {
     setIsDwelling(true)
@@ -236,6 +248,15 @@ export function HeroCard({
   }, [goToLevel])
 
   const handleClick = useCallback(() => {
+    if (mobile) {
+      if (level === 3) {
+        close()
+        return
+      }
+      setDirection('in')
+      goToLevel(3)
+      return
+    }
     if (isDwelling) {
       clearSequenceTimers()
       setIsDwelling(false)
@@ -249,14 +270,14 @@ export function HeroCard({
     }
     setDirection('in')
     goToLevel((level + 1) as Level)
-  }, [isDwelling, level, goToLevel, close, clearSequenceTimers])
+  }, [mobile, isDwelling, level, goToLevel, close, clearSequenceTimers])
 
   const handleMouseEnter = useCallback(() => {
-    if (level !== 0 || reducedMotion) return
+    if (mobile || level !== 0 || reducedMotion) return
     if (document.visibilityState === 'hidden') return
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     dwellTimerRef.current = setTimeout(startDwellSequence, DWELL_MS)
-  }, [level, reducedMotion, startDwellSequence])
+  }, [mobile, level, reducedMotion, startDwellSequence])
 
   const handleMouseLeave = useCallback(() => {
     clearDwellTimer()
@@ -312,10 +333,12 @@ export function HeroCard({
               : level === 1
                 ? '0 20px 50px rgba(46,38,32,.18)'
                 : '0 40px 90px rgba(46,38,32,.28)',
-          transition: [
-            cardTransition(direction, reducedMotion),
-            reducedMotion ? 'none' : 'opacity 200ms ease',
-          ].join(', '),
+          transition: mobile
+            ? MOBILE_OVERLAY_TRANSITION
+            : [
+                cardTransition(direction, reducedMotion),
+                reducedMotion ? 'none' : 'opacity 200ms ease',
+              ].join(', '),
         }}
       >
         <Image
@@ -353,7 +376,9 @@ export function HeroCard({
                 backgroundColor: `oklch(0.2 0.01 48 / ${veil * 100}%)`,
                 filter: `blur(${blur}px)`,
                 transform: `scale(${backdropScale})`,
-                transition: backdropTransition(direction, reducedMotion),
+                transition: mobile
+                  ? MOBILE_OVERLAY_TRANSITION
+                  : backdropTransition(direction, reducedMotion),
               }}
             />
             <div
@@ -362,7 +387,12 @@ export function HeroCard({
                 transform: flipFrom ?? IDENTITY_TRANSFORM,
                 transformOrigin: 'center',
                 boxShadow: '0 40px 90px rgba(46,38,32,.28)',
-                transition: flipFrom !== null ? 'none' : cardTransition(direction, reducedMotion),
+                transition:
+                  flipFrom !== null
+                    ? 'none'
+                    : mobile
+                      ? MOBILE_OVERLAY_TRANSITION
+                      : cardTransition(direction, reducedMotion),
               }}
             >
               <Image src={src} alt={expandedAlt} fill sizes='100vw' className='object-contain' />
