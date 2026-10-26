@@ -83,7 +83,7 @@ export default function MainRsvpForm({
     },
     onError: (err) => {
       console.error('Failed to submit RSVP', err)
-      setSubmitError(tCommon('submitError'))
+      setSubmitError(err.message || tCommon('submitError'))
     },
   })
 
