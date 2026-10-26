@@ -36,7 +36,7 @@ export class ReportRepository {
     const [households, guests, invitations, tables, assignments] = await Promise.all([
       this.db.household.findMany({
         where: { weddingId },
-        select: { id: true, childrenCount: true, dietaryNotes: true },
+        select: { id: true, childrenCount: true, attendingCount: true, dietaryNotes: true },
       }),
       this.db.guest.findMany({
         where: { weddingId },

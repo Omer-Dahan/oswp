@@ -14,6 +14,7 @@ const CHILD_AGE_GROUPS: ReadonlySet<KitchenReportAgeGroup> = new Set(['INFANT', 
 export interface KitchenReportHousehold {
   id: string
   childrenCount: number | null
+  attendingCount: number | null
   dietaryNotes: string | null
 }
 
@@ -166,7 +167,17 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
     }
   }
 
-  const meals = rows.filter((row) => !row.isChild).length
+  // A household's self-reported attendingCount (from the RSVP stepper) can
+  // exceed the number of named Guest rows that RSVPed Attending — those
+  // extras are unnamed guests the kitchen still has to feed.
+  let extraUnnamedMeals = 0
+  for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
+    const household = householdsById.get(householdId)
+    if (household?.attendingCount == null) continue
+    extraUnnamedMeals += Math.max(0, household.attendingCount - attendingInHousehold.length)
+  }
+
+  const meals = rows.filter((row) => !row.isChild).length + extraUnnamedMeals
   const dietary = rows.filter((row) => row.dietaryNote !== null).length
 
   return {
