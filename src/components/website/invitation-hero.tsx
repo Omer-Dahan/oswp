@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
-import { HeroCard } from '~/components/website/hero-card'
+import { HeroCard, HeroCardsGroup } from '~/components/website/hero-card'
 
 type InvitationHeroProps = {
   /** Same RSVP link the rest of the site uses, so the household token survives. */
@@ -76,7 +76,7 @@ export function InvitationHero({
         <div className='absolute inset-0 bg-background/35' />
 
         <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 px-6'>
-          <div className='hero-cards flex flex-col items-center gap-0'>
+          <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
             <div className='hero-card-enter'>
               <HeroCard
                 src='/brand/jerusalem-art.png'
@@ -96,7 +96,7 @@ export function InvitationHero({
                 className='aspect-square w-[min(92vw,50svh)]'
               />
             </div>
-          </div>
+          </HeroCardsGroup>
 
           <div className='relative z-10 flex flex-col items-center gap-0.5 text-center'>
             <p className='font-serif text-foreground text-sm'>{greeting}</p>
@@ -121,7 +121,7 @@ export function InvitationHero({
         {/* Soft warm veil so the white cards and copy read clearly against the linen. */}
         <div className='absolute inset-0 bg-background/35' />
 
-        <div className='hero-cards relative z-10 flex items-stretch justify-center gap-6 lg:gap-10'>
+        <HeroCardsGroup className='hero-cards relative z-10 flex items-stretch justify-center gap-6 lg:gap-10'>
           <div className='hero-card-enter'>
             <HeroCard
               src='/brand/jerusalem-art.png'
@@ -137,7 +137,7 @@ export function InvitationHero({
               priority
             />
           </div>
-        </div>
+        </HeroCardsGroup>
 
         <div className='relative z-10 flex flex-col items-center gap-3 text-center'>
           <p className='font-serif text-foreground text-lg'>{greeting}</p>
