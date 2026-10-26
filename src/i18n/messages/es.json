@@ -20,6 +20,7 @@
     "toBeAnnounced": "Por anunciar",
     "addToCalendar": "Agregar a tu calendario",
     "invitedHousehold": "Hogar invitado",
+    "personalizedWelcomeAriaLabel": "Bienvenida personalizada",
     "householdGreetingFamily": "Hola, familia {name}",
     "householdGreetingFirstName": "Hola, {name}",
     "rsvpHelper": "Nos encantaría saber si vendrás 🤍",

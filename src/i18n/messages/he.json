@@ -20,6 +20,7 @@
     "toBeAnnounced": "יפורסם בהמשך",
     "addToCalendar": "הוספה ליומן שלכם",
     "invitedHousehold": "המשפחה המוזמנת",
+    "personalizedWelcomeAriaLabel": "ברכת שלום אישית",
     "householdGreetingFamily": "שלום משפחת {name}",
     "householdGreetingFirstName": "שלום {name}",
     "rsvpHelper": "נשמח לדעת אם תגיעו 🤍",
