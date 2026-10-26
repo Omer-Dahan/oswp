@@ -16,7 +16,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <PostHogProvider>
-      <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+      <ThemeProvider attribute='class' defaultTheme='light' enableSystem disableTransitionOnChange>
         <AuthUIProvider
           authClient={authClient}
           navigate={(path) => router.push(path)}
