@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom'
 import { cn } from '~/lib/utils'
 
 /** The only JS timer: how long the pointer must dwell before the card opens. */
-const HOVER_INTENT_MS = 250
+const HOVER_INTENT_MS = 500
 /** One slow, gentle journey to the centre — and back. */
 const OPEN_MS = 900
 const CLOSE_MS = 700
