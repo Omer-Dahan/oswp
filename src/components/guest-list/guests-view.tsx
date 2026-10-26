@@ -821,6 +821,7 @@ export default function GuestsView({
         {selectedHousehold ? (
           <GuestDetailPanelContent
             selectedHousehold={selectedHousehold}
+            allHouseholds={allHouseholds}
             selectedEventId={selectedEventId}
             events={events}
             selectedEventResponses={selectedEventResponses}
