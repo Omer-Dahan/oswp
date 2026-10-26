@@ -87,7 +87,7 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
 
       {reportQuery.data && (
         <>
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4'>
             <Card>
               <CardHeader>
                 <CardTitle className='text-base'>מגיעים</CardTitle>
@@ -98,10 +98,18 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
             </Card>
             <Card>
               <CardHeader>
+                <CardTitle className='text-base'>מנות</CardTitle>
+              </CardHeader>
+              <CardContent className='text-3xl font-bold'>
+                {reportQuery.data.summary.meals}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
                 <CardTitle className='text-base'>ילדים</CardTitle>
               </CardHeader>
               <CardContent className='text-3xl font-bold'>
-                {reportQuery.data.summary.kidsMeals}
+                {reportQuery.data.summary.children}
               </CardContent>
             </Card>
             <Card>
@@ -128,7 +136,7 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
                 variant={onlyKidsMenu ? 'default' : 'outline'}
                 onClick={() => setOnlyKidsMenu((value) => !value)}
               >
-                הצג רק תפריט ילדים
+                הצג רק ילדים
               </Button>
               <Button
                 type='button'

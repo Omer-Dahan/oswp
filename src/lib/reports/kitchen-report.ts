@@ -63,8 +63,12 @@ export interface KitchenReportRow {
 }
 
 export interface KitchenReportSummary {
+  /** Everyone attending, adults and children. */
   attending: number
-  kidsMeals: number
+  /** The plates the kitchen actually cooks: attending guests over age 10 (TEEN/ADULT). */
+  meals: number
+  /** Attending children (CHILD/INFANT) — they eat off the family, no meal of their own. */
+  children: number
   dietary: number
 }
 
@@ -145,22 +149,28 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
     )
   })
 
-  let kidsMeals = 0
+  // Children attending (the RSVP answer, falling back to the guest rows) are
+  // not a meal each: the kitchen cooks only for guests over age 10. The meal
+  // count is therefore the named attending guests who are NOT children —
+  // unnamed children (counted via childrenCount, never a guest row) never
+  // enter the rows in the first place.
+  let children = 0
   for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
     const household = householdsById.get(householdId)
     if (household?.childrenCount != null) {
-      kidsMeals += household.childrenCount
+      children += household.childrenCount
     } else {
-      kidsMeals += attendingInHousehold.filter(
+      children += attendingInHousehold.filter(
         (guest) => guest.ageGroup !== null && CHILD_AGE_GROUPS.has(guest.ageGroup)
       ).length
     }
   }
 
+  const meals = rows.filter((row) => !row.isChild).length
   const dietary = rows.filter((row) => row.dietaryNote !== null).length
 
   return {
-    summary: { attending: rows.length, kidsMeals, dietary },
+    summary: { attending: rows.length, meals, children, dietary },
     rows,
   }
 }
