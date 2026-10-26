@@ -71,7 +71,7 @@ describe('OrganizationOutstandingInvitesCard', () => {
     render(<OrganizationOutstandingInvitesCard />)
 
     await waitFor(() => {
-      expect(screen.queryByText('Outstanding Invites')).not.toBeInTheDocument()
+      expect(screen.queryByText('הזמנות פתוחות')).not.toBeInTheDocument()
     })
   })
 
@@ -171,8 +171,8 @@ describe('OrganizationOutstandingInvitesCard', () => {
     expect(screen.queryByText('accepted@example.com')).not.toBeInTheDocument()
     expect(screen.queryByText('expired@example.com')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Resend' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שליחה מחדש' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול' }))
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -258,9 +258,9 @@ describe('OrganizationOutstandingInvitesCard', () => {
       expect(screen.getByText('pending@example.com')).toBeInTheDocument()
     })
 
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'ביטול' })).toBeDisabled()
     expect(
-      screen.getByText('Your role can resend invitations but cannot cancel them.')
+      screen.getByText('התפקיד שלכם מאפשר לשלוח הזמנות מחדש אך לא לבטל אותן.')
     ).toBeInTheDocument()
   })
 })

@@ -48,7 +48,7 @@ describe('VendorCategoryConfigEditor', () => {
 
     expect(screen.queryByLabelText(/field key/i)).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: /add field/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'הוספת שדה' }))
     fireEvent.change(screen.getByLabelText(/field label/i), {
       target: { value: 'Service Area ZIP Codes' },
     })

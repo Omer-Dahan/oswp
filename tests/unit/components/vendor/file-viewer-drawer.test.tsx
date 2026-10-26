@@ -121,7 +121,7 @@ describe('FileViewerDrawer', () => {
         onClose={onClose}
       />
     )
-    fireEvent.click(screen.getByLabelText('Close file viewer'))
+    fireEvent.click(screen.getByLabelText('סגירת מציג הקבצים'))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 })

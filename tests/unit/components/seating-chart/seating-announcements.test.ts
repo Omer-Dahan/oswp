@@ -19,17 +19,17 @@ const overTable = (tableId: string) => over({ type: 'table', tableId })
 describe('seating announcements', () => {
   it('names the picked-up guest or table instead of an id', () => {
     expect(announcements.onDragStart({ active: guests([5], 'Ann Lee') })).toBe(
-      'Picked up Ann Lee. Use the arrow keys to move onto a table, Space to drop, Escape to cancel.'
+      'Ann Lee נבחר. השתמשו במקשי החצים כדי להעביר אותו לשולחן, במקש הרווח כדי לשחרר וב-Escape כדי לבטל.'
     )
     expect(announcements.onDragStart({ active: active({ type: 'table', tableId: 't1' }) })).toBe(
-      'Picked up Head Table. Use the arrow keys to move it, Space to drop, Escape to cancel.'
+      'Head Table נבחר. השתמשו במקשי החצים כדי להזיז אותו, במקש הרווח כדי לשחרר וב-Escape כדי לבטל.'
     )
   })
 
   it('says how many seats are open when over a table', () => {
     expect(
       announcements.onDragOver?.({ active: guests([5], 'Ann Lee'), over: overTable('t1') })
-    ).toBe('Ann Lee is over Head Table, 2 open seats.')
+    ).toBe('Ann Lee מעל Head Table, 2 מקומות פנויים.')
   })
 
   it('warns when the table does not have room', () => {
@@ -38,37 +38,37 @@ describe('seating announcements', () => {
         active: guests([5, 6, 7], 'Lee household'),
         over: overTable('t1'),
       })
-    ).toBe('Lee household is over Head Table, not enough seats.')
+    ).toBe('Lee household מעל Head Table, אין מספיק מקומות.')
   })
 
   it('announces the real outcome of a drop', () => {
     const ann = guests([5], 'Ann Lee')
     expect(announcements.onDragEnd({ active: ann, over: overTable('t1') })).toBe(
-      'Ann Lee seated at Head Table.'
+      'Ann Lee הושב ב-Head Table.'
     )
     expect(announcements.onDragEnd({ active: ann, over: overTable('t2') })).toBe(
-      'Not enough seats at Kids Table. Ann Lee was not moved.'
+      'אין מספיק מקומות ב-Kids Table. Ann Lee לא הועבר.'
     )
     expect(announcements.onDragEnd({ active: ann, over: over({ type: 'unassigned' }) })).toBe(
-      'Ann Lee moved to unseated guests.'
+      'Ann Lee הועבר לרשימת האורחים ללא הושבה.'
     )
     expect(announcements.onDragEnd({ active: ann, over: null })).toBe(
-      'Ann Lee was not dropped on a table and was not moved.'
+      'Ann Lee לא שוחרר על שולחן ולא הועבר.'
     )
   })
 
   it('announces cancel and table drops', () => {
     expect(announcements.onDragCancel({ active: guests([5], 'Ann Lee'), over: null })).toBe(
-      'Moving Ann Lee was cancelled.'
+      'העברת Ann Lee בוטלה.'
     )
     expect(
       announcements.onDragEnd({ active: active({ type: 'table', tableId: 't1' }), over: null })
-    ).toBe('Head Table dropped.')
+    ).toBe('Head Table שוחרר.')
   })
 
   it('explains the keyboard controls', () => {
     expect(SEATING_SCREEN_READER_INSTRUCTIONS.draggable).toMatch(
-      /Space.*arrow keys.*Escape.*Enter/s
+      /הרווח.*החצים.*Escape.*Enter/s
     )
   })
 })

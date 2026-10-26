@@ -68,7 +68,7 @@ describe('PhoneInput', () => {
   it('shows the selected country calling code in the trigger', () => {
     render(<PhoneInput value={undefined} onChange={jest.fn()} defaultCountry='GB' />)
 
-    expect(screen.getByRole('button', { name: 'Select country' })).toHaveTextContent('+44')
+    expect(screen.getByRole('button', { name: 'בחרו מדינה' })).toHaveTextContent('+44')
   })
 
   it('applies destructive border class when error=true', () => {
@@ -81,7 +81,7 @@ describe('PhoneInput', () => {
     render(<PhoneInput value={undefined} onChange={jest.fn()} disabled />)
 
     expect(screen.getByRole('textbox')).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Select country' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'בחרו מדינה' })).toBeDisabled()
   })
 
   it('calls onChange with E.164 values', () => {
@@ -124,9 +124,9 @@ describe('PhoneInput', () => {
   it('renders a scrollable, viewport-safe country list', () => {
     render(<PhoneInput value={undefined} onChange={jest.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+    fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
-    const countryList = screen.getByRole('listbox', { name: 'Country codes' })
+    const countryList = screen.getByRole('listbox', { name: 'קידומות מדינה' })
     expect(countryList.className).toContain('overflow-y-auto')
     expect(countryList.className).toContain('overscroll-contain')
     expect(countryList.className).toContain('touch-pan-y')
@@ -137,65 +137,65 @@ describe('PhoneInput', () => {
     it('shows a search input when the country list is open', () => {
       render(<PhoneInput value={undefined} onChange={jest.fn()} />)
 
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
-      expect(screen.getByPlaceholderText('Search countries...')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('חיפוש מדינות...')).toBeInTheDocument()
     })
 
     it('filters countries by name when typing in the search input', () => {
       render(<PhoneInput value={undefined} onChange={jest.fn()} />)
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
-      fireEvent.change(screen.getByPlaceholderText('Search countries...'), {
-        target: { value: 'Kingdom' },
+      fireEvent.change(screen.getByPlaceholderText('חיפוש מדינות...'), {
+        target: { value: 'בריטניה' },
       })
 
       const options = screen.getAllByRole('option')
       expect(options).toHaveLength(1)
-      expect(options[0]).toHaveTextContent('United Kingdom')
+      expect(options[0]).toHaveTextContent('בריטניה')
     })
 
     it('shows "No countries found" when search matches nothing', () => {
       render(<PhoneInput value={undefined} onChange={jest.fn()} />)
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
-      fireEvent.change(screen.getByPlaceholderText('Search countries...'), {
+      fireEvent.change(screen.getByPlaceholderText('חיפוש מדינות...'), {
         target: { value: 'xyzxyz' },
       })
 
-      expect(screen.getByText('No countries found')).toBeInTheDocument()
+      expect(screen.getByText('לא נמצאו מדינות')).toBeInTheDocument()
       expect(screen.queryAllByRole('option')).toHaveLength(0)
     })
 
     it('filters countries by calling code when typing +44', () => {
       render(<PhoneInput value={undefined} onChange={jest.fn()} />)
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
-      fireEvent.change(screen.getByPlaceholderText('Search countries...'), {
+      fireEvent.change(screen.getByPlaceholderText('חיפוש מדינות...'), {
         target: { value: '+44' },
       })
 
       const options = screen.getAllByRole('option')
       expect(options).toHaveLength(1)
-      expect(options[0]).toHaveTextContent('United Kingdom')
+      expect(options[0]).toHaveTextContent('בריטניה')
     })
 
     it('resets the search when the popover reopens', () => {
       render(<PhoneInput value={undefined} onChange={jest.fn()} />)
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
-      fireEvent.change(screen.getByPlaceholderText('Search countries...'), {
-        target: { value: 'Kingdom' },
+      fireEvent.change(screen.getByPlaceholderText('חיפוש מדינות...'), {
+        target: { value: 'בריטניה' },
       })
       expect(screen.getAllByRole('option')).toHaveLength(1)
 
       // Close popover by clicking trigger again
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
       // Reopen
-      fireEvent.click(screen.getByRole('button', { name: 'Select country' }))
+      fireEvent.click(screen.getByRole('button', { name: 'בחרו מדינה' }))
 
       expect(screen.getAllByRole('option')).toHaveLength(2)
-      expect(screen.getByPlaceholderText('Search countries...')).toHaveValue('')
+      expect(screen.getByPlaceholderText('חיפוש מדינות...')).toHaveValue('')
     })
   })
 })

@@ -90,7 +90,7 @@ describe('SidebarNavFrame', () => {
 
     render(<SidebarNavFrame isOpen setIsOpen={setIsOpen} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /close menu/i }))
+    fireEvent.click(screen.getByRole('button', { name: /סגירת התפריט/ }))
 
     expect(setIsOpen).toHaveBeenCalledWith(false)
   })
@@ -98,7 +98,11 @@ describe('SidebarNavFrame', () => {
   it('positions mobile close button away from header divider', () => {
     render(<SidebarNavFrame isOpen setIsOpen={jest.fn()} />)
 
-    expect(screen.getByRole('button', { name: /close menu/i })).toHaveClass('top-2', 'h-9', 'w-9')
+    expect(screen.getByRole('button', { name: /סגירת התפריט/ })).toHaveClass(
+      'top-2',
+      'h-9',
+      'w-9'
+    )
   })
 
   it('uses a scrollable nav region in mobile drawer', () => {

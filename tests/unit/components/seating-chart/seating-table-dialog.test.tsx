@@ -22,10 +22,10 @@ describe('SeatingTableDialog', () => {
   it('submits name, shape and seat count', async () => {
     const { onSubmit } = renderDialog()
 
-    fireEvent.change(screen.getByLabelText('Table name'), { target: { value: 'Head Table' } })
-    fireEvent.click(screen.getByLabelText('Rectangular'))
-    fireEvent.change(screen.getByLabelText('Seats'), { target: { value: '12' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add table' }))
+    fireEvent.change(screen.getByLabelText('שם השולחן'), { target: { value: 'Head Table' } })
+    fireEvent.click(screen.getByLabelText('מלבני'))
+    fireEvent.change(screen.getByLabelText('מקומות'), { target: { value: '12' } })
+    fireEvent.click(screen.getByRole('button', { name: 'הוסיפו שולחן' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(
@@ -38,8 +38,8 @@ describe('SeatingTableDialog', () => {
   it('requires a table name', async () => {
     const { onSubmit } = renderDialog()
 
-    fireEvent.change(screen.getByLabelText('Table name'), { target: { value: '  ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add table' }))
+    fireEvent.change(screen.getByLabelText('שם השולחן'), { target: { value: '  ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'הוסיפו שולחן' }))
 
     expect(await screen.findByText('Table name is required')).toBeInTheDocument()
     expect(onSubmit).not.toHaveBeenCalled()
@@ -48,10 +48,10 @@ describe('SeatingTableDialog', () => {
   it('blocks reducing seats below the guests already seated', async () => {
     const { onSubmit } = renderDialog({ mode: 'edit', minCapacity: 6 })
 
-    fireEvent.change(screen.getByLabelText('Seats'), { target: { value: '4' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    fireEvent.change(screen.getByLabelText('מקומות'), { target: { value: '4' } })
+    fireEvent.click(screen.getByRole('button', { name: 'שמירה' }))
 
-    expect(await screen.findByText(/6 guests are seated here/)).toBeInTheDocument()
+    expect(await screen.findByText(/6 אורחים יושבים כאן/)).toBeInTheDocument()
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
@@ -59,7 +59,7 @@ describe('SeatingTableDialog', () => {
     const onDelete = jest.fn()
     renderDialog({ mode: 'edit', onDelete })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete table' }))
+    fireEvent.click(screen.getByRole('button', { name: 'מחקו שולחן' }))
     expect(onDelete).toHaveBeenCalled()
   })
 
@@ -77,7 +77,7 @@ describe('SeatingTableDialog', () => {
         defaultValues={{ name: 'Table 1', shape: 'ROUND', capacity: 8 }}
       />
     )
-    fireEvent.change(screen.getByLabelText('Table name'), { target: { value: 'Draft name' } })
+    fireEvent.change(screen.getByLabelText('שם השולחן'), { target: { value: 'Draft name' } })
 
     // e.g. an optimistic update followed by a rollback after a failed save
     rerender(
@@ -88,7 +88,7 @@ describe('SeatingTableDialog', () => {
       />
     )
 
-    expect(screen.getByLabelText('Table name')).toHaveValue('Draft name')
+    expect(screen.getByLabelText('שם השולחן')).toHaveValue('Draft name')
   })
 
   it('loads fresh values each time it opens', () => {
@@ -113,8 +113,8 @@ describe('SeatingTableDialog', () => {
       />
     )
 
-    expect(screen.getByLabelText('Table name')).toHaveValue('Head Table')
-    expect(screen.getByLabelText('Seats')).toHaveValue(10)
+    expect(screen.getByLabelText('שם השולחן')).toHaveValue('Head Table')
+    expect(screen.getByLabelText('מקומות')).toHaveValue(10)
   })
 
   it('lets the caller place focus when the dialog closes', async () => {
@@ -136,8 +136,8 @@ describe('SeatingTableDialog', () => {
   it('reports only the fields the planner changed when editing', async () => {
     const { onSubmit } = renderDialog({ mode: 'edit' })
 
-    fireEvent.change(screen.getByLabelText('Table name'), { target: { value: 'Head Table' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    fireEvent.change(screen.getByLabelText('שם השולחן'), { target: { value: 'Head Table' } })
+    fireEvent.click(screen.getByRole('button', { name: 'שמירה' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(
@@ -150,7 +150,7 @@ describe('SeatingTableDialog', () => {
   it('reports no changes when nothing was edited', async () => {
     const { onSubmit } = renderDialog({ mode: 'edit' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירה' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({ name: 'Table 1', shape: 'ROUND', capacity: 8 }, {})
@@ -161,8 +161,8 @@ describe('SeatingTableDialog', () => {
     // Someone else seated more guests since this dialog opened
     const { onSubmit } = renderDialog({ mode: 'edit', minCapacity: 10 })
 
-    fireEvent.change(screen.getByLabelText('Table name'), { target: { value: 'Renamed' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    fireEvent.change(screen.getByLabelText('שם השולחן'), { target: { value: 'Renamed' } })
+    fireEvent.click(screen.getByRole('button', { name: 'שמירה' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(expect.anything(), { name: 'Renamed' })

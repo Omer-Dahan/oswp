@@ -150,7 +150,7 @@ describe('VendorCategorySection', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /customize category/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'התאמת קטגוריה' }))
 
     expect(screen.getByTestId('category-config-editor')).toBeInTheDocument()
     expect(mockCategoryConfigEditor).toHaveBeenCalledWith(
