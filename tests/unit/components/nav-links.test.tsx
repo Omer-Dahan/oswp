@@ -11,10 +11,10 @@ describe('NavLinks', () => {
 
     render(<NavLinks />)
 
-    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Guest List' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Events' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Vendors' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'לוח בקרה' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'רשימת אורחים' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'אירועים' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'ספקים' })).toBeInTheDocument()
   })
 
   it('should mark vendors as active on vendors pages', () => {
@@ -22,7 +22,7 @@ describe('NavLinks', () => {
 
     render(<NavLinks />)
 
-    const vendorsLink = screen.getByRole('link', { name: 'Vendors' })
+    const vendorsLink = screen.getByRole('link', { name: 'ספקים' })
     expect(vendorsLink).toHaveClass('border-primary')
   })
 })

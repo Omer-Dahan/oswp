@@ -6,9 +6,9 @@ describe('ListToolbar', () => {
   it('shows household count and sort actions', () => {
     render(<ListToolbar totalHouseholds={2} />)
 
-    expect(screen.getByText('2 households')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Sort by Party Size' })).toBeInTheDocument()
+    expect(screen.getByText(/משקי בית/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).toBeInTheDocument()
   })
 
   it('invokes sort handlers when buttons are clicked', () => {
@@ -23,8 +23,8 @@ describe('ListToolbar', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Sort by Party Size' }))
+    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי שם' }))
+    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' }))
 
     expect(onSortByName).toHaveBeenCalledTimes(1)
     expect(onSortByPartySize).toHaveBeenCalledTimes(1)
@@ -33,15 +33,15 @@ describe('ListToolbar', () => {
   it('shows cards as the default active view state', () => {
     render(<ListToolbar totalHouseholds={3} onViewModeChange={jest.fn()} />)
 
-    expect(screen.getByRole('button', { name: 'Card view' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'Table view' })).not.toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).not.toHaveClass('bg-primary')
   })
 
   it('shows table as the active view state when requested', () => {
     render(<ListToolbar totalHouseholds={3} viewMode='table' onViewModeChange={jest.fn()} />)
 
-    expect(screen.getByRole('button', { name: 'Table view' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'Card view' })).not.toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).not.toHaveClass('bg-primary')
   })
 
   it('shows workflow mode controls and calls mode change handler', () => {
@@ -55,13 +55,13 @@ describe('ListToolbar', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Person Audit' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ביקורת אנשים' }))
     expect(onWorkflowModeChange).toHaveBeenCalledWith('personAudit')
   })
 
   it('renders active sort state text when provided', () => {
     render(<ListToolbar totalHouseholds={3} sortStateLabel='Name (A-Z)' />)
-    expect(screen.getByText('Sorted by Name (A-Z)')).toBeInTheDocument()
+    expect(screen.getByText('ממוין לפי Name (A-Z)')).toBeInTheDocument()
   })
 
   it('highlights the name sort button when name sort is active', () => {
@@ -69,8 +69,10 @@ describe('ListToolbar', () => {
       <ListToolbar totalHouseholds={3} activeSort={{ field: 'name', direction: 'ascending' }} />
     )
 
-    expect(screen.getByRole('button', { name: 'Sort by Name' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'Sort by Party Size' })).not.toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).not.toHaveClass(
+      'bg-primary'
+    )
   })
 
   it('highlights the party size sort button when party sort is active', () => {
@@ -81,14 +83,16 @@ describe('ListToolbar', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: 'Sort by Party Size' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'Sort by Name' })).not.toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).not.toHaveClass('bg-primary')
   })
 
   it('shows no sort button highlighted when activeSort is not provided', () => {
     render(<ListToolbar totalHouseholds={3} />)
 
-    expect(screen.getByRole('button', { name: 'Sort by Name' })).not.toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'Sort by Party Size' })).not.toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).not.toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).not.toHaveClass(
+      'bg-primary'
+    )
   })
 })

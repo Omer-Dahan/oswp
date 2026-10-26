@@ -113,7 +113,7 @@ describe('render branches', () => {
     setupMocks({ isLoading: true })
     render(<SelfInviteLinkManager />)
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading invite link...')
+    expect(screen.getByRole('status')).toHaveTextContent('טוען קישור הזמנה...')
   })
 
   it('shows permission-specific message when token query is forbidden', () => {
@@ -121,7 +121,7 @@ describe('render branches', () => {
     render(<SelfInviteLinkManager />)
 
     expect(
-      screen.getByText('Invite link management requires permission to send invitations.')
+      screen.getByText('ניהול קישורי הזמנה דורש הרשאה לשליחת הזמנות.')
     ).toBeInTheDocument()
   })
 
@@ -129,19 +129,19 @@ describe('render branches', () => {
     setupMocks({ error: { data: { code: 'INTERNAL_SERVER_ERROR' } } })
     render(<SelfInviteLinkManager />)
 
-    expect(screen.getByText('Unable to load invite link.')).toBeInTheDocument()
+    expect(screen.getByText('לא ניתן לטעון את קישור ההזמנה.')).toBeInTheDocument()
   })
 
   it('shows "Generate Invite Link" button when data is undefined (no token fetched yet)', () => {
     setupMocks()
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: /generate invite link/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'יצירת קישור הזמנה' })).toBeInTheDocument()
   })
 
   it('shows "Generate Invite Link" button when token is null (token revoked)', () => {
     setupMocks({ token: null })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: /generate invite link/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'יצירת קישור הזמנה' })).toBeInTheDocument()
   })
 
   it('shows the invite URL in the display when a token exists', () => {
@@ -153,45 +153,45 @@ describe('render branches', () => {
   it('shows Copy, Reset, and Revoke buttons when a token exists', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: 'Copy invite link' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Reset invite link' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Revoke invite link' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'איפוס קישור הזמנה' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'ביטול קישור הזמנה' })).toBeInTheDocument()
   })
 
   it('shows expiry date text when expiresAt is set', () => {
     setupMocks({ token: TOKEN, expiresAt: '2026-09-01T00:00:00.000Z' })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByText(/link expires/i)).toBeInTheDocument()
+    expect(screen.getByText(/תוקף הקישור יפוג/)).toBeInTheDocument()
   })
 
   it('does not show expiry text when expiresAt is null', () => {
     setupMocks({ token: TOKEN, expiresAt: null })
     render(<SelfInviteLinkManager />)
-    expect(screen.queryByText(/link expires/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/תוקף הקישור יפוג/)).not.toBeInTheDocument()
   })
 
   it('disables "Generate Invite Link" button while generateToken is pending', () => {
     setupMocks({ generateIsPending: true })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: /generate invite link/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'יצירת קישור הזמנה' })).toBeDisabled()
   })
 
   it('disables Reset button while generateToken is pending', () => {
     setupMocks({ token: TOKEN, generateIsPending: true })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: 'Reset invite link' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'איפוס קישור הזמנה' })).toBeDisabled()
   })
 
   it('disables Revoke button while revokeToken is pending', () => {
     setupMocks({ token: TOKEN, revokeIsPending: true })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: 'Revoke invite link' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'ביטול קישור הזמנה' })).toBeDisabled()
   })
 
   it('Copy button is not disabled while generateToken is pending', () => {
     setupMocks({ token: TOKEN, generateIsPending: true })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByRole('button', { name: 'Copy invite link' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' })).not.toBeDisabled()
   })
 })
 
@@ -201,7 +201,7 @@ describe('copy', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      fireEvent.click(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }))
     })
     expect(mockWriteText).toHaveBeenCalledWith(JOIN_URL)
   })
@@ -210,9 +210,9 @@ describe('copy', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      fireEvent.click(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }))
     })
-    const btn = screen.getByRole('button', { name: 'Copied!' })
+    const btn = screen.getByRole('button', { name: 'הועתק!' })
     expect(btn.querySelector('.text-green-600')).toBeInTheDocument()
   })
 
@@ -222,17 +222,17 @@ describe('copy', () => {
     render(<SelfInviteLinkManager />)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      fireEvent.click(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }))
     })
     expect(
-      screen.getByRole('button', { name: 'Copied!' }).querySelector('.text-green-600')
+      screen.getByRole('button', { name: 'הועתק!' }).querySelector('.text-green-600')
     ).toBeInTheDocument()
 
     act(() => {
       jest.advanceTimersByTime(2000)
     })
     expect(
-      screen.getByRole('button', { name: 'Copy invite link' }).querySelector('.text-green-600')
+      screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }).querySelector('.text-green-600')
     ).not.toBeInTheDocument()
 
     jest.useRealTimers()
@@ -243,13 +243,13 @@ describe('copy', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      fireEvent.click(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }))
     })
     // setCopied(true) is never reached → no green check icon
     expect(
-      screen.getByRole('button', { name: 'Copy invite link' }).querySelector('.text-green-600')
+      screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }).querySelector('.text-green-600')
     ).not.toBeInTheDocument()
-    expect(mockToastError).toHaveBeenCalledWith('Failed to copy link')
+    expect(mockToastError).toHaveBeenCalledWith('העתקת הקישור נכשלה')
   })
 })
 
@@ -258,14 +258,14 @@ describe('generateToken mutation', () => {
   it('calls mutate({}) when "Generate Invite Link" is clicked (no-token state)', () => {
     setupMocks()
     render(<SelfInviteLinkManager />)
-    fireEvent.click(screen.getByRole('button', { name: /generate invite link/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'יצירת קישור הזמנה' }))
     expect(mockGenerateMutate).toHaveBeenCalledWith({})
   })
 
   it('calls mutate({}) when Reset button is clicked (token state)', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
-    fireEvent.click(screen.getByRole('button', { name: 'Reset invite link' }))
+    fireEvent.click(screen.getByRole('button', { name: 'איפוס קישור הזמנה' }))
     expect(mockGenerateMutate).toHaveBeenCalledWith({})
   })
 
@@ -284,7 +284,7 @@ describe('generateToken mutation', () => {
     act(() => {
       capturedGenerateOnSuccess?.()
     })
-    expect(mockToastSuccess).toHaveBeenCalledWith('Invite link generated!')
+    expect(mockToastSuccess).toHaveBeenCalledWith('קישור ההזמנה נוצר!')
   })
 
   it('shows error toast on failure', () => {
@@ -293,7 +293,7 @@ describe('generateToken mutation', () => {
     act(() => {
       capturedGenerateOnError?.()
     })
-    expect(mockToastError).toHaveBeenCalledWith('Failed to generate invite link')
+    expect(mockToastError).toHaveBeenCalledWith('יצירת קישור ההזמנה נכשלה')
   })
 })
 
@@ -302,14 +302,14 @@ describe('revokeToken mutation', () => {
   it('calls mutate({}) when Revoke button is clicked', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
-    fireEvent.click(screen.getByRole('button', { name: 'Revoke invite link' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול קישור הזמנה' }))
     expect(mockRevokeMutate).toHaveBeenCalledWith({})
   })
 
   it('does not call mutate when Revoke button is disabled (pending)', () => {
     setupMocks({ token: TOKEN, revokeIsPending: true })
     render(<SelfInviteLinkManager />)
-    fireEvent.click(screen.getByRole('button', { name: 'Revoke invite link' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול קישור הזמנה' }))
     expect(mockRevokeMutate).not.toHaveBeenCalled()
   })
 
@@ -328,7 +328,7 @@ describe('revokeToken mutation', () => {
     act(() => {
       capturedRevokeOnSuccess?.()
     })
-    expect(mockToastSuccess).toHaveBeenCalledWith('Invite link revoked')
+    expect(mockToastSuccess).toHaveBeenCalledWith('קישור ההזמנה בוטל')
   })
 
   it('shows error toast on failure', () => {
@@ -337,7 +337,7 @@ describe('revokeToken mutation', () => {
     act(() => {
       capturedRevokeOnError?.()
     })
-    expect(mockToastError).toHaveBeenCalledWith('Failed to revoke invite link')
+    expect(mockToastError).toHaveBeenCalledWith('ביטול קישור ההזמנה נכשל')
   })
 })
 
@@ -347,9 +347,9 @@ describe('copy aria-label', () => {
     setupMocks({ token: TOKEN })
     render(<SelfInviteLinkManager />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      fireEvent.click(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }))
     })
-    expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'הועתק!' })).toBeInTheDocument()
   })
 
   it('aria-label reverts to "Copy invite link" after 2 seconds', async () => {
@@ -358,14 +358,14 @@ describe('copy aria-label', () => {
     render(<SelfInviteLinkManager />)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
+      fireEvent.click(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' }))
     })
-    expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'הועתק!' })).toBeInTheDocument()
 
     act(() => {
       jest.advanceTimersByTime(2000)
     })
-    expect(screen.getByRole('button', { name: 'Copy invite link' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'העתקת קישור ההזמנה' })).toBeInTheDocument()
 
     jest.useRealTimers()
   })
@@ -380,7 +380,7 @@ describe('expiry warning', () => {
       earliestEventDate: '2026-06-01T00:00:00.000Z',
     })
     render(<SelfInviteLinkManager />)
-    expect(screen.getByText('This link expires before your earliest event')).toBeInTheDocument()
+    expect(screen.getByText('קישור זה יפוג לפני האירוע המוקדם ביותר שלכם')).toBeInTheDocument()
   })
 
   it('does not show warning when expiresAt is after earliestEventDate', () => {
@@ -391,7 +391,7 @@ describe('expiry warning', () => {
     })
     render(<SelfInviteLinkManager />)
     expect(
-      screen.queryByText('This link expires before your earliest event')
+      screen.queryByText('קישור זה יפוג לפני האירוע המוקדם ביותר שלכם')
     ).not.toBeInTheDocument()
   })
 
@@ -403,7 +403,7 @@ describe('expiry warning', () => {
     })
     render(<SelfInviteLinkManager />)
     expect(
-      screen.queryByText('This link expires before your earliest event')
+      screen.queryByText('קישור זה יפוג לפני האירוע המוקדם ביותר שלכם')
     ).not.toBeInTheDocument()
   })
 
@@ -415,7 +415,7 @@ describe('expiry warning', () => {
     })
     render(<SelfInviteLinkManager />)
     expect(
-      screen.queryByText('This link expires before your earliest event')
+      screen.queryByText('קישור זה יפוג לפני האירוע המוקדם ביותר שלכם')
     ).not.toBeInTheDocument()
   })
 })

@@ -38,7 +38,7 @@ describe('GuestDetailDrawer', () => {
     const dialog = screen.getByRole('dialog', { name: 'Guest details' })
 
     expect(dialog).toHaveClass('md:inset-y-0')
-    expect(dialog).toHaveClass('md:right-0')
+    expect(dialog).toHaveClass('md:end-0')
     expect(dialog).toHaveClass('md:h-full')
     expect(dialog).toHaveClass('md:w-[520px]')
     expect(dialog).toHaveClass('md:translate-x-0')
@@ -61,18 +61,18 @@ describe('GuestDetailDrawer', () => {
   it('should render a top-right close button with aria-label', () => {
     renderDrawer({ open: true })
 
-    const closeButton = screen.getByRole('button', { name: 'Close guest details' })
+    const closeButton = screen.getByRole('button', { name: 'סגירת פרטי אורח' })
 
     expect(closeButton).toBeInTheDocument()
     expect(closeButton).toHaveClass('absolute')
     expect(closeButton).toHaveClass('top-4')
-    expect(closeButton).toHaveClass('right-4')
+    expect(closeButton).toHaveClass('end-4')
   })
 
   it('should call onOpenChange when close button is clicked', () => {
     const { onOpenChange } = renderDrawer({ open: true })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close guest details' }))
+    fireEvent.click(screen.getByRole('button', { name: 'סגירת פרטי אורח' }))
 
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })

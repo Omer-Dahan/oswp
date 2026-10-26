@@ -148,14 +148,14 @@ describe('HouseholdMembersModal', () => {
   it('does not render content when closed', () => {
     renderModal({ open: false })
 
-    expect(screen.queryByText('Manage Household Members')).not.toBeInTheDocument()
+    expect(screen.queryByText('ניהול חברי משק הבית')).not.toBeInTheDocument()
   })
 
   it('shows correct first and last name input values', () => {
     renderModal()
 
-    const firstNameInputs = screen.getAllByLabelText(/First name/)
-    const lastNameInputs = screen.getAllByLabelText(/Last name/)
+    const firstNameInputs = screen.getAllByLabelText(/שם פרטי/)
+    const lastNameInputs = screen.getAllByLabelText(/שם משפחה/)
 
     expect(firstNameInputs[0]).toHaveValue('John')
     expect(lastNameInputs[0]).toHaveValue('Doe')
@@ -166,7 +166,7 @@ describe('HouseholdMembersModal', () => {
   it('editing first name updates the member display name', () => {
     renderModal()
 
-    const firstNameInput = screen.getByLabelText('First name (member 1)')
+    const firstNameInput = screen.getByLabelText('שם פרטי (חבר 1)')
     fireEvent.change(firstNameInput, { target: { value: 'Jonathan' } })
 
     expect(screen.getByText('Jonathan Doe')).toBeInTheDocument()
@@ -177,53 +177,53 @@ describe('HouseholdMembersModal', () => {
       members: [makeMember({ firstName: 'John', lastName: 'Doe', ageGroup: 'ADULT' })],
     })
 
-    const trigger = screen.getByLabelText('Age group for John Doe')
+    const trigger = screen.getByLabelText('קבוצת גיל עבור John Doe')
     expect(trigger).toBeInTheDocument()
     expect(screen.getAllByText('Adult (18+ years)').length).toBeGreaterThan(0)
 
-    const teenOption = screen.getByText('Teen (13-17 years)')
+    const teenOption = screen.getByText('נער (13-17 שנים)')
     fireEvent.click(teenOption)
 
-    expect(screen.getByText('Teen (13-17 years)')).toBeInTheDocument()
+    expect(screen.getByText('נער (13-17 שנים)')).toBeInTheDocument()
   })
 
   it('add guest button adds a new empty member row', () => {
     renderModal()
 
-    const addButton = screen.getByRole('button', { name: 'Add guest' })
+    const addButton = screen.getByRole('button', { name: 'הוספת אורח' })
     fireEvent.click(addButton)
 
-    expect(screen.getByText('Unnamed guest')).toBeInTheDocument()
-    expect(screen.getAllByLabelText(/First name/)).toHaveLength(3)
+    expect(screen.getByText('אורח ללא שם')).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/שם פרטי/)).toHaveLength(3)
   })
 
   it('remove button removes a member', () => {
     renderModal()
 
-    const removeButton = screen.getByLabelText('Remove Jane Doe')
+    const removeButton = screen.getByLabelText('הסרת Jane Doe')
     fireEvent.click(removeButton)
 
     expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument()
-    expect(screen.getAllByLabelText(/First name/)).toHaveLength(1)
+    expect(screen.getAllByLabelText(/שם פרטי/)).toHaveLength(1)
   })
 
   it('set primary button changes primary contact', () => {
     renderModal()
 
-    const setPrimaryButton = screen.getByLabelText('Set Jane Doe as primary')
+    const setPrimaryButton = screen.getByLabelText('הגדרת Jane Doe כראשי')
     fireEvent.click(setPrimaryButton)
 
-    expect(screen.getByLabelText('Set John Doe as primary')).not.toBeDisabled()
-    expect(screen.getByLabelText('Set Jane Doe as primary')).toBeDisabled()
+    expect(screen.getByLabelText('הגדרת John Doe כראשי')).not.toBeDisabled()
+    expect(screen.getByLabelText('הגדרת Jane Doe כראשי')).toBeDisabled()
   })
 
   it('tag-along toggle works and disables set primary', () => {
     renderModal()
 
-    const tagAlongButton = screen.getByLabelText('Toggle tag-along for Jane Doe')
+    const tagAlongButton = screen.getByLabelText('סימון Jane Doe כנלווה')
     fireEvent.click(tagAlongButton)
 
-    expect(screen.getByLabelText('Set Jane Doe as primary')).toBeDisabled()
+    expect(screen.getByLabelText('הגדרת Jane Doe כראשי')).toBeDisabled()
   })
 
   it('shows validation error when names are empty and disables save', () => {
@@ -232,9 +232,9 @@ describe('HouseholdMembersModal', () => {
     })
 
     expect(
-      screen.getByText('Each household member must include a first and last name.')
+      screen.getByText('לכל חבר במשק הבית יש להזין שם פרטי ושם משפחה.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save members' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'שמירת חברים' })).toBeDisabled()
   })
 
   it('shows validation error when no primary is set', () => {
@@ -245,15 +245,15 @@ describe('HouseholdMembersModal', () => {
       ],
     })
 
-    expect(screen.getByText('Choose exactly one primary household member.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save members' })).toBeDisabled()
+    expect(screen.getByText('בחרו בדיוק חבר ראשי אחד במשק הבית.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'שמירת חברים' })).toBeDisabled()
   })
 
   it('save button calls onSave with draft data', async () => {
     const onSave = jest.fn().mockResolvedValue(true)
     renderModal({ onSave })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save members' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת חברים' }))
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith(defaultMembers)
@@ -278,7 +278,7 @@ describe('HouseholdMembersModal', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('First name (member 1)'), {
+    fireEvent.change(screen.getByLabelText('שם פרטי (חבר 1)'), {
       target: { value: 'Jonathan' },
     })
 
@@ -293,11 +293,11 @@ describe('HouseholdMembersModal', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('First name (member 2)'), {
+    fireEvent.change(screen.getByLabelText('שם פרטי (חבר 2)'), {
       target: { value: 'Janet' },
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save members' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת חברים' }))
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith([
@@ -311,7 +311,7 @@ describe('HouseholdMembersModal', () => {
     const onOpenChange = jest.fn()
     renderModal({ onOpenChange })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול' }))
 
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })

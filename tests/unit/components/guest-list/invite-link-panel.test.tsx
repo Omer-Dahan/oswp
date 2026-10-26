@@ -7,9 +7,9 @@ jest.mock('~/components/guest-list/self-invite-link-manager', () => ({
 }))
 
 describe('InviteLinkPanel', () => {
-  it('renders "Invite Link" button', () => {
+  it('renders "קישור הזמנה" button', () => {
     render(<InviteLinkPanel />)
-    expect(screen.getByRole('button', { name: 'Invite Link' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'קישור הזמנה' })).toBeInTheDocument()
   })
 
   it('panel is hidden initially', () => {
@@ -19,7 +19,7 @@ describe('InviteLinkPanel', () => {
 
   it('button has aria-expanded="false" initially', () => {
     render(<InviteLinkPanel />)
-    expect(screen.getByRole('button', { name: 'Invite Link' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'קישור הזמנה' })).toHaveAttribute(
       'aria-expanded',
       'false'
     )
@@ -27,14 +27,14 @@ describe('InviteLinkPanel', () => {
 
   it('clicking shows SelfInviteLinkManager', () => {
     render(<InviteLinkPanel />)
-    fireEvent.click(screen.getByRole('button', { name: 'Invite Link' }))
+    fireEvent.click(screen.getByRole('button', { name: 'קישור הזמנה' }))
     expect(screen.getByTestId('self-invite-link-manager')).toBeInTheDocument()
   })
 
   it('button aria-expanded="true" after clicking', () => {
     render(<InviteLinkPanel />)
-    fireEvent.click(screen.getByRole('button', { name: 'Invite Link' }))
-    expect(screen.getByRole('button', { name: 'Invite Link' })).toHaveAttribute(
+    fireEvent.click(screen.getByRole('button', { name: 'קישור הזמנה' }))
+    expect(screen.getByRole('button', { name: 'קישור הזמנה' })).toHaveAttribute(
       'aria-expanded',
       'true'
     )
@@ -42,9 +42,9 @@ describe('InviteLinkPanel', () => {
 
   it('clicking again hides the panel', () => {
     render(<InviteLinkPanel />)
-    fireEvent.click(screen.getByRole('button', { name: 'Invite Link' }))
+    fireEvent.click(screen.getByRole('button', { name: 'קישור הזמנה' }))
     expect(screen.getByTestId('self-invite-link-manager')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Invite Link' }))
+    fireEvent.click(screen.getByRole('button', { name: 'קישור הזמנה' }))
     expect(screen.queryByTestId('self-invite-link-manager')).not.toBeInTheDocument()
   })
 })

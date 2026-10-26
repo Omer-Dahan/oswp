@@ -73,7 +73,7 @@ describe('GuestCardsList', () => {
 
     render(<GuestCardsList households={households} onSelectHousehold={onSelectHousehold} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /select alex rivera household/i }))
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של Alex Rivera/i }))
 
     expect(onSelectHousehold).toHaveBeenCalledWith(expect.objectContaining({ id: 'household-1' }))
   })
@@ -81,6 +81,6 @@ describe('GuestCardsList', () => {
   it('should show empty state when there are no households', () => {
     render(<GuestCardsList households={[]} onSelectHousehold={jest.fn()} />)
 
-    expect(screen.getByText('No households yet')).toBeInTheDocument()
+    expect(screen.getByText('אין משקי בית עדיין')).toBeInTheDocument()
   })
 })

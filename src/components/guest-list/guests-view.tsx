@@ -207,7 +207,7 @@ export default function GuestsView({
     const primary = household.guests.find((guest) => guest.isPrimaryContact)
     return {
       email: primary?.email ?? '',
-      phone: normalizePhoneToE164(primary?.phone, 'IL') ?? primary?.phone ?? '',
+      phone: normalizePhoneToE164(primary?.phone, 'IL') ?? '',
       address1: household.address1 ?? '',
       address2: household.address2 ?? '',
       city: household.city ?? '',
@@ -293,8 +293,8 @@ export default function GuestsView({
         lastName: guest.lastName,
         email: guest.isPrimaryContact ? draftSnapshot.email || null : guest.email,
         phone: guest.isPrimaryContact
-          ? (normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? draftSnapshot.phone ?? null)
-          : (normalizePhoneToE164(guest.phone, 'IL') ?? guest.phone ?? null),
+          ? (normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? null)
+          : (normalizePhoneToE164(guest.phone, 'IL') ?? null),
         isPrimaryContact: guest.isPrimaryContact,
         ageGroup: guest.ageGroup ?? 'ADULT',
         isTagAlong: guest.isTagAlong ?? false,
@@ -343,10 +343,7 @@ export default function GuestsView({
                   return {
                     ...guest,
                     email: draftSnapshot.email || null,
-                    phone:
-                      normalizePhoneToE164(draftSnapshot.phone, 'IL') ??
-                      draftSnapshot.phone ??
-                      null,
+                    phone: normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? null,
                   }
                 }),
               }

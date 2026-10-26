@@ -70,7 +70,7 @@ describe('TagInput', () => {
     renderTagInput({ selectedTagIds: [] })
 
     const input = getInput()
-    expect(input).toHaveAttribute('placeholder', 'Type to search or create tags...')
+    expect(input).toHaveAttribute('placeholder', 'הקלידו לחיפוש או ליצירת תגיות...')
   })
 
   it('typing filters the dropdown to matching tags', () => {
@@ -98,7 +98,7 @@ describe('TagInput', () => {
   it('clicking remove button on a badge calls onToggle', () => {
     renderTagInput({ selectedTagIds: ['tag-1'] })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove VIP' }))
+    fireEvent.click(screen.getByRole('button', { name: 'הסרת VIP' }))
 
     expect(mockOnToggle).toHaveBeenCalledWith('tag-1')
   })
@@ -109,7 +109,7 @@ describe('TagInput', () => {
     const input = getInput()
     fireEvent.change(input, { target: { value: 'NewTag' } })
 
-    expect(screen.getByText('Create')).toBeInTheDocument()
+    expect(screen.getByText('יצירה')).toBeInTheDocument()
     expect(screen.getByText('NewTag')).toBeInTheDocument()
   })
 
@@ -170,7 +170,7 @@ describe('TagInput', () => {
 
     const input = getInput()
     fireEvent.change(input, { target: { value: 'NewTag' } })
-    const createButton = screen.getByText('Create').closest('button')
+    const createButton = screen.getByText('יצירה').closest('button')
     expect(createButton).not.toBeNull()
     fireEvent.click(createButton as HTMLElement)
 
