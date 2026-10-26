@@ -129,6 +129,52 @@ describe('buildKitchenReport', () => {
     expect(report.rows[1]?.tableName).toBe('Table B')
   })
 
+  it('counts unnamed extras per household across all events, not just the current one', () => {
+    const CHUPPAH_EVENT_ID = 'event-chuppah'
+    const households = [household({ id: 'h1', attendingCount: 3 })]
+    const guests = [
+      guest({ id: 1, householdId: 'h1' }),
+      guest({ id: 2, householdId: 'h1' }),
+    ]
+    const invitations = [
+      invitation({ guestId: 1, eventId: EVENT_ID }),
+      invitation({ guestId: 1, eventId: CHUPPAH_EVENT_ID }),
+      invitation({ guestId: 2, eventId: EVENT_ID }),
+    ]
+
+    const chuppahReport = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: CHUPPAH_EVENT_ID,
+    })
+
+    expect(chuppahReport.summary.attending).toBe(2)
+    expect(chuppahReport.summary.meals).toBe(2)
+    expect(chuppahReport.summary.children).toBe(0)
+  })
+
+  it('never reports negative meals when childrenCount exceeds the event headcount', () => {
+    const households = [household({ id: 'h1', childrenCount: 5 })]
+    const guests = [guest({ id: 1, householdId: 'h1', ageGroup: 'ADULT' })]
+    const invitations = [invitation({ guestId: 1 })]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+    })
+
+    expect(report.summary.meals).toBe(0)
+    expect(report.summary.children).toBe(5)
+    expect(report.summary.attending).toBe(report.summary.meals + report.summary.children)
+  })
+
   it('reports a null tableName for an event with no seating assignments', () => {
     const households = [household({ id: 'h1' })]
     const guests = [guest({ id: 1, householdId: 'h1' })]

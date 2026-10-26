@@ -85,9 +85,9 @@ export interface KitchenReport {
 }
 
 export const KITCHEN_REPORT_SUMMARY_NOTE =
-  'מגיעים כולל גם אורחים לא-מזוהים (לפי "מגיעים" שדיווח משק הבית, פחות מי שכבר ' +
-  'מופיע בשם ברשימה לאירוע הזה). מנות = מגיעים פחות ילדים. כל הספירה מבוצעת לפי ' +
-  'ההזמנות לאירוע הנוכחי בלבד.'
+  'מגיעים כולל גם אורחים לא-מזוהים (לפי "מגיעים" שדיווח משק הבית, פחות כל מי שכבר ' +
+  'מופיע בשם ברשימה לאחד מאירועי משק הבית, לא רק לאירוע הזה). מנות = מגיעים פחות ' +
+  'ילדים, ולא פחות מאפס.'
 
 function householdName(
   household: KitchenReportHousehold,
@@ -179,25 +179,37 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
   }
 
   // A household's self-reported attendingCount (from the RSVP stepper) is a
-  // total headcount that already INCLUDES children — it can exceed the
-  // number of named Guest rows that RSVPed Attending to this event; those
-  // extras are unnamed guests the kitchen still has to feed. The named count
-  // it's compared against comes from this event's own invitations only
-  // (attendingGuestsByHousehold), so a household split across several events
-  // is never double-charged the same extras in both reports.
+  // single total headcount for the whole wedding, not per event. The named
+  // count it's compared against must therefore be every guest in the
+  // household who RSVPed Attending to ANY of the household's events, not
+  // just this one - otherwise a guest who's named on a different event (e.g.
+  // the chuppah) but not this one gets miscounted as an unnamed extra here.
+  const namedAnyEventByHousehold = new Map<string, Set<number>>()
+  for (const invitation of invitations) {
+    if (invitation.rsvp !== 'Attending') continue
+    const guest = guestsById.get(invitation.guestId)
+    if (!guest) continue
+    const set = namedAnyEventByHousehold.get(guest.householdId) ?? new Set<number>()
+    set.add(guest.id)
+    namedAnyEventByHousehold.set(guest.householdId, set)
+  }
+
   let extraUnnamed = 0
   for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
     const household = householdsById.get(householdId)
     if (household?.attendingCount == null) continue
-    extraUnnamed += Math.max(0, household.attendingCount - attendingInHousehold.length)
+    const namedAnyEvent =
+      namedAnyEventByHousehold.get(householdId)?.size ?? attendingInHousehold.length
+    extraUnnamed += Math.max(0, household.attendingCount - namedAnyEvent)
   }
 
-  // attending is the full headcount (named rows + unnamed extras), so it can
-  // never read smaller than meals. meals is defined as the complement of
-  // children within that total, which keeps attending = meals + children an
-  // invariant rather than something that can drift apart.
-  const attending = rows.length + extraUnnamed
-  const meals = attending - children
+  // meals can never go negative (a household's reported childrenCount can
+  // exceed this event's attendance). attending is derived from meals so that
+  // attending = meals + children stays an invariant rather than something
+  // that can drift apart once the clamp kicks in.
+  const headcount = rows.length + extraUnnamed
+  const meals = Math.max(0, headcount - children)
+  const attending = meals + children
 
   // A household's dietaryNotes is one restriction shared by the family, not
   // one per guest - count it once per household, not once per row that
