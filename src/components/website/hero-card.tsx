@@ -7,9 +7,9 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import { createPortal } from 'react-dom'
 import { cn } from '~/lib/utils'
 
-/** One slow, gentle journey to the centre — and back. */
-const OPEN_MS = 900
-const CLOSE_MS = 700
+/** One quick, gentle journey to the centre — and back. */
+const OPEN_MS = 320
+const CLOSE_MS = 220
 const CURVE_IN = 'cubic-bezier(0.32, 0.72, 0, 1)'
 const CURVE_OUT = 'cubic-bezier(0.32, 0.72, 0, 1)'
 /** Subtle lift on hover — opening only happens on click. */
@@ -86,10 +86,10 @@ type HeroCardProps = {
 /**
  * One of the home's interactive cards. Hovering only lifts it subtly (scale
  * 1.02 + shadow, 200ms); clicking/tapping journeys it to the centre of the
- * viewport in one slow, continuous 900ms motion, growing to `min(92vw,
- * 92svh)`; the backdrop blurs and veils only once it has arrived, and the
+ * viewport in one continuous 320ms motion, growing to `min(92vw, 92svh)`;
+ * the backdrop blurs and veils in parallel with that journey, and the
  * greeting/buttons sit beneath it (the open card portals to the top of the
- * body). Leaving, Escape, or a backdrop click returns it in a 700ms reverse
+ * body). Leaving, Escape, or a backdrop click returns it in a 220ms reverse
  * journey. Every moving property shares one transition — no stepped
  * intermediate sizes.
  */
@@ -115,7 +115,6 @@ export function HeroCard({
 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
-  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const flipRafRef = useRef<number | null>(null)
 
   const isSiblingReceding = group !== null && group.activeId !== null && group.activeId !== id
@@ -125,22 +124,15 @@ export function HeroCard({
     else if (group?.activeId === id) group?.setActiveId(null)
   }, [open, id, group])
 
-  // The backdrop blurs and veils only once the card has arrived at the centre:
-  // schedule that flip for when the journey completes, and clear it on close.
+  // The backdrop blurs and veils in parallel with the card's journey to the
+  // centre, so flip it on the same frame the card starts moving.
   useEffect(() => {
     if (!open) {
       setSettled(false)
       return
     }
-    if (reducedMotion) {
-      setSettled(true)
-      return
-    }
-    settleTimerRef.current = setTimeout(() => setSettled(true), OPEN_MS)
-    return () => {
-      if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
-    }
-  }, [open, reducedMotion])
+    setSettled(true)
+  }, [open])
 
   // Once the open card mounts at its FLIP start position, release it to the
   // identity transform on the next frame so it journeys to the centre.
@@ -267,7 +259,9 @@ export function HeroCard({
                 filter: `blur(${settled ? 12 : 0}px)`,
                 transition: reducedMotion
                   ? 'none'
-                  : 'background-color 350ms cubic-bezier(0.32, 0.72, 0, 1), filter 350ms cubic-bezier(0.32, 0.72, 0, 1)',
+                  : direction === 'in'
+                    ? `background-color ${OPEN_MS}ms ${CURVE_IN}, filter ${OPEN_MS}ms ${CURVE_IN}`
+                    : `background-color ${CLOSE_MS}ms ${CURVE_OUT}, filter ${CLOSE_MS}ms ${CURVE_OUT}`,
               }}
             />
             <div

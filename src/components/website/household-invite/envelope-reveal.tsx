@@ -16,8 +16,8 @@ type EnvelopeRevealProps = {
 type Phase = 'pending' | 'playing' | 'done'
 
 // Keep in sync with the keyframe delays/durations in globals.css: the last
-// animation (card-in) starts at 1900ms and runs 600ms.
-const INTRO_DURATION_MS = 2500
+// animation (card-in) starts at 900ms and runs 300ms.
+const INTRO_DURATION_MS = 1200
 
 const storageKeyFor = (websiteSubUrl: string) => `household_invite_envelope_${websiteSubUrl}`
 
@@ -76,7 +76,7 @@ export function EnvelopeReveal({
         {children}
       </div>
       {phase === 'playing' ? (
-        <EnvelopeIntro coupleNames={coupleNames} />
+        <EnvelopeIntro coupleNames={coupleNames} onSkip={() => setPhase('done')} />
       ) : null}
     </>
   )
@@ -87,11 +87,16 @@ export function EnvelopeReveal({
  * meeting at the centre — the top one is the flap that opens, the other three
  * form the pocket and fully cover the letter while the envelope is closed.
  */
-function EnvelopeIntro({ coupleNames }: Readonly<{ coupleNames: string }>) {
+function EnvelopeIntro({
+  coupleNames,
+  onSkip,
+}: Readonly<{ coupleNames: string; onSkip: () => void }>) {
   return (
-    <div
-      aria-hidden='true'
-      className='envelope-overlay fixed inset-0 z-50 flex items-center justify-center bg-background px-6'
+    <button
+      type='button'
+      onClick={onSkip}
+      aria-label='דילוג על פתיחת ההזמנה'
+      className='envelope-overlay fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-background px-6'
     >
       <div className='envelope-scene relative h-60 w-80 sm:h-64 sm:w-96'>
         {/* Back panel the letter rests against. */}
@@ -129,6 +134,6 @@ function EnvelopeIntro({ coupleNames }: Readonly<{ coupleNames: string }>) {
           style={{ clipPath: 'polygon(0 0, 100% 0, 50% 50%)' }}
         />
       </div>
-    </div>
+    </button>
   )
 }

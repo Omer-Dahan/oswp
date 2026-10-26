@@ -357,10 +357,11 @@ th {
 /*
  * ── Household invite envelope intro ──────────────────────────────────────
  * A one-time "letter sliding out of an envelope" reveal for the household
- * invite page (see EnvelopeReveal). Pure GPU-friendly transforms: the top
- * flap rotates open, then the letter rises out from behind the envelope
- * front, then we hand off to the real invite card. Colours use the design
- * tokens so the envelope re-themes with the couple's chosen template.
+ * invite page (see EnvelopeReveal), skippable with a click/tap. Pure
+ * GPU-friendly transforms: the top flap rotates open, then the letter rises
+ * out from behind the envelope front, then we hand off to the real invite
+ * card. Colours use the design tokens so the envelope re-themes with the
+ * couple's chosen template.
  */
 @layer components {
   .envelope-scene {
@@ -371,7 +372,7 @@ th {
   .envelope-flap {
     transform-origin: top center;
     backface-visibility: hidden;
-    animation: envelope-flap-open 700ms cubic-bezier(0.45, 0.05, 0.2, 1) 250ms both;
+    animation: envelope-flap-open 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 100ms both;
   }
 
   @keyframes envelope-flap-open {
@@ -394,7 +395,7 @@ th {
 
   /* Letter rises up from inside, emerging at the envelope's centre seam. */
   .envelope-letter {
-    animation: envelope-letter-rise 950ms cubic-bezier(0.34, 1.3, 0.5, 1) 900ms both;
+    animation: envelope-letter-rise 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 350ms both;
   }
 
   @keyframes envelope-letter-rise {
@@ -408,7 +409,7 @@ th {
 
   /* The full-screen intro fades away to reveal the real card beneath. */
   .envelope-overlay {
-    animation: envelope-overlay-out 500ms ease-in 1850ms both;
+    animation: envelope-overlay-out 300ms ease-out 850ms both;
   }
 
   @keyframes envelope-overlay-out {
@@ -423,7 +424,7 @@ th {
 
   /* Real invite card eases in as the intro overlay fades out. */
   .envelope-reveal-card {
-    animation: envelope-card-in 600ms cubic-bezier(0.22, 1, 0.36, 1) 1900ms both;
+    animation: envelope-card-in 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 900ms both;
   }
 
   @keyframes envelope-card-in {
