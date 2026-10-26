@@ -440,30 +440,28 @@ export class HouseholdInviteService {
           })
         }
 
-        await Promise.all(
-          normalizedInput.guests.map(async (guest) => {
-            const guestUpdate = await tx.guest.updateMany({
-              where: {
-                id: guest.guestId,
-                householdId: inviteData.household.id,
-                weddingId: inviteData.weddingId,
-              },
-              data: {
-                firstName: guest.firstName,
-                lastName: guest.lastName ?? '',
-                email: guest.email,
-                phone: guest.phone,
-              },
-            })
-
-            if (guestUpdate.count !== 1) {
-              throw new TRPCError({
-                code: 'FORBIDDEN',
-                message: 'Guest update is outside this household invite',
-              })
-            }
+        for (const guest of normalizedInput.guests) {
+          const guestUpdate = await tx.guest.updateMany({
+            where: {
+              id: guest.guestId,
+              householdId: inviteData.household.id,
+              weddingId: inviteData.weddingId,
+            },
+            data: {
+              firstName: guest.firstName,
+              lastName: guest.lastName ?? '',
+              email: guest.email,
+              phone: guest.phone,
+            },
           })
-        )
+
+          if (guestUpdate.count !== 1) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Guest update is outside this household invite',
+            })
+          }
+        }
       })
     } catch (error) {
       if (error instanceof TRPCError) throw error

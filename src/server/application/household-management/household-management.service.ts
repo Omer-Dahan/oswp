@@ -216,71 +216,70 @@ export class HouseholdManagementService {
 
       await txGuestRepo.clearPrimaryContactsByHousehold(data.householdId)
 
-      const updatedGuests = await Promise.all(
-        data.guestParty.map(async (guest) => {
-          const isTagAlong = guest.isTagAlong ?? false
-          const inviteEntries = Object.entries(guest.invites)
-          const defaultInviteEntries =
-            !guest.guestId && inviteEntries.length === 0
-              ? (await getDefaultEventIds()).map((eventId) => [eventId, 'Not Invited'] as const)
-              : inviteEntries
-          const invitations = defaultInviteEntries.map(([eventId, rsvp]) => ({
-            eventId,
-            rsvp,
+      const updatedGuests: NonNullable<
+        Awaited<ReturnType<typeof txGuestRepo.findByIdWithInvitations>>
+      >[] = []
+      for (const guest of data.guestParty) {
+        const isTagAlong = guest.isTagAlong ?? false
+        const inviteEntries = Object.entries(guest.invites)
+        const defaultInviteEntries =
+          !guest.guestId && inviteEntries.length === 0
+            ? (await getDefaultEventIds()).map((eventId) => [eventId, 'Not Invited'] as const)
+            : inviteEntries
+        const invitations = defaultInviteEntries.map(([eventId, rsvp]) => ({
+          eventId,
+          rsvp,
+          weddingId,
+        }))
+
+        const updatedGuest = await txGuestRepo.upsert(
+          guest.guestId,
+          {
+            firstName: guest.firstName,
+            lastName: guest.lastName,
+            email: guest.email ?? null,
+            phone: guest.phone ?? null,
+            householdId: data.householdId,
             weddingId,
-          }))
+            isPrimaryContact: isTagAlong ? false : (guest.isPrimaryContact ?? false),
+            ageGroup: guest.ageGroup ?? null,
+            isTagAlong,
+          },
+          invitations
+        )
 
-          const updatedGuest = await txGuestRepo.upsert(
-            guest.guestId,
-            {
-              firstName: guest.firstName,
-              lastName: guest.lastName,
-              email: guest.email ?? null,
-              phone: guest.phone ?? null,
-              householdId: data.householdId,
-              weddingId,
-              isPrimaryContact: isTagAlong ? false : (guest.isPrimaryContact ?? false),
-              ageGroup: guest.ageGroup ?? null,
-              isTagAlong,
-            },
-            invitations
-          )
-
-          if (isTagAlong && guest.guestId) {
-            const allowedEventIds = Object.keys(guest.invites)
-            if (allowedEventIds.length > 0) {
-              await txInvitationRepo.deleteByGuestExcludingEvents(guest.guestId, allowedEventIds)
-            } else {
-              await txInvitationRepo.deleteByGuest(guest.guestId)
-            }
+        if (isTagAlong && guest.guestId) {
+          const allowedEventIds = Object.keys(guest.invites)
+          if (allowedEventIds.length > 0) {
+            await txInvitationRepo.deleteByGuestExcludingEvents(guest.guestId, allowedEventIds)
+          } else {
+            await txInvitationRepo.deleteByGuest(guest.guestId)
           }
+        }
 
-          if (guest.tagIds !== undefined) {
-            await txGuestRepo.updateTags(updatedGuest.id, guest.tagIds)
-          }
+        if (guest.tagIds !== undefined) {
+          await txGuestRepo.updateTags(updatedGuest.id, guest.tagIds)
+        }
 
-          if (guest.guestId) {
-            await Promise.all(
-              Object.entries(guest.invites).map(([inviteEventId, inputRsvp]) =>
-                txInvitationRepo.update(guest.guestId ?? updatedGuest.id, inviteEventId, {
-                  rsvp: inputRsvp,
-                })
-              )
-            )
-          }
-
-          const guestWithTags = await txGuestRepo.findByIdWithInvitations(updatedGuest.id)
-
-          if (!guestWithTags) {
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: 'Failed to refetch guest after update',
+        if (guest.guestId) {
+          for (const [inviteEventId, inputRsvp] of Object.entries(guest.invites)) {
+            await txInvitationRepo.update(guest.guestId ?? updatedGuest.id, inviteEventId, {
+              rsvp: inputRsvp,
             })
           }
+        }
 
-          return guestWithTags
-        })
-      )
+        const guestWithTags = await txGuestRepo.findByIdWithInvitations(updatedGuest.id)
+
+        if (!guestWithTags) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to refetch guest after update',
+          })
+        }
+
+        updatedGuests.push(guestWithTags)
+      }
 
       if (!updatedHousehold || !updatedGuests) {
         throw new TRPCError({
@@ -289,16 +288,17 @@ export class HouseholdManagementService {
         })
       }
 
-      const updatedGifts = await Promise.all(
-        data.gifts.map(async (gift) => {
-          return txGiftRepo.upsert({
+      const updatedGifts = []
+      for (const gift of data.gifts) {
+        updatedGifts.push(
+          await txGiftRepo.upsert({
             householdId: data.householdId,
             eventId: gift.eventId,
             description: gift.description,
             thankyou: gift.thankyou ?? false,
           })
-        })
-      )
+        )
+      }
 
       return {
         household: updatedHousehold,
