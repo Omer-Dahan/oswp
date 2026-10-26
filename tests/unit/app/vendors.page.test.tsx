@@ -80,7 +80,7 @@ describe('VendorsPage', () => {
     const { container } = render(page)
 
     expect(mockDashboardTopbar).toHaveBeenCalledWith({
-      title: 'Vendors',
+      title: 'ספקים',
       showManagementActions: false,
     })
     expect(screen.getByTestId('dashboard-topbar')).toBeInTheDocument()

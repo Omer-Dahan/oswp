@@ -164,7 +164,7 @@ describe('SelfFillRegistrationService', () => {
 
       await expect(service.registerGuest(validToken, validGuestInput)).rejects.toMatchObject({
         code: 'NOT_FOUND',
-        message: expect.stringContaining('registration link'),
+        message: 'הקישור לא תקין או שפג תוקפו',
       })
     })
 
@@ -185,7 +185,7 @@ describe('SelfFillRegistrationService', () => {
 
       await expect(service.registerGuest(validToken, validGuestInput)).rejects.toMatchObject({
         code: 'NOT_FOUND',
-        message: expect.stringContaining('registration link'),
+        message: 'הקישור לא תקין או שפג תוקפו',
       })
     })
 
@@ -208,7 +208,7 @@ describe('SelfFillRegistrationService', () => {
 
       await expect(service.registerGuest(validToken, validGuestInput)).rejects.toMatchObject({
         code: 'CONFLICT',
-        message: 'You are already registered for this wedding.',
+        message: 'כבר נרשמתם לחתונה הזו',
       })
     })
 
@@ -279,7 +279,7 @@ describe('SelfFillRegistrationService', () => {
 
       await expect(service.registerGuest(validToken, validGuestInput)).rejects.toMatchObject({
         code: 'NOT_FOUND',
-        message: 'Invalid or expired registration link',
+        message: 'הקישור לא תקין או שפג תוקפו',
       })
     })
 
@@ -289,7 +289,7 @@ describe('SelfFillRegistrationService', () => {
 
       await expect(service.registerGuest(validToken, validGuestInput)).rejects.toMatchObject({
         code: 'CONFLICT',
-        message: 'You are already registered for this wedding.',
+        message: 'כבר נרשמתם לחתונה הזו',
       })
     })
   })

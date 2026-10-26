@@ -48,6 +48,7 @@ export const mockUpdateMany = jest.fn()
 export const mockAllBelongToWedding = jest.fn()
 export const mockCountByWeddingAndGuestEventPairs = jest.fn()
 export const mockGetRsvpCountsByEventId = jest.fn()
+export const mockFindRsvpStatusesForPairs = jest.fn().mockResolvedValue([])
 
 export const InvitationRepository = jest.fn().mockImplementation(() => ({
   findById: mockFindById,
@@ -71,6 +72,7 @@ export const InvitationRepository = jest.fn().mockImplementation(() => ({
   eventBelongsToWedding: mockEventBelongsToWedding,
   countByWeddingAndGuestEventPairs: mockCountByWeddingAndGuestEventPairs,
   getRsvpCountsByEventId: mockGetRsvpCountsByEventId,
+  findRsvpStatusesForPairs: mockFindRsvpStatusesForPairs,
 }))
 
 // Helper to reset all mocks
@@ -96,5 +98,6 @@ export const resetMocks = (): void => {
   mockEventBelongsToWedding.mockReset()
   mockCountByWeddingAndGuestEventPairs.mockReset()
   mockGetRsvpCountsByEventId.mockReset()
+  mockFindRsvpStatusesForPairs.mockReset().mockResolvedValue([])
   InvitationRepository.mockClear()
 }

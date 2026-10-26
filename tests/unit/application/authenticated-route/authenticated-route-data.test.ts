@@ -50,14 +50,14 @@ describe('authenticated route data', () => {
     mockGetDashboardOverview.mockResolvedValue(null)
 
     await expect(getRequiredDashboardOverview()).rejects.toThrow('NEXT_REDIRECT')
-    expect(mockRedirect).toHaveBeenCalledWith('/')
+    expect(mockRedirect).toHaveBeenCalledWith('/no-access')
   })
 
   it('redirects to home when dashboard overview throws FORBIDDEN', async () => {
     mockGetDashboardOverview.mockRejectedValue({ code: 'FORBIDDEN' })
 
     await expect(getRequiredDashboardOverview()).rejects.toThrow('NEXT_REDIRECT')
-    expect(mockRedirect).toHaveBeenCalledWith('/')
+    expect(mockRedirect).toHaveBeenCalledWith('/no-access')
   })
 
   it('returns wedding when user wedding exists', async () => {
@@ -74,13 +74,13 @@ describe('authenticated route data', () => {
     mockGetWedding.mockResolvedValue(null)
 
     await expect(getRequiredWedding()).rejects.toThrow('NEXT_REDIRECT')
-    expect(mockRedirect).toHaveBeenCalledWith('/')
+    expect(mockRedirect).toHaveBeenCalledWith('/no-access')
   })
 
   it('redirects to home when wedding lookup throws FORBIDDEN', async () => {
     mockGetWedding.mockRejectedValue({ code: 'FORBIDDEN' })
 
     await expect(getRequiredWedding()).rejects.toThrow('NEXT_REDIRECT')
-    expect(mockRedirect).toHaveBeenCalledWith('/')
+    expect(mockRedirect).toHaveBeenCalledWith('/no-access')
   })
 })

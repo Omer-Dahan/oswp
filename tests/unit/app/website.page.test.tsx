@@ -104,7 +104,10 @@ jest.mock('~/app/_components/website/website-media-editor', () => ({
 }))
 
 describe('WebsitePage', () => {
+  const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL
+
   beforeEach(() => {
+    delete process.env.NEXT_PUBLIC_APP_URL
     mockGetRequiredWedding.mockReset()
     mockGetWebsiteByUserId.mockReset()
     mockGetHomeSection.mockReset()
@@ -125,6 +128,14 @@ describe('WebsitePage', () => {
       brideLastName: 'Smith',
       enabledAddOns: [],
     })
+  })
+
+  afterEach(() => {
+    if (originalAppUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_APP_URL
+    } else {
+      process.env.NEXT_PUBLIC_APP_URL = originalAppUrl
+    }
   })
 
   it('renders the disabled callout when website_builder is not enabled', async () => {
