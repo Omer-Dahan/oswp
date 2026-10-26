@@ -55,7 +55,7 @@ export function CopyHouseholdInviteLinkButton({
       type='button'
       onClick={handleCopy}
       aria-label='העתקת קישור אישי למשק הבית'
-      className='inline-flex h-8 items-center justify-center rounded-full border border-foreground/15 bg-transparent px-4 font-sans text-foreground/70 text-xs transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]'
+      className='inline-flex h-11 items-center justify-center rounded-full border border-foreground/15 bg-transparent px-4 font-sans text-foreground/70 text-xs transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]'
     >
       {copied ? 'הועתק' : 'העתקת קישור'}
     </button>

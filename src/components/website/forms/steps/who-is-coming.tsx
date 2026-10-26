@@ -135,18 +135,20 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
       <StepHeading>{t('whoIsComingTitle')}</StepHeading>
       <ul className='flex flex-col gap-3'>
         {namedGuests.map((guest) => (
-          <li
-            key={guest.id}
-            className='flex items-center justify-between gap-3 rounded-[16px] border border-border px-5 py-4'
-          >
-            <span className='text-base text-foreground'>
-              {guest.firstName} {guest.lastName}
-            </span>
-            <Switch
-              checked={attendingGuestIds.has(guest.id)}
-              onCheckedChange={() => toggleGuest(guest.id)}
-              aria-label={`${guest.firstName} ${guest.lastName}`}
-            />
+          <li key={guest.id}>
+            <label
+              htmlFor={`attending-guest-${guest.id}`}
+              className='flex cursor-pointer items-center justify-between gap-3 rounded-[16px] border border-border px-5 py-4'
+            >
+              <span className='text-base text-foreground'>
+                {guest.firstName} {guest.lastName}
+              </span>
+              <Switch
+                id={`attending-guest-${guest.id}`}
+                checked={attendingGuestIds.has(guest.id)}
+                onCheckedChange={() => toggleGuest(guest.id)}
+              />
+            </label>
           </li>
         ))}
       </ul>
@@ -198,6 +200,7 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
           <span className='text-muted-foreground text-sm'>{t('extraGuestsLabel')}</span>
           <div className='flex items-center gap-4'>
             <StepStepperButton
+              aria-label={t('removeExtraGuestLabel')}
               disabled={!extrasAllowed || clampedExtraGuests <= 0}
               onClick={() => setExtraGuests((value) => clampCount(value - 1, 0, stepperMax))}
             >
@@ -207,6 +210,7 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
               {clampedExtraGuests}
             </span>
             <StepStepperButton
+              aria-label={t('addExtraGuestButton')}
               disabled={!extrasAllowed || clampedExtraGuests >= stepperMax}
               onClick={() => setExtraGuests((value) => clampCount(value + 1, 0, stepperMax))}
             >

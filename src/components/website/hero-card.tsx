@@ -293,7 +293,7 @@ export function HeroCard({
                 type='button'
                 onClick={close}
                 aria-label='סגירה'
-                className='absolute end-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition duration-150 ease-out hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
+                className='absolute end-3 top-3 inline-flex size-11 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition duration-150 ease-out hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
               >
                 <X className='size-4' aria-hidden />
               </button>
