@@ -32,13 +32,22 @@ export const optionalPhoneSchema = z
   .union([
     z.literal('').transform(() => null),
     z.null(),
-    z.string().refine(isValidE164Phone, { message: 'הזינו מספר טלפון תקין' }),
+    z
+      .string()
+      // Accept local formats ("053…", "539…", "972…") and normalise them to
+      // E.164, so a number typed without the leading 0 still validates and
+      // saves instead of being rejected (which left the form stuck loading).
+      .transform((value) => normalizePhoneToE164(value, 'IL') ?? value)
+      .refine(isValidE164Phone, { message: 'הזינו מספר טלפון תקין' }),
   ])
   .optional()
 
 export const optionalPhoneSchemaNotNull = z
   .union([
     z.literal('').transform(() => undefined),
-    z.string().refine(isValidE164Phone, { message: 'הזינו מספר טלפון תקין' }),
+    z
+      .string()
+      .transform((value) => normalizePhoneToE164(value, 'IL') ?? value)
+      .refine(isValidE164Phone, { message: 'הזינו מספר טלפון תקין' }),
   ])
   .optional()
