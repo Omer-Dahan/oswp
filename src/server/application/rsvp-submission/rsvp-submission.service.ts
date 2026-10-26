@@ -17,7 +17,7 @@ import type {
 } from '~/server/application/rsvp-submission/rsvp-submission.validator'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
-import type { GuestRepository } from '~/server/domains/guest/guest.repository'
+import { GuestRepository } from '~/server/domains/guest/guest.repository'
 import { HouseholdRepository } from '~/server/domains/household/household.repository'
 import { InvitationRepository } from '~/server/domains/invitation/invitation.repository'
 import { QuestionRepository } from '~/server/domains/question/question.repository'
@@ -97,6 +97,8 @@ export class RsvpSubmissionService {
         attendingCount: data.attendingCount,
         childrenCount: data.childrenCount,
         dietaryNotes: data.dietaryNotes,
+        weddingId,
+        extraGuestNames: data.extraGuestNames ?? [],
       }
     )
   }
@@ -140,12 +142,15 @@ export class RsvpSubmissionService {
       attendingCount?: number | null
       childrenCount?: number | null
       dietaryNotes?: string | null
+      weddingId?: string
+      extraGuestNames?: string[]
     }
   ): Promise<{ success: boolean }> {
     await this.db.$transaction(async (tx) => {
       const txInvitationRepo = new InvitationRepository(tx)
       const txQuestionRepo = new QuestionRepository(tx)
       const txHouseholdRepo = new HouseholdRepository(tx)
+      const txGuestRepo = new GuestRepository(tx)
 
       await Promise.all(
         data.rsvpResponses.map(async (response: RsvpResponse) => {
@@ -172,6 +177,23 @@ export class RsvpSubmissionService {
           childrenCount: householdPartyDetails.childrenCount ?? null,
           dietaryNotes: householdPartyDetails.dietaryNotes ?? null,
         })
+
+        if (householdPartyDetails.weddingId) {
+          const attendingEventIds = Array.from(
+            new Set(
+              data.rsvpResponses
+                .filter((response) => response.rsvp === 'Attending')
+                .map((response) => response.eventId)
+            )
+          )
+
+          await txGuestRepo.replaceTagAlongs(
+            householdPartyDetails.householdId,
+            householdPartyDetails.weddingId,
+            householdPartyDetails.extraGuestNames ?? [],
+            attendingEventIds
+          )
+        }
       }
     })
 

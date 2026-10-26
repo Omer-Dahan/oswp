@@ -206,6 +206,7 @@ export default function MainRsvpForm({
             attendingCount: rsvpFormData.attendingCount,
             childrenCount: rsvpFormData.childrenCount,
             dietaryNotes: rsvpFormData.dietaryNotes,
+            extraGuestNames: rsvpFormData.extraGuestNames ?? [],
             rsvpResponses: rsvpFormData.rsvpResponses.map((response) => ({
               eventId: response.eventId,
               guestId: response.guestId,

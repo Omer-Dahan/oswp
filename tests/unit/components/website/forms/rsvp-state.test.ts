@@ -1,8 +1,10 @@
 import {
   type AnswerWithType,
+  canAddExtraGuestRow,
   canUseExtraGuests,
   clampCount,
   findExistingAnswer,
+  getFilledExtraGuestNames,
   getInitialAttendingGuestIds,
   getInitialExtraGuests,
   getMaxAttendingBound,
@@ -153,5 +155,27 @@ describe('who-is-coming initial selection — a household never opens at a total
 
   it('still honors a previously saved total over the "never answered" default', () => {
     expect(getInitialExtraGuests(true, 5, 2, 18)).toBe(3)
+  })
+})
+
+describe('named extra guest rows', () => {
+  it('allows adding another row below the 20-guest cap', () => {
+    expect(canAddExtraGuestRow(2, 3, 0, 20)).toBe(true)
+  })
+
+  it('clamps row-adding at the 20-guest cap across named guests, rows, and the stepper', () => {
+    expect(canAddExtraGuestRow(10, 5, 5, 20)).toBe(false)
+    expect(canAddExtraGuestRow(10, 4, 5, 20)).toBe(true)
+  })
+
+  it('keeps only non-empty, trimmed names as real extra guests', () => {
+    const rows = [
+      { id: '1', name: 'Jamie Doe' },
+      { id: '2', name: '   ' },
+      { id: '3', name: '  Alex Roe  ' },
+      { id: '4', name: '' },
+    ]
+
+    expect(getFilledExtraGuestNames(rows)).toEqual(['Jamie Doe', 'Alex Roe'])
   })
 })
