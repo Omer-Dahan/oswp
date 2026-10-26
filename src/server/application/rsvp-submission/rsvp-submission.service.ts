@@ -98,6 +98,17 @@ export class RsvpSubmissionService {
       allowedRsvpResponses
     )
 
+    // A narrower submission still carrying household-level party details
+    // means an event-scoped link reached a household invited to more than
+    // one event — those details would otherwise be silently dropped instead
+    // of saved. Fail loudly rather than return a quiet 200 that drops them.
+    if (!isFullHouseholdSubmission && this.hasHouseholdPartyDetails(data)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'יש לאשר הגעה לכל האירועים של משק הבית בטופס אחד',
+      })
+    }
+
     return this.submitRsvp(
       {
         rsvpResponses: allowedRsvpResponses,
@@ -140,6 +151,17 @@ export class RsvpSubmissionService {
 
     const submittedEventIds = new Set(responses.map((response) => response.eventId))
     return invitedEvents.every(({ eventId }) => submittedEventIds.has(eventId))
+  }
+
+  /** Whether a public submission carries any household-level party details. */
+  private hasHouseholdPartyDetails(data: SubmitPublicRsvpSchemaInput): boolean {
+    return (
+      data.attendingCount != null ||
+      data.childrenCount != null ||
+      data.dietaryNotes != null ||
+      data.wishesMessage != null ||
+      (data.extraGuestNames !== undefined && data.extraGuestNames.length > 0)
+    )
   }
 
   /**
