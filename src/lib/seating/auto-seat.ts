@@ -6,11 +6,7 @@
  * fits. The caller is responsible for turning the plan into database writes.
  */
 
-import {
-  getPartySize,
-  MAX_TABLE_CAPACITY,
-  NON_SEATABLE_RSVPS,
-} from '~/server/domains/seating/seating.rules'
+import { MAX_TABLE_CAPACITY, NON_SEATABLE_RSVPS } from '~/server/domains/seating/seating.rules'
 
 export type AutoSeatHousehold = {
   id: string
@@ -100,13 +96,19 @@ const buildBuckets = (
     else byHousehold.set(guest.householdId, [guest])
   }
 
+  const accountedForByHousehold = new Map<string, number>()
+  for (const guest of guests) {
+    if (guest.seated || nonSeatableRsvps.includes(guest.rsvp)) {
+      accountedForByHousehold.set(guest.householdId, (accountedForByHousehold.get(guest.householdId) ?? 0) + 1)
+    }
+  }
+
   const buckets: Bucket[] = []
   for (const [householdId, bucketGuests] of byHousehold) {
     const household = householdsById.get(householdId)
-    const size = getPartySize({
-      invitedCount: household?.invitedCount ?? null,
-      guests: bucketGuests,
-    })
+    const size = household?.invitedCount
+      ? Math.max(1, household.invitedCount - (accountedForByHousehold.get(householdId) ?? 0))
+      : bucketGuests.length
     buckets.push({
       householdId,
       side: household?.side ?? null,
