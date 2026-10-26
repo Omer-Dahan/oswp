@@ -367,7 +367,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
             onClick={onRequestDelete}
             className='rounded-md border border-destructive/30 px-2 py-1 font-medium text-destructive text-xs hover:bg-destructive/10'
           >
-            מחיקת מפלגה
+            מחיקת משפחה
           </button>
         </div>
       ) : null}
