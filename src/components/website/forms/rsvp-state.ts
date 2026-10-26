@@ -132,15 +132,19 @@ export const getInitialAttendingGuestIds = (
 /**
  * The "additional, unnamed guests" count when the who-is-coming step first
  * renders. A saved total of 0 is treated as "not answered" — a household
- * never opens the step at a total of 0.
+ * never opens the step at a total of 0. `namedExtraCount` is subtracted too,
+ * since the saved total already includes the named extra-guest rows that
+ * are initialized separately — otherwise they'd be counted twice.
  */
 export const getInitialExtraGuests = (
   hasAnsweredBefore: boolean,
   savedTotal: number | null | undefined,
   namedAttendingCount: number,
+  namedExtraCount: number,
   maxExtras: number
 ): number => {
-  if (hasAnsweredBefore) return clampCount((savedTotal ?? 0) - namedAttendingCount, 0, maxExtras)
+  if (hasAnsweredBefore)
+    return clampCount((savedTotal ?? 0) - namedAttendingCount - namedExtraCount, 0, maxExtras)
   return namedAttendingCount > 0 ? 0 : clampCount(1, 0, maxExtras)
 }
 
