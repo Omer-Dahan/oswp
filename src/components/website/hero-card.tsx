@@ -7,19 +7,19 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import { createPortal } from 'react-dom'
 import { cn } from '~/lib/utils'
 
-type Level = 0 | 1 | 2 | 3
+type Mode = 'rest' | 'read' | 'full'
 type Direction = 'in' | 'out'
 
-const DWELL_MS = 3000
-const STEP_MS = 320
-const STEP_GAP_MS = 120
-const EXIT_MS = 170
+/** The only JS timer in this component: how long the pointer must dwell before the card grows. */
+const HOVER_INTENT_MS = 250
+const READ_GROW_MS = 650
+const FULL_GROW_MS = 550
+const SHRINK_MS = 450
+const CURVE_IN = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const CURVE_OUT = 'cubic-bezier(0.64, 0, 0.78, 0)'
 
-const SCALE_BY_LEVEL: Record<Level, number> = { 0: 1, 1: 1.4, 2: 1.9, 3: 1 }
-const LIFT_BY_LEVEL: Record<Level, number> = { 0: 0, 1: -6, 2: -10, 3: 0 }
-const BLUR_BY_LEVEL: Record<Level, number> = { 0: 0, 1: 6, 2: 10, 3: 14 }
-const VEIL_BY_LEVEL: Record<Level, number> = { 0: 0, 1: 0.18, 2: 0.28, 3: 0.38 }
-const BACKDROP_SCALE_BY_LEVEL: Record<Level, number> = { 0: 1, 1: 1.02, 2: 1.04, 3: 1.04 }
+const SHADOW_REST = '0 12px 32px rgba(46,38,32,.12)'
+const SHADOW_GROWN = '0 40px 90px rgba(46,38,32,.28)'
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false)
@@ -33,32 +33,30 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
-function cardTransition(direction: Direction, reducedMotion: boolean): string {
+function growDurationMs(mode: Mode): number {
+  return mode === 'read' ? READ_GROW_MS : FULL_GROW_MS
+}
+
+/** One continuous transition per element: same duration/curve for every property that moves. */
+function cardTransition(direction: Direction, mode: Mode, reducedMotion: boolean): string {
   if (reducedMotion) return 'none'
-  if (direction === 'out') {
-    return 'transform 170ms ease-out, box-shadow 170ms ease-out'
-  }
-  return [
-    'transform 260ms cubic-bezier(0.34, 1.32, 0.64, 1)',
-    'box-shadow 300ms cubic-bezier(0.34, 1.32, 0.64, 1) 40ms',
-  ].join(', ')
+  const duration = direction === 'in' ? growDurationMs(mode) : SHRINK_MS
+  const curve = direction === 'in' ? CURVE_IN : CURVE_OUT
+  return ['transform', 'opacity', 'filter', 'box-shadow']
+    .map((property) => `${property} ${duration}ms ${curve}`)
+    .join(', ')
 }
 
 function backdropTransition(direction: Direction, reducedMotion: boolean): string {
   if (reducedMotion) return 'none'
-  if (direction === 'out') {
-    return 'background-color 170ms ease-out, filter 170ms ease-out, transform 170ms ease-out'
-  }
-  return [
-    'background-color 260ms cubic-bezier(0.34, 1.32, 0.64, 1)',
-    'filter 260ms cubic-bezier(0.34, 1.32, 0.64, 1) 80ms',
-    'transform 260ms cubic-bezier(0.34, 1.32, 0.64, 1)',
-  ].join(', ')
+  const duration = direction === 'in' ? FULL_GROW_MS : SHRINK_MS
+  const curve = direction === 'in' ? CURVE_IN : CURVE_OUT
+  return `background-color ${duration}ms ${curve}, filter ${duration}ms ${curve}`
 }
 
 type Rect = { top: number; left: number; width: number; height: number }
 
-/** The viewport-filling square the full level settles into: `min(100svh, 100vw)`, centred. */
+/** The viewport-filling square the full mode settles into: `min(100svh, 100vw)`, centred. */
 function fullScreenRect(): Rect {
   const size = Math.min(window.innerHeight, window.innerWidth)
   return {
@@ -76,6 +74,12 @@ function flipTransformFor(from: Rect): string {
   const dx = from.left + from.width / 2 - (final.left + final.width / 2)
   const dy = from.top + from.height / 2 - (final.top + final.height / 2)
   return `translate(${dx}px, ${dy}px) scale(${scale})`
+}
+
+/** Scale that grows `rect`'s long side to `min(88vw, 88svh)`. */
+function readScaleFor(rect: Rect): number {
+  const target = Math.min(window.innerWidth * 0.88, window.innerHeight * 0.88)
+  return target / rect.width
 }
 
 const IDENTITY_TRANSFORM = 'translate(0px, 0px) scale(1)'
@@ -111,23 +115,20 @@ type HeroCardProps = {
   className?: string
   /** Thumbnail object-fit; desktop crops to fill the square, mobile shows the whole artwork. */
   fit?: 'cover' | 'contain'
-  /**
-   * Below `md`: no dwell timer, no stepped zoom, no FLIP animation. A tap
-   * jumps straight to the full-screen overlay with an instant (or at most
-   * 120ms opacity) change instead of climbing through the hover levels.
-   */
+  /** Below `md`: no hover-intent zoom, since there is no hover to dwell on. */
   mobile?: boolean
 }
 
-const MOBILE_OVERLAY_TRANSITION = 'opacity 120ms ease'
-
 /**
- * One of the home's interactive cards. Click/Enter/Space steps it through
- * 1.0 -> 1.4 -> 1.9 -> full screen, with the backdrop blurring and darkening
- * a little more at each step; a further activation at full closes it back
- * down. Resting the pointer on it for 3s (desktop only) runs the same climb
- * on its own. Shared by the desktop side-by-side layout and the mobile
- * stacked layout.
+ * One of the home's interactive cards. Resting the pointer on it for 250ms
+ * (desktop only, `hover: hover` + `pointer: fine`) grows it in place, in one
+ * continuous 650ms transition, to `min(88vw, 88svh)` on its long side; the
+ * sibling card fades to 45% opacity and stays put. Leaving reverses that in
+ * 450ms. A click (or Enter/Space, or a tap on mobile) animates once to a
+ * full-screen dialog in 550ms, from wherever the card currently is; a second
+ * activation, Escape, or a backdrop click returns it in 450ms. Every moving
+ * property (transform, opacity, filter, box-shadow) shares one transition per
+ * element - no stepped intermediate sizes.
  */
 export function HeroCard({
   src,
@@ -142,30 +143,29 @@ export function HeroCard({
   const group = useContext(HeroCardsGroupContext)
   const reducedMotion = usePrefersReducedMotion()
 
-  const [level, setLevel] = useState<Level>(0)
+  const [mode, setMode] = useState<Mode>('rest')
   const [direction, setDirection] = useState<Direction>('in')
-  const [isDwelling, setIsDwelling] = useState(false)
+  const [readScale, setReadScale] = useState(1)
   const [flipFrom, setFlipFrom] = useState<string | null>(null)
+  const [suppressTransition, setSuppressTransition] = useState(false)
 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
-  const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const sequenceTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([])
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const intentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const modeRef = useRef<Mode>(mode)
   const flipRafRef = useRef<number | null>(null)
 
-  const isActive = level > 0
+  const isActive = mode !== 'rest'
   const isSiblingReceding = group !== null && group.activeId !== null && group.activeId !== id
 
-  const clearSequenceTimers = useCallback(() => {
-    sequenceTimersRef.current.forEach(clearTimeout)
-    sequenceTimersRef.current = []
-  }, [])
+  useEffect(() => {
+    modeRef.current = mode
+  }, [mode])
 
-  const clearDwellTimer = useCallback(() => {
-    if (dwellTimerRef.current) {
-      clearTimeout(dwellTimerRef.current)
-      dwellTimerRef.current = null
+  const clearIntentTimer = useCallback(() => {
+    if (intentTimerRef.current) {
+      clearTimeout(intentTimerRef.current)
+      intentTimerRef.current = null
     }
   }, [])
 
@@ -174,139 +174,92 @@ export function HeroCard({
     else if (group?.activeId === id) group?.setActiveId(null)
   }, [isActive, id, group])
 
-  useEffect(
-    () => () => {
-      clearDwellTimer()
-      clearSequenceTimers()
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
-    },
-    [clearDwellTimer, clearSequenceTimers]
-  )
+  useEffect(() => () => clearIntentTimer(), [clearIntentTimer])
 
-  const goToLevel = useCallback(
-    (next: Level) => {
-      if (next === 3 && !mobile) {
-        const rect = triggerRef.current?.getBoundingClientRect()
-        if (rect) setFlipFrom(flipTransformFor(rect))
-      }
-      setLevel(next)
-    },
-    [mobile]
-  )
-
-  // Once the full overlay mounts at its FLIP start position, release it to
-  // the identity transform on the next frame so it animates in.
+  // Once the full dialog mounts at its FLIP start position, release it to the
+  // identity transform on the next frame so it animates in.
   useEffect(() => {
-    if (level !== 3 || flipFrom === null) return
+    if (mode !== 'full' || !suppressTransition) return
     const raf1 = requestAnimationFrame(() => {
-      flipRafRef.current = requestAnimationFrame(() => setFlipFrom(null))
+      flipRafRef.current = requestAnimationFrame(() => {
+        setFlipFrom(null)
+        setSuppressTransition(false)
+      })
     })
     return () => {
       cancelAnimationFrame(raf1)
       if (flipRafRef.current !== null) cancelAnimationFrame(flipRafRef.current)
     }
-  }, [level, flipFrom])
+  }, [mode, suppressTransition])
 
   const close = useCallback(() => {
-    clearDwellTimer()
-    clearSequenceTimers()
-    setIsDwelling(false)
+    clearIntentTimer()
     setDirection('out')
-
-    if (level === 3 && !mobile) {
-      const rect = triggerRef.current?.getBoundingClientRect()
-      if (rect) setFlipFrom(flipTransformFor(rect))
+    if (reducedMotion) {
+      setMode('rest')
+      setFlipFrom(null)
+      triggerRef.current?.focus()
+      return
     }
-
-    closeTimerRef.current = setTimeout(
-      () => {
-        setLevel(0)
-        setFlipFrom(null)
-        triggerRef.current?.focus()
-      },
-      reducedMotion || mobile ? 0 : EXIT_MS
-    )
-  }, [level, reducedMotion, mobile, clearDwellTimer, clearSequenceTimers])
-
-  const startDwellSequence = useCallback(() => {
-    setIsDwelling(true)
-    setDirection('in')
-    goToLevel(1)
-    const t1 = setTimeout(() => {
-      setDirection('in')
-      goToLevel(2)
-    }, STEP_MS + STEP_GAP_MS)
-    const t2 = setTimeout(
-      () => {
-        setDirection('in')
-        goToLevel(3)
-        setIsDwelling(false)
-      },
-      2 * (STEP_MS + STEP_GAP_MS)
-    )
-    sequenceTimersRef.current.push(t1, t2)
-  }, [goToLevel])
+    const rect = triggerRef.current?.getBoundingClientRect()
+    if (rect) setFlipFrom(flipTransformFor(rect))
+  }, [reducedMotion, clearIntentTimer])
 
   const handleClick = useCallback(() => {
-    if (mobile) {
-      if (level === 3) {
-        close()
-        return
-      }
-      setDirection('in')
-      goToLevel(3)
-      return
-    }
-    if (isDwelling) {
-      clearSequenceTimers()
-      setIsDwelling(false)
-      setDirection('in')
-      goToLevel(3)
-      return
-    }
-    if (level === 3) {
+    if (mode === 'full') {
       close()
       return
     }
+    clearIntentTimer()
     setDirection('in')
-    goToLevel((level + 1) as Level)
-  }, [mobile, isDwelling, level, goToLevel, close, clearSequenceTimers])
+    if (reducedMotion) {
+      setMode('full')
+      return
+    }
+    const rect = triggerRef.current?.getBoundingClientRect()
+    if (rect) {
+      setFlipFrom(flipTransformFor(rect))
+      setSuppressTransition(true)
+    }
+    setMode('full')
+  }, [mode, reducedMotion, close, clearIntentTimer])
 
   const handleMouseEnter = useCallback(() => {
-    if (mobile || level !== 0 || reducedMotion) return
+    if (mobile || mode !== 'rest' || reducedMotion) return
     if (document.visibilityState === 'hidden') return
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    dwellTimerRef.current = setTimeout(startDwellSequence, DWELL_MS)
-  }, [mobile, level, reducedMotion, startDwellSequence])
+    intentTimerRef.current = setTimeout(() => {
+      if (modeRef.current !== 'rest') return
+      const rect = triggerRef.current?.getBoundingClientRect()
+      if (rect) setReadScale(readScaleFor(rect))
+      setDirection('in')
+      setMode('read')
+    }, HOVER_INTENT_MS)
+  }, [mobile, mode, reducedMotion])
 
   const handleMouseLeave = useCallback(() => {
-    clearDwellTimer()
-    if (isDwelling) {
-      clearSequenceTimers()
-      setIsDwelling(false)
+    clearIntentTimer()
+    if (mode === 'read') {
       setDirection('out')
-      setLevel(0)
+      setMode('rest')
     }
-  }, [isDwelling, clearDwellTimer, clearSequenceTimers])
+  }, [mode, clearIntentTimer])
 
   useEffect(() => {
-    if (!isActive) return
+    if (mode !== 'full') return
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') close()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isActive, close])
+  }, [mode, close])
 
   useEffect(() => {
-    if (level === 3) closeButtonRef.current?.focus()
-  }, [level])
+    if (mode === 'full') closeButtonRef.current?.focus()
+  }, [mode])
 
-  const scale = reducedMotion ? 1 : SCALE_BY_LEVEL[level]
-  const lift = reducedMotion ? 0 : LIFT_BY_LEVEL[level]
-  const blur = reducedMotion ? 0 : BLUR_BY_LEVEL[level]
-  const backdropScale = reducedMotion ? 1 : BACKDROP_SCALE_BY_LEVEL[level]
-  const veil = VEIL_BY_LEVEL[level]
+  const scale = reducedMotion ? 1 : mode === 'read' ? readScale : 1
+  const veil = mode === 'full' ? 0.38 : 0
 
   return (
     <>
@@ -323,22 +276,12 @@ export function HeroCard({
           className ?? 'aspect-square h-[50.4svh] max-h-[528px]'
         )}
         style={{
-          transform: level === 3 ? 'none' : `translateY(${lift}px) scale(${scale})`,
+          transform: mode === 'full' ? 'none' : `scale(${scale})`,
           transformOrigin: 'center',
           zIndex: isActive ? 20 : 0,
-          opacity: isSiblingReceding ? 0.6 : isActive ? 0.92 : 1,
-          boxShadow:
-            level === 0
-              ? '0 12px 32px rgba(46,38,32,.12)'
-              : level === 1
-                ? '0 20px 50px rgba(46,38,32,.18)'
-                : '0 40px 90px rgba(46,38,32,.28)',
-          transition: mobile
-            ? MOBILE_OVERLAY_TRANSITION
-            : [
-                cardTransition(direction, reducedMotion),
-                reducedMotion ? 'none' : 'opacity 200ms ease',
-              ].join(', '),
+          opacity: isSiblingReceding ? 0.45 : 1,
+          boxShadow: mode === 'rest' ? SHADOW_REST : SHADOW_GROWN,
+          transition: mode === 'full' ? 'none' : cardTransition(direction, mode, reducedMotion),
         }}
       >
         <Image
@@ -352,7 +295,7 @@ export function HeroCard({
         />
       </button>
 
-      {level === 3 &&
+      {mode === 'full' &&
         createPortal(
           <div
             className='fixed inset-0 z-50 flex items-center justify-center'
@@ -374,11 +317,8 @@ export function HeroCard({
               className='absolute inset-0'
               style={{
                 backgroundColor: `oklch(0.2 0.01 48 / ${veil * 100}%)`,
-                filter: `blur(${blur}px)`,
-                transform: `scale(${backdropScale})`,
-                transition: mobile
-                  ? MOBILE_OVERLAY_TRANSITION
-                  : backdropTransition(direction, reducedMotion),
+                filter: `blur(${veil > 0 ? 12 : 0}px)`,
+                transition: backdropTransition(direction, reducedMotion),
               }}
             />
             <div
@@ -386,13 +326,18 @@ export function HeroCard({
               style={{
                 transform: flipFrom ?? IDENTITY_TRANSFORM,
                 transformOrigin: 'center',
-                boxShadow: '0 40px 90px rgba(46,38,32,.28)',
-                transition:
-                  flipFrom !== null
-                    ? 'none'
-                    : mobile
-                      ? MOBILE_OVERLAY_TRANSITION
-                      : cardTransition(direction, reducedMotion),
+                boxShadow: SHADOW_GROWN,
+                transition: suppressTransition
+                  ? 'none'
+                  : cardTransition(direction, mode, reducedMotion),
+              }}
+              onTransitionEnd={(event) => {
+                if (event.target !== event.currentTarget) return
+                if (event.propertyName !== 'transform') return
+                if (direction !== 'out' || mode !== 'full') return
+                setMode('rest')
+                setFlipFrom(null)
+                triggerRef.current?.focus()
               }}
             >
               <Image src={src} alt={expandedAlt} fill sizes='100vw' className='object-contain' />
