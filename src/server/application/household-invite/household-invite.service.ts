@@ -70,6 +70,7 @@ export type HouseholdInviteData = {
     venueAddress: string | null
     venueWazeUrl: string | null
     isPrimary: boolean
+    collectRsvp: boolean
   }>
   household: {
     id: string
@@ -588,6 +589,7 @@ export class HouseholdInviteService {
                   venueAddress: true,
                   venueWazeUrl: true,
                   isPrimary: true,
+                  collectRsvp: true,
                 },
               },
             },
