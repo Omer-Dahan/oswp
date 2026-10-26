@@ -77,6 +77,18 @@ export const publicRsvpHouseholdSelect = {
 } satisfies Prisma.HouseholdSelect
 
 /**
+ * Like publicRsvpHouseholdSelect, but also includes the private fields
+ * (dietary notes, wishes message) — used only for the invite-token
+ * recognition flow, where the token itself already proves identity, unlike
+ * the name-search flow which gates those fields behind a separate re-check.
+ */
+export const publicRsvpHouseholdSelectWithDetails = {
+  ...publicRsvpHouseholdSelect,
+  dietaryNotes: true,
+  wishesMessage: true,
+} satisfies Prisma.HouseholdSelect
+
+/**
  * Fold a name to a comparable form for the public RSVP lookup: lowercased, with
  * apostrophes/quotes dropped and hyphens/dashes treated as spaces. This makes
  * "Sarah-Jane" and "Sarah Jane" compare equal (in either direction) and lets
@@ -319,15 +331,19 @@ export class HouseholdRepository {
   /**
    * Set the party-size, children count, dietary notes, and wishes message a
    * guest reported on the public RSVP flow. Nulls are written explicitly (not
-   * skipped) so a returning guest can clear a previously reported value.
+   * skipped) so a returning guest can clear a previously reported value, but
+   * `undefined` for dietaryNotes/wishesMessage is omitted from the update
+   * entirely, preserving whatever was already saved — see
+   * RsvpSubmissionService.submitRsvp, which only sends undefined when the
+   * guest's submission didn't actually supply a new value.
    */
   async updateRsvpPartyDetails(
     id: string,
     data: {
       attendingCount: number | null
       childrenCount: number | null
-      dietaryNotes: string | null
-      wishesMessage: string | null
+      dietaryNotes?: string | null
+      wishesMessage?: string | null
     }
   ): Promise<void> {
     await this.db.household.update({

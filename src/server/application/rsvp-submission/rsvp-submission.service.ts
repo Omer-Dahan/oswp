@@ -37,6 +37,21 @@ export function getClientIp(headers: Headers): string {
   return headers.get('x-real-ip') ?? 'unknown'
 }
 
+/**
+ * `undefined` means the submission never supplied this field (e.g. the
+ * guest's client failed to fetch their previously-saved value) — and a blank
+ * string means the guest left the field untouched rather than explicitly
+ * clearing it, since the dietary-notes/wishes-message steps always seed from
+ * whatever was already saved. Both cases must preserve the existing stored
+ * value instead of overwriting it with blank; only an explicit `null` clears
+ * it.
+ */
+function preserveExistingWhenBlank(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  return value.trim() === '' ? undefined : value
+}
+
 export class RsvpSubmissionService {
   private rateLimiter: PrismaRateLimiter
 
@@ -233,8 +248,8 @@ export class RsvpSubmissionService {
         await txHouseholdRepo.updateRsvpPartyDetails(householdPartyDetails.householdId, {
           attendingCount: householdPartyDetails.attendingCount ?? null,
           childrenCount: householdPartyDetails.childrenCount ?? null,
-          dietaryNotes: householdPartyDetails.dietaryNotes ?? null,
-          wishesMessage: householdPartyDetails.wishesMessage ?? null,
+          dietaryNotes: preserveExistingWhenBlank(householdPartyDetails.dietaryNotes),
+          wishesMessage: preserveExistingWhenBlank(householdPartyDetails.wishesMessage),
         })
 
         if (householdPartyDetails.weddingId && householdPartyDetails.extraGuestNames) {

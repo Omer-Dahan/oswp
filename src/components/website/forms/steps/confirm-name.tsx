@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import type { HouseholdSearch, StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
+import { AsyncState } from '~/components/ui/async-state'
 import {
   StepActions,
   StepHeading,
@@ -38,6 +39,7 @@ export default function ConfirmNameForm({ goNext, goBack, accessToken }: Confirm
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<string | undefined>(() =>
     matchedHouseholds && matchedHouseholds.length === 1 ? matchedHouseholds[0]?.id : undefined
   )
+  const [detailsFetchFailed, setDetailsFetchFailed] = useState(false)
 
   const subUrl = weddingData.website?.subUrl ?? ''
 
@@ -90,11 +92,19 @@ export default function ConfirmNameForm({ goNext, goBack, accessToken }: Confirm
     )
 
     // No searchText means the household was resolved from a save-the-date
-    // cookie rather than a name search, so there's nothing to re-prove
-    // identity with — the dietary-notes/wishes-message steps simply stay
-    // blank for that guest, as before this fetch existed.
+    // invite token rather than a name search, which already carries the
+    // dietary-notes/wishes-message fields up front (see rsvp-form-context.tsx)
+    // — there's nothing further to fetch here.
     if (searchText && selectedHouseholdId) {
       const detailsResult = await refetchDetails()
+      if (detailsResult.error) {
+        // Swallowing this and moving on would mean the next steps submit
+        // blank dietary-notes/wishes-message, overwriting whatever the guest
+        // already told the couple. Stop and let them retry instead.
+        setDetailsFetchFailed(true)
+        return
+      }
+      setDetailsFetchFailed(false)
       if (detailsResult.data) {
         updateRsvpForm({
           dietaryNotes: detailsResult.data.dietaryNotes ?? undefined,
@@ -142,6 +152,8 @@ export default function ConfirmNameForm({ goNext, goBack, accessToken }: Confirm
           )
         })}
       </div>
+
+      <AsyncState error={detailsFetchFailed ? tCommon('genericError') : null} className='mt-2' />
 
       <StepActions>
         <StepPrimaryButton
