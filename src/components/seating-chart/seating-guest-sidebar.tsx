@@ -146,7 +146,7 @@ export function SeatingGuestSidebar(props: Readonly<SeatingGuestSidebarProps>) {
         <div className='flex items-baseline justify-between'>
           <h2 className='font-medium text-sm'>אורחים ללא הושבה</h2>
           <span className='text-[0.64rem] text-muted-foreground tabular-nums'>
-            {seatedGuests}/{totalGuests} seated
+            {seatedGuests}/{totalGuests} משובצים
           </span>
         </div>
         <Input
@@ -161,10 +161,10 @@ export function SeatingGuestSidebar(props: Readonly<SeatingGuestSidebarProps>) {
         {groups.length === 0 ? (
           <p className='px-2 py-6 text-center text-muted-foreground text-sm'>
             {totalGuests === 0
-              ? 'No invited guests for this event yet.'
+              ? 'אין עדיין אורחים מוזמנים לאירוע הזה.'
               : search
-                ? 'No unseated guests match your search.'
-                : 'Everyone has a seat. Drag a guest here to unseat them.'}
+                ? 'אף אורח לא משובץ תואם לחיפוש שלכם.'
+                : 'לכולם יש מקום. גררו אורח לכאן כדי לשחרר אותו.'}
           </p>
         ) : (
           <ul className='space-y-2'>
