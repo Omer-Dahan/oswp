@@ -184,7 +184,7 @@ function SaveTheDateOverlay({
             }}
           />
           <div className='absolute inset-0' style={{ boxShadow: '0 30px 70px rgba(46,38,32,.28)' }}>
-            <Image src='/brand/invitation.png' alt={invitationAlt} fill sizes='88vw' className='object-contain' />
+            <Image src='/brand/invitation-v2.png' alt={invitationAlt} fill sizes='88vw' className='object-contain' />
           </div>
         </div>
       </div>

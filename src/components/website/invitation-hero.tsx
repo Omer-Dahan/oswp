@@ -158,7 +158,7 @@ export function InvitationHero({
             </div>
             <div>
               <HeroCard
-                src='/brand/invitation.png'
+                src='/brand/invitation-v2.png'
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
@@ -212,7 +212,7 @@ export function InvitationHero({
           </div>
           <div className='hero-card-enter'>
             <HeroCard
-              src='/brand/invitation.png'
+              src='/brand/invitation-v2.png'
               label='הזמנת החתונה'
               expandedAlt={invitationAlt}
               priority
