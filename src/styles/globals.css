@@ -477,10 +477,11 @@ th {
 
 /*
  * ── Desktop guest home hero cards ─────────────────────────────────────────
- * The two interactive cards in InvitationHero's desktop branch: hover/focus
- * enlarges the pointed-at card and settles its sibling to a lower opacity
- * (via :has(), so no JS state is needed for it); a one-time fade+rise
- * entrance on load with a short stagger; clicking opens a native <dialog>.
+ * The two interactive cards in InvitationHero: a one-time fade+rise entrance
+ * on load with a short stagger. The stepped zoom itself (scale, lift,
+ * shadow, backdrop blur/veil, the full-screen overlay) is driven by inline
+ * styles in HeroCard so each step's timing can depend on direction
+ * (growing vs. closing) and on prefers-reduced-motion.
  */
 @layer components {
   .hero-card-enter {
@@ -502,86 +503,8 @@ th {
     }
   }
 
-  .hero-card {
-    transform-origin: center;
-    transition:
-      transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
-      box-shadow 200ms ease,
-      opacity 200ms ease;
-  }
-
-  .hero-card:active {
-    transform: scale(0.97);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .hero-cards:has(.hero-card:hover) .hero-card:not(:hover) {
-      opacity: 0.92;
-    }
-
-    .hero-card:hover {
-      will-change: transform;
-      transform: scale(1.06);
-      box-shadow: var(--shadow-xl);
-    }
-  }
-
-  .hero-cards:has(.hero-card:focus-visible) .hero-card:not(:focus-visible) {
-    opacity: 0.92;
-  }
-
-  .hero-card:focus-visible {
-    transform: scale(1.06);
-    box-shadow: var(--shadow-xl);
-  }
-
-  .hero-dialog {
-    animation: hero-dialog-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
-  }
-
-  .hero-dialog::backdrop {
-    background: oklch(0.2 0.01 48 / 55%);
-    backdrop-filter: blur(10px);
-    animation: hero-dialog-backdrop-in 240ms ease both;
-  }
-
-  @keyframes hero-dialog-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes hero-dialog-backdrop-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .hero-card-enter {
-      animation: hero-card-fade 200ms ease both;
-    }
-
-    .hero-card,
-    .hero-card:hover,
-    .hero-card:focus-visible {
-      transform: none !important;
-      will-change: auto;
-    }
-
-    .hero-dialog {
-      animation: hero-card-fade 200ms ease both;
-    }
-
-    .hero-dialog::backdrop {
       animation: hero-card-fade 200ms ease both;
     }
   }
