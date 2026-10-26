@@ -151,6 +151,13 @@ export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: 'postgresql',
   }),
+  // A guest who follows an invite link signs up (or in) once and should not have to
+  // re-authenticate again for months — the invite link itself is a one-time artifact,
+  // but the session it opens needs to outlive a typical wedding-planning timeline.
+  session: {
+    expiresIn: 60 * 60 * 24 * 60,
+    updateAge: 60 * 60 * 24,
+  },
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({

@@ -49,6 +49,7 @@ describe('Providers', () => {
     expect(mockAuthUIProvider).toHaveBeenCalledWith(
       expect.objectContaining({
         emailOTP: true,
+        redirectTo: '/dashboard',
         organization: {
           customRoles: [
             { role: 'member', label: 'חבר' },
