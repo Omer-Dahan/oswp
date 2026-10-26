@@ -100,6 +100,19 @@ export default function MainRsvpForm({
   })
 
   const dynamicStepForms = useMemo((): ReactNode[] => {
+    // "Who is coming" already asks attendance for the only event in play
+    // (a single collectRsvp event, or one narrowed down by
+    // preselectedEventId), so asking again in a dedicated event step would
+    // repeat the same question. That per-event step is only needed when the
+    // guest must answer for more than one event.
+    const relevantEventsCount =
+      weddingData?.events?.filter(
+        (event) =>
+          event.collectRsvp &&
+          (!rsvpFormData.preselectedEventId || event.id === rsvpFormData.preselectedEventId)
+      ).length ?? 0
+    const isSingleEventFlow = relevantEventsCount <= 1
+
     const newSteps: ReactNode[] =
       weddingData?.events?.reduce((acc: ReactNode[], event: Event) => {
         if (!event.collectRsvp) return acc
@@ -115,7 +128,9 @@ export default function MainRsvpForm({
         )
 
         if (invitedGuests !== undefined && invitedGuests.length > 0) {
-          acc.push(<EventRsvpForm event={event} invitedGuests={invitedGuests} />)
+          if (!isSingleEventFlow) {
+            acc.push(<EventRsvpForm event={event} invitedGuests={invitedGuests} />)
+          }
           // Only show question steps for guests who confirmed attendance.
           // Fall back to all invited guests if responses haven't been recorded yet.
           const hasResponsesForEvent = rsvpFormData.rsvpResponses.some(
