@@ -353,6 +353,7 @@ model Household {
   attendingCount Int?    @map("attending_count")
   childrenCount  Int?    @map("children_count")
   dietaryNotes   String? @map("dietary_notes")
+  wishesMessage  String? @map("wishes_message")
 
   // Short opaque code for the household's save-the-date / invite link, e.g.
   // "js-4f9k2c". Looked up directly instead of verifying a signed token so the

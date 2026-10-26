@@ -17,6 +17,7 @@ import QuestionMultipleChoice from '~/components/website/forms/steps/question-mu
 import QuestionShortAnswer from '~/components/website/forms/steps/question-short-answer'
 import SendRsvp from '~/components/website/forms/steps/send-rsvp'
 import WhoIsComingForm from '~/components/website/forms/steps/who-is-coming'
+import WishesMessageForm from '~/components/website/forms/steps/wishes-message'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
@@ -53,13 +54,14 @@ const getMutationErrorMessage = (error: unknown, fallback: string): string => {
 }
 
 // find invitation, confirm household, who-is-coming, children-count,
-// dietary-notes, final step, and confirmation
-const NUM_STATIC_STEPS = 7
+// dietary-notes, wishes-message, final step, and confirmation
+const NUM_STATIC_STEPS = 8
 
 // The short decline-intent flow (`?decline=1`): find invitation, confirm
-// household, a single decline confirmation, final step, and confirmation —
-// it skips who-is-coming/children/dietary/per-event steps entirely.
-const NUM_DECLINE_STEPS = 5
+// household, a single decline confirmation, wishes-message, final step, and
+// confirmation — it skips who-is-coming/children/dietary/per-event steps
+// entirely.
+const NUM_DECLINE_STEPS = 6
 
 export const shouldConfirmRsvpClose = ({
   currentStep,
@@ -221,6 +223,7 @@ export default function MainRsvpForm({
             attendingCount: rsvpFormData.attendingCount,
             childrenCount: rsvpFormData.childrenCount,
             dietaryNotes: rsvpFormData.dietaryNotes,
+            wishesMessage: rsvpFormData.wishesMessage,
             extraGuestNames: rsvpFormData.extraGuestNames ?? [],
             rsvpResponses: rsvpFormData.rsvpResponses.map((response) => ({
               eventId: response.eventId,
@@ -247,6 +250,7 @@ export default function MainRsvpForm({
               ...generateDynamicStepForms(),
             ]
           )}
+          <WishesMessageForm />
           <SendRsvp isFetching={submitRsvpForm.isPending} />
           <RsvpConfirmation basePath={basePath} />
         </MultistepRsvpForm>

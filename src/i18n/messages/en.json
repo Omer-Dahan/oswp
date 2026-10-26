@@ -86,7 +86,10 @@
     "childrenCountTitle": "How many children are coming?",
     "childrenCountHelper": "You can skip this if no children are coming",
     "dietaryNotesTitle": "Dietary restrictions or allergies",
-    "dietaryNotesHelper": "Tell us who and what, the kitchen will get this as-is"
+    "dietaryNotesHelper": "Tell us who and what, the kitchen will get this as-is",
+    "wishesMessageTitle": "A message for the couple",
+    "wishesMessageHelper": "Leave a congratulations message (optional)",
+    "wishesMessagePlaceholder": "Write something for the couple... (optional)"
   },
   "questions": {
     "other": "Other",

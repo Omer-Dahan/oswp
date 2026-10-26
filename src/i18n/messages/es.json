@@ -86,7 +86,10 @@
     "childrenCountTitle": "¿Cuántos niños vienen?",
     "childrenCountHelper": "Puedes saltarte esto si no vienen niños",
     "dietaryNotesTitle": "Restricciones o alergias alimentarias",
-    "dietaryNotesHelper": "Indica para quién y qué, la cocina lo recibirá tal cual"
+    "dietaryNotesHelper": "Indica para quién y qué, la cocina lo recibirá tal cual",
+    "wishesMessageTitle": "Un mensaje para los novios",
+    "wishesMessageHelper": "Deja un mensaje de felicitación (opcional)",
+    "wishesMessagePlaceholder": "Escribe algo para los novios... (opcional)"
   },
   "questions": {
     "other": "Otra opción",

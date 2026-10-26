@@ -29,6 +29,7 @@ export const mockHousehold: Household = {
   attendingCount: null,
   childrenCount: null,
   dietaryNotes: null,
+  wishesMessage: null,
 }
 
 export const mockHouseholdWithGuestsAndGifts: HouseholdWithGuestsAndGifts = {

@@ -32,6 +32,8 @@ type RsvpFormState = {
   childrenCount?: number
   /** Free-text dietary notes for the household, set on the dietary-notes step. */
   dietaryNotes?: string
+  /** Free-text wishes/congratulations message for the couple, set on the wishes-message step. */
+  wishesMessage?: string
   /**
    * True when the guest was identified from their save-the-date invite cookie,
    * so the flow starts on the confirm step (skipping the name search) and offers

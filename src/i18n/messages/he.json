@@ -86,7 +86,10 @@
     "childrenCountTitle": "כמה ילדים יגיעו?",
     "childrenCountHelper": "אפשר לדלג אם אין ילדים",
     "dietaryNotesTitle": "הגבלות או בעיות תזונה",
-    "dietaryNotesHelper": "פרטו למי ומה · המטבח יקבל את זה כפי שהוא"
+    "dietaryNotesHelper": "פרטו למי ומה · המטבח יקבל את זה כפי שהוא",
+    "wishesMessageTitle": "ברכה ואיחולים לזוג",
+    "wishesMessageHelper": "השאירו ברכה לזוג (אופציונלי)",
+    "wishesMessagePlaceholder": "כתבו משהו לחתן ולכלה... (אופציונלי)"
   },
   "questions": {
     "other": "אחר",
