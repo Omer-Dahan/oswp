@@ -100,7 +100,7 @@ describe('ChecklistPage', () => {
     const { container } = render(page)
 
     expect(mockDashboardTopbar).toHaveBeenCalledWith({
-      title: 'Checklist',
+      title: 'רשימת משימות',
       showManagementActions: false,
     })
     expect(screen.getByTestId('dashboard-topbar')).toBeInTheDocument()

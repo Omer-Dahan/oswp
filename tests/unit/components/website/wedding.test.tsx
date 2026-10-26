@@ -3,18 +3,21 @@ import { createElement } from 'react'
 
 import WeddingWebsite from '~/components/website/wedding'
 
-const mockHeadersGet = jest.fn()
 const mockResolveTemplate = jest.fn()
 
-jest.mock('next/headers', () => ({
-  headers: () =>
-    Promise.resolve({
-      get: mockHeadersGet,
-    }),
-}))
-
-jest.mock('next/navigation', () => ({
-  notFound: jest.fn(),
+// PersonalizedWelcome is an async server component with its own suite; a sync
+// stand-in keeps this test focused on whether the home renders the banner.
+jest.mock('~/components/website/personalized-welcome', () => ({
+  PersonalizedWelcome: ({
+    invitedHousehold,
+  }: {
+    invitedHousehold: { primaryContactGreeting: { name: string } | null }
+  }) =>
+    createElement(
+      'aside',
+      { 'aria-label': 'ברכת שלום אישית' },
+      `שלום ${invitedHousehold.primaryContactGreeting?.name ?? ''}`
+    ),
 }))
 
 jest.mock('~/templates', () => ({
@@ -23,18 +26,6 @@ jest.mock('~/templates', () => ({
     createElement('div', { 'data-testid': 'template-root' }, children),
   resolveTemplate: (templateId: string | null | undefined) => mockResolveTemplate(templateId),
 }))
-
-const buildTemplate = (id: string) => ({
-  id,
-  components: {
-    Home: ({ path, introText }: { path: string; introText?: string }) =>
-      createElement('div', { 'data-testid': 'full-page' }, `${path}|${introText ?? ''}`),
-    HomeMobile: ({ path, introText }: { path: string; introText?: string }) =>
-      createElement('div', { 'data-testid': 'mobile-page' }, `${path}|${introText ?? ''}`),
-    Minimal: ({ path, isRsvpEnabled }: { path: string; isRsvpEnabled: boolean }) =>
-      createElement('div', { 'data-testid': 'minimal-page' }, `${path}|${String(isRsvpEnabled)}`),
-  },
-})
 
 const createWeddingData = (overrides: Record<string, unknown> = {}) => ({
   groomFirstName: 'Shrek',
@@ -63,12 +54,10 @@ const createWeddingData = (overrides: Record<string, unknown> = {}) => ({
 
 describe('WeddingWebsite', () => {
   beforeEach(() => {
-    mockHeadersGet.mockReset()
     mockResolveTemplate.mockReset()
-    mockResolveTemplate.mockImplementation((id: string | null | undefined) =>
-      buildTemplate(id ?? 'classic')
-    )
-    mockHeadersGet.mockReturnValue('?0')
+    mockResolveTemplate.mockImplementation((id: string | null | undefined) => ({
+      id: id ?? 'classic',
+    }))
   })
 
   it('resolves the template from the stored templateId', async () => {
@@ -80,48 +69,41 @@ describe('WeddingWebsite', () => {
     expect(screen.getByTestId('template-root')).toBeInTheDocument()
   })
 
-  it('renders the minimal page when website_builder is disabled', async () => {
+  it('links the RSVP pill to the site rsvp route when RSVP is enabled', async () => {
     render(
       await WeddingWebsite({ websiteSubUrl: 'shrek-and-fiona', weddingData: createWeddingData() })
     )
 
-    expect(screen.getByTestId('minimal-page')).toHaveTextContent('/w/shrek-and-fiona|true')
+    const rsvpLinks = screen.getAllByRole('link', { name: 'אישור הגעה לאירוע' })
+    expect(rsvpLinks.length).toBeGreaterThan(0)
+    for (const link of rsvpLinks) {
+      expect(link).toHaveAttribute('href', '/w/shrek-and-fiona/rsvp')
+    }
   })
 
-  it('renders the full home surface on desktop when website_builder is enabled', async () => {
+  it('hides the RSVP pill when RSVP is disabled', async () => {
     render(
       await WeddingWebsite({
         websiteSubUrl: 'shrek-and-fiona',
         weddingData: createWeddingData({
-          websiteBuilderEnabled: true,
-          website: {
-            ...createWeddingData().website,
-            introText: 'Welcome to our wedding weekend.',
-          },
+          website: { ...createWeddingData().website, isRsvpEnabled: false },
         }),
       })
     )
 
-    expect(screen.getByTestId('full-page')).toHaveTextContent(
-      '/w/shrek-and-fiona|Welcome to our wedding weekend.'
-    )
+    expect(screen.queryByRole('link', { name: 'אישור הגעה לאירוע' })).not.toBeInTheDocument()
   })
 
-  it('renders the mobile home surface when website_builder is enabled on mobile', async () => {
-    mockHeadersGet.mockReturnValue('?1')
+  it('shows the neutral greeting when no household is recognized', async () => {
     render(
-      await WeddingWebsite({
-        websiteSubUrl: 'shrek-and-fiona',
-        weddingData: createWeddingData({
-          websiteBuilderEnabled: true,
-        }),
-      })
+      await WeddingWebsite({ websiteSubUrl: 'shrek-and-fiona', weddingData: createWeddingData() })
     )
 
-    expect(screen.getByTestId('mobile-page')).toHaveTextContent('/w/shrek-and-fiona')
+    expect(screen.getAllByText('נשמח לראותכם').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
   })
 
-  it('keeps the personalized banner visible for a recognized household', async () => {
+  it('greets a recognized household in the banner and the hero', async () => {
     render(
       await WeddingWebsite({
         websiteSubUrl: 'shrek-and-fiona',
@@ -129,13 +111,14 @@ describe('WeddingWebsite', () => {
         invitedHousehold: {
           guestFirstNames: ['Donkey', 'Dragon'],
           greeting: 'Donkey & Dragon',
+          primaryContactGreeting: { name: 'Donkey', kind: 'firstName' },
         },
       })
     )
 
-    expect(screen.getByRole('complementary', { name: 'Personalized welcome' })).toHaveTextContent(
-      'Welcome, Donkey & Dragon'
+    expect(screen.getByRole('complementary', { name: 'ברכת שלום אישית' })).toHaveTextContent(
+      'שלום Donkey'
     )
-    expect(screen.getByTestId('full-page')).toBeInTheDocument()
+    expect(screen.getAllByText('שלום Donkey, נשמח לראותכם ביום שלנו 🤍').length).toBeGreaterThan(0)
   })
 })

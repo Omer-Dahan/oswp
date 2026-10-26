@@ -90,10 +90,10 @@ describe('vendor-list-view-model', () => {
         }),
         'USD'
       )
-    ).toEqual({ price: '$3,200', basis: 'Flat fee · lowest of 2 quotes' })
+    ).toEqual({ price: '\u200F3,200\u00A0\u200F$', basis: 'Flat fee · lowest of 2 quotes' })
 
     expect(
       getQuoteSummary(makeVendor({ quotes: [makeQuote(28, QuoteType.PER_GUEST)] }), 'USD')
-    ).toEqual({ price: '$28', basis: 'Per guest' })
+    ).toEqual({ price: '\u200F28\u00A0\u200F$', basis: 'Per guest' })
   })
 })

@@ -48,7 +48,7 @@ describe('VendorForm', () => {
       />
     )
 
-    expect(screen.getByText('Category')).toBeInTheDocument()
+    expect(screen.getByText('קטגוריה')).toBeInTheDocument()
   })
 
   it('hides category selector in edit mode', () => {
@@ -75,7 +75,7 @@ describe('VendorForm', () => {
       />
     )
 
-    expect(screen.queryByText('Category')).not.toBeInTheDocument()
+    expect(screen.queryByText('קטגוריה')).not.toBeInTheDocument()
   })
 
   it('submits create payload in create mode', () => {
@@ -88,7 +88,7 @@ describe('VendorForm', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Vendor or business name'), {
+    fireEvent.change(screen.getByPlaceholderText('שם ספק או עסק'), {
       target: { value: 'Band' },
     })
     fireEvent.click(screen.getByRole('button', { name: /add vendor/i }))
@@ -126,7 +126,7 @@ describe('VendorForm', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Vendor or business name'), {
+    fireEvent.change(screen.getByPlaceholderText('שם ספק או עסק'), {
       target: { value: 'Updated Vendor' },
     })
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))

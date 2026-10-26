@@ -230,7 +230,7 @@ describe('VendorDetailPanel', () => {
   it('persists contacted, scratchpad notes, interaction notes, and custom field updates', () => {
     render(<VendorDetailPanel vendor={vendor} onClose={jest.fn()} />)
 
-    fireEvent.click(screen.getByRole('switch', { name: /mark vendor as contacted/i }))
+    fireEvent.click(screen.getByRole('switch', { name: 'סימון הספק כנוצר קשר' }))
     expect(mockUpdateMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         vendorId: 'vendor-1',
@@ -239,7 +239,7 @@ describe('VendorDetailPanel', () => {
       expect.anything()
     )
 
-    fireEvent.change(screen.getByLabelText(/scratchpad notes/i), {
+    fireEvent.change(screen.getByLabelText('הערות פנקס'), {
       target: { value: 'Follow up on late-night snacks.' },
     })
     fireEvent.click(screen.getByRole('button', { name: /save scratchpad/i }))
@@ -251,7 +251,7 @@ describe('VendorDetailPanel', () => {
       expect.anything()
     )
 
-    fireEvent.change(screen.getByLabelText(/add interaction note/i), {
+    fireEvent.change(screen.getByLabelText('הוספת הערת אינטראקציה'), {
       target: { value: 'Scheduled a tasting for next week.' },
     })
     fireEvent.click(screen.getByRole('button', { name: /^add$/i }))

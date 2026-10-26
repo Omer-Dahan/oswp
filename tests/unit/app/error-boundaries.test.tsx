@@ -19,20 +19,23 @@ describe('App error boundary', () => {
 
     render(<AppErrorBoundary error={new Error('Boom')} reset={reset} />)
 
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(screen.getByText('משהו השתבש')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'נסו שוב' }))
     expect(reset).toHaveBeenCalledTimes(1)
   })
 })
 
 describe('Global error boundary', () => {
-  it('should render a fallback page with reload action', () => {
+  it('should render a fallback page with retry and reload actions', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    const reset = jest.fn()
 
-    render(<GlobalErrorBoundary error={new Error('Global Boom')} reset={jest.fn()} />)
+    render(<GlobalErrorBoundary error={new Error('Global Boom')} reset={reset} />)
 
-    expect(screen.getByText('Unexpected application error')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Reload page' })).toBeInTheDocument()
+    expect(screen.getByText('שגיאה לא צפויה באפליקציה')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'טעינה מחדש' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'נסו שוב' }))
+    expect(reset).toHaveBeenCalledTimes(1)
 
     consoleErrorSpy.mockRestore()
   })

@@ -11,11 +11,15 @@ let capturedSetCurrentStep: Dispatch<SetStateAction<number>> | undefined
 
 jest.mock('~/components/contexts/rsvp-form-context', () => ({
   useRsvpForm: () => ({
-    selectedHousehold: undefined,
+    selectedHousehold: { id: 'household-1', guests: [] },
     rsvpResponses: [],
     answersToQuestions: [],
   }),
   useUpdateRsvpForm: () => jest.fn(),
+}))
+
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
 }))
 
 jest.mock('~/components/hooks', () => ({
@@ -141,11 +145,11 @@ describe('Main RSVP layout', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: 'Close RSVP form' })).toHaveClass('right-20')
+    expect(screen.getByRole('button', { name: 'סגרו טופס RSVP' })).toHaveClass('end-20')
     renderedForm.unmount()
 
     const { container } = render(<RsvpPageSkeleton />)
-    expect(container.querySelector('svg')).toHaveClass('right-20')
+    expect(container.querySelector('svg')).toHaveClass('end-20')
   })
 
   it('uses responsive side pane footer widths for mobile screens', () => {
@@ -162,7 +166,7 @@ describe('Main RSVP layout', () => {
         embedded
       />
     )
-    const progress = screen.getByRole('heading', { name: 'RSVP' }).parentElement
+    const progress = screen.getByText('RSVP', { selector: 'p' }).parentElement
     expect(progress).not.toHaveClass('fixed')
     expect(progress).toHaveClass('relative')
   })
@@ -208,19 +212,23 @@ describe('Main RSVP layout', () => {
     const form = container.querySelector('form')
     expect(form).not.toBeNull()
     act(() => {
-      capturedSetCurrentStep?.(3)
+      // Step 6 is the send step when there are no dynamic event/question steps.
+      capturedSetCurrentStep?.(6)
     })
     fireEvent.submit(form as HTMLFormElement)
-    expect(mockMutate).toHaveBeenCalledWith({
-      subUrl: 'our-wedding',
-      rsvpResponses: [],
-      answersToQuestions: [],
-    })
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subUrl: 'our-wedding',
+        householdId: 'household-1',
+        rsvpResponses: [],
+        answersToQuestions: [],
+      })
+    )
 
     act(() => {
       capturedOnSuccess?.()
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Close RSVP form' }))
+    fireEvent.click(screen.getByRole('button', { name: 'סגרו טופס RSVP' }))
 
     expect(confirmSpy).not.toHaveBeenCalled()
 
@@ -243,9 +251,9 @@ describe('Main RSVP layout', () => {
     act(() => {
       capturedSetCurrentStep?.(2)
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Close RSVP form' }))
+    fireEvent.click(screen.getByRole('button', { name: 'סגרו טופס RSVP' }))
 
-    expect(confirmSpy).toHaveBeenCalledWith('Are you sure? Your RSVP has not been sent.')
+    expect(confirmSpy).toHaveBeenCalledWith('האם אתם בטוחים? ה-RSVP שלכם לא נשלח.')
 
     confirmSpy.mockRestore()
   })

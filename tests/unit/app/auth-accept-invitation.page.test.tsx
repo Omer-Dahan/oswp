@@ -41,12 +41,12 @@ describe('AcceptInvitationPage', () => {
     render(page)
 
     expect(screen.queryByTestId('accept-invitation-card')).not.toBeInTheDocument()
-    expect(screen.getByText('You were invited to join a wedding workspace')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Sign in to continue' })).toHaveAttribute(
+    expect(screen.getByText('הוזמנתם להצטרף לסביבת עבודה לחתונה')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'התחברות להמשך' })).toHaveAttribute(
       'href',
       '/auth/sign-in?redirectTo=%2Fauth%2Faccept-invitation%3FinvitationId%3Dinv_123'
     )
-    expect(screen.getByRole('link', { name: 'Create account to continue' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'יצירת חשבון להמשך' })).toHaveAttribute(
       'href',
       '/auth/sign-up?redirectTo=%2Fauth%2Faccept-invitation%3FinvitationId%3Dinv_123'
     )
@@ -77,8 +77,8 @@ describe('AcceptInvitationPage', () => {
 
     render(page)
 
-    expect(screen.getByText('This invitation link is invalid')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Go to sign in' })).toHaveAttribute(
+    expect(screen.getByText('קישור ההזמנה אינו תקין')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'עברו להתחברות' })).toHaveAttribute(
       'href',
       '/auth/sign-in'
     )
