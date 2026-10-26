@@ -16,7 +16,7 @@ type InvitationHeroProps = {
   /** Set when the visitor arrived through a recognised household invite link. */
   invitedHousehold: InvitedHousehold | null
   /** The wedding's events, used to resolve the per-event RSVP pills. */
-  events: Array<{ id: string; name: string; isPrimary: boolean }>
+  events: Array<{ id: string; name: string; isPrimary: boolean; collectRsvp: boolean }>
   /** The household's own save-the-date invite code, when recognised. */
   householdInviteCode: string | null
 }
