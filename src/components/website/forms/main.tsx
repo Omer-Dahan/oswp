@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { IoMdClose } from 'react-icons/io'
 import type { Event, Question, RsvpPageData } from '~/app/utils/shared-types'
@@ -38,21 +39,6 @@ type MainRsvpFormProps = {
   accessToken?: string
 }
 
-const getMutationErrorMessage = (error: unknown, fallback: string): string => {
-  if (error instanceof Error) return error.message
-
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof error.message === 'string'
-  ) {
-    return error.message
-  }
-
-  return fallback
-}
-
 // find invitation, confirm household, who-is-coming, children-count,
 // dietary-notes, wishes-message, final step, and confirmation
 const NUM_STATIC_STEPS = 8
@@ -77,6 +63,7 @@ export default function MainRsvpForm({
   embedded = false,
   accessToken,
 }: MainRsvpFormProps) {
+  const tCommon = useTranslations('common')
   const rsvpFormData = useRsvpForm()
   const isDeclineFlow = rsvpFormData.declineIntent === true
   const updateRsvpForm = useUpdateRsvpForm()
@@ -95,7 +82,8 @@ export default function MainRsvpForm({
       setCurrentStep((prev) => prev + 1)
     },
     onError: (err) => {
-      setSubmitError(getMutationErrorMessage(err, 'Failed to submit RSVP. Please try again.'))
+      console.error('Failed to submit RSVP', err)
+      setSubmitError(tCommon('submitError'))
     },
   })
 
@@ -210,7 +198,7 @@ export default function MainRsvpForm({
           const householdId = rsvpFormData.selectedHousehold?.id
 
           if (!subUrl || !householdId) {
-            setSubmitError('Something went wrong. Please refresh the page and try again.')
+            setSubmitError(tCommon('genericError'))
             return
           }
 
@@ -298,6 +286,7 @@ const ProgressBar = ({
   basePath: string
   embedded: boolean
 }) => {
+  const tCommon = useTranslations('common')
   return (
     <div
       className={`${embedded ? 'relative mx-auto max-w-xl' : 'fixed top-0 z-10'} w-full bg-background px-10 py-3 text-center`}
@@ -318,7 +307,7 @@ const ProgressBar = ({
         <IoMdClose size={22} />
       </button>
       <p className='py-2 font-[family-name:var(--tpl-body-font)] text-foreground text-lg tracking-wide'>
-        RSVP
+        {tCommon('rsvpFormTitle')}
       </p>
       <div className='relative h-1 w-full overflow-hidden rounded-full bg-border'>
         <div

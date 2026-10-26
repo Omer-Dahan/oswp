@@ -10,7 +10,10 @@
     "outlook": "Outlook",
     "appleCalendar": "Apple Calendar",
     "downloadIcs": "Download .ics",
-    "privacyPolicy": "View Our Privacy Policy"
+    "privacyPolicy": "View Our Privacy Policy",
+    "rsvpFormTitle": "RSVP",
+    "submitError": "Failed to submit RSVP. Please try again.",
+    "genericError": "Something went wrong. Please refresh the page and try again."
   },
   "invite": {
     "saveTheDate": "Save the date",
@@ -191,14 +194,38 @@
         "backHome": "← Home"
       },
       "pages": {
-        "weekend": { "title": "Wedding Weekend", "description": "The moments we can't wait to share with you." },
-        "stay": { "title": "Where to Stay", "description": "Find your home for the weekend, with booking details close at hand." },
-        "travel": { "title": "Travel", "description": "Everything you need for the journey and your time here." },
-        "puebla": { "title": "Explore Puebla", "description": "A little local inspiration for the time between celebrations." },
-        "mexico": { "title": "Explore Mexico", "description": "Make a longer adventure of your journey." },
-        "story": { "title": "Our Story", "description": "The people, places and moments that brought us here." },
-        "faq": { "title": "FAQs & Contact", "description": "A few useful answers, and a way to stay in touch." },
-        "registry": { "title": "Registry", "description": "Your presence means the world to us." }
+        "weekend": {
+          "title": "Wedding Weekend",
+          "description": "The moments we can't wait to share with you."
+        },
+        "stay": {
+          "title": "Where to Stay",
+          "description": "Find your home for the weekend, with booking details close at hand."
+        },
+        "travel": {
+          "title": "Travel",
+          "description": "Everything you need for the journey and your time here."
+        },
+        "puebla": {
+          "title": "Explore Puebla",
+          "description": "A little local inspiration for the time between celebrations."
+        },
+        "mexico": {
+          "title": "Explore Mexico",
+          "description": "Make a longer adventure of your journey."
+        },
+        "story": {
+          "title": "Our Story",
+          "description": "The people, places and moments that brought us here."
+        },
+        "faq": {
+          "title": "FAQs & Contact",
+          "description": "A few useful answers, and a way to stay in touch."
+        },
+        "registry": {
+          "title": "Registry",
+          "description": "Your presence means the world to us."
+        }
       },
       "minimal": {
         "youAreInvited": "You are invited",
