@@ -135,7 +135,7 @@ export default function QuestionMultipleChoice({
             {tCommon('skip')}
           </StepSecondaryButton>
         )}
-        <StepSecondaryButton type='submit' onClick={() => goBack?.()}>
+        <StepSecondaryButton onClick={() => goBack?.()}>
           {tCommon('back')}
         </StepSecondaryButton>
       </StepActions>

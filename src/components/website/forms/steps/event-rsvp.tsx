@@ -96,7 +96,7 @@ export default function EventRsvpForm({
         >
           {tCommon('continue')}
         </StepPrimaryButton>
-        <StepSecondaryButton type='submit' onClick={() => goBack?.()}>
+        <StepSecondaryButton onClick={() => goBack?.()}>
           {tCommon('back')}
         </StepSecondaryButton>
       </StepActions>
