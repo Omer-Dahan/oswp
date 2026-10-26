@@ -98,12 +98,17 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
   const onContinue = () => {
     if (household) {
       const responses = namedGuests.flatMap((guest) =>
-        guest.invitations.map((invite) => ({
-          eventId: invite.eventId,
-          guestId: guest.id,
-          guestName: `${guest.firstName} ${guest.lastName}`,
-          rsvp: attendingGuestIds.has(guest.id) ? 'Attending' : 'Declined',
-        }))
+        guest.invitations
+          .filter(
+            (invite) =>
+              !rsvpFormData.preselectedEventId || invite.eventId === rsvpFormData.preselectedEventId
+          )
+          .map((invite) => ({
+            eventId: invite.eventId,
+            guestId: guest.id,
+            guestName: `${guest.firstName} ${guest.lastName}`,
+            rsvp: attendingGuestIds.has(guest.id) ? 'Attending' : 'Declined',
+          }))
       )
 
       updateRsvpForm({
