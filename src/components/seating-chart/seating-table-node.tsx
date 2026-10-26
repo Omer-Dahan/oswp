@@ -16,6 +16,7 @@ import {
   getTableSurface,
   SEAT_SIZE,
 } from '~/components/seating-chart/seating-layout'
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
 import { cn } from '~/lib/utils'
 import { getOccupiedSeats, tableHasRoom } from '~/server/domains/seating/seating.rules'
 import type { SeatingGuest, SeatingTableView } from '~/server/domains/seating/seating.types'
@@ -48,23 +49,27 @@ function SeatedGuest(
   })
 
   return (
-    <button
-      ref={setNodeRef}
-      data-seating-focus-key={`seat-guest:${guest.id}`}
-      type='button'
-      title={name}
-      aria-label={`${name}. Press Space to move, or Enter for details.`}
-      onClick={onSelect}
-      {...attributes}
-      {...listeners}
-      style={seatStyle(x, y)}
-      className={cn(
-        'absolute flex touch-manipulation items-center justify-center rounded-full border border-foreground/30 bg-card text-[0.6rem] text-foreground tabular-nums shadow-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        isDragging && 'opacity-30'
-      )}
-    >
-      {getInitials(guest)}
-    </button>
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <button
+          ref={setNodeRef}
+          data-seating-focus-key={`seat-guest:${guest.id}`}
+          type='button'
+          aria-label={`${name}. Press Space to move, or Enter for details.`}
+          onClick={onSelect}
+          {...attributes}
+          {...listeners}
+          style={seatStyle(x, y)}
+          className={cn(
+            'absolute flex touch-manipulation items-center justify-center rounded-full border border-foreground/30 bg-card text-[0.6rem] text-foreground tabular-nums shadow-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            isDragging && 'opacity-30'
+          )}
+        >
+          {getInitials(guest)}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{name}</TooltipContent>
+    </Tooltip>
   )
 }
 
