@@ -7,15 +7,16 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import { createPortal } from 'react-dom'
 import { cn } from '~/lib/utils'
 
-/** The only JS timer: how long the pointer must dwell before the card opens. */
-const HOVER_INTENT_MS = 500
 /** One slow, gentle journey to the centre — and back. */
 const OPEN_MS = 900
 const CLOSE_MS = 700
 const CURVE_IN = 'cubic-bezier(0.32, 0.72, 0, 1)'
 const CURVE_OUT = 'cubic-bezier(0.32, 0.72, 0, 1)'
+/** Subtle lift on hover — opening only happens on click. */
+const HOVER_MS = 200
 
 const SHADOW_REST = '0 12px 32px rgba(46,38,32,.12)'
+const SHADOW_HOVER = '0 20px 48px rgba(46,38,32,.18)'
 const SHADOW_GROWN = '0 40px 90px rgba(46,38,32,.28)'
 
 function usePrefersReducedMotion(): boolean {
@@ -83,14 +84,14 @@ type HeroCardProps = {
 }
 
 /**
- * One of the home's interactive cards. Resting the pointer on it for 250ms
- * (desktop, `hover: hover` + `pointer: fine`) — or clicking/tapping — journeys
- * it to the centre of the viewport in one slow, continuous 900ms motion,
- * growing to `min(92vw, 92svh)`; the backdrop blurs and veils only once it has
- * arrived, and the greeting/buttons sit beneath it (the open card portals to
- * the top of the body). Leaving, Escape, or a backdrop click returns it in a
- * 700ms reverse journey. Every moving property shares one transition — no
- * stepped intermediate sizes.
+ * One of the home's interactive cards. Hovering only lifts it subtly (scale
+ * 1.02 + shadow, 200ms); clicking/tapping journeys it to the centre of the
+ * viewport in one slow, continuous 900ms motion, growing to `min(92vw,
+ * 92svh)`; the backdrop blurs and veils only once it has arrived, and the
+ * greeting/buttons sit beneath it (the open card portals to the top of the
+ * body). Leaving, Escape, or a backdrop click returns it in a 700ms reverse
+ * journey. Every moving property shares one transition — no stepped
+ * intermediate sizes.
  */
 export function HeroCard({
   src,
@@ -106,6 +107,7 @@ export function HeroCard({
   const reducedMotion = usePrefersReducedMotion()
 
   const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const [direction, setDirection] = useState<'in' | 'out'>('in')
   const [flipFrom, setFlipFrom] = useState<string | null>(null)
   const [suppressTransition, setSuppressTransition] = useState(false)
@@ -113,30 +115,15 @@ export function HeroCard({
 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
-  const intentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const openRef = useRef(open)
   const flipRafRef = useRef<number | null>(null)
 
   const isSiblingReceding = group !== null && group.activeId !== null && group.activeId !== id
 
   useEffect(() => {
-    openRef.current = open
-  }, [open])
-
-  useEffect(() => {
     if (open) group?.setActiveId(id)
     else if (group?.activeId === id) group?.setActiveId(null)
   }, [open, id, group])
-
-  const clearIntentTimer = useCallback(() => {
-    if (intentTimerRef.current) {
-      clearTimeout(intentTimerRef.current)
-      intentTimerRef.current = null
-    }
-  }, [])
-
-  useEffect(() => () => clearIntentTimer(), [clearIntentTimer])
 
   // The backdrop blurs and veils only once the card has arrived at the centre:
   // schedule that flip for when the journey completes, and clear it on close.
@@ -172,7 +159,6 @@ export function HeroCard({
   }, [open, suppressTransition])
 
   const close = useCallback(() => {
-    clearIntentTimer()
     setDirection('out')
     if (reducedMotion) {
       setOpen(false)
@@ -182,14 +168,13 @@ export function HeroCard({
     }
     const rect = triggerRef.current?.getBoundingClientRect()
     if (rect) setFlipFrom(flipTransformFor(rect))
-  }, [reducedMotion, clearIntentTimer])
+  }, [reducedMotion])
 
   const handleClick = useCallback(() => {
     if (open) {
       close()
       return
     }
-    clearIntentTimer()
     setDirection('in')
     if (reducedMotion) {
       setOpen(true)
@@ -201,27 +186,16 @@ export function HeroCard({
       setSuppressTransition(true)
     }
     setOpen(true)
-  }, [open, reducedMotion, close, clearIntentTimer])
+  }, [open, reducedMotion, close])
 
   const handleMouseEnter = useCallback(() => {
-    if (mobile || open || reducedMotion) return
-    if (document.visibilityState === 'hidden') return
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    intentTimerRef.current = setTimeout(() => {
-      if (openRef.current) return
-      const rect = triggerRef.current?.getBoundingClientRect()
-      if (rect) {
-        setFlipFrom(flipTransformFor(rect))
-        setSuppressTransition(true)
-      }
-      setDirection('in')
-      setOpen(true)
-    }, HOVER_INTENT_MS)
-  }, [mobile, open, reducedMotion])
+    if (mobile) return
+    setHovered(true)
+  }, [mobile])
 
   const handleMouseLeave = useCallback(() => {
-    clearIntentTimer()
-  }, [clearIntentTimer])
+    setHovered(false)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -252,8 +226,9 @@ export function HeroCard({
         )}
         style={{
           opacity: open ? 0 : isSiblingReceding ? 0.35 : 1,
-          boxShadow: SHADOW_REST,
-          transition: 'opacity 300ms cubic-bezier(0.32, 0.72, 0, 1)',
+          transform: !open && hovered ? 'scale(1.02)' : 'scale(1)',
+          boxShadow: !open && hovered ? SHADOW_HOVER : SHADOW_REST,
+          transition: `opacity 300ms cubic-bezier(0.32, 0.72, 0, 1), transform ${HOVER_MS}ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow ${HOVER_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
         }}
       >
         <Image
