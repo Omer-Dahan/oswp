@@ -17,6 +17,7 @@ type RsvpPageProps = {
   }>
   searchParams?: Promise<{
     event?: string
+    decline?: string
   }>
 }
 
@@ -80,6 +81,7 @@ export default async function RsvpPage({ params, searchParams }: RsvpPageProps) 
     <RsvpFormProvider
       recognizedHousehold={recognizedHousehold}
       preselectedEventId={resolvedSearchParams?.event}
+      declineIntent={resolvedSearchParams?.decline === '1'}
     >
       <MainRsvpForm
         weddingData={loadResult.weddingData}

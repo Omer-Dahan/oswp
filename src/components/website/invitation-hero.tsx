@@ -92,7 +92,7 @@ function SecondaryActions({
           </button>
         </form>
       ) : (
-        <Link href={rsvpHref} className={SECONDARY_LINK_CLASSES}>
+        <Link href={`${rsvpHref}?decline=1`} className={SECONDARY_LINK_CLASSES}>
           לצערינו לא מתאפשר
         </Link>
       )}

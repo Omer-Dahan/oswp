@@ -9,6 +9,7 @@ import { AsyncState } from '~/components/ui/async-state'
 import MultistepRsvpForm from '~/components/website/forms/multi-step-form'
 import ChildrenCountForm from '~/components/website/forms/steps/children-count'
 import ConfirmNameForm from '~/components/website/forms/steps/confirm-name'
+import DeclineConfirmForm from '~/components/website/forms/steps/decline-confirm'
 import DietaryNotesForm from '~/components/website/forms/steps/dietary-notes'
 import EventRsvpForm from '~/components/website/forms/steps/event-rsvp'
 import FindYourInvitationForm from '~/components/website/forms/steps/find-your-invitation'
@@ -55,6 +56,11 @@ const getMutationErrorMessage = (error: unknown, fallback: string): string => {
 // dietary-notes, final step, and confirmation
 const NUM_STATIC_STEPS = 7
 
+// The short decline-intent flow (`?decline=1`): find invitation, confirm
+// household, a single decline confirmation, final step, and confirmation —
+// it skips who-is-coming/children/dietary/per-event steps entirely.
+const NUM_DECLINE_STEPS = 5
+
 export const shouldConfirmRsvpClose = ({
   currentStep,
   numSteps,
@@ -70,7 +76,8 @@ export default function MainRsvpForm({
   accessToken,
 }: MainRsvpFormProps) {
   const rsvpFormData = useRsvpForm()
-  const numSteps = useRef(NUM_STATIC_STEPS)
+  const isDeclineFlow = rsvpFormData.declineIntent === true
+  const numSteps = useRef(isDeclineFlow ? NUM_DECLINE_STEPS : NUM_STATIC_STEPS)
   const updateRsvpForm = useUpdateRsvpForm()
   // A recognized guest (identified by their save-the-date invite) skips the name
   // search and lands on the confirm step (step 2).
@@ -230,10 +237,16 @@ export default function MainRsvpForm({
         <MultistepRsvpForm currentStep={currentStep} setCurrentStep={setCurrentStep}>
           <FindYourInvitationForm accessToken={accessToken} />
           <ConfirmNameForm />
-          <WhoIsComingForm />
-          <ChildrenCountForm />
-          <DietaryNotesForm />
-          {...generateDynamicStepForms()}
+          {isDeclineFlow ? (
+            <DeclineConfirmForm />
+          ) : (
+            [
+              <WhoIsComingForm key='who-is-coming' />,
+              <ChildrenCountForm key='children-count' />,
+              <DietaryNotesForm key='dietary-notes' />,
+              ...generateDynamicStepForms(),
+            ]
+          )}
           <SendRsvp isFetching={submitRsvpForm.isPending} />
           <RsvpConfirmation basePath={basePath} />
         </MultistepRsvpForm>
