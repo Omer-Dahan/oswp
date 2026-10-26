@@ -396,6 +396,24 @@ export class GuestRepository {
         .map((existing) => toFullName(existing.firstName, existing.lastName))
     )
 
+    if (matchedExistingIds.size > 0 && attendingEventIds.length > 0) {
+      // A tag-along kept across resubmissions may be missing invitation rows
+      // from an earlier submission that computed no attending events (e.g.
+      // the household declined by name but this guest still attends) —
+      // skipDuplicates leaves any already-created row untouched.
+      await this.db.invitation.createMany({
+        data: Array.from(matchedExistingIds).flatMap((guestId) =>
+          attendingEventIds.map((eventId) => ({
+            guestId,
+            eventId,
+            weddingId,
+            rsvp: 'Attending',
+          }))
+        ),
+        skipDuplicates: true,
+      })
+    }
+
     for (const name of names) {
       const trimmedName = name.trim()
       if (existingNames.has(trimmedName)) continue
