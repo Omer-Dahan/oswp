@@ -72,6 +72,7 @@
     "confirmationThanksFamily": "Thank you, the {lastName} family",
     "confirmationThanksName": "Thank you, {firstName}",
     "confirmationThanksFallback": "Thank you!",
+    "confirmationDeclinedThanks": "Thanks for letting us know 🤍",
     "confirmationCount": "We confirmed {count} guests",
     "confirmationCountWithChildren": "We confirmed {count} guests · {children} children",
     "backToHomepage": "BACK TO HOMEPAGE",
