@@ -154,24 +154,20 @@ export class RsvpSubmissionService {
       const txHouseholdRepo = new HouseholdRepository(tx)
       const txGuestRepo = new GuestRepository(tx)
 
-      await Promise.all(
-        data.rsvpResponses.map(async (response: RsvpResponse) => {
-          await txInvitationRepo.update(response.guestId, response.eventId, {
-            rsvp: response.rsvp,
-            submittedAt: new Date(),
-          })
+      for (const response of data.rsvpResponses as RsvpResponse[]) {
+        await txInvitationRepo.update(response.guestId, response.eventId, {
+          rsvp: response.rsvp,
+          submittedAt: new Date(),
         })
-      )
+      }
 
-      await Promise.all(
-        data.answersToQuestions.map(async (answer: AnswerToQuestion) => {
-          if (answer.questionType === 'Option') {
-            await this.processOptionAnswer(txQuestionRepo, answer)
-          } else {
-            await this.processTextAnswer(txQuestionRepo, answer)
-          }
-        })
-      )
+      for (const answer of data.answersToQuestions as AnswerToQuestion[]) {
+        if (answer.questionType === 'Option') {
+          await this.processOptionAnswer(txQuestionRepo, answer)
+        } else {
+          await this.processTextAnswer(txQuestionRepo, answer)
+        }
+      }
 
       if (householdPartyDetails) {
         await txHouseholdRepo.updateRsvpPartyDetails(householdPartyDetails.householdId, {
