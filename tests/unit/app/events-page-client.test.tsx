@@ -198,7 +198,7 @@ describe('EventsPageClient', () => {
   it('renders create form only after create action is clicked', () => {
     render(<EventsPageClient initialEvents={[baseEvent]} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /create event/i }))
+    fireEvent.click(screen.getByRole('button', { name: /יצירת אירוע/ }))
     expect(screen.getByTestId('create-event-form')).toBeInTheDocument()
     expect(mockModernEventForm).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -210,21 +210,21 @@ describe('EventsPageClient', () => {
   it('renders actions dropdown trigger for each event card', () => {
     render(<EventsPageClient initialEvents={[baseEvent]} />)
 
-    expect(screen.getByRole('button', { name: /event actions/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /פעולות אירוע/ })).toBeInTheDocument()
   })
 
   it('shows RSVP context banner when arriving from guest drawer link', () => {
     render(<EventsPageClient initialEvents={[baseEvent]} initialRsvpEventId='evt-1' />)
 
     expect(
-      screen.getByText('Managing RSVPs for "Ceremony" — find the event card below.')
+      screen.getByText('ניהול אישורי הגעה עבור ״Ceremony״ — כרטיס האירוע מופיע למטה.')
     ).toBeInTheDocument()
   })
 
   it('triggers collect RSVP mutation when event toggle is changed', () => {
     render(<EventsPageClient initialEvents={[baseEvent]} />)
 
-    fireEvent.click(screen.getByRole('switch', { name: /toggle rsvp collection/i }))
+    fireEvent.click(screen.getByRole('switch', { name: /איסוף אישורי הגעה/ }))
 
     expect(mockUpdateCollectRsvpMutate).toHaveBeenCalledWith({
       eventId: 'evt-1',

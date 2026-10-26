@@ -55,6 +55,7 @@ describe('resolveInvitedHousehold', () => {
     await expect(resolveInvitedHousehold('johnandjane', 'good-token')).resolves.toEqual({
       guestFirstNames: ['Alice', 'Bob'],
       greeting: 'Alice & Bob',
+      primaryContactGreeting: { kind: 'family', name: 'Stone' },
     })
     expect(mockGetInviteData).toHaveBeenCalledWith('johnandjane', 'good-token')
   })

@@ -45,7 +45,7 @@ describe('EventCard', () => {
     expect(screen.getByText('Ceremony')).toBeInTheDocument()
     expect(screen.getByText('Main Hall')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: /manage guests|guests/i }))
+    fireEvent.click(screen.getByRole('button', { name: /מוזמנים/ }))
     expect(onManageGuests).toHaveBeenCalledWith('evt-1')
   })
 
@@ -66,7 +66,7 @@ describe('EventCard', () => {
       />
     )
 
-    expect(screen.getByText(/17 of 20 guests invited/)).toBeInTheDocument()
+    expect(screen.getByText(/17 מתוך 20 אורחים הוזמנו/)).toBeInTheDocument()
   })
 
   it('renders the actions dropdown trigger', () => {
@@ -81,7 +81,7 @@ describe('EventCard', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: /event actions/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /פעולות אירוע/ })).toBeInTheDocument()
   })
 
   it('calls RSVP toggle callback when collect RSVP switch is changed', () => {
@@ -98,7 +98,7 @@ describe('EventCard', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('switch', { name: /toggle rsvp collection/i }))
+    fireEvent.click(screen.getByRole('switch', { name: /איסוף אישורי הגעה/ }))
     expect(onToggleCollectRsvp).toHaveBeenCalledWith('evt-1', false)
   })
 })

@@ -53,7 +53,7 @@ describe('GuestListPage', () => {
     const { container } = render(page)
 
     expect(mockDashboardTopbar).toHaveBeenCalledWith({
-      title: 'Guest List',
+      title: 'רשימת אורחים',
       showManagementActions: false,
     })
     expect(screen.getByTestId('dashboard-topbar')).toBeInTheDocument()

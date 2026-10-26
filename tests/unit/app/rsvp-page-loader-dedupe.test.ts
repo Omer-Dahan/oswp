@@ -43,6 +43,21 @@ jest.mock('~/components/website/password-page', () => ({
   default: () => createElement('div', null, 'Password'),
 }))
 
+jest.mock('~/components/website/rsvp-not-accepting-message', () => ({
+  __esModule: true,
+  default: () => createElement('div', null, 'NotAccepting'),
+}))
+
+jest.mock('~/templates', () => ({
+  resolveTemplate: jest.fn(() => ({ id: 'voyage' })),
+  TemplateThemeProvider: ({ children }: { children: ReactNode }) =>
+    createElement('div', null, children),
+}))
+
+jest.mock('~/templates/voyage/components/site-shell', () => ({
+  VoyageSiteShell: ({ children }: { children: ReactNode }) => createElement('div', null, children),
+}))
+
 jest.mock('next/headers', () => ({
   cookies: jest.fn(async () => ({
     get: mockCookiesGet,
