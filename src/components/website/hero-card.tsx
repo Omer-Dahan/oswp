@@ -109,10 +109,12 @@ export function HeroCard({
   const [direction, setDirection] = useState<'in' | 'out'>('in')
   const [flipFrom, setFlipFrom] = useState<string | null>(null)
   const [suppressTransition, setSuppressTransition] = useState(false)
+  const [settled, setSettled] = useState(false)
 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const intentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const openRef = useRef(open)
   const flipRafRef = useRef<number | null>(null)
 
@@ -135,6 +137,23 @@ export function HeroCard({
   }, [])
 
   useEffect(() => () => clearIntentTimer(), [clearIntentTimer])
+
+  // The backdrop blurs and veils only once the card has arrived at the centre:
+  // schedule that flip for when the journey completes, and clear it on close.
+  useEffect(() => {
+    if (!open) {
+      setSettled(false)
+      return
+    }
+    if (reducedMotion) {
+      setSettled(true)
+      return
+    }
+    settleTimerRef.current = setTimeout(() => setSettled(true), OPEN_MS)
+    return () => {
+      if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
+    }
+  }, [open, reducedMotion])
 
   // Once the open card mounts at its FLIP start position, release it to the
   // identity transform on the next frame so it journeys to the centre.
@@ -269,13 +288,11 @@ export function HeroCard({
               aria-hidden
               className='absolute inset-0'
               style={{
-                backgroundColor: `oklch(0.2 0.01 48 / ${reducedMotion ? 38 : direction === 'in' ? 0 : 38}%)`,
-                filter: `blur(${reducedMotion ? 12 : direction === 'in' ? 0 : 12}px)`,
+                backgroundColor: `oklch(0.2 0.01 48 / ${settled ? 38 : 0}%)`,
+                filter: `blur(${settled ? 12 : 0}px)`,
                 transition: reducedMotion
                   ? 'none'
-                  : direction === 'in'
-                    ? `background-color 350ms cubic-bezier(0.32, 0.72, 0, 1) ${OPEN_MS}ms, filter 350ms cubic-bezier(0.32, 0.72, 0, 1) ${OPEN_MS}ms`
-                    : 'background-color 350ms cubic-bezier(0.32, 0.72, 0, 1), filter 350ms cubic-bezier(0.32, 0.72, 0, 1)',
+                  : 'background-color 350ms cubic-bezier(0.32, 0.72, 0, 1), filter 350ms cubic-bezier(0.32, 0.72, 0, 1)',
               }}
             />
             <div
