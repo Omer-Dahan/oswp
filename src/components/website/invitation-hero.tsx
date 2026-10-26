@@ -48,21 +48,20 @@ function RsvpPills({
   size: RsvpPillSize
 }) {
   if (!isRsvpEnabled || !weddingEvent) return null
+  // A household invited to both events would have its event-scoped submission
+  // (and all household-level answers alongside it) silently dropped by the
+  // server (see coversAllHouseholdEvents in rsvp-submission.service.ts) —
+  // only safe to preselect a single event when there is just one to begin
+  // with, so the full flow handles every multi-event household itself.
+  const hasMultipleEvents = chuppahEvent !== null
+  const weddingHref = hasMultipleEvents ? rsvpHref : `${rsvpHref}?event=${weddingEvent.id}`
   return (
     <div className='flex flex-col items-center gap-2 min-[376px]:flex-row'>
-      <Link
-        href={`${rsvpHref}?event=${weddingEvent.id}`}
-        aria-label='אישור הגעה לחתונה'
-        className={RSVP_PILL_CLASSES[size]}
-      >
+      <Link href={weddingHref} aria-label='אישור הגעה לחתונה' className={RSVP_PILL_CLASSES[size]}>
         אישור הגעה לחתונה
       </Link>
       {chuppahEvent ? (
-        <Link
-          href={`${rsvpHref}?event=${chuppahEvent.id}`}
-          aria-label='אישור הגעה לחופה'
-          className={RSVP_PILL_CLASSES[size]}
-        >
+        <Link href={rsvpHref} aria-label='אישור הגעה לחופה' className={RSVP_PILL_CLASSES[size]}>
           אישור הגעה לחופה
         </Link>
       ) : null}
