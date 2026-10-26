@@ -40,7 +40,7 @@ const cssVars: CSSProperties = {
   '--input': '0.8736 0.0243 79.73',
   '--ring': '0.54 0.1178 38.30',
   '--tpl-heading-font': 'var(--tpl-voyage-display), var(--tpl-hebrew-serif), serif',
-  '--tpl-body-font': 'var(--tpl-voyage-body), var(--tpl-hebrew-serif), serif',
+  '--tpl-body-font': 'var(--tpl-voyage-body), var(--tpl-hebrew-sans), sans-serif',
   '--tpl-label-font': 'var(--tpl-voyage-sans), var(--tpl-hebrew-sans), sans-serif',
   '--tpl-script-font': 'var(--tpl-voyage-script), var(--tpl-hebrew-serif), serif',
 } as CSSProperties
