@@ -40,6 +40,13 @@ type RsvpFormState = {
   recognized?: boolean
   /** Event preselected via `?event=` on the RSVP link (e.g. the home's per-event pills). */
   preselectedEventId?: string
+  /**
+   * Set via `?decline=1` on the RSVP link (e.g. the home's "can't attend"
+   * secondary action for an unrecognised visitor). Switches the flow to a
+   * short, decline-only path: find invitation, confirm identity, a single
+   * respectful decline confirmation, then send.
+   */
+  declineIntent?: boolean
 }
 
 const INITIAL_STATE: RsvpFormState = {
@@ -75,6 +82,8 @@ interface RsvpFormProviderProps {
   recognizedHousehold?: HouseholdSearch[number] | null
   /** Event preselected via `?event=` on the RSVP link, so only that event's steps show. */
   preselectedEventId?: string
+  /** Set via `?decline=1` on the RSVP link, switching the flow to the short decline path. */
+  declineIntent?: boolean
 }
 
 export const useRsvpForm = () => {
@@ -89,6 +98,7 @@ export const RsvpFormProvider = ({
   children,
   recognizedHousehold,
   preselectedEventId,
+  declineIntent,
 }: RsvpFormProviderProps) => {
   const [rsvpFormData, setRsvpFormData] = useState<RsvpFormState>(() => ({
     ...INITIAL_STATE,
@@ -96,6 +106,7 @@ export const RsvpFormProvider = ({
       ? { matchedHouseholds: [recognizedHousehold], recognized: true }
       : null),
     ...(preselectedEventId ? { preselectedEventId } : null),
+    ...(declineIntent ? { declineIntent } : null),
   }))
 
   const updateFields = (fields: Partial<RsvpFormState>) => {
