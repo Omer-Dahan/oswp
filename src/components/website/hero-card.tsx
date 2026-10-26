@@ -7,16 +7,13 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import { createPortal } from 'react-dom'
 import { cn } from '~/lib/utils'
 
-type Mode = 'rest' | 'read' | 'full'
-type Direction = 'in' | 'out'
-
-/** The only JS timer in this component: how long the pointer must dwell before the card grows. */
+/** The only JS timer: how long the pointer must dwell before the card opens. */
 const HOVER_INTENT_MS = 250
-const READ_GROW_MS = 650
-const FULL_GROW_MS = 550
-const SHRINK_MS = 450
-const CURVE_IN = 'cubic-bezier(0.22, 1, 0.36, 1)'
-const CURVE_OUT = 'cubic-bezier(0.64, 0, 0.78, 0)'
+/** One slow, gentle journey to the centre — and back. */
+const OPEN_MS = 900
+const CLOSE_MS = 700
+const CURVE_IN = 'cubic-bezier(0.32, 0.72, 0, 1)'
+const CURVE_OUT = 'cubic-bezier(0.32, 0.72, 0, 1)'
 
 const SHADOW_REST = '0 12px 32px rgba(46,38,32,.12)'
 const SHADOW_GROWN = '0 40px 90px rgba(46,38,32,.28)'
@@ -33,53 +30,23 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
-function growDurationMs(mode: Mode): number {
-  return mode === 'read' ? READ_GROW_MS : FULL_GROW_MS
-}
-
-/** One continuous transition per element: same duration/curve for every property that moves. */
-function cardTransition(direction: Direction, mode: Mode, reducedMotion: boolean): string {
-  if (reducedMotion) return 'none'
-  const duration = direction === 'in' ? growDurationMs(mode) : SHRINK_MS
-  const curve = direction === 'in' ? CURVE_IN : CURVE_OUT
-  return ['transform', 'opacity', 'filter', 'box-shadow']
-    .map((property) => `${property} ${duration}ms ${curve}`)
-    .join(', ')
-}
-
-function backdropTransition(direction: Direction, reducedMotion: boolean): string {
-  if (reducedMotion) return 'none'
-  const duration = direction === 'in' ? FULL_GROW_MS : SHRINK_MS
-  const curve = direction === 'in' ? CURVE_IN : CURVE_OUT
-  return `background-color ${duration}ms ${curve}, filter ${duration}ms ${curve}`
-}
-
-type Rect = { top: number; left: number; width: number; height: number }
-
-/** The viewport-filling square the full mode settles into: `min(100svh, 100vw)`, centred. */
-function fullScreenRect(): Rect {
-  const size = Math.min(window.innerHeight, window.innerWidth)
+/** The centred square the open card settles into: `min(92vw, 92svh)`. */
+function openRect(): { top: number; left: number; size: number } {
+  const size = Math.min(window.innerWidth * 0.92, window.innerHeight * 0.92)
   return {
     top: (window.innerHeight - size) / 2,
     left: (window.innerWidth - size) / 2,
-    width: size,
-    height: size,
+    size,
   }
 }
 
-/** Transform that, applied to the full-screen box, makes it visually coincide with `from`. */
-function flipTransformFor(from: Rect): string {
-  const final = fullScreenRect()
-  const scale = from.width / final.width
-  const dx = from.left + from.width / 2 - (final.left + final.width / 2)
-  const dy = from.top + from.height / 2 - (final.top + final.height / 2)
+/** Transform that, applied to the open square, makes it coincide with `from`. */
+function flipTransformFor(from: DOMRect): string {
+  const { left, top, size } = openRect()
+  const scale = from.width / size
+  const dx = from.left + from.width / 2 - (left + size / 2)
+  const dy = from.top + from.height / 2 - (top + size / 2)
   return `translate(${dx}px, ${dy}px) scale(${scale})`
-}
-
-/** Scale that grows `rect`'s long side to `min(88vw, 88svh)`. */
-function readScaleFor(rect: Rect): number {
-  const target = Math.min(window.innerWidth * 0.88, window.innerHeight * 0.88)
-  return target / rect.width
 }
 
 const IDENTITY_TRANSFORM = 'translate(0px, 0px) scale(1)'
@@ -91,7 +58,7 @@ type HeroCardsGroupContextValue = {
 
 const HeroCardsGroupContext = createContext<HeroCardsGroupContextValue | null>(null)
 
-/** Wraps sibling HeroCards so the one not being read recedes while another expands. */
+/** Wraps sibling HeroCards so the one not open recedes while another expands. */
 export function HeroCardsGroup({
   children,
   className,
@@ -106,29 +73,24 @@ export function HeroCardsGroup({
 
 type HeroCardProps = {
   src: string
-  /** Accessible name for the card's trigger button and the expanded dialog. */
   label: string
-  /** Set on the expanded image only; the card thumbnail stays decorative. */
   expandedAlt: string
   priority?: boolean
-  /** Thumbnail sizing; defaults to the desktop square. Mobile passes its own max-height box. */
   className?: string
-  /** Thumbnail object-fit; desktop crops to fill the square, mobile shows the whole artwork. */
   fit?: 'cover' | 'contain'
-  /** Below `md`: no hover-intent zoom, since there is no hover to dwell on. */
+  /** Below `md`: no hover-intent zoom — there is no hover to dwell on. */
   mobile?: boolean
 }
 
 /**
  * One of the home's interactive cards. Resting the pointer on it for 250ms
- * (desktop only, `hover: hover` + `pointer: fine`) grows it in place, in one
- * continuous 650ms transition, to `min(88vw, 88svh)` on its long side; the
- * sibling card fades to 45% opacity and stays put. Leaving reverses that in
- * 450ms. A click (or Enter/Space, or a tap on mobile) animates once to a
- * full-screen dialog in 550ms, from wherever the card currently is; a second
- * activation, Escape, or a backdrop click returns it in 450ms. Every moving
- * property (transform, opacity, filter, box-shadow) shares one transition per
- * element - no stepped intermediate sizes.
+ * (desktop, `hover: hover` + `pointer: fine`) — or clicking/tapping — journeys
+ * it to the centre of the viewport in one slow, continuous 900ms motion,
+ * growing to `min(92vw, 92svh)`; the backdrop blurs and veils only once it has
+ * arrived, and the greeting/buttons sit beneath it (the open card portals to
+ * the top of the body). Leaving, Escape, or a backdrop click returns it in a
+ * 700ms reverse journey. Every moving property shares one transition — no
+ * stepped intermediate sizes.
  */
 export function HeroCard({
   src,
@@ -143,24 +105,27 @@ export function HeroCard({
   const group = useContext(HeroCardsGroupContext)
   const reducedMotion = usePrefersReducedMotion()
 
-  const [mode, setMode] = useState<Mode>('rest')
-  const [direction, setDirection] = useState<Direction>('in')
-  const [readScale, setReadScale] = useState(1)
+  const [open, setOpen] = useState(false)
+  const [direction, setDirection] = useState<'in' | 'out'>('in')
   const [flipFrom, setFlipFrom] = useState<string | null>(null)
   const [suppressTransition, setSuppressTransition] = useState(false)
 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const intentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const modeRef = useRef<Mode>(mode)
+  const openRef = useRef(open)
   const flipRafRef = useRef<number | null>(null)
 
-  const isActive = mode !== 'rest'
   const isSiblingReceding = group !== null && group.activeId !== null && group.activeId !== id
 
   useEffect(() => {
-    modeRef.current = mode
-  }, [mode])
+    openRef.current = open
+  }, [open])
+
+  useEffect(() => {
+    if (open) group?.setActiveId(id)
+    else if (group?.activeId === id) group?.setActiveId(null)
+  }, [open, id, group])
 
   const clearIntentTimer = useCallback(() => {
     if (intentTimerRef.current) {
@@ -169,17 +134,12 @@ export function HeroCard({
     }
   }, [])
 
-  useEffect(() => {
-    if (isActive) group?.setActiveId(id)
-    else if (group?.activeId === id) group?.setActiveId(null)
-  }, [isActive, id, group])
-
   useEffect(() => () => clearIntentTimer(), [clearIntentTimer])
 
-  // Once the full dialog mounts at its FLIP start position, release it to the
-  // identity transform on the next frame so it animates in.
+  // Once the open card mounts at its FLIP start position, release it to the
+  // identity transform on the next frame so it journeys to the centre.
   useEffect(() => {
-    if (mode !== 'full' || !suppressTransition) return
+    if (!open || !suppressTransition) return
     const raf1 = requestAnimationFrame(() => {
       flipRafRef.current = requestAnimationFrame(() => {
         setFlipFrom(null)
@@ -190,13 +150,13 @@ export function HeroCard({
       cancelAnimationFrame(raf1)
       if (flipRafRef.current !== null) cancelAnimationFrame(flipRafRef.current)
     }
-  }, [mode, suppressTransition])
+  }, [open, suppressTransition])
 
   const close = useCallback(() => {
     clearIntentTimer()
     setDirection('out')
     if (reducedMotion) {
-      setMode('rest')
+      setOpen(false)
       setFlipFrom(null)
       triggerRef.current?.focus()
       return
@@ -206,14 +166,14 @@ export function HeroCard({
   }, [reducedMotion, clearIntentTimer])
 
   const handleClick = useCallback(() => {
-    if (mode === 'full') {
+    if (open) {
       close()
       return
     }
     clearIntentTimer()
     setDirection('in')
     if (reducedMotion) {
-      setMode('full')
+      setOpen(true)
       return
     }
     const rect = triggerRef.current?.getBoundingClientRect()
@@ -221,45 +181,41 @@ export function HeroCard({
       setFlipFrom(flipTransformFor(rect))
       setSuppressTransition(true)
     }
-    setMode('full')
-  }, [mode, reducedMotion, close, clearIntentTimer])
+    setOpen(true)
+  }, [open, reducedMotion, close, clearIntentTimer])
 
   const handleMouseEnter = useCallback(() => {
-    if (mobile || mode !== 'rest' || reducedMotion) return
+    if (mobile || open || reducedMotion) return
     if (document.visibilityState === 'hidden') return
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     intentTimerRef.current = setTimeout(() => {
-      if (modeRef.current !== 'rest') return
+      if (openRef.current) return
       const rect = triggerRef.current?.getBoundingClientRect()
-      if (rect) setReadScale(readScaleFor(rect))
+      if (rect) {
+        setFlipFrom(flipTransformFor(rect))
+        setSuppressTransition(true)
+      }
       setDirection('in')
-      setMode('read')
+      setOpen(true)
     }, HOVER_INTENT_MS)
-  }, [mobile, mode, reducedMotion])
+  }, [mobile, open, reducedMotion])
 
   const handleMouseLeave = useCallback(() => {
     clearIntentTimer()
-    if (mode === 'read') {
-      setDirection('out')
-      setMode('rest')
-    }
-  }, [mode, clearIntentTimer])
+  }, [clearIntentTimer])
 
   useEffect(() => {
-    if (mode !== 'full') return
+    if (!open) return
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') close()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [mode, close])
+  }, [open, close])
 
   useEffect(() => {
-    if (mode === 'full') closeButtonRef.current?.focus()
-  }, [mode])
-
-  const scale = reducedMotion ? 1 : mode === 'read' ? readScale : 1
-  const veil = mode === 'full' ? 0.38 : 0
+    if (open) closeButtonRef.current?.focus()
+  }, [open])
 
   return (
     <>
@@ -267,7 +223,7 @@ export function HeroCard({
         ref={triggerRef}
         type='button'
         aria-label={label}
-        aria-expanded={isActive}
+        aria-expanded={open}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -276,12 +232,9 @@ export function HeroCard({
           className ?? 'aspect-square h-[50.4svh] max-h-[528px]'
         )}
         style={{
-          transform: mode === 'full' ? 'none' : `scale(${scale})`,
-          transformOrigin: 'center',
-          zIndex: isActive ? 20 : 0,
-          opacity: isSiblingReceding ? 0.45 : 1,
-          boxShadow: mode === 'rest' ? SHADOW_REST : SHADOW_GROWN,
-          transition: mode === 'full' ? 'none' : cardTransition(direction, mode, reducedMotion),
+          opacity: open ? 0 : isSiblingReceding ? 0.35 : 1,
+          boxShadow: SHADOW_REST,
+          transition: 'opacity 300ms cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       >
         <Image
@@ -295,7 +248,7 @@ export function HeroCard({
         />
       </button>
 
-      {mode === 'full' &&
+      {open &&
         createPortal(
           <div
             className='fixed inset-0 z-50 flex items-center justify-center'
@@ -316,26 +269,34 @@ export function HeroCard({
               aria-hidden
               className='absolute inset-0'
               style={{
-                backgroundColor: `oklch(0.2 0.01 48 / ${veil * 100}%)`,
-                filter: `blur(${veil > 0 ? 12 : 0}px)`,
-                transition: backdropTransition(direction, reducedMotion),
+                backgroundColor: `oklch(0.2 0.01 48 / ${reducedMotion ? 38 : direction === 'in' ? 0 : 38}%)`,
+                filter: `blur(${reducedMotion ? 12 : direction === 'in' ? 0 : 12}px)`,
+                transition: reducedMotion
+                  ? 'none'
+                  : direction === 'in'
+                    ? `background-color 350ms cubic-bezier(0.32, 0.72, 0, 1) ${OPEN_MS}ms, filter 350ms cubic-bezier(0.32, 0.72, 0, 1) ${OPEN_MS}ms`
+                    : 'background-color 350ms cubic-bezier(0.32, 0.72, 0, 1), filter 350ms cubic-bezier(0.32, 0.72, 0, 1)',
               }}
             />
             <div
-              className='relative h-[min(100svh,100vw)] w-[min(100svh,100vw)] overflow-hidden rounded-xl bg-card'
+              className='relative h-[min(92svh,92vw)] w-[min(92svh,92vw)] overflow-hidden rounded-xl bg-card'
               style={{
                 transform: flipFrom ?? IDENTITY_TRANSFORM,
                 transformOrigin: 'center',
                 boxShadow: SHADOW_GROWN,
                 transition: suppressTransition
                   ? 'none'
-                  : cardTransition(direction, mode, reducedMotion),
+                  : reducedMotion
+                    ? 'none'
+                    : direction === 'in'
+                      ? `transform ${OPEN_MS}ms ${CURVE_IN}, box-shadow ${OPEN_MS}ms ${CURVE_IN}`
+                      : `transform ${CLOSE_MS}ms ${CURVE_OUT}, box-shadow ${CLOSE_MS}ms ${CURVE_OUT}`,
               }}
               onTransitionEnd={(event) => {
                 if (event.target !== event.currentTarget) return
                 if (event.propertyName !== 'transform') return
-                if (direction !== 'out' || mode !== 'full') return
-                setMode('rest')
+                if (direction !== 'out') return
+                setOpen(false)
                 setFlipFrom(null)
                 triggerRef.current?.focus()
               }}
