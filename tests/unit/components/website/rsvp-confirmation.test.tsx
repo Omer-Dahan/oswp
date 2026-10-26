@@ -5,15 +5,26 @@ import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 const translations: Record<string, string> = {
   'common.addToCalendar': 'ADD TO CALENDAR',
   'common.downloadIcs': 'DOWNLOAD ICS',
-  'rsvp.confirmationTitle': 'CONFIRMATION',
+  'rsvp.confirmationThanksFamily': 'THANK YOU, THE {lastName} FAMILY',
+  'rsvp.confirmationThanksName': 'THANK YOU, {firstName}',
+  'rsvp.confirmationThanksFallback': 'THANK YOU',
+  'rsvp.confirmationCount': 'WE CONFIRMED {count} GUESTS',
+  'rsvp.confirmationCountWithChildren': 'WE CONFIRMED {count} GUESTS · {children} CHILDREN',
   'rsvp.backToHomepage': 'BACK TO HOMEPAGE',
-  'rsvp.yourRsvpResponse': 'YOUR RESPONSE',
-  'rsvp.updateResponse': 'UPDATE RESPONSE',
+  'rsvp.accepted': 'ACCEPTED',
+  'rsvp.declined': 'DECLINED',
+  'rsvp.dietaryNotesTitle': 'DIETARY NOTES',
 }
 
 jest.mock('next-intl', () => ({
-  useTranslations: (namespace: string) => (key: string) =>
-    translations[`${namespace}.${key}`] ?? key,
+  useTranslations: (namespace: string) => (key: string, values?: Record<string, unknown>) => {
+    const template = translations[`${namespace}.${key}`] ?? key
+    if (!values) return template
+    return Object.entries(values).reduce(
+      (acc, [name, value]) => acc.replace(`{${name}}`, String(value)),
+      template
+    )
+  },
 }))
 
 jest.mock('next/link', () => {
@@ -23,9 +34,18 @@ jest.mock('next/link', () => {
   return MockLink
 })
 
+jest.mock('next/image', () => {
+  const MockImage = ({ alt }: { alt: string }) => <img alt={alt} />
+  return MockImage
+})
+
 let mockFormState: {
   weddingData: { groomFirstName?: string; brideFirstName?: string; events: unknown[] }
   rsvpResponses: unknown[]
+  selectedHousehold?: unknown
+  attendingCount?: number
+  childrenCount?: number
+  dietaryNotes?: string
 }
 
 jest.mock('~/components/contexts/rsvp-form-context', () => ({
@@ -47,9 +67,10 @@ describe('RsvpConfirmation', () => {
         { eventId: 'e1', guestId: 'g1', guestName: 'Harry Potter', rsvp: 'Attending' },
         { eventId: 'e2', guestId: 'g1', guestName: 'Harry Potter', rsvp: 'Attending' },
       ],
+      attendingCount: 1,
     }
 
-    render(<RsvpConfirmation basePath='/site' setCurrentStep={jest.fn()} />)
+    render(<RsvpConfirmation basePath='/site' />)
 
     const googleLinks = screen.getAllByRole('link').filter((link) =>
       (link as HTMLAnchorElement).href.startsWith('https://calendar.google.com/calendar/render')
@@ -60,5 +81,22 @@ describe('RsvpConfirmation', () => {
     expect(screen.getByText('Wedding Ceremony')).toBeInTheDocument()
     expect(screen.getByText('Rehearsal Dinner')).toBeInTheDocument()
     expect(screen.queryByText('DOWNLOAD ICS')).toBeInTheDocument()
+  })
+
+  it('shows the dietary note verbatim when the household submitted one', () => {
+    mockFormState = {
+      weddingData: {
+        groomFirstName: 'Ron',
+        brideFirstName: 'Hermione',
+        events: [],
+      },
+      rsvpResponses: [],
+      attendingCount: 2,
+      dietaryNotes: 'No nuts for Harry',
+    }
+
+    render(<RsvpConfirmation basePath='/site' />)
+
+    expect(screen.getByText('No nuts for Harry')).toBeInTheDocument()
   })
 })
