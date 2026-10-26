@@ -31,7 +31,7 @@ describe('SidebarUserAvatarButton', () => {
 
     expect(screen.getByText('Shrek')).toBeInTheDocument()
     expect(screen.getByText('SO')).toBeInTheDocument()
-    expect(screen.getByText('Admin')).toBeInTheDocument()
+    expect(screen.getByText('מנהל')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /התנתקות/ })).toBeInTheDocument()
     expect(screen.getByText('התנתקות')).toBeInTheDocument()
   })
@@ -62,6 +62,6 @@ describe('SidebarUserAvatarButton', () => {
       />
     )
 
-    expect(screen.getByText('Viewer')).toBeInTheDocument()
+    expect(screen.getByText('צופה')).toBeInTheDocument()
   })
 })

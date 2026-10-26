@@ -77,7 +77,7 @@ describe('VendorCard', () => {
       />
     )
 
-    expect(screen.getByText('Contacted')).toBeInTheDocument()
+    expect(screen.getByText('נוצר קשר')).toBeInTheDocument()
   })
 
   it('renders declined vendors with muted styling', () => {
@@ -141,7 +141,7 @@ describe('VendorCard', () => {
     )
 
     expect(screen.getByText('4.5 avg')).toBeInTheDocument()
-    const toggleButton = screen.getByRole('button', { name: /toggle ratings breakdown/i })
+    const toggleButton = screen.getByRole('button', { name: 'הצג/הסתר פירוט דירוגים' })
     expect(toggleButton).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(toggleButton)
     expect(toggleButton).toHaveAttribute('aria-expanded', 'true')

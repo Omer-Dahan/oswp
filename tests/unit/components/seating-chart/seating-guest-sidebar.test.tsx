@@ -76,10 +76,10 @@ describe('SeatingGuestSidebar', () => {
   it('filters by search', () => {
     renderSidebar()
 
-    fireEvent.change(screen.getByLabelText('Search unseated guests'), {
+    fireEvent.change(screen.getByLabelText('חיפוש אורחים ללא הושבה'), {
       target: { value: 'cara' },
     })
-    const list = screen.getByRole('complementary', { name: 'Unseated guests' })
+    const list = screen.getByRole('complementary', { name: 'אורחים ללא הושבה' })
     expect(within(list).queryByRole('button', { name: /Ann Smith/ })).not.toBeInTheDocument()
     expect(within(list).getByRole('button', { name: /Cara Jones/ })).toBeInTheDocument()
   })
@@ -127,7 +127,7 @@ describe('SeatingGuestSidebar', () => {
       </DndContext>
     )
 
-    fireEvent.change(screen.getByLabelText('Search unseated guests'), {
+    fireEvent.change(screen.getByLabelText('חיפוש אורחים ללא הושבה'), {
       target: { value: 'papa' },
     })
 
