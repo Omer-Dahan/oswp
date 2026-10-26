@@ -86,7 +86,9 @@ export default function GuestsView({
   const [showDeleteHouseholdDialog, setShowDeleteHouseholdDialog] = useState(false)
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
   const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
-  const [editingSections, setEditingSections] = useState<Set<'contactAddress' | 'notes'>>(new Set())
+  const [editingSections, setEditingSections] = useState<
+    Set<'contactAddress' | 'notes' | 'sideGroup'>
+  >(new Set())
   const [drawerDraft, setDrawerDraft] = useState<DrawerDraft>({
     email: '',
     phone: '',
@@ -98,6 +100,8 @@ export default function GuestsView({
     country: '',
     notes: '',
     likelihoodOfAttending: null,
+    side: '',
+    groupName: '',
   })
   const [drawerBaseline, setDrawerBaseline] = useState<DrawerDraft>({
     email: '',
@@ -110,6 +114,8 @@ export default function GuestsView({
     country: '',
     notes: '',
     likelihoodOfAttending: null,
+    side: '',
+    groupName: '',
   })
   const initializedDrawerHouseholdIdRef = useRef<string | undefined>(undefined)
 
@@ -216,6 +222,8 @@ export default function GuestsView({
       country: household.country ?? '',
       notes: household.notes ?? '',
       likelihoodOfAttending: household.likelihoodOfAttending ?? null,
+      side: household.side ?? '',
+      groupName: household.groupName ?? '',
     }
   }, [])
 
@@ -241,6 +249,8 @@ export default function GuestsView({
       'country',
       'notes',
       'likelihoodOfAttending',
+      'side',
+      'groupName',
     ]
     return keys.some((key) => drawerDraft[key] !== drawerBaseline[key])
   }, [drawerBaseline, drawerDraft])
@@ -279,6 +289,8 @@ export default function GuestsView({
       country: drawerDraft.country,
       notes: drawerDraft.notes,
       likelihoodOfAttending: drawerDraft.likelihoodOfAttending,
+      side: drawerDraft.side,
+      groupName: drawerDraft.groupName,
     }
 
     const guestParty = selectedCanonicalHousehold.guests.map((guest) => {
@@ -314,6 +326,8 @@ export default function GuestsView({
         country: draftSnapshot.country || null,
         notes: draftSnapshot.notes || null,
         likelihoodOfAttending: draftSnapshot.likelihoodOfAttending,
+        side: draftSnapshot.side || null,
+        groupName: draftSnapshot.groupName || null,
         guestParty,
         gifts: selectedCanonicalHousehold.gifts.map((gift) => ({
           eventId: gift.eventId,
@@ -337,6 +351,8 @@ export default function GuestsView({
                 country: draftSnapshot.country || null,
                 notes: draftSnapshot.notes || null,
                 likelihoodOfAttending: draftSnapshot.likelihoodOfAttending,
+                side: draftSnapshot.side || null,
+                groupName: draftSnapshot.groupName || null,
                 guests: household.guests.map((guest) => {
                   if (!guest.isPrimaryContact) return guest
 
@@ -623,7 +639,7 @@ export default function GuestsView({
     setIsDrawerOpen(true)
   }, [])
 
-  const toggleEditingSection = useCallback((section: 'contactAddress' | 'notes') => {
+  const toggleEditingSection = useCallback((section: 'contactAddress' | 'notes' | 'sideGroup') => {
     setEditingSections((previous) => {
       const next = new Set(previous)
       if (next.has(section)) next.delete(section)
