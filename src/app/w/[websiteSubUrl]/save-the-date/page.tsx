@@ -189,7 +189,6 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
         <div className='mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-2xl items-center'>
           <EnvelopeReveal
             coupleNames={coupleNamesText}
-            coupleNameClassName={headingFont}
             websiteSubUrl={websiteSubUrl}
           >
             <Card className='w-full overflow-hidden border-border/70 shadow-foreground/5 shadow-xl'>

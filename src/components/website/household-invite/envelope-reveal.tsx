@@ -1,15 +1,14 @@
 'use client'
 
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 
 type EnvelopeRevealProps = {
   /** Stable per-website key so the intro plays once per browser session. */
   websiteSubUrl: string
-  /** Couple names shown on the letter peeking out of the envelope. */
+  /** Couple names, used for the invitation's accessible alt text. */
   coupleNames: string
-  /** Font classes for the couple names, matched to the template (heading font, or a script font when the template defines one). */
-  coupleNameClassName: string
   /** The real invite card, rendered on the server and revealed after the intro. */
   children: ReactNode
 }
@@ -32,7 +31,6 @@ const storageKeyFor = (websiteSubUrl: string) => `household_invite_envelope_${we
 export function EnvelopeReveal({
   websiteSubUrl,
   coupleNames,
-  coupleNameClassName,
   children,
 }: Readonly<EnvelopeRevealProps>) {
   const [phase, setPhase] = useState<Phase>('pending')
@@ -78,7 +76,7 @@ export function EnvelopeReveal({
         {children}
       </div>
       {phase === 'playing' ? (
-        <EnvelopeIntro coupleNames={coupleNames} coupleNameClassName={coupleNameClassName} />
+        <EnvelopeIntro coupleNames={coupleNames} />
       ) : null}
     </>
   )
@@ -89,10 +87,7 @@ export function EnvelopeReveal({
  * meeting at the centre — the top one is the flap that opens, the other three
  * form the pocket and fully cover the letter while the envelope is closed.
  */
-function EnvelopeIntro({
-  coupleNames,
-  coupleNameClassName,
-}: Readonly<{ coupleNames: string; coupleNameClassName: string }>) {
+function EnvelopeIntro({ coupleNames }: Readonly<{ coupleNames: string }>) {
   return (
     <div
       aria-hidden='true'
@@ -102,16 +97,16 @@ function EnvelopeIntro({
         {/* Back panel the letter rests against. */}
         <div className='absolute inset-0 rounded-md border border-border bg-card shadow-foreground/10 shadow-xl' />
 
-        {/* The letter, tucked inside and rising out at the centre seam. */}
-        <div className='envelope-letter absolute inset-x-6 top-5 bottom-4 z-[5] flex flex-col items-center justify-center gap-3 rounded-sm border border-border bg-card px-6 text-center shadow-md'>
-          <span className='block h-px w-10 bg-border' />
-          <span className={`text-2xl text-card-foreground leading-tight ${coupleNameClassName}`}>
-            {coupleNames}
-          </span>
-          <span className='font-[family-name:var(--tpl-label-font,var(--tpl-body-font))] text-[0.6rem] text-muted-foreground uppercase tracking-[0.28em]'>
-            {"You're Invited"}
-          </span>
-          <span className='block h-px w-10 bg-border' />
+        {/* The invitation, tucked inside and rising out at the centre seam. */}
+        <div className='envelope-letter absolute inset-x-6 top-5 bottom-4 z-[5] overflow-hidden rounded-sm border border-border bg-card shadow-md'>
+          <Image
+            src='/brand/invitation-v2.png'
+            alt={coupleNames ? `הזמנת החתונה של ${coupleNames}` : 'הזמנת החתונה'}
+            fill
+            sizes='300px'
+            priority
+            className='object-contain'
+          />
         </div>
 
         {/* Pocket front: left / right / bottom triangles meeting at centre. */}
