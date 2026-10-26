@@ -19,7 +19,8 @@ const CHUPPAH_NAME_PATTERN = /חופה|ceremony/i
  * the chuppah/ceremony (the event whose name matches "חופה"/"ceremony",
  * case-insensitive) and the wedding itself (the remaining RSVP-able event —
  * the reception/celebration). Events with `collectRsvp: false` are never
- * candidates. When only one RSVP-able event exists, there is no chuppah.
+ * candidates. When only one RSVP-able event exists, it is always the
+ * `weddingEvent` (never null) and there is no chuppah.
  */
 export function resolveRsvpEvents(events: RsvpEventInput[]): {
   weddingEvent: RsvpEventRef | null
@@ -28,6 +29,10 @@ export function resolveRsvpEvents(events: RsvpEventInput[]): {
   const rsvpable = events.filter((event) => event.collectRsvp !== false)
 
   if (rsvpable.length === 0) return { weddingEvent: null, chuppahEvent: null }
+
+  if (rsvpable.length === 1) {
+    return { weddingEvent: rsvpable[0] ?? null, chuppahEvent: null }
+  }
 
   const chuppahEvent = rsvpable.find((event) => CHUPPAH_NAME_PATTERN.test(event.name)) ?? null
   const weddingEvent =
