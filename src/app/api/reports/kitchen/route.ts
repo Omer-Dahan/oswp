@@ -66,6 +66,7 @@ async function buildWorkbook(report: KitchenReport) {
   summarySheet.addRow({ metric: 'מנות', value: report.summary.meals })
   summarySheet.addRow({ metric: 'ילדים', value: report.summary.children })
   summarySheet.addRow({ metric: 'הגבלות תזונה', value: report.summary.dietary })
+  summarySheet.addRow({ metric: 'הערה', value: report.summaryNote })
 
   addRowsSheet(
     workbook,
