@@ -52,6 +52,8 @@
     "notFound": "Oops! We're having trouble finding your invite. Please enter your full first and last name, try another spelling, or contact the couple.",
     "findInvitation": "FIND YOUR INVITATION",
     "foundInGuestList": "we've found you in the guest list. please confirm your name below to continue with your rsvp",
+    "foundInGuestListDecline": "we've found you in the guest list. please confirm your name below to continue.",
+    "groupNoteDecline": "Enter your first and last name to find your invitation.",
     "recognizedInvitation": "we found your invitation. confirm it's you below to continue, or choose “not you” to search by name",
     "searchAgain": "SEARCH AGAIN",
     "notYou": "NOT YOU?",

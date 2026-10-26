@@ -27,7 +27,7 @@ export default function FindYourInvitationForm({
 }: FindYourInvitationFormProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
-  const { weddingData } = useRsvpForm()
+  const { weddingData, declineIntent } = useRsvpForm()
   const updateRsvpForm = useUpdateRsvpForm()
   const [name, setName] = useState<string>('')
   const [showError, setShowError] = useState<boolean>(false)
@@ -66,7 +66,7 @@ export default function FindYourInvitationForm({
           groomFirstName: weddingData.groomFirstName ?? '',
         })}
       </StepHeading>
-      <StepBody>{t('groupNote')}</StepBody>
+      <StepBody>{declineIntent ? t('groupNoteDecline') : t('groupNote')}</StepBody>
       <StepField label={t('fullNamePlaceholder')} htmlFor='rsvp-guest-name'>
         <StepTextInput
           id='rsvp-guest-name'

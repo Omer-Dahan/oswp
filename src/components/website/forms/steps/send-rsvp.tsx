@@ -34,9 +34,6 @@ export default function SendRsvp({ goBack, isFetching }: SendRsvpProps) {
         </StepPrimaryButton>
         <StepSecondaryButton onClick={() => goBack?.()}>{tCommon('back')}</StepSecondaryButton>
       </StepActions>
-      <p className='text-center text-muted-foreground text-sm underline underline-offset-4'>
-        {tCommon('privacyPolicy')}
-      </p>
     </StepShell>
   )
 }
