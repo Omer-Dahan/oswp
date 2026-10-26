@@ -97,6 +97,7 @@ export class RsvpSubmissionService {
         attendingCount: data.attendingCount,
         childrenCount: data.childrenCount,
         dietaryNotes: data.dietaryNotes,
+        wishesMessage: data.wishesMessage,
         weddingId,
         extraGuestNames: data.extraGuestNames ?? [],
       }
@@ -142,6 +143,7 @@ export class RsvpSubmissionService {
       attendingCount?: number | null
       childrenCount?: number | null
       dietaryNotes?: string | null
+      wishesMessage?: string | null
       weddingId?: string
       extraGuestNames?: string[]
     }
@@ -176,6 +178,7 @@ export class RsvpSubmissionService {
           attendingCount: householdPartyDetails.attendingCount ?? null,
           childrenCount: householdPartyDetails.childrenCount ?? null,
           dietaryNotes: householdPartyDetails.dietaryNotes ?? null,
+          wishesMessage: householdPartyDetails.wishesMessage ?? null,
         })
 
         if (householdPartyDetails.weddingId) {

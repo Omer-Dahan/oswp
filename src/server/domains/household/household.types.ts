@@ -41,6 +41,7 @@ export type Household = {
   attendingCount: number | null
   childrenCount: number | null
   dietaryNotes: string | null
+  wishesMessage: string | null
 }
 
 /**
@@ -103,5 +104,6 @@ export type PublicHouseholdSearchResult = {
   attendingCount: number | null
   childrenCount: number | null
   dietaryNotes: string | null
+  wishesMessage: string | null
   guests: PublicRsvpGuest[]
 }

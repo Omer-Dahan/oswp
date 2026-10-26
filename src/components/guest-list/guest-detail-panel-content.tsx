@@ -839,9 +839,9 @@ function AttendanceLikelihoodSection(props: Readonly<AttendanceLikelihoodSection
 function RsvpPartyDetailsSection({
   selectedHousehold,
 }: Readonly<{ selectedHousehold: HouseholdWithGuests }>) {
-  const { attendingCount, childrenCount, dietaryNotes } = selectedHousehold
+  const { attendingCount, childrenCount, dietaryNotes, wishesMessage } = selectedHousehold
 
-  if (attendingCount == null && childrenCount == null && !dietaryNotes) {
+  if (attendingCount == null && childrenCount == null && !dietaryNotes && !wishesMessage) {
     return null
   }
 
@@ -865,6 +865,14 @@ function RsvpPartyDetailsSection({
             <dt className='text-foreground/60'>הגבלות תזונה</dt>
             <dd className='whitespace-pre-wrap text-foreground/85 leading-relaxed'>
               {dietaryNotes}
+            </dd>
+          </div>
+        )}
+        {wishesMessage && (
+          <div className='flex flex-col gap-1'>
+            <dt className='text-foreground/60'>ברכה ואיחולים לזוג</dt>
+            <dd className='whitespace-pre-wrap text-foreground/85 leading-relaxed'>
+              {wishesMessage}
             </dd>
           </div>
         )}
