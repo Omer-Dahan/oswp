@@ -178,7 +178,23 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
   }
 
   const meals = rows.filter((row) => !row.isChild).length + extraUnnamedMeals
-  const dietary = rows.filter((row) => row.dietaryNote !== null).length
+
+  // A household's dietaryNotes is one restriction shared by the family, not
+  // one per guest - count it once per household, not once per row that
+  // falls back to it. Per-guest invitation.dietaryRestrictions are distinct
+  // and still counted individually.
+  const householdsWithFallbackDietary = new Set<string>()
+  let dietary = 0
+  for (const invitation of attendingInvitations) {
+    const guest = guestsById.get(invitation.guestId)
+    if (!guest) continue
+    if (invitation.dietaryRestrictions) {
+      dietary += 1
+    } else if (householdsById.get(guest.householdId)?.dietaryNotes) {
+      householdsWithFallbackDietary.add(guest.householdId)
+    }
+  }
+  dietary += householdsWithFallbackDietary.size
 
   return {
     summary: { attending: rows.length, meals, children, dietary },
