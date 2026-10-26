@@ -151,10 +151,6 @@ export function InvitationHero({
         <div className='absolute inset-0 bg-background/35' />
 
         <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 px-6'>
-          {topGreeting ? (
-            <p className='font-serif text-foreground text-sm'>{topGreeting}</p>
-          ) : null}
-
           <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
             <div>
               <HeroCard
