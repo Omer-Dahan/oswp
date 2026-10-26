@@ -15,6 +15,7 @@ import ContactForm from '~/components/forms/guest/contact-form'
 import EditFormButtons from '~/components/forms/guest/edit-buttons'
 import GiftSection from '~/components/forms/guest/gift-section'
 import { GuestNameForm } from '~/components/forms/guest/guest-names'
+import SideGroupForm from '~/components/forms/guest/side-group-form'
 import {
   getDefaultHouseholdFormData,
   type HouseholdFormData,
@@ -84,6 +85,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
 
   // Fetch tags for the current wedding
   const { data: tags = [] } = api.guestTag.getAll.useQuery()
+  const { data: dashboardData } = api.dashboard.getForActiveWorkspace.useQuery()
   const utils = api.useUtils()
 
   // Mutations directly in component
@@ -316,6 +318,19 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
               </AccordionTrigger>
               <AccordionContent className='px-6 pb-6'>
                 <ContactForm register={register} errors={errors} />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value='sideGroup' className='border-b-0'>
+              <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
+                שיוך / קבוצה
+              </AccordionTrigger>
+              <AccordionContent className='px-6 pb-6'>
+                <SideGroupForm
+                  watch={watch}
+                  setValue={setValue}
+                  households={dashboardData?.households ?? []}
+                />
               </AccordionContent>
             </AccordionItem>
 

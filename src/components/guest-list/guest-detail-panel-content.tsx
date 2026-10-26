@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation'
 import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import type { Event } from '~/app/utils/shared-types'
+import {
+  SideGroupCombobox,
+  useHouseholdSideGroupOptions,
+} from '~/components/forms/guest/side-group-combobox'
 import { AnswersSection } from '~/components/guest-list/answers-section'
 import {
   type HouseholdMemberDraft,
@@ -108,6 +112,7 @@ const copyToClipboard = async (value: string) => {
 
 type GuestDetailPanelContentProps = {
   selectedHousehold: HouseholdWithGuests
+  allHouseholds: HouseholdWithGuests[]
   selectedEventId: string
   events: Event[]
   selectedEventResponses?: SelectedEventResponse[]
@@ -128,6 +133,7 @@ type GuestDetailPanelContentProps = {
 export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentProps>) {
   const {
     selectedHousehold,
+    allHouseholds,
     selectedEventId,
     events,
     selectedEventResponses,
@@ -313,6 +319,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
           onToggleEdit={() => toggleEditingSection('sideGroup')}
           drawerDraft={drawerDraft}
           updateDraft={updateDraft}
+          allHouseholds={allHouseholds}
         />
 
         <AttendanceLikelihoodSection
@@ -695,10 +702,13 @@ type SideGroupSectionProps = {
   onToggleEdit: () => void
   drawerDraft: DrawerDraft
   updateDraft: DraftUpdater
+  allHouseholds: HouseholdWithGuests[]
 }
 
 function SideGroupSection(props: Readonly<SideGroupSectionProps>) {
-  const { isEditing, onToggleEdit, drawerDraft, updateDraft } = props
+  const { isEditing, onToggleEdit, drawerDraft, updateDraft, allHouseholds } = props
+  const { sides, groupsForSide } = useHouseholdSideGroupOptions(allHouseholds)
+  const groupOptions = groupsForSide(drawerDraft.side)
 
   if (isEditing) {
     return (
@@ -720,11 +730,11 @@ function SideGroupSection(props: Readonly<SideGroupSectionProps>) {
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
               צד
             </span>
-            <input
-              name='side'
-              type='text'
+            <SideGroupCombobox
+              id='side'
               value={drawerDraft.side}
-              onChange={(event) => updateDraft('side', event.target.value)}
+              onChange={(value) => updateDraft('side', value)}
+              options={sides}
               className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
             />
           </label>
@@ -732,11 +742,11 @@ function SideGroupSection(props: Readonly<SideGroupSectionProps>) {
             <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
               קבוצה
             </span>
-            <input
-              name='groupName'
-              type='text'
+            <SideGroupCombobox
+              id='groupName'
               value={drawerDraft.groupName}
-              onChange={(event) => updateDraft('groupName', event.target.value)}
+              onChange={(value) => updateDraft('groupName', value)}
+              options={groupOptions}
               className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
             />
           </label>
