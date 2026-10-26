@@ -117,7 +117,7 @@ export default function GuestsView({
     let guests = 0
     let tagAlongs = 0
     for (const household of filteredHouseholds ?? []) {
-      guests += partySize(household)
+      guests += partySize(household) ?? 0
       for (const guest of household.guests) {
         if (guest.isTagAlong) tagAlongs += 1
       }
@@ -126,7 +126,7 @@ export default function GuestsView({
   }, [filteredHouseholds])
 
   const totalUnfilteredGuests = useMemo(
-    () => households.reduce((sum, household) => sum + partySize(household), 0),
+    () => households.reduce((sum, household) => sum + (partySize(household) ?? 0), 0),
     [households]
   )
 
@@ -163,7 +163,14 @@ export default function GuestsView({
 
     if (partySort !== 'none') {
       const direction = partySort === 'ascending' ? 1 : -1
-      return [...filteredHouseholds].sort((a, b) => (partySize(a) - partySize(b)) * direction)
+      return [...filteredHouseholds].sort((a, b) => {
+        const sizeA = partySize(a)
+        const sizeB = partySize(b)
+        if (sizeA == null && sizeB == null) return 0
+        if (sizeA == null) return 1
+        if (sizeB == null) return -1
+        return (sizeA - sizeB) * direction
+      })
     }
 
     return filteredHouseholds
