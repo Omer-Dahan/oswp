@@ -90,7 +90,7 @@ describe('InvitationHero', () => {
     expect(screen.getAllByText('העתקת קישור').length).toBeGreaterThan(0)
   })
 
-  it('always renders the save-the-date secondary link', () => {
+  it('links the decline action to the RSVP form when no household is resolved', () => {
     render(
       <InvitationHero
         {...baseProps}
@@ -98,10 +98,10 @@ describe('InvitationHero', () => {
       />
     )
 
-    const links = screen.getAllByRole('link', { name: 'שמרו את התאריך' })
+    const links = screen.getAllByRole('link', { name: 'לצערינו לא מתאפשר' })
     expect(links.length).toBeGreaterThan(0)
     for (const link of links) {
-      expect(link).toHaveAttribute('href', '/w/the-wedding/save-the-date')
+      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp')
     }
   })
 })

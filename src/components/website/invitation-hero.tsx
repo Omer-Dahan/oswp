@@ -70,22 +70,32 @@ function RsvpPills({
   )
 }
 
-/** Quiet secondary actions beneath the primary RSVP pills. */
+/** Quiet secondary actions beneath the primary RSVP pills: a decline action. */
 function SecondaryActions({
   websiteSubUrl,
+  rsvpHref,
+  invitedHousehold,
   householdInviteCode,
 }: {
   websiteSubUrl: string
+  rsvpHref: string
+  invitedHousehold: InvitedHousehold | null
   householdInviteCode: string | null
 }) {
   return (
     <div className='flex items-center gap-4'>
-      <Link
-        href={`/w/${websiteSubUrl}/save-the-date`}
-        className={SECONDARY_LINK_CLASSES}
-      >
-        שמרו את התאריך
-      </Link>
+      {invitedHousehold ? (
+        <form action={`/w/${websiteSubUrl}/save-the-date/rsvp`} method='POST'>
+          <input type='hidden' name='intent' value='decline' />
+          <button type='submit' className={SECONDARY_LINK_CLASSES}>
+            לצערינו לא מתאפשר
+          </button>
+        </form>
+      ) : (
+        <Link href={rsvpHref} className={SECONDARY_LINK_CLASSES}>
+          לצערינו לא מתאפשר
+        </Link>
+      )}
       {householdInviteCode ? (
         <CopyHouseholdInviteLinkButton
           websiteSubUrl={websiteSubUrl}
@@ -96,12 +106,12 @@ function SecondaryActions({
   )
 }
 
-/** The household's primary-contact greeting, or one neutral line when nobody is recognised. */
-function greetingText(invitedHousehold: InvitedHousehold | null): string {
+/** The top-of-page greeting with the household's family name; null for an unrecognised visitor. */
+function topGreetingText(invitedHousehold: InvitedHousehold | null): string | null {
   const contact = invitedHousehold?.primaryContactGreeting
-  if (!contact) return 'נשמח לראותכם'
+  if (!contact) return null
   const name = contact.kind === 'family' ? `משפחת ${contact.name}` : contact.name
-  return `שלום ${name}, נשמח לראותכם ביום שלנו 🤍`
+  return `שלום ${name}, נשמח לדעת אם תגיעו 🤍`
 }
 
 /**
@@ -125,7 +135,7 @@ export function InvitationHero({
   householdInviteCode,
 }: Readonly<InvitationHeroProps>) {
   const invitationAlt = coupleNames ? `הזמנת החתונה של ${coupleNames}` : 'הזמנת החתונה'
-  const greeting = greetingText(invitedHousehold)
+  const topGreeting = topGreetingText(invitedHousehold)
   const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
 
   return (
@@ -146,6 +156,10 @@ export function InvitationHero({
         <div className='absolute inset-0 bg-background/35' />
 
         <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 px-6'>
+          {topGreeting ? (
+            <p className='font-serif text-foreground text-sm'>{topGreeting}</p>
+          ) : null}
+
           <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
             <div>
               <HeroCard
@@ -153,7 +167,7 @@ export function InvitationHero({
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
-                className='aspect-square w-[min(92vw,36svh)]'
+                className='aspect-square w-[min(92vw,43svh)]'
                 mobile
                 priority
               />
@@ -164,14 +178,13 @@ export function InvitationHero({
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,36svh)]'
+                className='aspect-square w-[min(92vw,43svh)]'
                 mobile
               />
             </div>
           </HeroCardsGroup>
 
           <div className='relative z-10 flex flex-col items-center gap-2 text-center'>
-            <p className='font-serif text-foreground text-sm'>{greeting}</p>
             <RsvpPills
               rsvpHref={rsvpHref}
               isRsvpEnabled={isRsvpEnabled}
@@ -181,6 +194,8 @@ export function InvitationHero({
             />
             <SecondaryActions
               websiteSubUrl={websiteSubUrl}
+              rsvpHref={rsvpHref}
+              invitedHousehold={invitedHousehold}
               householdInviteCode={invitedHousehold ? householdInviteCode : null}
             />
           </div>
@@ -203,6 +218,10 @@ export function InvitationHero({
         {/* Soft warm veil so the white cards and copy read clearly against the linen. */}
         <div className='absolute inset-0 bg-background/35' />
 
+        {topGreeting ? (
+          <p className='relative z-10 font-serif text-foreground text-lg'>{topGreeting}</p>
+        ) : null}
+
         <HeroCardsGroup className='hero-cards relative z-10 flex items-stretch justify-center gap-6 lg:gap-10'>
           <div className='hero-card-enter'>
             <HeroCard
@@ -222,7 +241,6 @@ export function InvitationHero({
         </HeroCardsGroup>
 
         <div className='relative z-10 flex flex-col items-center gap-3 text-center'>
-          <p className='font-serif text-foreground text-lg'>{greeting}</p>
           <RsvpPills
             rsvpHref={rsvpHref}
             isRsvpEnabled={isRsvpEnabled}
@@ -232,6 +250,8 @@ export function InvitationHero({
           />
           <SecondaryActions
             websiteSubUrl={websiteSubUrl}
+            rsvpHref={rsvpHref}
+            invitedHousehold={invitedHousehold}
             householdInviteCode={invitedHousehold ? householdInviteCode : null}
           />
         </div>

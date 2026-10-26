@@ -248,7 +248,7 @@ export function HeroCard({
         onMouseLeave={handleMouseLeave}
         className={cn(
           'hero-card relative block overflow-hidden rounded-lg border border-border/60 bg-card',
-          className ?? 'aspect-square h-[50.4svh] max-h-[528px]'
+          className ?? 'aspect-square h-[60.5svh] max-h-[634px]'
         )}
         style={{
           opacity: open ? 0 : isSiblingReceding ? 0.35 : 1,
