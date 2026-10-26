@@ -41,19 +41,23 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const primaryGuest = household?.primaryContact ?? guests[0]
   const isFamily = guests.length > 1
 
-  const heading =
-    isFamily && primaryGuest?.lastName
+  const hasAttending = rsvpFormData.rsvpResponses.some((response) => response.rsvp === 'Attending')
+
+  const heading = hasAttending
+    ? isFamily && primaryGuest?.lastName
       ? t('confirmationThanksFamily', { lastName: primaryGuest.lastName })
       : primaryGuest?.firstName
         ? t('confirmationThanksName', { firstName: primaryGuest.firstName })
         : t('confirmationThanksFallback')
+    : t('confirmationDeclinedThanks')
 
   const attendingCount = rsvpFormData.attendingCount ?? 0
   const childrenCount = rsvpFormData.childrenCount ?? 0
-  const countLine =
-    childrenCount > 0
+  const countLine = hasAttending
+    ? childrenCount > 0
       ? t('confirmationCountWithChildren', { count: attendingCount, children: childrenCount })
       : t('confirmationCount', { count: attendingCount })
+    : null
 
   const dietaryNotes = rsvpFormData.dietaryNotes?.trim()
 
@@ -95,7 +99,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
               <h2 className={`${stepHeadingFont} text-2xl text-foreground sm:text-3xl`}>
                 {heading}
               </h2>
-              <p className={`${bodyFont} text-base text-foreground/80`}>{countLine}</p>
+              {countLine && <p className={`${bodyFont} text-base text-foreground/80`}>{countLine}</p>}
             </div>
 
             <div className='rsvp-confirmation-block flex flex-col divide-y divide-border'>
@@ -110,7 +114,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
               </Link>
 
               <div className='flex flex-col items-center gap-2'>
-                {events.map((event: Event) => {
+                {hasAttending && events.map((event: Event) => {
                   const calendarLinks = buildSingleEventCalendarLinks(event)
                   if (!calendarLinks) return null
                   return (
