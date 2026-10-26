@@ -64,6 +64,7 @@ import { buildSeatingCsv } from '~/lib/seating/seating-csv'
 import {
   getGuestWeights,
   getOpenSeats,
+  getPartySize,
   getSeatsNeeded,
   householdSeatsMessage,
   openSeatsMessage,
@@ -212,6 +213,20 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   const selectedHousehold =
     chart?.households.find((household) => household.id === selectedGuest?.householdId) ?? null
   const seatedCount = allGuests.filter((guest) => guest.tableId !== null).length
+  // Actual number of people (places) to seat — each household's invited party
+  // size, not just the guest records. This is the number the couple plans chairs
+  // for (e.g. 552 households importing 641 people).
+  const totalPlaces = useMemo(
+    () => households?.reduce((sum, household) => sum + getPartySize(household), 0) ?? 0,
+    [households]
+  )
+  const seatedPlaces = useMemo(
+    () =>
+      allGuests
+        .filter((guest) => guest.tableId !== null)
+        .reduce((sum, guest) => sum + (seatWeights.get(guest.id) ?? 1), 0),
+    [allGuests, seatWeights]
+  )
 
   // Shared by every optimistic mutation: explain errors, then settle the
   // pending change (a failure undoes only that change; success waits for the
@@ -534,6 +549,14 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
             הוסיפו שולחן
           </Button>
         </div>
+      </div>
+
+      <div className='flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground'>
+        <span className='tabular-nums'>
+          סה&quot;כ {totalPlaces} אורחים
+        </span>
+        <span className='tabular-nums'>משובצים {seatedPlaces}</span>
+        <span className='tabular-nums'>נותרו {Math.max(0, totalPlaces - seatedPlaces)}</span>
       </div>
 
       {chartQuery.isLoading || !chart ? (
