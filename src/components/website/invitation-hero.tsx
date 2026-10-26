@@ -74,28 +74,17 @@ function RsvpPills({
 function SecondaryActions({
   websiteSubUrl,
   rsvpHref,
-  invitedHousehold,
   householdInviteCode,
 }: {
   websiteSubUrl: string
   rsvpHref: string
-  invitedHousehold: InvitedHousehold | null
   householdInviteCode: string | null
 }) {
   return (
     <div className='flex items-center gap-4'>
-      {invitedHousehold ? (
-        <form action={`/w/${websiteSubUrl}/save-the-date/rsvp`} method='POST'>
-          <input type='hidden' name='intent' value='decline' />
-          <button type='submit' className={SECONDARY_LINK_CLASSES}>
-            לצערינו לא מתאפשר
-          </button>
-        </form>
-      ) : (
-        <Link href={`${rsvpHref}?decline=1`} className={SECONDARY_LINK_CLASSES}>
-          לצערינו לא מתאפשר
-        </Link>
-      )}
+      <Link href={`${rsvpHref}?decline=1`} className={SECONDARY_LINK_CLASSES}>
+        לצערינו לא מתאפשר
+      </Link>
       {householdInviteCode ? (
         <CopyHouseholdInviteLinkButton
           websiteSubUrl={websiteSubUrl}
@@ -195,7 +184,6 @@ export function InvitationHero({
             <SecondaryActions
               websiteSubUrl={websiteSubUrl}
               rsvpHref={rsvpHref}
-              invitedHousehold={invitedHousehold}
               householdInviteCode={invitedHousehold ? householdInviteCode : null}
             />
           </div>
@@ -251,7 +239,6 @@ export function InvitationHero({
           <SecondaryActions
             websiteSubUrl={websiteSubUrl}
             rsvpHref={rsvpHref}
-            invitedHousehold={invitedHousehold}
             householdInviteCode={invitedHousehold ? householdInviteCode : null}
           />
         </div>
