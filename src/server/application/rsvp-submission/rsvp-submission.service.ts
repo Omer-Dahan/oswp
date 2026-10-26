@@ -238,10 +238,23 @@ export class RsvpSubmissionService {
         })
 
         if (householdPartyDetails.weddingId && householdPartyDetails.extraGuestNames) {
+          // Extra guests aren't tied to a specific event in the UI — their count
+          // is a single household-wide total. When that total exceeds the number
+          // of named guests actually attending, the excess is coming too, to
+          // every event this submission covers (events the household was never
+          // invited to were already dropped before reaching here).
+          const namedAttendingGuestIds = new Set(
+            data.rsvpResponses
+              .filter((response) => response.rsvp === 'Attending')
+              .map((response) => response.guestId)
+          )
+          const hasExtraAttendees =
+            (householdPartyDetails.attendingCount ?? 0) > namedAttendingGuestIds.size
+
           const attendingEventIds = Array.from(
             new Set(
               data.rsvpResponses
-                .filter((response) => response.rsvp === 'Attending')
+                .filter((response) => response.rsvp === 'Attending' || hasExtraAttendees)
                 .map((response) => response.eventId)
             )
           )

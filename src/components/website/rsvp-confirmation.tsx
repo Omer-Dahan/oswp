@@ -41,7 +41,14 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const primaryGuest = household?.primaryContact ?? guests[0]
   const isFamily = guests.length > 1
 
-  const hasAttending = rsvpFormData.rsvpResponses.some((response) => response.rsvp === 'Attending')
+  const namedAttendingGuestIds = new Set(
+    rsvpFormData.rsvpResponses
+      .filter((response) => response.rsvp === 'Attending')
+      .map((response) => response.guestId)
+  )
+  const hasAttending =
+    namedAttendingGuestIds.size > 0 ||
+    (rsvpFormData.attendingCount ?? 0) > namedAttendingGuestIds.size
 
   const heading = hasAttending
     ? isFamily && primaryGuest?.lastName
