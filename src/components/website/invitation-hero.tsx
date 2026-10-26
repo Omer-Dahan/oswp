@@ -64,7 +64,7 @@ export function InvitationHero({
       <div className='relative flex h-full w-full flex-col md:hidden'>
         <div className='absolute inset-0'>
           <Image
-            src='/brand/linen-bg.png'
+            src='/brand/linen-bg-portrait.png'
             alt=''
             aria-hidden='true'
             fill
