@@ -20,6 +20,7 @@
     "toBeAnnounced": "To be announced",
     "addToCalendar": "Add to your calendar",
     "invitedHousehold": "Invited household",
+    "personalizedWelcomeAriaLabel": "Personalized welcome",
     "householdGreetingFamily": "Hello, the {name} family",
     "householdGreetingFirstName": "Hello, {name}",
     "rsvpHelper": "We'd love to know if you're coming 🤍",

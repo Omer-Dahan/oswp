@@ -16,18 +16,21 @@ export async function PersonalizedWelcome({
 }: Readonly<PersonalizedWelcomeProps>) {
   const t = await getTranslations('invite')
   const labelFont = 'font-[family-name:var(--tpl-label-font,var(--tpl-body-font))]'
+  const contact = invitedHousehold.primaryContactGreeting
+
+  if (!contact) return null
+
+  const greeting =
+    contact.kind === 'family'
+      ? t('householdGreetingFamily', { name: contact.name })
+      : t('householdGreetingFirstName', { name: contact.name })
 
   return (
     <aside
       className='w-full border-border/60 border-b bg-primary/5 px-6 py-3 text-center'
       aria-label={t('personalizedWelcomeAriaLabel')}
     >
-      <p className={`text-foreground/80 text-sm tracking-wide ${labelFont}`}>
-        {t.rich('welcomeGreeting', {
-          greeting: invitedHousehold.greeting,
-          name: (chunk) => <span className='font-medium text-foreground'>{chunk}</span>,
-        })}
-      </p>
+      <p className={`text-foreground/80 text-sm tracking-wide ${labelFont}`}>{greeting}</p>
     </aside>
   )
 }
