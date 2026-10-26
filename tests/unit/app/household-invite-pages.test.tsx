@@ -14,7 +14,6 @@ Object.assign(globalThis, {
 const mockCookieGet = jest.fn()
 const mockRedirect = jest.fn()
 const mockGetInviteData = jest.fn()
-const mockUpdateHouseholdDetails = jest.fn()
 const mockGetPublicWeddingSummary = jest.fn()
 
 jest.mock('next/headers', () => ({
@@ -31,14 +30,12 @@ jest.mock('next/navigation', () => ({
 jest.mock('~/server/application/household-invite', () => ({
   householdInviteService: {
     getInviteData: (...args: unknown[]) => mockGetInviteData(...args),
-    updateHouseholdDetails: (...args: unknown[]) => mockUpdateHouseholdDetails(...args),
     getPublicWeddingSummary: (...args: unknown[]) => mockGetPublicWeddingSummary(...args),
   },
 }))
 
 const inviteTranslations: Record<string, string> = {
   saveTheDate: 'Save the date',
-  detailsUpdated: 'Your details were updated.',
   date: 'Date',
   location: 'Location',
   toBeAnnounced: 'To be announced',
@@ -50,7 +47,6 @@ const inviteTranslations: Record<string, string> = {
   confirmAttendance: 'Confirm attendance',
   formalInvitationNote:
     'Formal invitation details will follow. For now, please make sure we have the correct names and mailing address for your household.',
-  updateDetails: 'Update our details',
   viewWebsite: 'View our website',
   couldNotOpen: 'We could not open this invitation.',
   invalidLinkDescription:
@@ -133,7 +129,6 @@ describe('household invite pages', () => {
     mockCookieGet.mockReset()
     mockRedirect.mockReset()
     mockGetInviteData.mockReset()
-    mockUpdateHouseholdDetails.mockReset()
     mockGetPublicWeddingSummary.mockReset()
     jest.useFakeTimers().setSystemTime(new Date('2026-06-18T12:00:00.000Z'))
 
@@ -198,7 +193,7 @@ describe('household invite pages', () => {
     render(
       await InvitePage({
         params: Promise.resolve({ websiteSubUrl: 'harry-and-hermione' }),
-        searchParams: Promise.resolve({ updated: '1' }),
+        searchParams: Promise.resolve({}),
       })
     )
 
@@ -211,15 +206,10 @@ describe('household invite pages', () => {
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument()
     // No tag-along guests in this household, so the "joining the trip" callout is absent.
     expect(screen.queryByText(/joining the trip/i)).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /update our details/i })).toHaveAttribute(
-      'href',
-      '/w/harry-and-hermione/save-the-date/update'
-    )
     expect(screen.getByRole('link', { name: /view our website/i })).toHaveAttribute(
       'href',
       '/w/harry-and-hermione'
     )
-    expect(screen.getByText('Your details were updated.')).toBeInTheDocument()
 
     // Calendar buttons span the day of the first event through the day of the
     // last (the all-day end is exclusive, so May 30 → Jun 01).

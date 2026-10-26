@@ -28,7 +28,6 @@ type SaveTheDatePageProps = {
   }>
   searchParams?: Promise<{
     invalid?: string
-    updated?: string
   }>
 }
 
@@ -192,14 +191,6 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
               <div className='h-1.5 w-full bg-gradient-to-r from-primary via-accent to-primary' />
 
               <CardContent className='px-6 py-10 sm:px-12 sm:py-14'>
-                {resolvedSearchParams?.updated === '1' && (
-                  <p
-                    className={`mb-8 rounded-md border border-success/30 bg-success/10 px-4 py-3 text-center text-success text-xs uppercase tracking-wider ${labelFont}`}
-                  >
-                    {t('detailsUpdated')}
-                  </p>
-                )}
-
                 <div className='text-center'>
                   <p
                     className={`text-muted-foreground text-xs uppercase tracking-[0.28em] ${labelFont}`}
@@ -296,11 +287,6 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                 </p>
 
                 <div className='mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-start'>
-                  <Button asChild size='lg'>
-                    <Link href={`/w/${websiteSubUrl}/save-the-date/update`}>
-                      {t('updateDetails')}
-                    </Link>
-                  </Button>
                   <Button asChild size='lg' variant='outline'>
                     <Link href={`/w/${websiteSubUrl}`}>{t('viewWebsite')}</Link>
                   </Button>
