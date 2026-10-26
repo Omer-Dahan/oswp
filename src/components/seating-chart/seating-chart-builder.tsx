@@ -128,8 +128,10 @@ const focusFirstPresent = (keys: ReadonlyArray<string | null>): boolean => {
   return false
 }
 
-const downloadCsv = (fileName: string, csv: string) => {
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+export const downloadCsv = (fileName: string, csv: string) => {
+  // Excel doesn't sniff UTF-8 without a BOM and falls back to the system
+  // codepage, mangling non-Latin text (e.g. Hebrew guest/table names).
+  const url = URL.createObjectURL(new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8' }))
   const link = document.createElement('a')
   link.href = url
   link.download = fileName
