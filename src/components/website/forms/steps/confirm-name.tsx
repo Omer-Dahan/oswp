@@ -22,6 +22,7 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
     matchedHouseholds,
     selectedHousehold: currentSelectedHousehold,
     recognized,
+    declineIntent,
   } = useRsvpForm()
   const updateRsvpForm = useUpdateRsvpForm()
   // Pre-select when there's only one match (always the case for a recognized
@@ -67,7 +68,13 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
 
   return (
     <StepShell>
-      <StepHeading>{recognized ? t('recognizedInvitation') : t('foundInGuestList')}</StepHeading>
+      <StepHeading>
+        {recognized
+          ? t('recognizedInvitation')
+          : declineIntent
+            ? t('foundInGuestListDecline')
+            : t('foundInGuestList')}
+      </StepHeading>
       <div className='flex flex-col gap-3'>
         {matchedHouseholds?.map((household: HouseholdSearchItem) => {
           const isSelected = selectedHouseholdId === household.id

@@ -52,6 +52,8 @@
     "notFound": "¡Ups! Tuvimos problemas para encontrar tu invitación. Ingresa tu nombre y apellido completos, prueba otra ortografía o contacta a la pareja.",
     "findInvitation": "BUSCAR MI INVITACIÓN",
     "foundInGuestList": "te encontramos en la lista de invitados. por favor confirma tu nombre para continuar con tu confirmación de asistencia",
+    "foundInGuestListDecline": "te encontramos en la lista de invitados. por favor confirma tu nombre para continuar.",
+    "groupNoteDecline": "Ingresa tu nombre y apellido para encontrar tu invitación.",
     "recognizedInvitation": "encontramos tu invitación. confirma que eres tú para continuar o elige «¿no eres tú?» para buscar por nombre",
     "searchAgain": "BUSCAR DE NUEVO",
     "notYou": "¿NO ERES TÚ?",
