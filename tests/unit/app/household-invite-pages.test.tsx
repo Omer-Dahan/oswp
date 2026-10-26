@@ -45,8 +45,6 @@ const inviteTranslations: Record<string, string> = {
   householdGreetingFirstName: 'Hello, {name}',
   rsvpHelper: "We'd love to know if you're coming",
   confirmAttendance: 'Confirm attendance',
-  formalInvitationNote:
-    'Formal invitation details will follow. For now, please make sure we have the correct names and mailing address for your household.',
   viewWebsite: 'View our website',
   couldNotOpen: 'We could not open this invitation.',
   invalidLinkDescription:
