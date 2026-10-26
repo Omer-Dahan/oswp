@@ -103,7 +103,16 @@ export type PublicHouseholdSearchResult = {
   invitedCount: number | null
   attendingCount: number | null
   childrenCount: number | null
+  guests: PublicRsvpGuest[]
+}
+
+/**
+ * Private household fields (medical dietary info, a note to the couple)
+ * released on the public RSVP flow only once a guest has re-proven their
+ * identity via a full-name match — see
+ * HouseholdRepository.getPublicHouseholdDetails.
+ */
+export type PublicHouseholdDetails = {
   dietaryNotes: string | null
   wishesMessage: string | null
-  guests: PublicRsvpGuest[]
 }

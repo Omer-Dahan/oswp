@@ -25,6 +25,7 @@ import { HouseholdRepository } from '~/server/domains/household/household.reposi
 import type {
   Household,
   HouseholdSearchResult,
+  PublicHouseholdDetails,
   PublicHouseholdSearchResult,
 } from '~/server/domains/household/household.types'
 import {
@@ -37,8 +38,11 @@ import {
 import { InvitationRepository } from '~/server/domains/invitation/invitation.repository'
 import type { WebsiteRepository } from '~/server/domains/website/website.repository'
 import { WebsitePasswordService } from '~/server/domains/website/website-password.service'
+import { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 
 export class HouseholdManagementService {
+  private publicSearchRateLimiter: PrismaRateLimiter
+
   constructor(
     private householdRepo: HouseholdRepository,
     private guestRepo: GuestRepository,
@@ -47,7 +51,11 @@ export class HouseholdManagementService {
     private websiteRepo: WebsiteRepository,
     private db: PrismaClient,
     private websitePasswordService: WebsitePasswordService = new WebsitePasswordService()
-  ) {}
+  ) {
+    // Generous enough for a guest retrying a typo while searching for their
+    // name, tight enough to stop a scripted sweep of the guest list.
+    this.publicSearchRateLimiter = new PrismaRateLimiter(db, { limit: 10, windowMs: 10 * 60_000 })
+  }
 
   async createHouseholdWithGuests(
     ctx: AuthzContext,
@@ -420,8 +428,65 @@ export class HouseholdManagementService {
   async searchHouseholdsPublic(
     subUrl: string,
     searchText: string,
+    clientIp: string,
     accessToken?: string
   ): Promise<PublicHouseholdSearchResult[]> {
+    const weddingId = await this.authorizePublicHouseholdAccess(subUrl, clientIp, accessToken)
+    return this.householdRepo.searchPublicByName(searchText, weddingId)
+  }
+
+  /**
+   * Fetch a single household's private fields (dietary notes, wishes
+   * message) for the public guest-facing RSVP flow, once a guest has
+   * selected that household from their search results. Re-checks
+   * `searchText` against the same full-name-match rule as
+   * `searchHouseholdsPublic`, so these fields are only released to a guest
+   * who can actually name someone in the household — not to anyone who
+   * learned (or guessed) its id.
+   */
+  async getPublicHouseholdDetails(
+    subUrl: string,
+    householdId: string,
+    searchText: string,
+    clientIp: string,
+    accessToken?: string
+  ): Promise<PublicHouseholdDetails> {
+    const weddingId = await this.authorizePublicHouseholdAccess(subUrl, clientIp, accessToken)
+
+    const details = await this.householdRepo.getPublicHouseholdDetails(
+      householdId,
+      searchText,
+      weddingId
+    )
+
+    if (!details) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Household not found',
+      })
+    }
+
+    return details
+  }
+
+  /**
+   * Shared rate-limit + website lookup + password gate for the public
+   * guest-facing household endpoints. Returns the wedding id the caller is
+   * authorized to read households from.
+   */
+  private async authorizePublicHouseholdAccess(
+    subUrl: string,
+    clientIp: string,
+    accessToken?: string
+  ): Promise<string> {
+    const allowed = await this.publicSearchRateLimiter.check(`household-search:${clientIp}:${subUrl}`)
+    if (!allowed) {
+      throw new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: 'יותר מדי ניסיונות חיפוש. נסו שוב בעוד כמה דקות.',
+      })
+    }
+
     const website = await this.websiteRepo.findBySubUrl(subUrl)
 
     if (!website?.isRsvpEnabled) {
@@ -445,7 +510,7 @@ export class HouseholdManagementService {
       }
     }
 
-    return this.householdRepo.searchPublicByName(searchText, website.weddingId)
+    return website.weddingId
   }
 
   /**

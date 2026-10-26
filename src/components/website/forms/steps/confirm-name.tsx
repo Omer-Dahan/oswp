@@ -11,11 +11,17 @@ import {
   StepSecondaryButton,
   StepShell,
 } from '~/components/website/forms/steps/step-ui'
+import { api } from '~/trpc/react'
 
 type HouseholdSearchItem = HouseholdSearch[number]
 type GuestWithInvitations = HouseholdSearchItem['guests'][number]
 
-export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
+type ConfirmNameFormProps = StepFormProps & {
+  /** Proves the guest already cleared this website's password gate, if any. */
+  accessToken?: string
+}
+
+export default function ConfirmNameForm({ goNext, goBack, accessToken }: ConfirmNameFormProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
   const {
@@ -23,6 +29,8 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
     selectedHousehold: currentSelectedHousehold,
     recognized,
     declineIntent,
+    searchText,
+    weddingData,
   } = useRsvpForm()
   const updateRsvpForm = useUpdateRsvpForm()
   // Pre-select when there's only one match (always the case for a recognized
@@ -30,6 +38,23 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<string | undefined>(() =>
     matchedHouseholds && matchedHouseholds.length === 1 ? matchedHouseholds[0]?.id : undefined
   )
+
+  const subUrl = weddingData.website?.subUrl ?? ''
+
+  // Dietary notes and the wishes message are withheld from the name search
+  // itself (see publicRsvpHouseholdSelect) and only released here, once the
+  // guest has picked a specific household, by re-checking `searchText`
+  // against that household server-side.
+  const { refetch: refetchDetails, isFetching: isFetchingDetails } =
+    api.household.getPublicHouseholdDetails.useQuery(
+      {
+        subUrl,
+        householdId: selectedHouseholdId ?? '',
+        searchText: searchText ?? '',
+        accessToken,
+      },
+      { enabled: false, retry: false }
+    )
 
   // "Not you" clears the invite-recognized match and sends the guest back to the
   // name search, in case they opened someone else's save-the-date link.
@@ -44,7 +69,7 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
     goBack?.()
   }
 
-  const onContinue = () => {
+  const onContinue = async () => {
     const selectedHousehold = matchedHouseholds?.find(
       (household: HouseholdSearchItem) => household.id === selectedHouseholdId
     )
@@ -63,6 +88,21 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
             selectedHousehold: Object.assign({ primaryContact }, selectedHousehold),
           }
     )
+
+    // No searchText means the household was resolved from a save-the-date
+    // cookie rather than a name search, so there's nothing to re-prove
+    // identity with — the dietary-notes/wishes-message steps simply stay
+    // blank for that guest, as before this fetch existed.
+    if (searchText && selectedHouseholdId) {
+      const detailsResult = await refetchDetails()
+      if (detailsResult.data) {
+        updateRsvpForm({
+          dietaryNotes: detailsResult.data.dietaryNotes ?? undefined,
+          wishesMessage: detailsResult.data.wishesMessage ?? undefined,
+        })
+      }
+    }
+
     goNext?.()
   }
 
@@ -104,7 +144,10 @@ export default function ConfirmNameForm({ goNext, goBack }: StepFormProps) {
       </div>
 
       <StepActions>
-        <StepPrimaryButton disabled={selectedHouseholdId === undefined} onClick={onContinue}>
+        <StepPrimaryButton
+          disabled={selectedHouseholdId === undefined || isFetchingDetails}
+          onClick={onContinue}
+        >
           {tCommon('continue')}
         </StepPrimaryButton>
         <StepSecondaryButton onClick={recognized ? onNotYou : () => goBack?.()}>

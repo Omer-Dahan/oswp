@@ -10,6 +10,7 @@ import type {
   Household,
   HouseholdSearchResult,
   HouseholdWithGuestsAndGifts,
+  PublicHouseholdDetails,
   PublicHouseholdSearchResult,
 } from '~/server/domains/household/household.types'
 import {
@@ -41,17 +42,16 @@ export const rsvpHouseholdSelect = {
 /**
  * Shape returned to unauthenticated, guest-facing RSVP flows (public name
  * search and invite-code recognition). Deliberately omits guest contact
- * fields (email, phone) and limits invitations to events the household was
- * actually invited to, since these endpoints are reachable by anyone who
- * knows (or guesses) a guest's name.
+ * fields (email, phone) and the household's dietary notes and wishes message
+ * (medical info / a private note to the couple), and limits invitations to
+ * events the household was actually invited to, since these endpoints are
+ * reachable by anyone who knows (or guesses) a guest's name.
  */
 export const publicRsvpHouseholdSelect = {
   id: true,
   invitedCount: true,
   attendingCount: true,
   childrenCount: true,
-  dietaryNotes: true,
-  wishesMessage: true,
   guests: {
     select: {
       id: true,
@@ -99,6 +99,13 @@ export function normalizeNameForSearch(value: string): string {
 export function tokenizeNameForSearch(value: string): string[] {
   return normalizeNameForSearch(value).split(' ').filter(Boolean)
 }
+
+/**
+ * Cap on rows loaded by the public name search, applied at the DB level via
+ * `take`. Legitimate searches (a guest typing their own name) match at most a
+ * handful of households, so this only ever trims a pathological query.
+ */
+const PUBLIC_SEARCH_RESULT_LIMIT = 20
 
 export class HouseholdRepository {
   constructor(private db: PrismaClient | Prisma.TransactionClient) {}
@@ -421,10 +428,13 @@ export class HouseholdRepository {
    * single matching term is accepted there since requiring two terms would
    * make that guest permanently unfindable.
    *
-   * Matching is done in memory against each guest's full name so hyphens and
-   * spaces are interchangeable ("Sarah-Jane" == "Sarah Jane") while staying
-   * partial- and case-tolerant. The candidate set is a single wedding's invited
-   * households, so this stays small.
+   * The DB query itself requires every term to match some guest's first or
+   * last name (substring, case-insensitive), so only plausible candidates are
+   * ever loaded rather than every invited household in the wedding; the
+   * result is also capped with `take`. The final, precise check (hyphens and
+   * spaces interchangeable, e.g. "Sarah-Jane" == "Sarah Jane", and the full-
+   * token-match rule below) then runs in memory only on that small candidate
+   * set.
    */
   async searchPublicByName(
     searchText: string,
@@ -432,6 +442,17 @@ export class HouseholdRepository {
   ): Promise<PublicHouseholdSearchResult[]> {
     const terms = tokenizeNameForSearch(searchText)
     if (terms.length === 0 || terms.some((term) => term.length < 2)) return []
+
+    const termConditions: Prisma.HouseholdWhereInput[] = terms.map((term) => ({
+      guests: {
+        some: {
+          OR: [
+            { firstName: { contains: term, mode: 'insensitive' } },
+            { lastName: { contains: term, mode: 'insensitive' } },
+          ],
+        },
+      },
+    }))
 
     const households = await this.db.household.findMany({
       where: {
@@ -447,8 +468,10 @@ export class HouseholdRepository {
             },
           },
         },
+        AND: termConditions,
       },
       select: publicRsvpHouseholdSelect,
+      take: PUBLIC_SEARCH_RESULT_LIMIT,
     })
 
     // Every term must appear in a single guest's full name, so the searcher has
@@ -475,6 +498,29 @@ export class HouseholdRepository {
         return terms.every((term) => fullName.includes(term))
       })
     )
+  }
+
+  /**
+   * Fetch a single household's private fields (dietary notes, wishes
+   * message) for the public RSVP flow, gated on `searchText` matching that
+   * exact household via `searchPublicByName` — the same full-name-match rule
+   * the guest already had to clear to find the household in the first
+   * place. Returns null if it doesn't match (or the household doesn't
+   * exist), so these fields are never served to someone who only knows a
+   * household id.
+   */
+  async getPublicHouseholdDetails(
+    householdId: string,
+    searchText: string,
+    weddingId: string
+  ): Promise<PublicHouseholdDetails | null> {
+    const matches = await this.searchPublicByName(searchText, weddingId)
+    if (!matches.some((household) => household.id === householdId)) return null
+
+    return this.db.household.findFirst({
+      where: { id: householdId, weddingId },
+      select: { dietaryNotes: true, wishesMessage: true },
+    })
   }
 
   /**

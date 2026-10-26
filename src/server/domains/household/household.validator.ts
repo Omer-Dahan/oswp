@@ -116,7 +116,27 @@ export const searchHouseholdSchema = z.object({
  */
 export const publicSearchHouseholdSchema = z.object({
   subUrl: z.string().min(1, { message: 'Wedding website is required' }),
-  searchText: z.string().min(2, { message: 'Search input should be minimum 2 characters' }),
+  searchText: z
+    .string()
+    .min(2, { message: 'Search input should be minimum 2 characters' })
+    .max(100, { message: 'Search input should be at most 100 characters' }),
+  accessToken: z.string().optional(),
+})
+
+/**
+ * Schema for fetching a single household's private fields (dietary notes,
+ * wishes message) from the public guest-facing RSVP flow. Gated server-side
+ * on `searchText` matching the household via the same logic as
+ * `publicSearchHouseholdSchema`'s search, so these fields are only released
+ * to a guest who can actually name someone in the household.
+ */
+export const publicHouseholdDetailsSchema = z.object({
+  subUrl: z.string().min(1, { message: 'Wedding website is required' }),
+  householdId: z.string().min(1, 'Household ID is required'),
+  searchText: z
+    .string()
+    .min(2, { message: 'Search input should be minimum 2 characters' })
+    .max(100, { message: 'Search input should be at most 100 characters' }),
   accessToken: z.string().optional(),
 })
 
@@ -145,5 +165,6 @@ export type UpdateHouseholdSchemaInput = z.infer<typeof updateHouseholdSchema>
 export type DeleteHouseholdSchemaInput = z.infer<typeof deleteHouseholdSchema>
 export type SearchHouseholdSchemaInput = z.infer<typeof searchHouseholdSchema>
 export type PublicSearchHouseholdSchemaInput = z.infer<typeof publicSearchHouseholdSchema>
+export type PublicHouseholdDetailsSchemaInput = z.infer<typeof publicHouseholdDetailsSchema>
 export type HouseholdIdSchemaInput = z.infer<typeof householdIdSchema>
 export type BulkCreateHouseholdsSchemaInput = z.infer<typeof bulkCreateHouseholdsSchema>

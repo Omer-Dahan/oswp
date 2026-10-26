@@ -20,6 +20,12 @@ interface SelectedHousehold extends H {
 
 type RsvpFormState = {
   matchedHouseholds?: HouseholdSearch
+  /**
+   * The name the guest searched with, set on the find-your-invitation step.
+   * Re-used to re-prove identity when fetching a selected household's
+   * private fields (dietary notes, wishes message).
+   */
+  searchText?: string
   selectedHousehold?: SelectedHousehold
   rsvpResponses: RsvpFormResponse[]
   answersToQuestions: AnswerWithType[]

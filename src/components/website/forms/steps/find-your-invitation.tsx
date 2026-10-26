@@ -52,7 +52,7 @@ export default function FindYourInvitationForm({
       if (res.error || !res.data || res.data.length === 0) {
         setShowError(true)
       } else {
-        updateRsvpForm({ matchedHouseholds: res.data })
+        updateRsvpForm({ matchedHouseholds: res.data, searchText: name })
         goNext?.()
       }
     })

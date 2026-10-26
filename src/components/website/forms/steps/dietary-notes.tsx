@@ -22,9 +22,7 @@ export default function DietaryNotesForm({ goNext, goBack }: StepFormProps) {
   const rsvpFormData = useRsvpForm()
   const updateRsvpForm = useUpdateRsvpForm()
 
-  const [dietaryNotes, setDietaryNotes] = useState<string>(
-    () => rsvpFormData.dietaryNotes ?? rsvpFormData.selectedHousehold?.dietaryNotes ?? ''
-  )
+  const [dietaryNotes, setDietaryNotes] = useState<string>(() => rsvpFormData.dietaryNotes ?? '')
 
   const onContinue = () => {
     updateRsvpForm({ dietaryNotes })
