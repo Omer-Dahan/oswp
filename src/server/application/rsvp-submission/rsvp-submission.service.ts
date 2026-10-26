@@ -87,21 +87,59 @@ export class RsvpSubmissionService {
       })
     }
 
+    // A submission scoped to a single event (reached via `?event=` on the
+    // RSVP link) only carries that event's rsvpResponses, but the household
+    // fields in the payload still describe the *whole* household — stale or
+    // re-derived from a narrower view. Only trust them to overwrite the
+    // household record when this submission covers every event the
+    // household is actually invited to.
+    const isFullHouseholdSubmission = await this.coversAllHouseholdEvents(
+      data.householdId,
+      allowedRsvpResponses
+    )
+
     return this.submitRsvp(
       {
         rsvpResponses: allowedRsvpResponses,
         answersToQuestions: data.answersToQuestions,
       },
-      {
-        householdId: data.householdId,
-        attendingCount: data.attendingCount,
-        childrenCount: data.childrenCount,
-        dietaryNotes: data.dietaryNotes,
-        wishesMessage: data.wishesMessage,
-        weddingId,
-        extraGuestNames: data.extraGuestNames,
-      }
+      isFullHouseholdSubmission
+        ? {
+            householdId: data.householdId,
+            attendingCount: data.attendingCount,
+            childrenCount: data.childrenCount,
+            dietaryNotes: data.dietaryNotes,
+            wishesMessage: data.wishesMessage,
+            weddingId,
+            extraGuestNames: data.extraGuestNames,
+          }
+        : undefined
     )
+  }
+
+  /**
+   * Whether `responses` touches every event this household currently holds
+   * an invitation for (excluding events it was never invited to). A
+   * household with no invitations at all (e.g. still mid-search) counts as
+   * "full" since there's nothing narrower to compare against.
+   */
+  private async coversAllHouseholdEvents(
+    householdId: string,
+    responses: PublicRsvpResponse[]
+  ): Promise<boolean> {
+    const invitedEvents = await this.db.invitation.findMany({
+      where: {
+        guest: { householdId },
+        rsvp: { not: 'Not Invited' },
+      },
+      select: { eventId: true },
+      distinct: ['eventId'],
+    })
+
+    if (invitedEvents.length === 0) return true
+
+    const submittedEventIds = new Set(responses.map((response) => response.eventId))
+    return invitedEvents.every(({ eventId }) => submittedEventIds.has(eventId))
   }
 
   /**

@@ -77,10 +77,19 @@ export default async function RsvpPage({ params, searchParams }: RsvpPageProps) 
   // skip the name search and drop them straight onto the confirm step.
   const recognizedHousehold = await resolveRecognizedRsvpHousehold(websiteSubUrl, inviteToken)
 
+  // An unrecognized eventId (stale link, tampering) must not silently narrow
+  // the form to zero events — fall back to the full, all-events flow instead.
+  const requestedEventId = resolvedSearchParams?.event
+  const preselectedEventId = loadResult.weddingData.events.some(
+    (event) => event.id === requestedEventId
+  )
+    ? requestedEventId
+    : undefined
+
   const form = (
     <RsvpFormProvider
       recognizedHousehold={recognizedHousehold}
-      preselectedEventId={resolvedSearchParams?.event}
+      preselectedEventId={preselectedEventId}
       declineIntent={resolvedSearchParams?.decline === '1'}
     >
       <MainRsvpForm
