@@ -266,7 +266,7 @@ const ProgressBar = ({
       >
         <IoMdClose size={22} />
       </button>
-      <h1 className='py-2 font-[family-name:var(--tpl-heading-font)] text-foreground text-lg tracking-wide'>
+      <h1 className='py-2 font-[family-name:var(--tpl-body-font)] text-foreground text-lg tracking-wide'>
         RSVP
       </h1>
       <div className='relative h-1 w-full overflow-hidden rounded-full bg-border'>

@@ -19,6 +19,16 @@ export default async function WeddingWebsiteLayout({
         dir={isHebrew ? 'rtl' : 'ltr'}
         lang={locale}
         className={`contents ${hebrewSerif.variable} ${hebrewSans.variable} ${hebrewAlt.variable} ${hebrewLight.variable}`}
+        style={
+          {
+            // Fallback so `--tpl-body-font` / `--tpl-heading-font` are always real
+            // (not inherited serif from the root layout) even before a template's
+            // own TemplateThemeProvider further down sets its concrete stacks —
+            // e.g. during the rsvp loading/suspense fallback, which has no template yet.
+            '--tpl-body-font': 'var(--tpl-hebrew-sans), sans-serif',
+            '--tpl-heading-font': 'var(--tpl-hebrew-serif), serif',
+          } as React.CSSProperties
+        }
       >
         <div className='fixed top-3 end-3 z-50'>
           <LocaleToggle />

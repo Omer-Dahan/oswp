@@ -21,7 +21,7 @@ const StaticProgressBar = () => {
   return (
     <div className='fixed top-0 z-10 w-full bg-background px-10 py-3 text-center'>
       <IoMdClose size={22} className='absolute top-3 end-20 z-20 text-foreground/40' />
-      <h1 className='font-[family-name:var(--tpl-heading-font)] py-2 text-foreground text-lg tracking-wide'>
+      <h1 className='font-[family-name:var(--tpl-body-font)] py-2 text-foreground text-lg tracking-wide'>
         RSVP
       </h1>
       <div className='relative h-1 w-full overflow-hidden rounded-full bg-border'>
