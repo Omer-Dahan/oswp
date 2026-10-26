@@ -116,3 +116,11 @@ export type PublicHouseholdDetails = {
   dietaryNotes: string | null
   wishesMessage: string | null
 }
+
+/**
+ * Household shape for the save-the-date/invite-token recognition flow. Unlike
+ * the name-search flow, an invite token already proves identity on its own,
+ * so the private fields are included up front instead of being gated behind
+ * a separate searchText re-check — see HouseholdInviteService.getRecognizedRsvpHousehold.
+ */
+export type PublicRecognizedHousehold = PublicHouseholdSearchResult & PublicHouseholdDetails

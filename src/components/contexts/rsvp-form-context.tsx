@@ -10,6 +10,7 @@ import type {
   RsvpPageData,
 } from '~/app/utils/shared-types'
 import type { AnswerWithType } from '~/components/website/forms/rsvp-state'
+import type { PublicHouseholdDetails } from '~/server/domains/household/household.types'
 
 type H = HouseholdSearch[0]
 interface SelectedHousehold extends H {
@@ -86,8 +87,11 @@ interface RsvpFormProviderProps {
   /**
    * Household resolved from the guest's save-the-date invite cookie. When
    * present, the flow pre-fills the match and starts on the confirm step.
+   * The invite token already proves identity, so this also carries the
+   * private fields (dietary notes, wishes message) up front — unlike a
+   * plain name-search match.
    */
-  recognizedHousehold?: HouseholdSearch[number] | null
+  recognizedHousehold?: (HouseholdSearch[number] & Partial<PublicHouseholdDetails>) | null
   /** Event preselected via `?event=` on the RSVP link, so only that event's steps show. */
   preselectedEventId?: string
   /** Set via `?decline=1` on the RSVP link, switching the flow to the short decline path. */
@@ -111,7 +115,12 @@ export const RsvpFormProvider = ({
   const [rsvpFormData, setRsvpFormData] = useState<RsvpFormState>(() => ({
     ...INITIAL_STATE,
     ...(recognizedHousehold
-      ? { matchedHouseholds: [recognizedHousehold], recognized: true }
+      ? {
+          matchedHouseholds: [recognizedHousehold],
+          recognized: true,
+          dietaryNotes: recognizedHousehold.dietaryNotes ?? undefined,
+          wishesMessage: recognizedHousehold.wishesMessage ?? undefined,
+        }
       : null),
     ...(preselectedEventId ? { preselectedEventId } : null),
     ...(declineIntent ? { declineIntent } : null),

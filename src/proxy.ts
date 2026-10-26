@@ -31,6 +31,7 @@ const PUBLIC_PREFIXES = [
 // and each procedure still enforces its own authorization server-side.
 const PUBLIC_TRPC_PROCEDURES = new Set([
   'household.findBySearchPublic',
+  'household.getPublicHouseholdDetails',
   'website.submitPublicRsvpForm',
   'workspaceInvite.preview',
   'workspaceInvite.accept',
