@@ -204,7 +204,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-success/35 bg-success/12 font-normal text-success'
               >
-                {rsvpSummary.attending} מגיעים
+                {rsvpSummary.attending === 1 ? 'מגיעים' : `${rsvpSummary.attending} מגיעים`}
               </Badge>
             )}
             {rsvpSummary.invited > 0 && (
@@ -212,7 +212,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-foreground/20 bg-gold/12 font-normal text-foreground/80'
               >
-                {rsvpSummary.invited} טרם השיבו
+                {rsvpSummary.invited === 1 ? 'טרם השיבו' : `${rsvpSummary.invited} טרם השיבו`}
               </Badge>
             )}
             {rsvpSummary.declined > 0 && (
@@ -220,7 +220,7 @@ function GuestCardComponent({
                 variant='outline'
                 className='border-destructive/30 bg-destructive/10 font-normal text-destructive'
               >
-                {rsvpSummary.declined} לא מגיעים
+                {rsvpSummary.declined === 1 ? 'לא מגיעים' : `${rsvpSummary.declined} לא מגיעים`}
               </Badge>
             )}
             {rsvpSummary.attending === 0 &&
