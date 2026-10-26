@@ -83,8 +83,8 @@
     "extraGuestNameLabel": "Nombre del invitado",
     "extraGuestNamePlaceholder": "Nombre completo",
     "removeExtraGuestLabel": "Eliminar invitado",
-    "childrenCountTitle": "¿Cuántos niños (menores de 10 años) vienen?",
-    "childrenCountHelper": "El lugar pide los menús infantiles según este número",
+    "childrenCountTitle": "¿Cuántos niños vienen?",
+    "childrenCountHelper": "Puedes saltarte esto si no vienen niños",
     "dietaryNotesTitle": "Restricciones o alergias alimentarias",
     "dietaryNotesHelper": "Indica para quién y qué, la cocina lo recibirá tal cual"
   },
