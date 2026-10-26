@@ -91,7 +91,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
   // Mutations directly in component
   const createMutation = api.household.create.useMutation({
     onSuccess: () => {
-      toast.success('המסיבה נוצרה בהצלחה!')
+      toast.success('המשפחה נוצרה בהצלחה!')
       reset(getDefaultHouseholdFormData(events))
       if (shouldCloseAfterSave) {
         toggleGuestForm()
@@ -113,14 +113,14 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
         })
         toast.error('אנא תקנו את שגיאות הטופס')
       } else {
-        toast.error('יצירת המסיבה נכשלה. אנא נסו שוב.')
+        toast.error('יצירת המשפחה נכשלה. אנא נסו שוב.')
       }
     },
   })
 
   const updateMutation = api.household.update.useMutation({
     onSuccess: (data) => {
-      toast.success('המסיבה עודכנה בהצלחה!')
+      toast.success('המשפחה עודכנה בהצלחה!')
       // Reset form with updated data to clear dirty state
       if (data) {
         reset(data as unknown as HouseholdFormData)
@@ -142,20 +142,20 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
         })
         toast.error('אנא תקנו את שגיאות הטופס')
       } else {
-        toast.error('עדכון המסיבה נכשל. אנא נסו שוב.')
+        toast.error('עדכון המשפחה נכשל. אנא נסו שוב.')
       }
     },
   })
 
   const deleteMutation = api.household.delete.useMutation({
     onSuccess: () => {
-      toast.success('המסיבה נמחקה בהצלחה!')
+      toast.success('המשפחה נמחקה בהצלחה!')
       toggleGuestForm()
       void utils.dashboard.getForActiveWorkspace.invalidate()
       router.refresh()
     },
     onError: () => {
-      toast.error('מחיקת המסיבה נכשלה. אנא נסו שוב.')
+      toast.error('מחיקת המשפחה נכשלה. אנא נסו שוב.')
     },
   })
 
@@ -389,7 +389,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
       <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>למחוק מסיבה?</AlertDialogTitle>
+            <AlertDialogTitle>למחוק משפחה?</AlertDialogTitle>
             <AlertDialogDescription>
               משק הבית וכל האורחים בו יימחקו לצמיתות. אי אפשר לבטל את הפעולה.
             </AlertDialogDescription>

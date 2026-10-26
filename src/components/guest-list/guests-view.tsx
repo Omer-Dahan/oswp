@@ -586,11 +586,11 @@ export default function GuestsView({
           setFilteredHouseholds((previous) =>
             previous.filter((household) => household.id !== householdId)
           )
-          toast.success('המסיבה נמחקה בהצלחה')
+          toast.success('המשפחה נמחקה בהצלחה')
           void utils.dashboard.getForActiveWorkspace.invalidate()
         },
         onError: () => {
-          toast.error('מחיקת המסיבה נכשלה')
+          toast.error('מחיקת המשפחה נכשלה')
         },
       }
     )
@@ -901,7 +901,7 @@ export default function GuestsView({
               disabled={deleteHouseholdMutation.isPending}
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
-              {deleteHouseholdMutation.isPending ? 'מוחק...' : 'מחיקת מפלגה'}
+              {deleteHouseholdMutation.isPending ? 'מוחק...' : 'מחיקת משפחה'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
