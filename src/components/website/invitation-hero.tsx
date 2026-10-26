@@ -2,9 +2,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
+import { CopyHouseholdInviteLinkButton } from '~/components/website/copy-household-invite-link-button'
 import { HeroCard, HeroCardsGroup } from '~/components/website/hero-card'
+import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 
 type InvitationHeroProps = {
+  websiteSubUrl: string
   /** Same RSVP link the rest of the site uses, so the household token survives. */
   rsvpHref: string
   isRsvpEnabled: boolean
@@ -12,21 +15,81 @@ type InvitationHeroProps = {
   coupleNames: string | null
   /** Set when the visitor arrived through a recognised household invite link. */
   invitedHousehold: InvitedHousehold | null
+  /** The wedding's events, used to resolve the per-event RSVP pills. */
+  events: Array<{ id: string; name: string; isPrimary: boolean }>
+  /** The household's own save-the-date invite code, when recognised. */
+  householdInviteCode: string | null
 }
 
-function RsvpButton({
+type RsvpPillSize = 'mobile' | 'desktop'
+
+const RSVP_PILL_CLASSES: Record<RsvpPillSize, string> = {
+  mobile:
+    'inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 font-sans font-semibold text-foreground text-sm leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
+  desktop:
+    'inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
+}
+
+const SECONDARY_LINK_CLASSES =
+  'font-sans text-foreground/70 text-xs underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]'
+
+/** The two per-event RSVP pills, side by side (stacked below 375px). */
+function RsvpPills({
   rsvpHref,
   isRsvpEnabled,
-}: Pick<InvitationHeroProps, 'rsvpHref' | 'isRsvpEnabled'>) {
-  if (!isRsvpEnabled) return null
+  weddingEvent,
+  chuppahEvent,
+  size,
+}: {
+  rsvpHref: string
+  isRsvpEnabled: boolean
+  weddingEvent: { id: string } | null
+  chuppahEvent: { id: string } | null
+  size: RsvpPillSize
+}) {
+  if (!isRsvpEnabled || !weddingEvent) return null
   return (
-    <Link
-      href={rsvpHref}
-      aria-label='אישור הגעה לאירוע'
-      className='inline-flex h-11 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:shadow-sm sm:text-[17px]'
-    >
-      אישור הגעה
-    </Link>
+    <div className='flex flex-col items-center gap-2 min-[376px]:flex-row'>
+      <Link
+        href={`${rsvpHref}?event=${weddingEvent.id}`}
+        aria-label='אישור הגעה לחתונה'
+        className={RSVP_PILL_CLASSES[size]}
+      >
+        אישור הגעה לחתונה
+      </Link>
+      {chuppahEvent ? (
+        <Link
+          href={`${rsvpHref}?event=${chuppahEvent.id}`}
+          aria-label='אישור הגעה לחופה'
+          className={RSVP_PILL_CLASSES[size]}
+        >
+          אישור הגעה לחופה
+        </Link>
+      ) : null}
+    </div>
+  )
+}
+
+/** Quiet secondary actions beneath the primary RSVP pills. */
+function SecondaryActions({
+  websiteSubUrl,
+  householdInviteCode,
+}: {
+  websiteSubUrl: string
+  householdInviteCode: string | null
+}) {
+  return (
+    <div className='flex items-center gap-4'>
+      <Link href={`/w/${websiteSubUrl}/save-the-date`} className={SECONDARY_LINK_CLASSES}>
+        שמרו את התאריך
+      </Link>
+      {householdInviteCode ? (
+        <CopyHouseholdInviteLinkButton
+          websiteSubUrl={websiteSubUrl}
+          inviteCode={householdInviteCode}
+        />
+      ) : null}
+    </div>
   )
 }
 
@@ -50,13 +113,17 @@ function greetingText(invitedHousehold: InvitedHousehold | null): string {
  * hover/focus/click.
  */
 export function InvitationHero({
+  websiteSubUrl,
   rsvpHref,
   isRsvpEnabled,
   coupleNames,
   invitedHousehold,
+  events,
+  householdInviteCode,
 }: Readonly<InvitationHeroProps>) {
   const invitationAlt = coupleNames ? `הזמנת החתונה של ${coupleNames}` : 'הזמנת החתונה'
   const greeting = greetingText(invitedHousehold)
+  const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
 
   return (
     <div className='relative h-[100svh] w-full overflow-hidden bg-background'>
@@ -100,9 +167,19 @@ export function InvitationHero({
             </div>
           </HeroCardsGroup>
 
-          <div className='relative z-10 flex flex-col items-center gap-0.5 text-center'>
+          <div className='relative z-10 flex flex-col items-center gap-2 text-center'>
             <p className='font-serif text-foreground text-sm'>{greeting}</p>
-            <RsvpButton rsvpHref={rsvpHref} isRsvpEnabled={isRsvpEnabled} />
+            <RsvpPills
+              rsvpHref={rsvpHref}
+              isRsvpEnabled={isRsvpEnabled}
+              weddingEvent={weddingEvent}
+              chuppahEvent={chuppahEvent}
+              size='mobile'
+            />
+            <SecondaryActions
+              websiteSubUrl={websiteSubUrl}
+              householdInviteCode={invitedHousehold ? householdInviteCode : null}
+            />
           </div>
         </div>
       </div>
@@ -143,15 +220,17 @@ export function InvitationHero({
 
         <div className='relative z-10 flex flex-col items-center gap-3 text-center'>
           <p className='font-serif text-foreground text-lg'>{greeting}</p>
-          {isRsvpEnabled ? (
-            <Link
-              href={rsvpHref}
-              aria-label='אישור הגעה לאירוע'
-              className='inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:shadow-sm'
-            >
-              אישור הגעה
-            </Link>
-          ) : null}
+          <RsvpPills
+            rsvpHref={rsvpHref}
+            isRsvpEnabled={isRsvpEnabled}
+            weddingEvent={weddingEvent}
+            chuppahEvent={chuppahEvent}
+            size='desktop'
+          />
+          <SecondaryActions
+            websiteSubUrl={websiteSubUrl}
+            householdInviteCode={invitedHousehold ? householdInviteCode : null}
+          />
         </div>
       </div>
     </div>

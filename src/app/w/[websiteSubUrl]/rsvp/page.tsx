@@ -15,6 +15,9 @@ type RsvpPageProps = {
   params: Promise<{
     websiteSubUrl: string
   }>
+  searchParams?: Promise<{
+    event?: string
+  }>
 }
 
 export async function generateMetadata({ params }: RsvpPageProps): Promise<Metadata> {
@@ -44,8 +47,9 @@ export async function generateMetadata({ params }: RsvpPageProps): Promise<Metad
   }
 }
 
-export default async function RsvpPage({ params }: RsvpPageProps) {
+export default async function RsvpPage({ params, searchParams }: RsvpPageProps) {
   const { websiteSubUrl } = await params
+  const resolvedSearchParams = await searchParams
   const { loadResult, inviteToken, accessToken } = await loadVisitorWedding(websiteSubUrl)
 
   const verifyWebsitePassword = async (passwordInput: string) => {
@@ -73,7 +77,10 @@ export default async function RsvpPage({ params }: RsvpPageProps) {
   const recognizedHousehold = await resolveRecognizedRsvpHousehold(websiteSubUrl, inviteToken)
 
   const form = (
-    <RsvpFormProvider recognizedHousehold={recognizedHousehold}>
+    <RsvpFormProvider
+      recognizedHousehold={recognizedHousehold}
+      preselectedEventId={resolvedSearchParams?.event}
+    >
       <MainRsvpForm
         weddingData={loadResult.weddingData}
         basePath={`/w/${websiteSubUrl}`}

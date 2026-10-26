@@ -62,12 +62,14 @@ export type HouseholdInviteData = {
   }
   /** Wedding events, used to build the "save the date" calendar block. */
   events: Array<{
+    id: string
     name: string
     date: Date | null
     startTime: string | null
     venue: string | null
     venueAddress: string | null
     venueWazeUrl: string | null
+    isPrimary: boolean
   }>
   household: {
     id: string
@@ -578,6 +580,7 @@ export class HouseholdInviteService {
               events: {
                 orderBy: { date: 'asc' },
                 select: {
+                  id: true,
                   name: true,
                   date: true,
                   startTime: true,

@@ -9,11 +9,13 @@ import { Card, CardContent } from '~/components/ui/card'
 import { resolvePrimaryContactGreeting } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 import { AddToCalendarButtons } from '~/components/website/add-to-calendar-buttons'
 import { EnvelopeReveal } from '~/components/website/household-invite/envelope-reveal'
+import { HouseholdRsvpActions } from '~/components/website/household-invite/household-rsvp-actions'
 import { InvalidHouseholdInvite } from '~/components/website/household-invite/invalid-household-invite'
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
 import { householdInviteCookieName } from '~/lib/website/cookies'
 import { departByLabel, resolveWazeUrl, venueQuery } from '~/lib/website/maps'
 import { coupleNames } from '~/lib/wedding/couple-name'
+import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import { householdInviteService } from '~/server/application/household-invite'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
 
@@ -28,6 +30,7 @@ type SaveTheDatePageProps = {
   }>
   searchParams?: Promise<{
     invalid?: string
+    rsvp?: string
   }>
 }
 
@@ -131,6 +134,9 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
     inviteData.guests.filter((guest) => guest.isTagAlong !== true)
   )
 
+  const { weddingEvent, chuppahEvent } = resolveRsvpEvents(inviteData.events)
+  const rsvpOutcome = resolvedSearchParams?.rsvp
+
   // Everything below is inherited from the wedding's events — no hardcoded copy.
   const datedEvents = inviteData.events
     .filter((event): event is typeof event & { date: Date } => event.date != null)
@@ -212,9 +218,13 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                     </p>
                     <p className={`mt-1 text-muted-foreground ${labelFont}`}>{t('rsvpHelper')}</p>
                     {inviteData.isRsvpEnabled ? (
-                      <Button asChild size='lg' className='mt-4'>
-                        <Link href={`/w/${websiteSubUrl}/rsvp`}>{t('confirmAttendance')}</Link>
-                      </Button>
+                      <HouseholdRsvpActions
+                        websiteSubUrl={websiteSubUrl}
+                        weddingEvent={weddingEvent}
+                        chuppahEvent={chuppahEvent}
+                        rsvpOutcome={rsvpOutcome}
+                        labelFontClassName={labelFont}
+                      />
                     ) : null}
                   </div>
                 ) : null}

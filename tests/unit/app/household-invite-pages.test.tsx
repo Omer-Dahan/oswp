@@ -235,10 +235,12 @@ describe('household invite pages', () => {
     // uses her last name as the family name.
     expect(screen.getByText('Hello, the Lovelace family')).toBeInTheDocument()
     expect(screen.getByText("We'd love to know if you're coming")).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Confirm attendance' })).toHaveAttribute(
-      'href',
-      '/w/harry-and-hermione/rsvp'
+    const weddingButton = screen.getByRole('button', { name: 'אישור הגעה לחתונה' })
+    expect(weddingButton.closest('form')).toHaveAttribute(
+      'action',
+      '/w/harry-and-hermione/save-the-date/rsvp'
     )
+    expect(screen.getByRole('button', { name: 'לצערי לא נוכל להגיע' })).toBeInTheDocument()
   })
 
   it('omits the RSVP action when the website has not enabled RSVP', async () => {
@@ -254,7 +256,7 @@ describe('household invite pages', () => {
     )
 
     expect(screen.getByText('Hello, the Lovelace family')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Confirm attendance' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'אישור הגעה לחתונה' })).not.toBeInTheDocument()
   })
 
   it('themes the invite card with the chosen template and the couple’s Save the Date copy', async () => {

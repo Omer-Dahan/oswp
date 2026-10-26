@@ -37,7 +37,7 @@ const createWeddingData = (overrides: Record<string, unknown> = {}) => ({
     standardFormat: 'Tomorrow',
     numberFormat: '2026-04-25',
   },
-  events: [],
+  events: [{ id: 'wedding-event', name: 'Wedding', isPrimary: true }],
   website: {
     id: 'website-1',
     weddingId: 'wedding-1',
@@ -74,10 +74,10 @@ describe('WeddingWebsite', () => {
       await WeddingWebsite({ websiteSubUrl: 'shrek-and-fiona', weddingData: createWeddingData() })
     )
 
-    const rsvpLinks = screen.getAllByRole('link', { name: 'אישור הגעה לאירוע' })
+    const rsvpLinks = screen.getAllByRole('link', { name: 'אישור הגעה לחתונה' })
     expect(rsvpLinks.length).toBeGreaterThan(0)
     for (const link of rsvpLinks) {
-      expect(link).toHaveAttribute('href', '/w/shrek-and-fiona/rsvp')
+      expect(link).toHaveAttribute('href', '/w/shrek-and-fiona/rsvp?event=wedding-event')
     }
   })
 
@@ -91,7 +91,7 @@ describe('WeddingWebsite', () => {
       })
     )
 
-    expect(screen.queryByRole('link', { name: 'אישור הגעה לאירוע' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'אישור הגעה לחתונה' })).not.toBeInTheDocument()
   })
 
   it('shows the neutral greeting when no household is recognized', async () => {
