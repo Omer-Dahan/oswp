@@ -431,7 +431,7 @@ export class HouseholdRepository {
     weddingId: string
   ): Promise<PublicHouseholdSearchResult[]> {
     const terms = tokenizeNameForSearch(searchText)
-    if (terms.length === 0) return []
+    if (terms.length === 0 || terms.some((term) => term.length < 2)) return []
 
     const households = await this.db.household.findMany({
       where: {
@@ -464,6 +464,12 @@ export class HouseholdRepository {
         if (terms.length === 1) {
           return guestNameTerms.length === 1 && guestNameTerms[0] === terms[0]
         }
+
+        // At least one search term must fully match one of the guest's own
+        // name tokens (first or last name), not just a substring, so no
+        // short partial term can alone surface a match.
+        const hasFullTokenMatch = terms.some((term) => guestNameTerms.includes(term))
+        if (!hasFullTokenMatch) return false
 
         const fullName = guestNameTerms.join(' ')
         return terms.every((term) => fullName.includes(term))
