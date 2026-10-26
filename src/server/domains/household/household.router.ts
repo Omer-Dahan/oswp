@@ -12,12 +12,14 @@ import { TRPCError } from '@trpc/server'
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '~/server/api/trpc'
 import { householdManagementService } from '~/server/application/household-management'
+import { getClientIp } from '~/server/application/rsvp-submission'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { eventService } from '~/server/domains/event'
 import {
   bulkCreateHouseholdsSchema,
   createHouseholdSchema,
   deleteHouseholdSchema,
+  publicHouseholdDetailsSchema,
   publicSearchHouseholdSchema,
   searchHouseholdSchema,
   updateHouseholdSchema,
@@ -109,10 +111,28 @@ export const householdRouter = createTRPCRouter({
    */
   findBySearchPublic: publicProcedure
     .input(publicSearchHouseholdSchema)
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       return householdManagementService.searchHouseholdsPublic(
         input.subUrl,
         input.searchText,
+        getClientIp(ctx.headers),
+        input.accessToken
+      )
+    }),
+
+  /**
+   * Fetch a single household's private fields (dietary notes, wishes
+   * message) from the public guest-facing RSVP flow, gated on `searchText`
+   * matching that household — see household-management.service.ts.
+   */
+  getPublicHouseholdDetails: publicProcedure
+    .input(publicHouseholdDetailsSchema)
+    .query(async ({ ctx, input }) => {
+      return householdManagementService.getPublicHouseholdDetails(
+        input.subUrl,
+        input.householdId,
+        input.searchText,
+        getClientIp(ctx.headers),
         input.accessToken
       )
     }),
