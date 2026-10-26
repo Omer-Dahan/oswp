@@ -294,7 +294,7 @@ const ProgressBar = ({
       <button
         type='button'
         aria-label='סגרו טופס RSVP'
-        className='absolute end-20 top-3 z-20 rounded-md text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+        className='absolute end-[4.25rem] top-0 z-20 flex h-11 w-11 items-center justify-center rounded-md text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
         onClick={() => {
           if (
             !shouldConfirmRsvpClose({ currentStep, numSteps }) ||
