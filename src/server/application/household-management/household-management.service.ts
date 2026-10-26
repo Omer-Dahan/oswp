@@ -104,46 +104,50 @@ export class HouseholdManagementService {
         })
       }
 
-      const guests = await Promise.all(
-        data.guestParty.map(async (guest, index) => {
-          const isTagAlong = guest.isTagAlong ?? false
-          const inviteEntries = Object.entries(guest.invites)
-          const defaultInviteEntries =
-            inviteEntries.length === 0
-              ? (await getDefaultEventIds()).map((eventId) => [eventId, 'Not Invited'] as const)
-              : inviteEntries
-          const invitations = defaultInviteEntries.map(([eventId, rsvp]) => ({
-            eventId,
-            rsvp,
-            weddingId,
-          }))
+      // Guests are created sequentially (not via Promise.all) because they all
+      // run queries against the same interactive transaction client: the
+      // @prisma/adapter-pg driver adapter serializes everything onto one
+      // pooled connection, and firing concurrent queries at it can hang the
+      // transaction indefinitely instead of erroring.
+      const guests = []
+      for (const [index, guest] of data.guestParty.entries()) {
+        const isTagAlong = guest.isTagAlong ?? false
+        const inviteEntries = Object.entries(guest.invites)
+        const defaultInviteEntries =
+          inviteEntries.length === 0
+            ? (await getDefaultEventIds()).map((eventId) => [eventId, 'Not Invited'] as const)
+            : inviteEntries
+        const invitations = defaultInviteEntries.map(([eventId, rsvp]) => ({
+          eventId,
+          rsvp,
+          weddingId,
+        }))
 
-          const createdGuest = await txGuestRepo.create({
-            firstName: guest.firstName,
-            lastName: guest.lastName,
-            email: guest.email ?? null,
-            phone: guest.phone ?? null,
-            weddingId,
-            householdId: household.id,
-            isPrimaryContact: isTagAlong ? false : (guest.isPrimaryContact ?? index === 0),
-            ageGroup: guest.ageGroup ?? null,
-            isTagAlong,
-            invitations,
-            tagIds: guest.tagIds ?? [],
-          })
-
-          const guestWithTags = await txGuestRepo.findByIdWithInvitations(createdGuest.id)
-
-          if (!guestWithTags) {
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: 'Failed to refetch guest after creation',
-            })
-          }
-
-          return guestWithTags
+        const createdGuest = await txGuestRepo.create({
+          firstName: guest.firstName,
+          lastName: guest.lastName,
+          email: guest.email ?? null,
+          phone: guest.phone ?? null,
+          weddingId,
+          householdId: household.id,
+          isPrimaryContact: isTagAlong ? false : (guest.isPrimaryContact ?? index === 0),
+          ageGroup: guest.ageGroup ?? null,
+          isTagAlong,
+          invitations,
+          tagIds: guest.tagIds ?? [],
         })
-      )
+
+        const guestWithTags = await txGuestRepo.findByIdWithInvitations(createdGuest.id)
+
+        if (!guestWithTags) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to refetch guest after creation',
+          })
+        }
+
+        guests.push(guestWithTags)
+      }
 
       if (!guests.length) {
         throw new TRPCError({
