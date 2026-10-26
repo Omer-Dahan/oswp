@@ -18,6 +18,9 @@ jest.mock('next/navigation', () => ({
     throw new Error('NOT_FOUND')
   },
 }))
+jest.mock('next-intl/server', () => ({
+  getLocale: jest.fn().mockResolvedValue('en'),
+}))
 jest.mock('~/components/website/password-page', () => ({
   __esModule: true,
   default: () => <div>Password required</div>,

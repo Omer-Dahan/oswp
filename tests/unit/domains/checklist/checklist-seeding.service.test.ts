@@ -2,6 +2,7 @@ import { MilestoneCategory, TaskCategory } from '@prisma/client'
 
 import { ChecklistSeedingService } from '~/server/domains/checklist/checklist-seeding.service'
 import { getCanonicalMilestoneSeed } from '~/server/domains/milestone/milestone.seed'
+import { getCanonicalTaskSeed } from '~/server/domains/task/task.seed'
 
 const createMockDb = () => ({
   wedding: {
@@ -86,7 +87,8 @@ describe('ChecklistSeedingService', () => {
         expect.objectContaining({
           weddingId: 'wedding-123',
           key: 'date_set',
-          title: 'Date set',
+          title: getCanonicalMilestoneSeed().find((milestone) => milestone.key === 'date_set')
+            ?.title,
           category: MilestoneCategory.SETUP,
           position: 0,
           targetDate: null,
@@ -100,7 +102,8 @@ describe('ChecklistSeedingService', () => {
           weddingId: 'wedding-123',
           eventId: 'event-first',
           seedKey: 'send_formal_invitations',
-          title: 'Send formal invitations',
+          title: getCanonicalTaskSeed().find((task) => task.seedKey === 'send_formal_invitations')
+            ?.title,
           category: TaskCategory.STATIONERY,
           monthsBeforeWedding: 3,
           milestoneId: 'milestone-7',

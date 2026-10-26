@@ -18,11 +18,13 @@ import { RsvpSubmissionService } from '~/server/application/rsvp-submission/rsvp
 import { requirePermission } from '~/server/authz/permission-checker'
 import {
   GuestRepository,
+  mockCountByIdsInHousehold,
   mockCountByIdsInWedding as mockGuestCountByIdsInWedding,
   resetMocks as resetGuestMocks,
 } from '~/server/domains/guest/guest.repository'
 import {
   HouseholdRepository,
+  mockBelongsToWedding,
   mockCountByIdsInWedding as mockHouseholdCountByIdsInWedding,
   mockUpdateRsvpPartyDetails,
   resetMocks as resetHouseholdMocks,
@@ -58,6 +60,11 @@ const createMockDb = () => ({
   website: {
     findFirst: jest.fn().mockResolvedValue({ weddingId: 'wedding-123', isRsvpEnabled: true }),
   },
+  rateLimitBucket: {
+    findUnique: jest.fn().mockResolvedValue(null),
+    upsert: jest.fn().mockResolvedValue({}),
+    update: jest.fn().mockResolvedValue({ count: 1 }),
+  },
 })
 
 describe('RsvpSubmissionService', () => {
@@ -85,7 +92,9 @@ describe('RsvpSubmissionService', () => {
 
     mockCountByWeddingAndGuestEventPairs.mockResolvedValue(1)
     mockGuestCountByIdsInWedding.mockResolvedValue(1)
+    mockCountByIdsInHousehold.mockResolvedValue(1)
     mockHouseholdCountByIdsInWedding.mockResolvedValue(1)
+    mockBelongsToWedding.mockResolvedValue(true)
     mockFindWeddingIdByValidTokenAndSubUrl.mockResolvedValue('wedding-123')
     mockFindOptionResponse.mockResolvedValue(null)
 

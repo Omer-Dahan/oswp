@@ -174,7 +174,7 @@ describe('CommunicationLogService', () => {
       if (!rsvpEntry) {
         throw new Error('Expected RSVP_RECEIVED entry to be present')
       }
-      expect(rsvpEntry.message).toBe("Bob Jones RSVP'd Declined for Reception")
+      expect(rsvpEntry.message).toBe('Bob Jones השיב/ה: Declined לReception')
     })
 
     it('checks guest:view permission', async () => {

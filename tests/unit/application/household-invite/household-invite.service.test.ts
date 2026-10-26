@@ -29,6 +29,7 @@ const createDb = () => {
   return {
     household: {
       findFirst: jest.fn(),
+      findUnique: jest.fn().mockResolvedValue(null),
       update: jest.fn().mockResolvedValue({}),
     },
     website: {
@@ -154,8 +155,7 @@ describe('HouseholdInviteService', () => {
             groomFirstName: true,
             brideFirstName: true,
             events: {
-              where: { name: 'Wedding Day' },
-              orderBy: { date: 'asc' },
+              where: { isPrimary: true },
               take: 1,
               select: { date: true, venue: true },
             },
@@ -438,13 +438,14 @@ describe('HouseholdInviteService', () => {
       state: 'Puebla',
       zipCode: '72000',
       country: 'Mexico',
+      // email and phone are PII and must be redacted before reaching analytics.
       guests: [
         {
           guestId: 1,
           firstName: 'Ada',
           lastName: 'Lovelace',
-          email: 'ada@example.com',
-          phone: '+1 555 0100',
+          email: '[redacted]',
+          phone: '[redacted]',
         },
       ],
     })

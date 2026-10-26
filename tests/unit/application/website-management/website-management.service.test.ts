@@ -1,5 +1,9 @@
 import { TRPCError } from '@trpc/server'
 
+jest.mock('next-intl/server', () => ({
+  getLocale: jest.fn().mockResolvedValue('en'),
+}))
+
 jest.mock('~/server/authz/permission-checker', () => ({
   requirePermission: jest.fn(),
 }))
