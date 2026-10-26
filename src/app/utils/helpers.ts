@@ -5,6 +5,9 @@ function formatDateStandard(date: Date | null | undefined, locale?: string) {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    // Event dates come from a `@db.Date` column (midnight UTC), so format in
+    // UTC to show the day the couple entered regardless of the viewer's timezone.
+    timeZone: 'UTC',
   })
 }
 

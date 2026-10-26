@@ -10,7 +10,10 @@
     "outlook": "אאוטלוק",
     "appleCalendar": "אפל קלנדר",
     "downloadIcs": "הורדת קובץ ics.",
-    "privacyPolicy": "מדיניות הפרטיות שלנו"
+    "privacyPolicy": "מדיניות הפרטיות שלנו",
+    "rsvpFormTitle": "אישור הגעה",
+    "submitError": "שליחת אישור ההגעה נכשלה. נסו שוב.",
+    "genericError": "משהו השתבש. רעננו את הדף ונסו שוב."
   },
   "invite": {
     "saveTheDate": "שמרו את התאריך",

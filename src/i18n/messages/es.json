@@ -10,7 +10,10 @@
     "outlook": "Outlook",
     "appleCalendar": "Calendario de Apple",
     "downloadIcs": "Descargar .ics",
-    "privacyPolicy": "Ver nuestra política de privacidad"
+    "privacyPolicy": "Ver nuestra política de privacidad",
+    "rsvpFormTitle": "RSVP",
+    "submitError": "No se pudo enviar la confirmación. Inténtalo de nuevo.",
+    "genericError": "Algo salió mal. Actualiza la página e inténtalo de nuevo."
   },
   "invite": {
     "saveTheDate": "Reserva la fecha",

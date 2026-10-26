@@ -53,8 +53,8 @@ export default function EventRsvpForm({
         <div className='flex items-center gap-2 text-base text-muted-foreground'>
           <AiOutlineCalendar size={20} aria-hidden />
           <span>
-            {formatDateStandard(event.date)}
-            {event.startTime && ` at ${event.startTime}`}
+            {formatDateStandard(event.date, 'he')}
+            {event.startTime && ` · ${event.startTime}`}
           </span>
         </div>
       )}

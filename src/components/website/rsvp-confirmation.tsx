@@ -172,7 +172,7 @@ const EventRow = ({
         <h3 className={`${stepHeadingFont} text-foreground text-lg`}>{event.name}</h3>
         {!!event.date && (
           <span className={`${bodyFont} text-muted-foreground text-sm`}>
-            {formatDateStandard(event.date)}
+            {formatDateStandard(event.date, 'he')}
             {event.startTime && ` · ${event.startTime}`}
           </span>
         )}
