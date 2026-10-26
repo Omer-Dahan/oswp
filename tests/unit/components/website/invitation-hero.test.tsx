@@ -26,13 +26,13 @@ const baseProps = {
 }
 
 describe('InvitationHero', () => {
-  it('renders a wedding pill and a chuppah pill, each preselecting its event', () => {
+  it('renders a wedding pill and a chuppah pill, neither preselecting an event', () => {
     render(
       <InvitationHero
         {...baseProps}
         events={[
-          { id: 'wedding-event', name: 'Wedding', isPrimary: true },
-          { id: 'chuppah-event', name: 'חופה', isPrimary: false },
+          { id: 'wedding-event', name: 'Wedding', isPrimary: true, collectRsvp: true },
+          { id: 'chuppah-event', name: 'חופה', isPrimary: false, collectRsvp: true },
         ]}
       />
     )
@@ -42,11 +42,12 @@ describe('InvitationHero', () => {
 
     expect(weddingLinks.length).toBeGreaterThan(0)
     expect(chuppahLinks.length).toBeGreaterThan(0)
-    for (const link of weddingLinks) {
-      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?event=wedding-event')
-    }
-    for (const link of chuppahLinks) {
-      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?event=chuppah-event')
+    // A household invited to more than one RSVP-able event is never
+    // preselected into either one — an event-scoped submission would
+    // silently drop the other event's answers (see RsvpPills in
+    // invitation-hero.tsx) — so both pills link to the plain RSVP form.
+    for (const link of [...weddingLinks, ...chuppahLinks]) {
+      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp')
     }
   })
 

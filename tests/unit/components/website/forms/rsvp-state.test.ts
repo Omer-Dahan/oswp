@@ -145,8 +145,8 @@ describe('who-is-coming initial selection — a household never opens at a total
   })
 
   it('opens the extra-guests count at 1 when there is no named guest to pre-select and nothing was saved', () => {
-    expect(getInitialExtraGuests(false, undefined, 0, 20)).toBe(1)
-    expect(getInitialExtraGuests(false, 0, 0, 20)).toBe(1)
+    expect(getInitialExtraGuests(false, undefined, 0, 0, 20)).toBe(1)
+    expect(getInitialExtraGuests(false, 0, 0, 0, 20)).toBe(1)
   })
 
   it('does not add extra guests once a named guest was pre-selected', () => {
@@ -154,7 +154,7 @@ describe('who-is-coming initial selection — a household never opens at a total
   })
 
   it('still honors a previously saved total over the "never answered" default', () => {
-    expect(getInitialExtraGuests(true, 5, 2, 18)).toBe(3)
+    expect(getInitialExtraGuests(true, 5, 2, 0, 18)).toBe(3)
   })
 })
 

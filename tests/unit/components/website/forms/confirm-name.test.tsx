@@ -20,11 +20,28 @@ let mockFormState: {
   matchedHouseholds?: unknown[]
   selectedHousehold?: unknown
   recognized?: boolean
+  weddingData?: unknown
 }
 
 jest.mock('~/components/contexts/rsvp-form-context', () => ({
   useRsvpForm: () => mockFormState,
   useUpdateRsvpForm: () => mockUpdateRsvpForm,
+}))
+
+// Selecting a household re-fetches its private fields (dietary notes, wishes
+// message) via this query, gated behind a matching `searchText` — see
+// confirm-name.tsx's `onContinue`.
+jest.mock('~/trpc/react', () => ({
+  api: {
+    household: {
+      getPublicHouseholdDetails: {
+        useQuery: () => ({
+          refetch: jest.fn().mockResolvedValue({ data: undefined }),
+          isFetching: false,
+        }),
+      },
+    },
+  },
 }))
 
 const household = (id: string, firstName: string) => ({
@@ -45,11 +62,11 @@ const household = (id: string, firstName: string) => ({
 describe('ConfirmNameForm', () => {
   beforeEach(() => {
     mockUpdateRsvpForm.mockReset()
-    mockFormState = { matchedHouseholds: [], selectedHousehold: undefined }
+    mockFormState = { matchedHouseholds: [], selectedHousehold: undefined, weddingData: {} }
   })
 
   it('pre-selects the household when there is exactly one match', () => {
-    mockFormState = { matchedHouseholds: [household('h1', 'Ron')] }
+    mockFormState = { matchedHouseholds: [household('h1', 'Ron')], weddingData: {} }
     render(<ConfirmNameForm goNext={jest.fn()} goBack={jest.fn()} />)
 
     // A single match is auto-selected so CONTINUE is immediately actionable.
@@ -60,6 +77,7 @@ describe('ConfirmNameForm', () => {
   it('does not pre-select when there are multiple matches', () => {
     mockFormState = {
       matchedHouseholds: [household('h1', 'Ron'), household('h2', 'Harry')],
+      weddingData: {},
     }
     render(<ConfirmNameForm goNext={jest.fn()} goBack={jest.fn()} />)
 
@@ -71,7 +89,7 @@ describe('ConfirmNameForm', () => {
 
   it('offers a "Not you?" escape that clears the recognized match and goes back to search', () => {
     const goBack = jest.fn()
-    mockFormState = { matchedHouseholds: [household('h1', 'Ron')], recognized: true }
+    mockFormState = { matchedHouseholds: [household('h1', 'Ron')], recognized: true, weddingData: {} }
     render(<ConfirmNameForm goNext={jest.fn()} goBack={goBack} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'NOT YOU?' }))
