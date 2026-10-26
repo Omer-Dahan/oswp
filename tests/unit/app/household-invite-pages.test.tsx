@@ -70,6 +70,16 @@ jest.mock('next-intl/server', () => ({
     }),
 }))
 
+const commonTranslations: Record<string, string> = {
+  googleCalendar: 'Google Calendar',
+  outlook: 'Outlook',
+  appleCalendar: 'Apple Calendar',
+}
+
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => commonTranslations[key] ?? key,
+}))
+
 jest.mock('~/components/website/household-invite/invalid-household-invite', () => ({
   InvalidHouseholdInvite: jest.fn().mockReturnValue(
     <div>
@@ -167,9 +177,7 @@ describe('household invite pages', () => {
 
     expect(mockGetInviteData).toHaveBeenCalledWith('harry-and-hermione', 'ab-4f9k2c')
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(
-      'https://example.com/w/harry-and-hermione/save-the-date'
-    )
+    expect(response.headers.get('location')).toBe('/w/harry-and-hermione/save-the-date')
     expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow')
     expect(response.headers.get('set-cookie')).toEqual(
       expect.stringContaining('household_invite_harry-and-hermione=ab-4f9k2c')

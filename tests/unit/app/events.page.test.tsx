@@ -79,7 +79,7 @@ describe('EventsPage', () => {
     const { container } = render(page)
 
     expect(mockDashboardTopbar).toHaveBeenCalledWith({
-      title: 'Events',
+      title: 'אירועים',
       showManagementActions: false,
     })
     expect(screen.getByTestId('dashboard-topbar')).toBeInTheDocument()

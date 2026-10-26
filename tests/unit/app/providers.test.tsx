@@ -51,8 +51,9 @@ describe('Providers', () => {
         emailOTP: true,
         organization: {
           customRoles: [
-            { role: 'member', label: 'Member' },
-            { role: 'viewer', label: 'Viewer' },
+            { role: 'member', label: 'חבר' },
+            { role: 'family', label: 'משפחה' },
+            { role: 'viewer', label: 'צופה' },
           ],
         },
       })

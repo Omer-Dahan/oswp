@@ -24,6 +24,12 @@ const mockPluginsSettingsCard = jest.fn((_props: { enabledAddOns: string[] }) =>
 const mockTelegramConnectCard = jest.fn(() => (
   <div data-testid='telegram-connect-card'>Telegram card</div>
 ))
+const mockWorkspaceInviteLinksCard = jest.fn(() => (
+  <div data-testid='workspace-invite-links-card'>Invite links card</div>
+))
+const mockWhatsappConnectionCard = jest.fn(() => (
+  <div data-testid='whatsapp-connection-card'>Whatsapp card</div>
+))
 
 jest.mock('~/trpc/server', () => ({
   api: {
@@ -39,6 +45,36 @@ jest.mock('~/trpc/server', () => ({
 
 jest.mock('~/server/application/authenticated-route/authenticated-route-data', () => ({
   getRequiredWedding: () => mockGetRequiredWedding(),
+}))
+
+jest.mock('next/headers', () => ({
+  headers: jest.fn().mockResolvedValue(new Headers()),
+}))
+
+jest.mock('~/lib/auth', () => ({
+  auth: {
+    api: {
+      getSession: jest.fn().mockResolvedValue(null),
+    },
+  },
+}))
+
+jest.mock('~/server/application/workspace/workspace-scope', () => ({
+  resolveWorkspaceScope: jest.fn(),
+}))
+
+jest.mock('~/server/authz/workspace-capabilities', () => ({
+  readWorkspaceCapabilities: jest.fn(),
+}))
+
+jest.mock('~/components/settings/workspace-invite-links-card', () => ({
+  __esModule: true,
+  WorkspaceInviteLinksCard: () => mockWorkspaceInviteLinksCard(),
+}))
+
+jest.mock('~/components/settings/whatsapp-connection-card', () => ({
+  __esModule: true,
+  WhatsappConnectionCard: () => mockWhatsappConnectionCard(),
 }))
 
 jest.mock('@/components/dashboard/dashboard-topbar', () => ({
@@ -86,6 +122,8 @@ describe('SettingsPage', () => {
     mockOrganizationOutstandingInvitesCard.mockClear()
     mockPluginsSettingsCard.mockClear()
     mockTelegramConnectCard.mockClear()
+    mockWorkspaceInviteLinksCard.mockClear()
+    mockWhatsappConnectionCard.mockClear()
   })
 
   it('renders wedding settings and organization members section when details exist', async () => {
@@ -103,11 +141,11 @@ describe('SettingsPage', () => {
     render(page)
 
     expect(mockDashboardTopbar).toHaveBeenCalledWith({
-      title: 'Settings',
+      title: 'הגדרות',
       showManagementActions: false,
     })
-    expect(screen.getByText('Organization Members')).toBeInTheDocument()
-    expect(screen.getByText('Plugins')).toBeInTheDocument()
+    expect(screen.getByText('חברי הארגון')).toBeInTheDocument()
+    expect(screen.getByText('תוספים')).toBeInTheDocument()
     expect(screen.getByTestId('wedding-settings-form')).toBeInTheDocument()
     expect(screen.getByTestId('plugins-settings-card')).toBeInTheDocument()
     expect(screen.getByTestId('organization-members-settings-card')).toBeInTheDocument()
@@ -122,7 +160,7 @@ describe('SettingsPage', () => {
     render(page)
 
     expect(
-      screen.getByText('Unable to load wedding details for the active workspace.')
+      screen.getByText('לא ניתן לטעון את פרטי החתונה עבור סביבת העבודה הפעילה.')
     ).toBeInTheDocument()
     expect(mockWeddingSettingsForm).not.toHaveBeenCalled()
     expect(mockOrganizationMembersSettingsCard).toHaveBeenCalledTimes(1)

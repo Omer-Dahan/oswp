@@ -10,18 +10,18 @@ describe('NonAuthenticatedView mobile nav', () => {
   it('shows a mobile navigation trigger and exposes parity links', () => {
     render(<NonAuthenticatedView />)
 
-    const trigger = screen.getByRole('button', { name: /open navigation menu/i })
+    const trigger = screen.getByRole('button', { name: 'פתיחת תפריט ניווט' })
     expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
     fireEvent.click(trigger)
 
     expect(trigger).toHaveAttribute('aria-expanded', 'true')
-    const menuDialog = screen.getByRole('dialog', { name: /mobile navigation menu/i })
+    const menuDialog = screen.getByRole('dialog', { name: 'תפריט ניווט לנייד' })
 
-    expect(within(menuDialog).getByRole('link', { name: 'Features' })).toBeInTheDocument()
+    expect(within(menuDialog).getByRole('link', { name: 'תכונות' })).toBeInTheDocument()
     expect(within(menuDialog).getByRole('link', { name: 'Etta AI' })).toBeInTheDocument()
-    expect(within(menuDialog).getByRole('link', { name: 'Blog' })).toHaveAttribute('href', '/blog')
-    expect(within(menuDialog).getByRole('link', { name: 'Pricing' })).toBeInTheDocument()
+    expect(within(menuDialog).getByRole('link', { name: 'בלוג' })).toHaveAttribute('href', '/blog')
+    expect(within(menuDialog).getByRole('link', { name: 'תמחור' })).toBeInTheDocument()
     expect(within(menuDialog).getByRole('link', { name: /GitHub/i })).toBeInTheDocument()
   })
 
@@ -29,8 +29,8 @@ describe('NonAuthenticatedView mobile nav', () => {
     render(<NonAuthenticatedView />)
     const footer = screen.getByRole('contentinfo')
 
-    expect(within(footer).getByRole('link', { name: 'Blog' })).toHaveAttribute('href', '/blog')
-    expect(within(footer).getByRole('link', { name: 'Changelog' })).toHaveAttribute(
+    expect(within(footer).getByRole('link', { name: 'בלוג' })).toHaveAttribute('href', '/blog')
+    expect(within(footer).getByRole('link', { name: 'יומן שינויים' })).toHaveAttribute(
       'href',
       '/blog?tag=changelog'
     )
@@ -39,7 +39,7 @@ describe('NonAuthenticatedView mobile nav', () => {
   it('supports keyboard close with focus return to trigger', () => {
     render(<NonAuthenticatedView />)
 
-    const trigger = screen.getByRole('button', { name: /open navigation menu/i })
+    const trigger = screen.getByRole('button', { name: 'פתיחת תפריט ניווט' })
     fireEvent.click(trigger)
 
     fireEvent.keyDown(document, { key: 'Escape' })
