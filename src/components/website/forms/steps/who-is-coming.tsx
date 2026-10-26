@@ -55,10 +55,6 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
   const namedAttendingCount = attendingGuestIds.size
   const maxExtras = clampCount(maxTotal - namedAttendingCount, 0, maxTotal)
 
-  const [extraGuests, setExtraGuests] = useState<number>(() =>
-    getInitialExtraGuests(hasAnsweredBefore, savedTotal, namedAttendingCount, maxExtras)
-  )
-
   const [extraGuestRows, setExtraGuestRows] = useState<ExtraGuestRow[]>(() => {
     const names =
       rsvpFormData.extraGuestNames ??
@@ -68,6 +64,16 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
       name,
     }))
   })
+
+  const [extraGuests, setExtraGuests] = useState<number>(() =>
+    getInitialExtraGuests(
+      hasAnsweredBefore,
+      savedTotal,
+      namedAttendingCount,
+      extraGuestRows.length,
+      maxExtras
+    )
+  )
 
   const stepperMax = clampCount(maxTotal - namedAttendingCount - extraGuestRows.length, 0, maxTotal)
   const clampedExtraGuests = clampCount(extraGuests, 0, stepperMax)
