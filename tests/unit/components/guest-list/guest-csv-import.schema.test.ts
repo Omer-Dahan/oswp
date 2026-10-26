@@ -156,25 +156,23 @@ describe('guestCsvRowSchema', () => {
       expect(paths).toContain('firstName')
     })
 
-    it('should reject a row missing lastName', () => {
+    it('should accept a row missing lastName, defaulting it to an empty string', () => {
       const result = guestCsvRowSchema.safeParse({
         firstName: 'John',
       })
 
-      expect(result.success).toBe(false)
-      const paths = result.error?.issues.flatMap((i) => i.path)
-      expect(paths).toContain('lastName')
+      expect(result.success).toBe(true)
+      expect(result.data?.lastName).toBe('')
     })
 
-    it('should reject a row where lastName is an empty string', () => {
+    it('should accept a row where lastName is an empty string', () => {
       const result = guestCsvRowSchema.safeParse({
         firstName: 'John',
         lastName: '',
       })
 
-      expect(result.success).toBe(false)
-      const paths = result.error?.issues.flatMap((i) => i.path)
-      expect(paths).toContain('lastName')
+      expect(result.success).toBe(true)
+      expect(result.data?.lastName).toBe('')
     })
   })
 
@@ -223,7 +221,7 @@ describe('guestCsvRowSchema', () => {
 
       expect(result.success).toBe(false)
       const messages = result.error?.issues.map((i) => i.message) ?? []
-      expect(messages.some((m) => /valid phone number/i.test(m))).toBe(true)
+      expect(messages.some((m) => /מספר טלפון תקין/.test(m))).toBe(true)
     })
   })
 
@@ -386,8 +384,9 @@ describe('parseCsvFile', () => {
     expect(row.valid).toBe(false)
     if (!row.valid) {
       expect(row.errors.length).toBeGreaterThan(0)
-      // Should report the firstName error
-      expect(row.errors.some((e) => /first name/i.test(e))).toBe(true)
+      // Should report the firstName error (empty string is dropped before parsing,
+      // so the field is missing and zod reports the invalid_type default message)
+      expect(row.errors.some((e) => /expected string/i.test(e))).toBe(true)
     }
   })
 

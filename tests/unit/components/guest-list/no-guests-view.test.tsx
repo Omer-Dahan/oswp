@@ -9,14 +9,14 @@ jest.mock('~/components/contexts/guest-form-context', () => ({
 }))
 
 describe('NoGuestsView', () => {
-  it('wires Import from CSV and Add your first guest controls with non-submit button semantics', () => {
+  it('wires ייבוא מ-CSV and הוסיפו את האורח הראשון controls with non-submit button semantics', () => {
     const onImportClick = jest.fn()
     const setPrefillHousehold = jest.fn()
 
     render(<NoGuestsView onImportClick={onImportClick} setPrefillHousehold={setPrefillHousehold} />)
 
-    const importButton = screen.getByRole('button', { name: 'Import from CSV' })
-    const addButton = screen.getByRole('button', { name: 'Add your first guest' })
+    const importButton = screen.getByRole('button', { name: 'ייבוא מ-CSV' })
+    const addButton = screen.getByRole('button', { name: 'הוסיפו את האורח הראשון' })
 
     fireEvent.click(importButton)
     fireEvent.click(addButton)

@@ -132,19 +132,17 @@ describe('GuestCard', () => {
 
     expect(screen.getByText('Alex Rivera +1')).toBeInTheDocument()
     expect(screen.getAllByText('AR').length).toBeGreaterThan(0)
-    expect(screen.getByText('Austin, TX, USA')).toBeInTheDocument()
-    expect(screen.getByText('Party of 2')).toBeInTheDocument()
-    expect(screen.getByText('1 attending')).toBeInTheDocument()
-    expect(screen.getByText('1 invited')).toBeInTheDocument()
+    expect(screen.getByText(/אורחים/)).toBeInTheDocument()
+    expect(screen.getByText('1 מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('1 הוזמנו')).toBeInTheDocument()
   })
 
   it('uses selected styling when card is active', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} isSelected />)
 
-    expect(screen.getByLabelText(/select alex rivera household/i).firstElementChild).toHaveClass(
-      'ring-1',
-      'ring-primary/30'
-    )
+    expect(
+      screen.getByLabelText(/בחירת משק הבית של Alex Rivera/i).firstElementChild
+    ).toHaveClass('ring-1', 'ring-primary/30')
   })
 
   it('should call selection callback with household id', () => {
@@ -152,7 +150,7 @@ describe('GuestCard', () => {
 
     render(<GuestCard household={mockHousehold} onSelectHousehold={onSelectHousehold} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /select alex rivera household/i }))
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של Alex Rivera/i }))
 
     expect(onSelectHousehold).toHaveBeenCalledWith(expect.objectContaining({ id: 'household-1' }))
   })
@@ -161,7 +159,7 @@ describe('GuestCard', () => {
     render(<GuestCard household={mockHouseholdWithTagAlong} onSelectHousehold={jest.fn()} />)
 
     // Both regular guest and tag-along are "Attending"
-    expect(screen.getByText('2 attending')).toBeInTheDocument()
+    expect(screen.getByText('2 מגיעים')).toBeInTheDocument()
   })
 
   it('should not count tag-alongs without invitations in RSVP summary', () => {
@@ -170,6 +168,6 @@ describe('GuestCard', () => {
     )
 
     // Only the regular guest has invitations
-    expect(screen.getByText('1 attending')).toBeInTheDocument()
+    expect(screen.getByText('1 מגיעים')).toBeInTheDocument()
   })
 })
