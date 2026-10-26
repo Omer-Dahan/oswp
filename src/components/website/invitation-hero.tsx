@@ -128,9 +128,9 @@ export function InvitationHero({
   const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
 
   return (
-    <div className='relative h-[100svh] w-full overflow-hidden bg-background'>
+    <div className='relative min-h-[100svh] w-full bg-background'>
       {/* Mobile/tablet: linen backdrop, both cards stacked and whole, greeting + RSVP beneath. */}
-      <div className='relative flex h-full w-full flex-col md:hidden'>
+      <div className='relative flex min-h-[100svh] w-full flex-col md:hidden'>
         <div className='absolute inset-0'>
           <Image
             src='/brand/linen-bg-portrait.png'
@@ -156,7 +156,7 @@ export function InvitationHero({
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
-                className='aspect-square w-[min(92vw,43svh)]'
+                className='aspect-square w-[min(92vw,calc((100svh-220px)/2))]'
                 mobile
                 priority
               />
@@ -167,7 +167,7 @@ export function InvitationHero({
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,43svh)]'
+                className='aspect-square w-[min(92vw,calc((100svh-220px)/2))]'
                 mobile
               />
             </div>
