@@ -180,6 +180,15 @@ export default function MainRsvpForm({
         className='m-auto w-full max-w-[450px] px-5 py-8 md:px-0'
         onSubmit={(e) => {
           e.preventDefault()
+
+          // Only the send-rsvp step's button is type='submit'; every other step
+          // uses type='button' and calls goNext() directly. But a lone text
+          // input still triggers the browser's implicit form submission on
+          // Enter/Go, which would otherwise reach this handler mid-flow with
+          // stale or incomplete form state. Guard so submission only proceeds
+          // from that final step.
+          if (currentStep !== numSteps - 1) return
+
           setSubmitError(null)
 
           const subUrl = weddingData.website?.subUrl

@@ -75,7 +75,13 @@ export default function FindYourInvitationForm({
             setShowError(false)
             setName(e.target.value)
           }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+            if (name.length > 0 && !isFetching) handleOnSearch()
+          }}
           value={name}
+          enterKeyHint='search'
         />
       </StepField>
       {showError && <StepErrorText>{t('notFound')}</StepErrorText>}
