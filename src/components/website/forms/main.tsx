@@ -227,7 +227,7 @@ export default function MainRsvpForm({
           <DietaryNotesForm />
           {...generateDynamicStepForms()}
           <SendRsvp isFetching={submitRsvpForm.isPending} />
-          <RsvpConfirmation basePath={basePath} setCurrentStep={setCurrentStep} />
+          <RsvpConfirmation basePath={basePath} />
         </MultistepRsvpForm>
       </form>
     </div>

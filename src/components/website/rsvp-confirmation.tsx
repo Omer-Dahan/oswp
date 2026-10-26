@@ -1,10 +1,11 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import type { Dispatch, SetStateAction } from 'react'
 import { FaCircleCheck } from 'react-icons/fa6'
 import { RxCrossCircled } from 'react-icons/rx'
+import { formatDateStandard } from '~/app/utils/helpers'
 import type { Event, RsvpFormResponse } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { stepHeadingFont, stepPrimaryClassName } from '~/components/website/forms/steps/step-ui'
@@ -12,122 +13,193 @@ import { buildSingleEventCalendarLinks } from '~/lib/website/calendar'
 
 type RsvpConfirmationProps = {
   basePath: string
-  setCurrentStep: Dispatch<SetStateAction<number>>
 }
 
-export default function RsvpConfirmation({ basePath, setCurrentStep }: RsvpConfirmationProps) {
+const bodyFont = 'font-[family-name:var(--tpl-body-font)]'
+const quietLinkClassName =
+  `${bodyFont} text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline`
+
+function downloadIcs(ics: string, fileName: string) {
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
+export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const t = useTranslations('rsvp')
+  const tCommon = useTranslations('common')
   const rsvpFormData = useRsvpForm()
 
-  return (
-    <div className='flex flex-col gap-8 pt-4 pb-8'>
-      <h2 className={`${stepHeadingFont} text-center text-2xl text-foreground sm:text-3xl`}>
-        {t('confirmationTitle', {
-          groomFirstName: rsvpFormData.weddingData.groomFirstName ?? '',
-          brideFirstName: rsvpFormData.weddingData.brideFirstName ?? '',
-        })}
-      </h2>
+  const household = rsvpFormData.selectedHousehold
+  const guests = household?.guests ?? []
+  const primaryGuest = household?.primaryContact ?? guests[0]
+  const isFamily = guests.length > 1
 
-      <div className='flex items-center justify-between gap-3'>
-        <h3 className='text-base text-foreground/80'>{t('yourRsvpResponse')}</h3>
-        <button
-          type='button'
-          className='text-primary text-sm underline-offset-4 hover:underline'
-          onClick={() => setCurrentStep(3)}
-        >
-          {t('updateResponse')}
-        </button>
+  const heading =
+    isFamily && primaryGuest?.lastName
+      ? t('confirmationThanksFamily', { lastName: primaryGuest.lastName })
+      : primaryGuest?.firstName
+        ? t('confirmationThanksName', { firstName: primaryGuest.firstName })
+        : t('confirmationThanksFallback')
+
+  const attendingCount = rsvpFormData.attendingCount ?? 0
+  const childrenCount = rsvpFormData.childrenCount ?? 0
+  const countLine =
+    childrenCount > 0
+      ? t('confirmationCountWithChildren', { count: attendingCount, children: childrenCount })
+      : t('confirmationCount', { count: attendingCount })
+
+  const dietaryNotes = rsvpFormData.dietaryNotes?.trim()
+
+  const events = (rsvpFormData.weddingData.events ?? []).filter((event: Event) =>
+    rsvpFormData.rsvpResponses.some((response) => event.id === response.eventId)
+  )
+
+  return (
+    <div className='fixed inset-0 z-0 overflow-y-auto'>
+      <div className='absolute inset-0'>
+        <Image
+          src='/brand/linen-bg-portrait.png'
+          alt=''
+          aria-hidden
+          fill
+          priority
+          sizes='100vw'
+          className='object-cover object-center md:hidden'
+        />
+        <Image
+          src='/brand/linen-bg.png'
+          alt=''
+          aria-hidden
+          fill
+          priority
+          sizes='100vw'
+          className='hidden object-cover object-center md:block'
+        />
+        <div className='absolute inset-0 bg-background/35' />
       </div>
 
-      <ul className='flex flex-col gap-4'>
-        {rsvpFormData.weddingData.events?.map((event: Event) => {
-          const eventHasInvitedGuests = !!rsvpFormData.rsvpResponses.find(
-            (response) => event.id === response.eventId
-          )
-          if (!eventHasInvitedGuests) return null
-          return (
-            <ConfirmationListItem
-              key={event.id}
-              event={event}
-              rsvpResponses={rsvpFormData.rsvpResponses}
-            />
-          )
-        })}
-      </ul>
+      <div className='relative z-10 flex min-h-full items-center justify-center px-4 py-24'>
+        <div
+          className='w-full rounded-[18px] border border-foreground/10 bg-[#FBF7F1] p-6 sm:max-w-[min(680px,calc(100vw-32px))] sm:p-8'
+          style={{ boxShadow: '0 12px 32px rgba(46,38,32,.10)' }}
+        >
+          <div className='flex flex-col gap-6'>
+            <div className='rsvp-confirmation-block flex flex-col gap-2 text-center'>
+              <h2 className={`${stepHeadingFont} text-2xl text-foreground sm:text-3xl`}>
+                {heading}
+              </h2>
+              <p className={`${bodyFont} text-base text-foreground/80`}>{countLine}</p>
+            </div>
 
-      <Link className={stepPrimaryClassName} href={basePath}>
-        {t('backToHomepage')}
-      </Link>
+            <div className='rsvp-confirmation-block flex flex-col divide-y divide-border'>
+              {events.map((event: Event) => (
+                <EventRow key={event.id} event={event} rsvpResponses={rsvpFormData.rsvpResponses} />
+              ))}
+            </div>
+
+            <div className='rsvp-confirmation-block flex flex-col items-center gap-4'>
+              <Link className={stepPrimaryClassName} href={basePath}>
+                {t('backToHomepage')}
+              </Link>
+
+              <div className='flex flex-col items-center gap-2'>
+                {events.map((event: Event) => {
+                  const calendarLinks = buildSingleEventCalendarLinks(event)
+                  if (!calendarLinks) return null
+                  return (
+                    <div key={event.id} className='flex flex-wrap items-center justify-center gap-4'>
+                      <a
+                        className={quietLinkClassName}
+                        href={calendarLinks.googleUrl}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {tCommon('addToCalendar')} · {event.name}
+                      </a>
+                      <button
+                        type='button'
+                        className={quietLinkClassName}
+                        onClick={() => downloadIcs(calendarLinks.ics, calendarLinks.fileName)}
+                      >
+                        {tCommon('downloadIcs')}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {dietaryNotes && (
+              <div className='rsvp-confirmation-block rounded-[12px] bg-muted/40 p-4 text-start'>
+                <p className={`${bodyFont} mb-1 text-foreground/70 text-sm`}>
+                  {t('dietaryNotesTitle')}
+                </p>
+                <p className={`${bodyFont} whitespace-pre-wrap text-muted-foreground text-sm`}>
+                  {dietaryNotes}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
 
-const ConfirmationListItem = ({
+const EventRow = ({
   event,
   rsvpResponses,
 }: {
   event: Event
   rsvpResponses: RsvpFormResponse[]
 }) => {
-  const tCommon = useTranslations('common')
-  const calendarLinks = buildSingleEventCalendarLinks(event)
-
-  const downloadIcs = () => {
-    if (!calendarLinks) return
-    const blob = new Blob([calendarLinks.ics], { type: 'text/calendar;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = calendarLinks.fileName
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    URL.revokeObjectURL(url)
-  }
+  const t = useTranslations('rsvp')
 
   return (
-    <li className='flex flex-col gap-4 rounded-[20px] border border-border bg-card p-6'>
-      <div className='flex flex-wrap items-start justify-between gap-3'>
-        <h3 className={`${stepHeadingFont} text-foreground text-xl`}>{event.name}</h3>
-        {calendarLinks && (
-          <div className='flex flex-wrap items-center gap-2'>
-            <a
-              className='inline-flex items-center rounded-full border border-border px-4 py-2 text-foreground/80 text-sm transition-colors hover:border-primary hover:text-primary'
-              href={calendarLinks.googleUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {tCommon('addToCalendar')} {event.name}
-            </a>
-            <button
-              type='button'
-              className='inline-flex items-center rounded-full border border-border px-4 py-2 text-foreground/80 text-sm transition-colors hover:border-primary hover:text-primary'
-              onClick={downloadIcs}
-            >
-              {tCommon('downloadIcs')}
-            </button>
-          </div>
+    <div className='flex flex-col gap-3 py-4 first:pt-0 last:pb-0'>
+      <div className='flex flex-wrap items-baseline justify-between gap-2'>
+        <h3 className={`${stepHeadingFont} text-foreground text-lg`}>{event.name}</h3>
+        {!!event.date && (
+          <span className={`${bodyFont} text-muted-foreground text-sm`}>
+            {formatDateStandard(event.date)}
+            {event.startTime && ` · ${event.startTime}`}
+          </span>
         )}
       </div>
-      <div className='flex flex-col gap-2'>
+      <div className='flex flex-col gap-1.5'>
         {rsvpResponses.map((response) => {
           if (response.eventId !== event.id) return null
           const isAttending = response.rsvp === 'Attending'
           return (
             <div
               key={`${event.id}_${response.guestId}`}
-              className='flex items-center gap-3 rounded-[12px] bg-muted/40 px-4 py-3 text-base text-foreground'
+              className={`${bodyFont} flex items-center gap-2 text-foreground text-sm`}
             >
               {isAttending ? (
-                <FaCircleCheck size={20} className='shrink-0 text-primary' aria-hidden />
+                <FaCircleCheck
+                  size={16}
+                  className='shrink-0 text-primary'
+                  aria-label={t('accepted')}
+                />
               ) : (
-                <RxCrossCircled size={20} className='shrink-0 text-muted-foreground' aria-hidden />
+                <RxCrossCircled
+                  size={16}
+                  className='shrink-0 text-muted-foreground'
+                  aria-label={t('declined')}
+                />
               )}
               {response.guestName}
             </div>
           )
         })}
       </div>
-    </li>
+    </div>
   )
 }
