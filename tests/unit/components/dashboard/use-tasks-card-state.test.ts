@@ -119,8 +119,8 @@ describe('useTasksCardState', () => {
     expect(items[0]).toEqual({
       id: 'task-1',
       text: 'Follow up with venue',
-      tag: 'Overdue',
-      due: 'Overdue',
+      tag: 'באיחור',
+      due: 'באיחור',
       done: false,
       urgent: true,
     })

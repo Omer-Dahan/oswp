@@ -104,12 +104,12 @@ it('falls back to the first remaining category after selection is deleted', () =
   expect(screen.getByRole('region', { name: 'Selected category' })).toHaveTextContent('Venue')
   mockOverview = overview([])
   rerender(<BudgetOverview initialOverview={mockOverview} />)
-  expect(screen.getByText('Start your budget')).toBeInTheDocument()
+  expect(screen.getByText('התחילו את התקציב')).toBeInTheDocument()
   expect(screen.queryByRole('region', { name: 'Selected category' })).not.toBeInTheDocument()
 })
 
 it('opens the existing add-section dialog from the category rail', () => {
   render(<BudgetOverview initialOverview={mockOverview} />)
-  fireEvent.click(screen.getByRole('button', { name: 'Add section' }))
+  fireEvent.click(screen.getByRole('button', { name: 'הוספת שלב' }))
   expect(within(screen.getByRole('dialog')).getByText('Category form')).toBeInTheDocument()
 })

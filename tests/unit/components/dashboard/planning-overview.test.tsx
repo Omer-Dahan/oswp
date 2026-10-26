@@ -237,24 +237,26 @@ describe('PlanningOverview', () => {
   it('renders the real planning completion percentage from milestones', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
 
-    expect(screen.getByText(/67% of planning complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/67% מהתכנון הושלם/)).toBeInTheDocument()
   })
 
   it('renders couple names in the countdown hero', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
-    expect(screen.getByText('Holly & Diego')).toBeInTheDocument()
+    expect(screen.getByText('Diego & Holly')).toBeInTheDocument()
   })
 
   it('renders the wedding date in the hero', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
     // standardFormat date string appears in the hero
-    expect(screen.getByText('17 May 2027')).toBeInTheDocument()
+    expect(screen.getByText('17 May 2027 · Hacienda Los Laureles')).toBeInTheDocument()
   })
 
   it('leads with the countdown as the page heading', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
 
-    expect(screen.getByRole('heading', { level: 2, name: '440 days to go' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: '440 ימים עד החתונה' })
+    ).toBeInTheDocument()
   })
 
   it('uses singular and wedding-day phrasing for the countdown', () => {
@@ -265,11 +267,13 @@ describe('PlanningOverview', () => {
       }) as unknown as DashboardData
 
     const { rerender } = render(<PlanningOverview dashboardData={withDays(1)} />)
-    expect(screen.getByRole('heading', { level: 2, name: '1 day to go' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'יום אחד עד החתונה' })
+    ).toBeInTheDocument()
 
     rerender(<PlanningOverview dashboardData={withDays(0)} />)
     expect(
-      screen.getByRole('heading', { level: 2, name: "It's your wedding day" })
+      screen.getByRole('heading', { level: 2, name: 'היום החתונה שלכם' })
     ).toBeInTheDocument()
   })
 
@@ -281,23 +285,25 @@ describe('PlanningOverview', () => {
 
     render(<PlanningOverview dashboardData={pastData} />)
 
-    expect(screen.getByText(/This date has passed/i)).toBeInTheDocument()
-    expect(screen.queryByText('No date set')).not.toBeInTheDocument()
+    expect(screen.getByText(/התאריך הזה כבר עבר/)).toBeInTheDocument()
+    expect(screen.queryByText('לא נקבע תאריך')).not.toBeInTheDocument()
   })
 
   it('explains empty milestones instead of rendering a blank panel', () => {
     render(<PlanningOverview dashboardData={{ ...mockDashboardData, milestones: [] }} />)
 
-    expect(screen.getByText(/Milestones appear here as you plan/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/אבני דרך יופיעו כאן ככל שתתכננו ותסמנו פריטים ברשימת המשימות/)
+    ).toBeInTheDocument()
   })
 
   it('shows the next task in an Up next card with a mark done action', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
 
-    const upNext = screen.getByRole('region', { name: 'Up next' })
+    const upNext = screen.getByRole('region', { name: 'הבא בתור' })
     expect(upNext).toHaveTextContent('Pay rehearsal dinner deposit')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mark done' }))
+    fireEvent.click(screen.getByRole('button', { name: 'סמנו כבוצע' }))
 
     expect(mockMutate).toHaveBeenCalledWith({ taskId: 'task-1', completed: true })
   })
@@ -305,20 +311,20 @@ describe('PlanningOverview', () => {
   it('lists the remaining tasks under Coming up with the monthly due count', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
 
-    const comingUp = screen.getByRole('region', { name: 'Coming up' })
+    const comingUp = screen.getByRole('region', { name: 'בקרוב' })
     expect(comingUp).toHaveTextContent('Confirm catering headcount')
     expect(comingUp).not.toHaveTextContent('Pay rehearsal dinner deposit')
-    expect(comingUp).toHaveTextContent('3 due this month')
+    expect(comingUp).toHaveTextContent('3 לביצוע החודש')
   })
 
   it('summarises RSVPs as attending out of invited with the awaiting count', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
 
-    const rsvps = screen.getByRole('region', { name: 'RSVPs' })
+    const rsvps = screen.getByRole('region', { name: 'אישורי הגעה' })
     expect(rsvps).toHaveTextContent('89')
     expect(rsvps).toHaveTextContent('/ 120')
-    expect(rsvps).toHaveTextContent('23 still to reply')
-    expect(within(rsvps).getByRole('link', { name: 'Manage RSVPs →' })).toHaveAttribute(
+    expect(rsvps).toHaveTextContent('23 טרם השיבו')
+    expect(within(rsvps).getByRole('link', { name: 'ניהול אישורי הגעה →' })).toHaveAttribute(
       'href',
       '/guest-list'
     )
@@ -329,16 +335,16 @@ describe('PlanningOverview', () => {
 
     expect(screen.getByText('Pay rehearsal dinner deposit')).toBeInTheDocument()
     expect(screen.getByText('Confirm catering headcount')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Open checklist' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'פתחו את רשימת המשימות' })).toHaveAttribute(
       'href',
       '/checklist'
     )
     expect(
       screen
-        .getAllByRole('link', { name: /view all/i })
+        .getAllByRole('link', { name: /הצגת הכול/i })
         .some((link) => link.getAttribute('href') === '/checklist')
     ).toBe(true)
-    expect(screen.getByText('2 of 7 active tasks shown')).toBeInTheDocument()
+    expect(screen.getByText('מוצגות 2 מתוך 7 משימות פעילות')).toBeInTheDocument()
   })
 
   it('toggles a task and calls the completion mutation', () => {
@@ -360,15 +366,15 @@ describe('PlanningOverview', () => {
       window.dispatchEvent(new CustomEvent(DASHBOARD_ADD_TASK_EVENT))
     })
 
-    await waitFor(() => expect(screen.getByLabelText('Task title')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('כותרת המשימה')).toBeInTheDocument())
 
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    fireEvent.change(screen.getByLabelText('כותרת המשימה'), {
       target: { value: 'Chase the final vendor invoice' },
     })
     fireEvent.change(screen.getAllByLabelText('mock-select')[0], {
       target: { value: 'VENDORS' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save task' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת משימה' }))
 
     await waitFor(() =>
       expect(mockCreateMutate).toHaveBeenCalledWith({
@@ -385,10 +391,8 @@ describe('PlanningOverview', () => {
 
   it('renders the budget empty state', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
-    expect(screen.getByText('No budget set up yet')).toBeInTheDocument()
-    expect(
-      screen.getByText('Track your wedding spending against a target budget')
-    ).toBeInTheDocument()
+    expect(screen.getByText('לא הוגדר תקציב עדיין')).toBeInTheDocument()
+    expect(screen.getByText('עקבו אחר ההוצאות לחתונה מול תקציב יעד')).toBeInTheDocument()
   })
 
   it('does not render fake budget category names', () => {
@@ -401,20 +405,18 @@ describe('PlanningOverview', () => {
 
   it('renders the Vendors card title', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
-    expect(screen.getByText('Vendors')).toBeInTheDocument()
+    expect(screen.getByText('ספקים')).toBeInTheDocument()
   })
 
   it('renders the vendors empty state when no vendors are added', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
-    expect(screen.getByText('No vendors added yet')).toBeInTheDocument()
-    expect(
-      screen.getByText('Track quotes, contacts, and contracts in one place')
-    ).toBeInTheDocument()
+    expect(screen.getByText('לא נוספו ספקים עדיין')).toBeInTheDocument()
+    expect(screen.getByText('נהלו הצעות מחיר, אנשי קשר וחוזים במקום אחד')).toBeInTheDocument()
   })
 
   it('renders an add vendor CTA link in the vendors empty state', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
-    expect(screen.getByText('Add your first vendor →')).toBeInTheDocument()
+    expect(screen.getByText('הוסיפו את הספק הראשון שלכם →')).toBeInTheDocument()
   })
 
   it('renders real vendor count and status breakdown when vendors exist', () => {
@@ -430,11 +432,11 @@ describe('PlanningOverview', () => {
     render(<PlanningOverview dashboardData={mockDashboardData} />)
 
     expect(screen.getByText('4')).toBeInTheDocument()
-    expect(screen.getByText('vendors tracked')).toBeInTheDocument()
-    expect(screen.getByText('Selected')).toBeInTheDocument()
-    expect(screen.getByText('In Progress')).toBeInTheDocument()
-    expect(screen.getByText('In Review')).toBeInTheDocument()
-    expect(screen.queryByText('No vendors added yet')).not.toBeInTheDocument()
+    expect(screen.getByText('ספקים במעקב')).toBeInTheDocument()
+    expect(screen.getByText('נבחרו')).toBeInTheDocument()
+    expect(screen.getByText('בתהליך')).toBeInTheDocument()
+    expect(screen.getByText('בבדיקה')).toBeInTheDocument()
+    expect(screen.queryByText('לא נוספו ספקים עדיין')).not.toBeInTheDocument()
   })
 
   // ── Edge Cases ─────────────────────────────────────────────────────────────
@@ -453,9 +455,9 @@ describe('PlanningOverview', () => {
     } as unknown as DashboardData
 
     render(<PlanningOverview dashboardData={emptyData} />)
-    expect(screen.getByText('Your Wedding')).toBeInTheDocument()
+    expect(screen.getAllByText('החתונה שלכם').length).toBeGreaterThan(0)
     expect(
-      screen.getByRole('heading', { level: 2, name: "It's your wedding day" })
+      screen.getByRole('heading', { level: 2, name: 'היום החתונה שלכם' })
     ).toBeInTheDocument()
   })
 
@@ -463,13 +465,16 @@ describe('PlanningOverview', () => {
     const noEventsData = { ...mockDashboardData, events: [] } as unknown as DashboardData
     render(<PlanningOverview dashboardData={noEventsData} />)
     // Empty state should render instead of the zero-count bar
-    expect(screen.getByText('No RSVPs collected yet')).toBeInTheDocument()
+    expect(screen.getByText('לא נאספו אישורי הגעה עדיין')).toBeInTheDocument()
     expect(
-      screen.getByText('Enable RSVP collection on one of your events to start tracking responses')
+      screen.getByText('הפעילו איסוף אישורי הגעה באחד האירועים שלכם כדי להתחיל לעקוב אחר תגובות')
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Set up RSVPs →' })).toHaveAttribute('href', '/events')
+    expect(screen.getByRole('link', { name: 'הגדירו אישורי הגעה →' })).toHaveAttribute(
+      'href',
+      '/events'
+    )
     // The RSVP bar should not render
-    expect(screen.queryByRole('img', { name: /RSVP breakdown/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /פילוח אישורי הגעה/i })).not.toBeInTheDocument()
   })
 
   it('renders real milestones including override and wedding-day indicators', () => {
@@ -490,13 +495,13 @@ describe('PlanningOverview', () => {
       />
     )
 
-    expect(screen.getByText(/No active tasks yet/i)).toBeInTheDocument()
+    expect(screen.getByText(/אין משימות פעילות עדיין/)).toBeInTheDocument()
   })
 
   it('renders without crashing when dashboardData is null', () => {
     render(<PlanningOverview dashboardData={null} />)
 
-    expect(screen.getByText('Your Wedding')).toBeInTheDocument()
-    expect(screen.getByText('No date set')).toBeInTheDocument()
+    expect(screen.getByText('החתונה שלכם')).toBeInTheDocument()
+    expect(screen.getByText('לא נקבע תאריך')).toBeInTheDocument()
   })
 })

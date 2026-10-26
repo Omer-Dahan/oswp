@@ -89,16 +89,16 @@ describe('TaskDialog', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    fireEvent.change(screen.getByLabelText('כותרת המשימה'), {
       target: { value: 'Book the string quartet' },
     })
     fireEvent.change(screen.getAllByLabelText('mock-select')[0], {
       target: { value: TaskCategory.VENDORS },
     })
-    fireEvent.change(screen.getByLabelText('Months before wedding'), {
+    fireEvent.change(screen.getByLabelText('חודשים לפני החתונה'), {
       target: { value: '6' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save task' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת משימה' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({
@@ -128,10 +128,10 @@ describe('TaskDialog', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    fireEvent.change(screen.getByLabelText('כותרת המשימה'), {
       target: { value: 'Confirm florist arrival time' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת שינויים' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({
@@ -160,15 +160,15 @@ describe('TaskDialog', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    fireEvent.change(screen.getByLabelText('כותרת המשימה'), {
       target: { value: 'Hold space for thank-you notes' },
     })
-    fireEvent.change(screen.getByLabelText('Months before wedding'), {
+    fireEvent.change(screen.getByLabelText('חודשים לפני החתונה'), {
       target: { value: '' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save task' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת משימה' }))
 
     await waitFor(() => expect(onSubmit).not.toHaveBeenCalled())
-    expect(await screen.findByText('Months before wedding is required')).toBeInTheDocument()
+    expect(await screen.findByText('יש להזין מספר חודשים לפני החתונה')).toBeInTheDocument()
   })
 })

@@ -67,36 +67,38 @@ beforeEach(() => jest.clearAllMocks())
 
 it('shows expenses immediately and uses net spend for budget progress', () => {
   render(<CategoryCard category={category} currency='GBP' />)
-  expect(screen.getByRole('table', { name: 'Expenses for Venue' })).toBeInTheDocument()
-  expect(screen.getByText('Refundable')).toBeInTheDocument()
-  expect(screen.getByText(/£200 refundable deposits excluded from net spend/)).toBeInTheDocument()
-  expect(screen.getByText('£0 net of £1,000')).toBeInTheDocument()
-  expect(screen.getByText('£1,000 left')).toBeInTheDocument()
+  expect(screen.getByRole('table', { name: 'הוצאות עבור Venue' })).toBeInTheDocument()
+  expect(screen.getByText('ניתן להחזר')).toBeInTheDocument()
+  expect(
+    screen.getByText(/‏200 ‏£ בפיקדונות הניתנים להחזר אינם נכללים בהוצאה נטו/)
+  ).toBeInTheDocument()
+  expect(screen.getByText('‏0 ‏£ נטו מתוך ‏1,000 ‏£')).toBeInTheDocument()
+  expect(screen.getByText('נותרו ‏1,000 ‏£')).toBeInTheDocument()
 })
 
 it('opens the existing add expense form in the selected category', () => {
   render(<CategoryCard category={category} currency='GBP' />)
-  fireEvent.click(screen.getByRole('button', { name: 'Add new expense' }))
+  fireEvent.click(screen.getByRole('button', { name: 'הוספת הוצאה חדשה' }))
   expect(screen.getByRole('dialog')).toHaveTextContent('create expense form venue')
 })
 
 it('opens the existing edit section form', () => {
   render(<CategoryCard category={category} currency='GBP' />)
-  fireEvent.click(screen.getByRole('button', { name: 'Edit section' }))
+  fireEvent.click(screen.getByRole('button', { name: 'עריכת סעיף' }))
   expect(screen.getByRole('dialog')).toHaveTextContent('Category form')
 })
 
 it('requires confirmation before deleting the selected category', () => {
   render(<CategoryCard category={category} currency='GBP' />)
-  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+  fireEvent.click(screen.getByRole('button', { name: 'מחיקה' }))
   expect(mockDeleteCategory).not.toHaveBeenCalled()
-  expect(screen.getByRole('alertdialog')).toHaveTextContent('Delete “Venue”?')
-  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
+  expect(screen.getByRole('alertdialog')).toHaveTextContent('למחוק את “Venue”?')
+  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'מחיקה' }))
   expect(mockDeleteCategory).toHaveBeenCalledWith({ categoryId: 'venue' })
 })
 
 it('keeps add expense available when the category has no expenses', () => {
   render(<CategoryCard category={{ ...category, expenses: [] }} currency='GBP' />)
-  expect(screen.getByText(/No expenses recorded yet/)).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Add new expense' })).toBeInTheDocument()
+  expect(screen.getByText(/לא נרשמו הוצאות עדיין/)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'הוספת הוצאה חדשה' })).toBeInTheDocument()
 })

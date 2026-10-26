@@ -45,7 +45,7 @@ describe('EventForm accessibility', () => {
   it('should render a semantic close button with accessible name', () => {
     render(<EventForm prefillFormData={undefined} />)
 
-    const closeButton = screen.getByRole('button', { name: 'Close event form' })
+    const closeButton = screen.getByRole('button', { name: 'סגירת טופס אירוע' })
     expect(closeButton).toHaveAttribute('type', 'button')
 
     fireEvent.click(closeButton)

@@ -45,13 +45,13 @@ describe('MilestoneDetail', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Open milestone' }))
 
-    expect(screen.getByText('Effective status: pending')).toBeInTheDocument()
-    expect(screen.getByText('System status: pending')).toBeInTheDocument()
+    expect(screen.getByText('סטטוס בפועל: ממתין')).toBeInTheDocument()
+    expect(screen.getByText('סטטוס מערכת: ממתין')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByLabelText('Mark as done'))
+    fireEvent.click(screen.getByLabelText('סימון כהושלם'))
     expect(attestMilestone).toHaveBeenCalledWith('milestone-1')
 
-    fireEvent.click(screen.getByLabelText('Mark as not done'))
+    fireEvent.click(screen.getByLabelText('סימון כלא הושלם'))
     expect(dismissMilestone).toHaveBeenCalledWith('milestone-1')
   })
 
@@ -69,7 +69,7 @@ describe('MilestoneDetail', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Open milestone' }))
 
-    fireEvent.click(screen.getByLabelText('Use system status'))
+    fireEvent.click(screen.getByLabelText('שימוש בסטטוס המערכת'))
     expect(clearOverride).toHaveBeenCalledWith('milestone-1')
   })
 
