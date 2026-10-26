@@ -68,9 +68,9 @@ describe('WebsiteManager', () => {
       />
     )
 
-    expect(screen.getByText('Not published')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /publish website/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/website address/i)).toHaveValue('janeandjohn')
+    expect(screen.getByText('לא פורסם')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'פרסום האתר' })).toBeInTheDocument()
+    expect(screen.getByLabelText('כתובת האתר')).toHaveValue('janeandjohn')
   })
 
   it('publishes with the default slug, host, and user email', () => {
@@ -82,7 +82,7 @@ describe('WebsiteManager', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /publish website/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'פרסום האתר' }))
 
     expect(mockCreateMutate).toHaveBeenCalledTimes(1)
     expect(mockCreateMutate).toHaveBeenCalledWith(
@@ -99,10 +99,10 @@ describe('WebsiteManager', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText(/website address/i), {
+    fireEvent.change(screen.getByLabelText('כתובת האתר'), {
       target: { value: 'ourbigday' },
     })
-    fireEvent.click(screen.getByRole('button', { name: /publish website/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'פרסום האתר' }))
 
     expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({ subUrl: 'ourbigday' }))
   })
@@ -116,10 +116,10 @@ describe('WebsiteManager', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText(/website address/i), {
+    fireEvent.change(screen.getByLabelText('כתובת האתר'), {
       target: { value: 'jane-and-john' },
     })
-    fireEvent.click(screen.getByRole('button', { name: /publish website/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'פרסום האתר' }))
 
     expect(mockCreateMutate).toHaveBeenCalledWith(
       expect.objectContaining({ subUrl: 'jane-and-john' })
@@ -135,13 +135,13 @@ describe('WebsiteManager', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText(/website address/i), {
+    fireEvent.change(screen.getByLabelText('כתובת האתר'), {
       target: { value: 'jane & john' },
     })
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/letters, numbers, dashes/i)
-    expect(screen.getByRole('button', { name: /publish website/i })).toBeDisabled()
-    fireEvent.click(screen.getByRole('button', { name: /publish website/i }))
+    expect(screen.getByRole('alert')).toHaveTextContent('אותיות, מספרים, מקפים')
+    expect(screen.getByRole('button', { name: 'פרסום האתר' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'פרסום האתר' }))
     expect(mockCreateMutate).not.toHaveBeenCalled()
   })
 
@@ -155,9 +155,9 @@ describe('WebsiteManager', () => {
       />
     )
 
-    expect(screen.getByText('Published')).toBeInTheDocument()
+    expect(screen.getByText('פורסם')).toBeInTheDocument()
     expect(screen.getByText(/\/janeandjohn$/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /view site/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'צפו באתר' })).toHaveAttribute(
       'href',
       expect.stringContaining('/janeandjohn')
     )

@@ -98,7 +98,7 @@ describe('VendorList', () => {
   it('shows every populated category as a section on the All tab', () => {
     render(<VendorList initialVendors={vendors} />)
 
-    expect(screen.getByRole('button', { name: 'All 3' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'הכל 3' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getAllByTestId('category-section').map((node) => node.textContent)).toEqual([
       'VENUE',
       'PHOTOGRAPHER',
@@ -115,10 +115,11 @@ describe('VendorList', () => {
     const cards = within(compare).getAllByRole('article')
     expect(cards).toHaveLength(2)
     expect(cards[0]).toHaveTextContent('Lord Farquaad Studios')
-    expect(cards[0]).toHaveTextContent('$3,200')
+    // toHaveTextContent collapses the formatter's no-break space to a plain space.
+    expect(cards[0]).toHaveTextContent('\u200F3,200 \u200F$')
     expect(cards[1]).toHaveTextContent('Flat fee · lowest of 2 quotes')
 
-    fireEvent.click(within(cards[1]!).getByRole('button', { name: 'View details' }))
+    fireEvent.click(within(cards[1]!).getByRole('button', { name: 'צפייה בפרטים' }))
     expect(screen.getByTestId('detail-panel')).toHaveTextContent('Magic Mirror Media')
   })
 
