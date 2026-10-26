@@ -6,7 +6,12 @@
  * fits. The caller is responsible for turning the plan into database writes.
  */
 
-import { MAX_TABLE_CAPACITY, NON_SEATABLE_RSVPS } from '~/server/domains/seating/seating.rules'
+import {
+  MAX_TABLE_CAPACITY,
+  NON_SEATABLE_RSVPS,
+  getGuestWeights,
+  getOccupiedSeats,
+} from '~/server/domains/seating/seating.rules'
 
 export type AutoSeatHousehold = {
   id: string
@@ -129,11 +134,20 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
     Math.max(tableCapacity, ...tables.map((table) => table.capacity), 0)
   )
 
+  const weights = getGuestWeights(
+    households.map((household) => ({
+      invitedCount: household.invitedCount,
+      guests: guests
+        .filter((guest) => guest.householdId === household.id)
+        .map((guest) => ({ id: guest.id, isPrimaryContact: guest.isPrimaryContact })),
+    }))
+  )
+
   const pool: WorkingTable[] = fillFreeSeatsOnly
     ? tables.map((table) => ({
         key: table.id,
         capacity: table.capacity,
-        freeSeats: Math.max(0, table.capacity - table.guestIds.length),
+        freeSeats: Math.max(0, table.capacity - getOccupiedSeats(table.guestIds, weights)),
         tags: new Set<string>(),
       }))
     : []
