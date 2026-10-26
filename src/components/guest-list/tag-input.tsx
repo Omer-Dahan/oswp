@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { FiX } from 'react-icons/fi'
 import { toast } from 'sonner'
 
-import { useOuterClick } from '~/components/hooks'
 import { Badge } from '~/components/ui/badge'
 import { MAX_TAGS_PER_GUEST, pickRandomTagColor } from '~/lib/constants'
 import { api } from '~/trpc/react'
@@ -33,8 +33,14 @@ export function TagInput({
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
+  const [dropdownRect, setDropdownRect] = useState<{
+    top: number
+    left: number
+    width: number
+  } | null>(null)
 
-  const containerRef = useOuterClick<HTMLDivElement>(useCallback(() => setIsOpen(false), []))
+  const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const createTagMutation = api.guestTag.create.useMutation()
 
@@ -121,6 +127,40 @@ export function TagInput({
     }
   }
 
+  // Close when clicking outside either the input or the portaled dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (containerRef.current?.contains(target)) return
+      if (dropdownRef.current?.contains(target)) return
+      setIsOpen(false)
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // The dropdown is portaled to <body> so it can't be clipped by a scrollable
+  // ancestor (e.g. the household members modal's overflow-y-auto list).
+  // Track the input's position so the portal can be placed under it.
+  useLayoutEffect(() => {
+    if (!isOpen) return
+
+    const updatePosition = () => {
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      setDropdownRect({ top: rect.bottom, left: rect.left, width: rect.width })
+    }
+
+    updatePosition()
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [isOpen])
+
   return (
     <div ref={containerRef} className='relative'>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: click-to-focus wrapper for the embedded input */}
@@ -169,9 +209,21 @@ export function TagInput({
         />
       </div>
 
-      {isOpen && options.length > 0 && (
-        <div className='absolute z-50 mt-1 max-h-[180px] w-full overflow-y-auto rounded-md border bg-popover shadow-md'>
-          {options.map((option, i) => {
+      {isOpen &&
+        options.length > 0 &&
+        dropdownRect &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={{
+              position: 'fixed',
+              top: dropdownRect.top,
+              left: dropdownRect.left,
+              width: dropdownRect.width,
+            }}
+            className='z-50 mt-1 max-h-[180px] overflow-y-auto rounded-md border bg-popover shadow-md'
+          >
+            {options.map((option, i) => {
             if (option.type === 'tag') {
               const { tag } = option
               const isSelected = selectedTagIds.includes(tag.id)
@@ -225,8 +277,9 @@ export function TagInput({
               </button>
             )
           })}
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
