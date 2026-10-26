@@ -41,6 +41,8 @@ export type DrawerDraft = {
   country: string
   notes: string
   likelihoodOfAttending: number | null
+  side: string
+  groupName: string
 }
 
 type SelectedEventResponse = {
@@ -112,8 +114,8 @@ type GuestDetailPanelContentProps = {
   communicationLog: CommunicationLogEntry[]
   householdAnswers: RouterOutputs['question']['getAnswersByHousehold']
   isLoadingAnswers?: boolean
-  editingSections: Set<'contactAddress' | 'notes'>
-  toggleEditingSection: (section: 'contactAddress' | 'notes') => void
+  editingSections: Set<'contactAddress' | 'notes' | 'sideGroup'>
+  toggleEditingSection: (section: 'contactAddress' | 'notes' | 'sideGroup') => void
   drawerDraft: DrawerDraft
   setDrawerDraft: Dispatch<SetStateAction<DrawerDraft>>
   rsvpManageHref: string
@@ -305,6 +307,13 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
             </p>
           )}
         </GuestDetailSection>
+
+        <SideGroupSection
+          isEditing={editingSections.has('sideGroup')}
+          onToggleEdit={() => toggleEditingSection('sideGroup')}
+          drawerDraft={drawerDraft}
+          updateDraft={updateDraft}
+        />
 
         <AttendanceLikelihoodSection
           value={drawerDraft.likelihoodOfAttending}
@@ -675,6 +684,94 @@ function ContactAddressSection(props: Readonly<ContactAddressSectionProps>) {
             {addressFields.filter((value): value is string => Boolean(value)).join(', ') ||
               'לא צוין'}
           </dd>
+        </div>
+      </dl>
+    </GuestDetailSection>
+  )
+}
+
+type SideGroupSectionProps = {
+  isEditing: boolean
+  onToggleEdit: () => void
+  drawerDraft: DrawerDraft
+  updateDraft: DraftUpdater
+}
+
+function SideGroupSection(props: Readonly<SideGroupSectionProps>) {
+  const { isEditing, onToggleEdit, drawerDraft, updateDraft } = props
+
+  if (isEditing) {
+    return (
+      <GuestDetailSection
+        title='שיוך / קבוצה'
+        contentClassName='space-y-3'
+        action={
+          <button
+            type='button'
+            onClick={onToggleEdit}
+            className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
+          >
+            הושלם
+          </button>
+        }
+      >
+        <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+          <label className='space-y-1'>
+            <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
+              צד
+            </span>
+            <input
+              name='side'
+              type='text'
+              value={drawerDraft.side}
+              onChange={(event) => updateDraft('side', event.target.value)}
+              className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
+            />
+          </label>
+          <label className='space-y-1'>
+            <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
+              קבוצה
+            </span>
+            <input
+              name='groupName'
+              type='text'
+              value={drawerDraft.groupName}
+              onChange={(event) => updateDraft('groupName', event.target.value)}
+              className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
+            />
+          </label>
+        </div>
+      </GuestDetailSection>
+    )
+  }
+
+  return (
+    <GuestDetailSection
+      title='שיוך / קבוצה'
+      contentClassName='space-y-3'
+      action={
+        <button
+          type='button'
+          onClick={onToggleEdit}
+          className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
+          aria-label='עריכת שיוך וקבוצה'
+        >
+          עריכה
+        </button>
+      }
+    >
+      <dl className='grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2'>
+        <div>
+          <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
+            צד
+          </dt>
+          <dd className='text-foreground/85'>{drawerDraft.side || 'לא צוין'}</dd>
+        </div>
+        <div>
+          <dt className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
+            קבוצה
+          </dt>
+          <dd className='text-foreground/85'>{drawerDraft.groupName || 'לא צוין'}</dd>
         </div>
       </dl>
     </GuestDetailSection>
