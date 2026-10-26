@@ -39,22 +39,28 @@ function RsvpPills({
   isRsvpEnabled,
   weddingEvent,
   chuppahEvent,
+  hasMultipleRsvpableEvents,
   size,
 }: {
   rsvpHref: string
   isRsvpEnabled: boolean
   weddingEvent: { id: string } | null
   chuppahEvent: { id: string } | null
+  hasMultipleRsvpableEvents: boolean
   size: RsvpPillSize
 }) {
   if (!isRsvpEnabled || !weddingEvent) return null
-  // A household invited to both events would have its event-scoped submission
-  // (and all household-level answers alongside it) silently dropped by the
-  // server (see coversAllHouseholdEvents in rsvp-submission.service.ts) —
-  // only safe to preselect a single event when there is just one to begin
-  // with, so the full flow handles every multi-event household itself.
-  const hasMultipleEvents = chuppahEvent !== null
-  const weddingHref = hasMultipleEvents ? rsvpHref : `${rsvpHref}?event=${weddingEvent.id}`
+  // A household invited to more than one RSVP-able event would have its
+  // event-scoped submission (and all household-level answers alongside it)
+  // silently dropped by the server (see coversAllHouseholdEvents in
+  // rsvp-submission.service.ts) — only safe to preselect a single event when
+  // there is just one to begin with, so the full flow handles every
+  // multi-event household itself. This must key off the actual count of
+  // RSVP-able events, not chuppah detection — two non-chuppah events (e.g.
+  // "חינה" and "חתונה") are still multiple events.
+  const weddingHref = hasMultipleRsvpableEvents
+    ? rsvpHref
+    : `${rsvpHref}?event=${weddingEvent.id}`
   return (
     <div className='flex flex-col items-center gap-2 min-[376px]:flex-row'>
       <Link href={weddingHref} aria-label='אישור הגעה לחתונה' className={RSVP_PILL_CLASSES[size]}>
@@ -125,6 +131,7 @@ export function InvitationHero({
   const invitationAlt = coupleNames ? `הזמנת החתונה של ${coupleNames}` : 'הזמנת החתונה'
   const topGreeting = topGreetingText(invitedHousehold)
   const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
+  const hasMultipleRsvpableEvents = events.filter((event) => event.collectRsvp).length > 1
 
   return (
     <div className='relative min-h-[100svh] w-full bg-background'>
@@ -178,6 +185,7 @@ export function InvitationHero({
               isRsvpEnabled={isRsvpEnabled}
               weddingEvent={weddingEvent}
               chuppahEvent={chuppahEvent}
+              hasMultipleRsvpableEvents={hasMultipleRsvpableEvents}
               size='mobile'
             />
             <SecondaryActions
@@ -233,6 +241,7 @@ export function InvitationHero({
             isRsvpEnabled={isRsvpEnabled}
             weddingEvent={weddingEvent}
             chuppahEvent={chuppahEvent}
+            hasMultipleRsvpableEvents={hasMultipleRsvpableEvents}
             size='desktop'
           />
           <SecondaryActions
