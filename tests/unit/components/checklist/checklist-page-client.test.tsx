@@ -290,25 +290,25 @@ describe('ChecklistPageClient', () => {
     )
 
     expect(screen.getByText('Invitations sent')).toBeInTheDocument()
-    expect(screen.getByText('This week')).toBeInTheDocument()
-    expect(screen.getByText(/Within 3 months/)).toBeInTheDocument()
+    expect(screen.getByText('השבוע')).toBeInTheDocument()
+    expect(screen.getByText(/בתוך 3 חודשים/)).toBeInTheDocument()
     expect(screen.getByText('Mail the invitations')).toBeInTheDocument()
     expect(screen.getByText('Collect the marriage license')).toBeInTheDocument()
-    expect(screen.getByText('⚠ override')).toBeInTheDocument()
+    expect(screen.getByText('⚠ עקיפה')).toBeInTheDocument()
     expect(screen.queryByText('Pack the guest book pens')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Done bucket' }))
+    fireEvent.click(screen.getByRole('button', { name: 'סל הושלם' }))
     expect(screen.getByText('Pack the guest book pens')).toBeInTheDocument()
   })
 
   it('lays tasks out in Now, Next and Later columns', () => {
     renderChecklist()
 
-    expect(screen.getByRole('region', { name: 'Now' })).toHaveTextContent('Mail the invitations')
-    expect(screen.getByRole('region', { name: 'Next' })).toHaveTextContent(
+    expect(screen.getByRole('region', { name: 'עכשיו' })).toHaveTextContent('Mail the invitations')
+    expect(screen.getByRole('region', { name: 'בקרוב' })).toHaveTextContent(
       'Collect the marriage license'
     )
-    expect(screen.getByRole('region', { name: 'Later' })).not.toHaveTextContent(
+    expect(screen.getByRole('region', { name: 'בהמשך' })).not.toHaveTextContent(
       'Mail the invitations'
     )
   })
@@ -322,13 +322,13 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    expect(screen.queryByRole('heading', { name: 'Milestones' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'אבני דרך' })).not.toBeInTheDocument()
   })
 
   it('shows overall checklist progress', () => {
     renderChecklist()
 
-    expect(screen.getByText('33% of tasks done')).toBeInTheDocument()
+    expect(screen.getByText('33% מהמשימות הושלמו')).toBeInTheDocument()
   })
 
   it('syncs filter changes into the URL', () => {
@@ -340,7 +340,7 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Legal' }))
+    fireEvent.click(screen.getByRole('button', { name: 'עניינים משפטיים' }))
 
     expect(mockReplace).toHaveBeenCalledWith('/checklist?category=LEGAL')
   })
@@ -354,7 +354,7 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('checkbox', { name: /toggle task mail the invitations/i }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /סימון המשימה mail the invitations/i }))
 
     expect(mockTaskCompleteMutate).toHaveBeenCalledWith({
       taskId: 'task-this-week',
@@ -378,7 +378,7 @@ describe('ChecklistPageClient', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /invitations sent/i }))
-    fireEvent.click(screen.getByLabelText('Mark as done'))
+    fireEvent.click(screen.getByLabelText('סימון כהושלם'))
 
     expect(mockMilestoneAttestMutate).toHaveBeenCalledWith({
       milestoneId: 'milestone-1',
@@ -394,17 +394,17 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add task' }))
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    fireEvent.click(screen.getByRole('button', { name: 'הוסיפו משימה' }))
+    fireEvent.change(screen.getByLabelText('כותרת המשימה'), {
       target: { value: 'Book transport for the wedding party' },
     })
     fireEvent.change(screen.getAllByLabelText('mock-select')[0], {
       target: { value: TaskCategory.OTHER },
     })
-    fireEvent.change(screen.getByLabelText('Months before wedding'), {
+    fireEvent.change(screen.getByLabelText('חודשים לפני החתונה'), {
       target: { value: '1' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save task' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת משימה' }))
 
     await waitFor(() =>
       expect(mockTaskCreateMutate).toHaveBeenCalledWith({
@@ -418,7 +418,7 @@ describe('ChecklistPageClient', () => {
       })
     )
     await waitFor(() =>
-      expect(screen.queryByRole('dialog', { name: 'Add task' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'הוסיפו משימה' })).not.toBeInTheDocument()
     )
   })
 
@@ -431,8 +431,8 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    expect(screen.getByText('Add your first event to unlock the checklist')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Go to events' })).toHaveAttribute('href', '/events')
+    expect(screen.getByText('הוסיפו אירוע ראשון כדי לפתוח את רשימת המשימות')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'מעבר לאירועים' })).toHaveAttribute('href', '/events')
   })
 
   it('renders a no-tasks empty state for a fresh checklist', () => {
@@ -444,8 +444,8 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    expect(screen.getByText('No tasks added yet')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Add task' }).length).toBeGreaterThan(0)
+    expect(screen.getByText('עדיין לא נוספו משימות')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'הוסיפו משימה' }).length).toBeGreaterThan(0)
   })
 
   it('renders an all-done empty state when only completed tasks remain', () => {
@@ -457,7 +457,7 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    expect(screen.getByText('Everything is checked off')).toBeInTheDocument()
+    expect(screen.getByText('הכל מסומן כבוצע')).toBeInTheDocument()
   })
 
   it('updates and deletes a task from the edit flow', async () => {
@@ -469,11 +469,11 @@ describe('ChecklistPageClient', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit task Collect the marriage license' }))
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    fireEvent.click(screen.getByRole('button', { name: 'עריכת המשימה Collect the marriage license' }))
+    fireEvent.change(screen.getByLabelText('כותרת המשימה'), {
       target: { value: 'Collect and scan the marriage license' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת שינויים' }))
 
     await waitFor(() =>
       expect(mockTaskUpdateMutate).toHaveBeenCalledWith({
@@ -488,12 +488,12 @@ describe('ChecklistPageClient', () => {
       })
     )
     await waitFor(() =>
-      expect(screen.queryByRole('dialog', { name: 'Edit task' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'עריכת משימה' })).not.toBeInTheDocument()
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit task Collect the marriage license' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Delete task' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }))
+    fireEvent.click(screen.getByRole('button', { name: 'עריכת המשימה Collect the marriage license' }))
+    fireEvent.click(screen.getByRole('button', { name: 'מחיקת משימה' }))
+    fireEvent.click(screen.getByRole('button', { name: 'אישור מחיקה' }))
 
     expect(mockTaskDeleteMutate).toHaveBeenCalledWith({
       taskId: 'task-legal',

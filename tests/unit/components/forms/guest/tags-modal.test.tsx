@@ -122,7 +122,7 @@ describe('TagsModal', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'Friends' }))
 
     // Click Save Tags
-    fireEvent.click(screen.getByRole('button', { name: 'Save Tags' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמרו תגיות' }))
 
     expect(onTagsChange).toHaveBeenCalledWith(['tag-1', 'tag-2'])
   })
@@ -136,7 +136,7 @@ describe('TagsModal', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'Friends' }))
 
     // Click Cancel
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול' }))
 
     expect(onTagsChange).not.toHaveBeenCalled()
     expect(onOpenChange).toHaveBeenCalledWith(false)
@@ -218,7 +218,7 @@ describe('TagsModal - state sync on reopen (bug fix)', () => {
 
     // User adds VIP and saves
     fireEvent.click(screen.getByRole('checkbox', { name: 'VIP' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Save Tags' }))
+    fireEvent.click(screen.getByRole('button', { name: 'שמרו תגיות' }))
 
     expect(onTagsChange).toHaveBeenCalledWith(['tag-1', 'tag-3'])
 
@@ -262,8 +262,8 @@ describe('TagsModal - state sync on reopen (bug fix)', () => {
     )
 
     // Open create tag form
-    fireEvent.click(screen.getByRole('button', { name: /Create New Tag/i }))
-    expect(screen.getByLabelText('Tag Name')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /תגית חדשה/i }))
+    expect(screen.getByLabelText('שם תגית')).toBeInTheDocument()
 
     // Close modal
     rerender(
@@ -289,9 +289,9 @@ describe('TagsModal - state sync on reopen (bug fix)', () => {
 
     // Create tag form should be hidden
     await waitFor(() => {
-      expect(screen.queryByLabelText('Tag Name')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('שם תגית')).not.toBeInTheDocument()
     })
-    expect(screen.getByRole('button', { name: /Create New Tag/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /תגית חדשה/i })).toBeInTheDocument()
   })
 })
 

@@ -76,7 +76,7 @@ describe('QuestionForm accessibility', () => {
       />
     )
 
-    const closeButton = screen.getByRole('button', { name: 'Close question form' })
+    const closeButton = screen.getByRole('button', { name: 'סגירת טופס שאלה' })
     expect(closeButton).toHaveAttribute('type', 'button')
 
     fireEvent.click(closeButton)

@@ -28,7 +28,7 @@ describe('DashboardTopbar', () => {
 
   it('renders the page title "Dashboard"', () => {
     render(<DashboardTopbar />)
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('לוח בקרה')).toBeInTheDocument()
   })
 
   it('renders a custom title when provided', () => {
@@ -38,7 +38,7 @@ describe('DashboardTopbar', () => {
 
   it('renders the Add task button', () => {
     render(<DashboardTopbar />)
-    expect(screen.getByRole('button', { name: /add task/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /הוסיפו משימה/i })).toBeInTheDocument()
   })
 
   it('dispatches the dashboard add-task event when the add-task button is clicked', () => {
@@ -46,7 +46,7 @@ describe('DashboardTopbar', () => {
     window.addEventListener(DASHBOARD_ADD_TASK_EVENT, eventHandler)
 
     render(<DashboardTopbar />)
-    fireEvent.click(screen.getByRole('button', { name: /add task/i }))
+    fireEvent.click(screen.getByRole('button', { name: /הוסיפו משימה/i }))
 
     expect(eventHandler).toHaveBeenCalledTimes(1)
 
@@ -57,14 +57,14 @@ describe('DashboardTopbar', () => {
     const onAddTask = jest.fn()
 
     render(<DashboardTopbar onAddTask={onAddTask} />)
-    fireEvent.click(screen.getByRole('button', { name: /add task/i }))
+    fireEvent.click(screen.getByRole('button', { name: /הוסיפו משימה/i }))
 
     expect(onAddTask).toHaveBeenCalledTimes(1)
   })
 
   it('opens sidebar when hamburger button is clicked', () => {
     render(<DashboardTopbar />)
-    fireEvent.click(screen.getByRole('button', { name: /open sidebar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /פתחו סרגל צד/i }))
     expect(mockOpenSidebar).toHaveBeenCalledTimes(1)
   })
 
@@ -72,7 +72,7 @@ describe('DashboardTopbar', () => {
     const onMenuToggle = jest.fn()
 
     render(<DashboardTopbar onMenuToggle={onMenuToggle} />)
-    fireEvent.click(screen.getByRole('button', { name: /open sidebar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /פתחו סרגל צד/i }))
 
     expect(onMenuToggle).toHaveBeenCalledTimes(1)
     expect(mockOpenSidebar).not.toHaveBeenCalled()
@@ -97,7 +97,7 @@ describe('DashboardTopbar', () => {
 
   it('hides management actions when disabled', () => {
     render(<DashboardTopbar showManagementActions={false} />)
-    expect(screen.queryByRole('button', { name: /add task/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /הוסיפו משימה/i })).not.toBeInTheDocument()
   })
 
   it('uses the warm translucent topbar styling', () => {

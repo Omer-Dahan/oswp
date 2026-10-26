@@ -126,7 +126,7 @@ describe('checklist-view-model', () => {
     const { horizons, done } = groupBucketsIntoHorizons(buckets)
 
     expect(horizons.map((horizon) => horizon.key)).toEqual(['now', 'next', 'later'])
-    expect(horizons.map((horizon) => horizon.title)).toEqual(['Now', 'Next', 'Later'])
+    expect(horizons.map((horizon) => horizon.title)).toEqual(['עכשיו', 'בקרוב', 'בהמשך'])
     expect(horizons[0]?.buckets.map((bucket) => bucket.key)).toEqual(['this-week', 'this-month'])
     expect(horizons[1]?.buckets.map((bucket) => bucket.key)).toEqual(['three-months'])
     expect(horizons[2]?.buckets.map((bucket) => bucket.key)).toEqual([
