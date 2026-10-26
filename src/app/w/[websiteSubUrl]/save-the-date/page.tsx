@@ -292,10 +292,6 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                   </p>
                 ) : null}
 
-                <p className='mt-8 text-muted-foreground leading-7'>
-                  {saveTheDateCopy?.footnote ?? t('formalInvitationNote')}
-                </p>
-
                 <div className='mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-start'>
                   <Button asChild size='lg' variant='outline'>
                     <Link href={`/w/${websiteSubUrl}`}>{t('viewWebsite')}</Link>
