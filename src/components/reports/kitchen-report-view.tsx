@@ -98,7 +98,7 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className='text-base'>מנות ילדים</CardTitle>
+                <CardTitle className='text-base'>ילדים</CardTitle>
               </CardHeader>
               <CardContent className='text-3xl font-bold'>
                 {reportQuery.data.summary.kidsMeals}
@@ -159,9 +159,9 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
                     {hasSeating && <td className='p-3'>{row.tableName ?? '—'}</td>}
                     <td className='p-3'>
                       {row.isChild && row.dietaryNote
-                        ? `מנת ילדים · ${row.dietaryNote}`
+                        ? `ילדים · ${row.dietaryNote}`
                         : row.isChild
-                          ? 'מנת ילדים'
+                          ? 'ילדים'
                           : row.dietaryNote ?? ''}
                     </td>
                   </tr>

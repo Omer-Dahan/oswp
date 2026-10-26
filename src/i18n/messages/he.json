@@ -83,8 +83,8 @@
     "extraGuestNameLabel": "שם האורח/ת",
     "extraGuestNamePlaceholder": "שם מלא",
     "removeExtraGuestLabel": "הסרת אורח",
-    "childrenCountTitle": "כמה ילדים (מתחת לגיל 10) מגיעים?",
-    "childrenCountHelper": "לפי המספר הזה המקום יזמין מנות ילדים",
+    "childrenCountTitle": "כמה ילדים יגיעו?",
+    "childrenCountHelper": "אפשר לדלג אם אין ילדים",
     "dietaryNotesTitle": "הגבלות או בעיות תזונה",
     "dietaryNotesHelper": "פרטו למי ומה · המטבח יקבל את זה כפי שהוא"
   },
