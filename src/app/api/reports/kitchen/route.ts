@@ -63,12 +63,13 @@ async function buildWorkbook(report: KitchenReport) {
   ]
   summarySheet.views = [{ rightToLeft: true, state: 'frozen', ySplit: 1 }]
   summarySheet.addRow({ metric: 'מגיעים', value: report.summary.attending })
-  summarySheet.addRow({ metric: 'ילדים', value: report.summary.kidsMeals })
+  summarySheet.addRow({ metric: 'מנות', value: report.summary.meals })
+  summarySheet.addRow({ metric: 'ילדים', value: report.summary.children })
   summarySheet.addRow({ metric: 'הגבלות תזונה', value: report.summary.dietary })
 
   addRowsSheet(
     workbook,
-    'תפריט ילדים',
+    'ילדים',
     report.rows.filter((row) => row.isChild),
     () => 'ילדים'
   )
