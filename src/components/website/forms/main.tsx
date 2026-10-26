@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { IoMdClose } from 'react-icons/io'
 import type { Event, Question, RsvpPageData } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
@@ -79,13 +79,11 @@ export default function MainRsvpForm({
 }: MainRsvpFormProps) {
   const rsvpFormData = useRsvpForm()
   const isDeclineFlow = rsvpFormData.declineIntent === true
-  const numSteps = useRef(isDeclineFlow ? NUM_DECLINE_STEPS : NUM_STATIC_STEPS)
   const updateRsvpForm = useUpdateRsvpForm()
   // A recognized guest (identified by their save-the-date invite) skips the name
   // search and lands on the confirm step (step 2).
   const [currentStep, setCurrentStep] = useState<number>(rsvpFormData.recognized ? 2 : 1)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  useConfirmReloadPage(currentStep > 1 && currentStep < numSteps.current)
   useEffect(() => {
     updateRsvpForm({ weddingData })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,9 +98,8 @@ export default function MainRsvpForm({
       setSubmitError(getMutationErrorMessage(err, 'Failed to submit RSVP. Please try again.'))
     },
   })
-  const progress = (currentStep / numSteps.current) * 100
 
-  const generateDynamicStepForms = useCallback((): ReactNode[] => {
+  const dynamicStepForms = useMemo((): ReactNode[] => {
     const newSteps: ReactNode[] =
       weddingData?.events?.reduce((acc: ReactNode[], event: Event) => {
         if (!event.collectRsvp) return acc
@@ -152,7 +149,6 @@ export default function MainRsvpForm({
       }
     })
 
-    numSteps.current = newSteps.length + NUM_STATIC_STEPS
     return newSteps
   }, [
     weddingData,
@@ -160,6 +156,12 @@ export default function MainRsvpForm({
     rsvpFormData.rsvpResponses,
     rsvpFormData.preselectedEventId,
   ])
+
+  const numSteps = isDeclineFlow
+    ? NUM_DECLINE_STEPS
+    : dynamicStepForms.length + NUM_STATIC_STEPS
+  const progress = (currentStep / numSteps) * 100
+  useConfirmReloadPage(currentStep > 1 && currentStep < numSteps)
 
   return (
     // pt-24 reserves space for the fixed ProgressBar so the first step's copy
@@ -170,7 +172,7 @@ export default function MainRsvpForm({
       <ProgressBar
         currentStep={currentStep}
         progress={progress}
-        numSteps={numSteps.current}
+        numSteps={numSteps}
         basePath={basePath}
         embedded={embedded}
       />
@@ -247,7 +249,7 @@ export default function MainRsvpForm({
               <WhoIsComingForm key='who-is-coming' />,
               <ChildrenCountForm key='children-count' />,
               <DietaryNotesForm key='dietary-notes' />,
-              ...generateDynamicStepForms(),
+              ...dynamicStepForms,
             ]
           )}
           <WishesMessageForm />
