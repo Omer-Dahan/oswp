@@ -126,6 +126,24 @@ describe('SeatingService', () => {
       })
       expect(chart.households[0]?.guests[0]?.tableId).toBeNull()
     })
+
+    it('exposes a household\'s named extra guests as seatable people alongside its named guests', async () => {
+      ;(mockFindTablesByEventId as jest.Mock).mockResolvedValue([])
+      ;(mockFindSeatableGuests as jest.Mock).mockResolvedValue([
+        buildSeatableGuest({ id: 1, householdId: 'household-1', isPrimaryContact: true }),
+        buildSeatableGuest({ id: 2, householdId: 'household-1' }),
+        buildSeatableGuest({ id: 3, householdId: 'household-1', isTagAlong: true }),
+        buildSeatableGuest({ id: 4, householdId: 'household-1', isTagAlong: true }),
+      ])
+
+      const chart = await service.getChart(ctx, WEDDING_ID, 'event-1')
+
+      expect(chart.households).toHaveLength(1)
+      expect(chart.households[0]?.guests).toHaveLength(4)
+      expect(chart.households[0]?.guests.filter((g) => g.isTagAlong).map((g) => g.id)).toEqual([
+        3, 4,
+      ])
+    })
   })
 
   describe('createTable', () => {

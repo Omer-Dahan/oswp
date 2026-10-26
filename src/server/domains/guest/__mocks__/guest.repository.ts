@@ -57,6 +57,8 @@ export const mockExists = jest.fn()
 export const mockBelongsToWedding = jest.fn()
 export const mockCountByWeddingId = jest.fn()
 export const mockCountByIdsInWedding = jest.fn()
+export const mockCountByIdsInHousehold = jest.fn()
+export const mockReplaceTagAlongs = jest.fn()
 
 export const GuestRepository = jest.fn().mockImplementation(() => ({
   findById: mockFindById,
@@ -76,6 +78,8 @@ export const GuestRepository = jest.fn().mockImplementation(() => ({
   belongsToWedding: mockBelongsToWedding,
   countByWeddingId: mockCountByWeddingId,
   countByIdsInWedding: mockCountByIdsInWedding,
+  countByIdsInHousehold: mockCountByIdsInHousehold,
+  replaceTagAlongs: mockReplaceTagAlongs,
 }))
 
 // Helper to reset all mocks
@@ -97,5 +101,7 @@ export const resetMocks = (): void => {
   mockBelongsToWedding.mockReset()
   mockCountByWeddingId.mockReset()
   mockCountByIdsInWedding.mockReset()
+  mockCountByIdsInHousehold.mockReset()
+  mockReplaceTagAlongs.mockReset()
   GuestRepository.mockClear()
 }

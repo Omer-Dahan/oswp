@@ -2,12 +2,16 @@
 
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
+import { IoMdClose } from 'react-icons/io'
 import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { Switch } from '~/components/ui/switch'
 import {
+  canAddExtraGuestRow,
   canUseExtraGuests,
   clampCount,
+  type ExtraGuestRow,
+  getFilledExtraGuestNames,
   getInitialAttendingGuestIds,
   getInitialExtraGuests,
   getMaxAttendingBound,
@@ -20,6 +24,7 @@ import {
   StepSecondaryButton,
   StepShell,
   StepStepperButton,
+  StepTextInput,
 } from '~/components/website/forms/steps/step-ui'
 
 export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
@@ -47,8 +52,36 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
     getInitialExtraGuests(hasAnsweredBefore, savedTotal, namedAttendingCount, maxExtras)
   )
 
-  const clampedExtraGuests = clampCount(extraGuests, 0, maxExtras)
-  const total = namedAttendingCount + clampedExtraGuests
+  const [extraGuestRows, setExtraGuestRows] = useState<ExtraGuestRow[]>(() =>
+    (rsvpFormData.extraGuestNames ?? []).map((name) => ({
+      id: crypto.randomUUID(),
+      name,
+    }))
+  )
+
+  const stepperMax = clampCount(maxTotal - namedAttendingCount - extraGuestRows.length, 0, maxTotal)
+  const clampedExtraGuests = clampCount(extraGuests, 0, stepperMax)
+  const filledExtraGuestNames = getFilledExtraGuestNames(extraGuestRows)
+  const total = namedAttendingCount + filledExtraGuestNames.length + clampedExtraGuests
+  const canAddRow = canAddExtraGuestRow(
+    namedAttendingCount,
+    extraGuestRows.length,
+    clampedExtraGuests,
+    maxTotal
+  )
+
+  const addExtraGuestRow = () => {
+    if (!canAddRow) return
+    setExtraGuestRows((prev) => [...prev, { id: crypto.randomUUID(), name: '' }])
+  }
+
+  const updateExtraGuestRowName = (id: string, name: string) => {
+    setExtraGuestRows((prev) => prev.map((row) => (row.id === id ? { ...row, name } : row)))
+  }
+
+  const removeExtraGuestRow = (id: string) => {
+    setExtraGuestRows((prev) => prev.filter((row) => row.id !== id))
+  }
 
   const toggleGuest = (guestId: number) => {
     setAttendingGuestIds((prev) => {
@@ -76,6 +109,7 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
       updateRsvpForm({
         rsvpResponses: upsertRsvpResponses(rsvpFormData.rsvpResponses, responses),
         attendingCount: total,
+        extraGuestNames: filledExtraGuestNames,
       })
     }
     goNext?.()
@@ -102,6 +136,43 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
         ))}
       </ul>
 
+      {extrasAllowed && (
+        <ul className='flex flex-col gap-3'>
+          {extraGuestRows.map((row, index) => (
+            <li key={row.id} className='flex items-end gap-2'>
+              <div className='flex-1'>
+                <label htmlFor={`extra-guest-${row.id}`} className='sr-only'>
+                  {t('extraGuestNameLabel')}
+                </label>
+                <StepTextInput
+                  id={`extra-guest-${row.id}`}
+                  value={row.name}
+                  placeholder={t('extraGuestNamePlaceholder')}
+                  onChange={(event) => updateExtraGuestRowName(row.id, event.target.value)}
+                />
+              </div>
+              <button
+                type='button'
+                onClick={() => removeExtraGuestRow(row.id)}
+                aria-label={`${t('removeExtraGuestLabel')} ${index + 1}`}
+                className='flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+              >
+                <IoMdClose className='h-5 w-5' />
+              </button>
+            </li>
+          ))}
+          <li>
+            <StepSecondaryButton
+              onClick={addExtraGuestRow}
+              disabled={!canAddRow}
+              className='w-auto justify-start ps-0'
+            >
+              {t('addExtraGuestButton')}
+            </StepSecondaryButton>
+          </li>
+        </ul>
+      )}
+
       <div className='flex flex-col gap-2 rounded-[16px] border border-border px-5 py-4'>
         <div className='flex items-center justify-between'>
           <span className='text-base text-foreground'>{t('totalAttendingLabel')}</span>
@@ -113,7 +184,7 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
           <div className='flex items-center gap-4'>
             <StepStepperButton
               disabled={!extrasAllowed || clampedExtraGuests <= 0}
-              onClick={() => setExtraGuests((value) => clampCount(value - 1, 0, maxExtras))}
+              onClick={() => setExtraGuests((value) => clampCount(value - 1, 0, stepperMax))}
             >
               −
             </StepStepperButton>
@@ -121,8 +192,8 @@ export default function WhoIsComingForm({ goNext, goBack }: StepFormProps) {
               {clampedExtraGuests}
             </span>
             <StepStepperButton
-              disabled={!extrasAllowed || clampedExtraGuests >= maxExtras}
-              onClick={() => setExtraGuests((value) => clampCount(value + 1, 0, maxExtras))}
+              disabled={!extrasAllowed || clampedExtraGuests >= stepperMax}
+              onClick={() => setExtraGuests((value) => clampCount(value + 1, 0, stepperMax))}
             >
               +
             </StepStepperButton>

@@ -342,4 +342,49 @@ export class GuestRepository {
       },
     })
   }
+
+  /**
+   * Replace a household's named "extra" guests (tag-alongs added on the
+   * who-is-coming RSVP step) with a fresh set. Re-submitting the RSVP form
+   * must not accumulate duplicate tag-along rows across submissions, so the
+   * previous set is deleted first — cascading away their invitations and any
+   * seat assignment, which is correct since the replacement guest rows get
+   * new IDs. Each new tag-along gets an 'Attending' invitation for every
+   * event the household is attending, so they surface in seating and the
+   * kitchen report alongside the named guests.
+   */
+  async replaceTagAlongs(
+    householdId: string,
+    weddingId: string,
+    names: string[],
+    attendingEventIds: string[]
+  ): Promise<void> {
+    await this.db.guest.deleteMany({
+      where: { householdId, isTagAlong: true },
+    })
+
+    for (const name of names) {
+      const [firstName, ...rest] = name.trim().split(/\s+/)
+      await this.db.guest.create({
+        data: {
+          firstName: firstName ?? name.trim(),
+          lastName: rest.join(' '),
+          householdId,
+          weddingId,
+          isTagAlong: true,
+          invitations: attendingEventIds.length
+            ? {
+                createMany: {
+                  data: attendingEventIds.map((eventId) => ({
+                    eventId,
+                    weddingId,
+                    rsvp: 'Attending',
+                  })),
+                },
+              }
+            : undefined,
+        },
+      })
+    }
+  }
 }

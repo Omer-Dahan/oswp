@@ -124,6 +124,10 @@ export const submitPublicRsvpSchema = z
     attendingCount: z.number().int().min(0).max(20, 'ניתן לדווח על עד 20 מגיעים').nullish(),
     childrenCount: z.number().int().min(0).max(20, 'ניתן לדווח על עד 20 מגיעים').nullish(),
     dietaryNotes: z.string().max(500).nullish(),
+    // Named "extra" guests added on the who-is-coming step. Persisted as real
+    // tag-along Guest rows (see RsvpSubmissionService.submitRsvp), capped at
+    // the same MAX_ATTENDING ceiling as the rest of the household's party.
+    extraGuestNames: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   })
   .superRefine(rejectDuplicateSubmissions)
 

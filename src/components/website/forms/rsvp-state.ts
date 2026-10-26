@@ -144,6 +144,31 @@ export const getInitialExtraGuests = (
   return namedAttendingCount > 0 ? 0 : clampCount(1, 0, maxExtras)
 }
 
+export interface ExtraGuestRow {
+  id: string
+  name: string
+}
+
+/**
+ * Whether another named "extra guest" row can be added on the who-is-coming
+ * step without the household's total (named guests + named extra rows +
+ * unnamed stepper extras) exceeding `maxTotal`.
+ */
+export const canAddExtraGuestRow = (
+  namedAttendingCount: number,
+  extraRowCount: number,
+  stepperExtraCount: number,
+  maxTotal: number
+): boolean => namedAttendingCount + extraRowCount + stepperExtraCount < maxTotal
+
+/**
+ * The non-empty, trimmed names from the extra-guest rows. Only these become
+ * persisted tag-along Guest rows on submit — a row added but left blank
+ * reserves a slot in the UI but isn't counted as an attendee.
+ */
+export const getFilledExtraGuestNames = (rows: ExtraGuestRow[]): string[] =>
+  rows.map((row) => row.name.trim()).filter((name) => name.length > 0)
+
 const getRsvpKey = (response: Pick<RsvpFormResponse, 'eventId' | 'guestId'>): string => {
   return `${response.eventId}:${response.guestId}`
 }

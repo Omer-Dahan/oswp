@@ -26,6 +26,8 @@ type RsvpFormState = {
   weddingData: Partial<RsvpPageData>
   /** Total household party size (named guests + unnamed extras), set on the who-is-coming step. */
   attendingCount?: number
+  /** Names of the "extra" guests added by name on the who-is-coming step. */
+  extraGuestNames?: string[]
   /** Children under 10 attending, set on the children-count step. */
   childrenCount?: number
   /** Free-text dietary notes for the household, set on the dietary-notes step. */
