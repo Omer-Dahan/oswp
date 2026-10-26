@@ -86,13 +86,17 @@ const nextTableNumber = (names: readonly string[]): number => {
   return max + 1
 }
 
+const NON_SEATABLE: readonly string[] = NON_SEATABLE_RSVPS
+
+// Group weight must match the capacity check: the sum of the weights of the
+// guests actually being placed, never the household's raw invitedCount.
 const buildBuckets = (
   households: readonly AutoSeatHousehold[],
-  guests: readonly AutoSeatGuest[]
+  guests: readonly AutoSeatGuest[],
+  weights: ReadonlyMap<number, number>
 ): Bucket[] => {
   const householdsById = new Map(households.map((household) => [household.id, household]))
-  const nonSeatableRsvps: readonly string[] = NON_SEATABLE_RSVPS
-  const eligible = guests.filter((guest) => !nonSeatableRsvps.includes(guest.rsvp) && !guest.seated)
+  const eligible = guests.filter((guest) => !NON_SEATABLE.includes(guest.rsvp) && !guest.seated)
 
   const byHousehold = new Map<string, AutoSeatGuest[]>()
   for (const guest of eligible) {
@@ -101,24 +105,16 @@ const buildBuckets = (
     else byHousehold.set(guest.householdId, [guest])
   }
 
-  const accountedForByHousehold = new Map<string, number>()
-  for (const guest of guests) {
-    if (guest.seated || nonSeatableRsvps.includes(guest.rsvp)) {
-      accountedForByHousehold.set(guest.householdId, (accountedForByHousehold.get(guest.householdId) ?? 0) + 1)
-    }
-  }
-
   const buckets: Bucket[] = []
   for (const [householdId, bucketGuests] of byHousehold) {
     const household = householdsById.get(householdId)
-    const size = household?.invitedCount
-      ? Math.max(1, household.invitedCount - (accountedForByHousehold.get(householdId) ?? 0))
-      : bucketGuests.length
+    const guestIds = bucketGuests.map((guest) => guest.id)
+    const size = guestIds.reduce((total, id) => total + (weights.get(id) ?? 1), 0)
     buckets.push({
       householdId,
       side: household?.side ?? null,
       groupName: household?.groupName ?? null,
-      guestIds: bucketGuests.map((guest) => guest.id),
+      guestIds,
       size,
     })
   }
@@ -127,20 +123,23 @@ const buildBuckets = (
 
 export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
   const { households, guests, tables, tableCapacity, fillFreeSeatsOnly } = options
-  const buckets = buildBuckets(households, guests)
 
-  const maxCapacity = Math.min(
-    MAX_TABLE_CAPACITY,
-    Math.max(tableCapacity, ...tables.map((table) => table.capacity), 0)
-  )
-
+  // Declined guests carry no weight: excluded from the household's guest list
+  // entirely, same as the service's findSeatWeights.
   const weights = getGuestWeights(
     households.map((household) => ({
       invitedCount: household.invitedCount,
       guests: guests
-        .filter((guest) => guest.householdId === household.id)
+        .filter((guest) => guest.householdId === household.id && !NON_SEATABLE.includes(guest.rsvp))
         .map((guest) => ({ id: guest.id, isPrimaryContact: guest.isPrimaryContact })),
     }))
+  )
+
+  const buckets = buildBuckets(households, guests, weights)
+
+  const maxCapacity = Math.min(
+    MAX_TABLE_CAPACITY,
+    Math.max(tableCapacity, ...tables.map((table) => table.capacity), 0)
   )
 
   const pool: WorkingTable[] = fillFreeSeatsOnly
