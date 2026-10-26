@@ -171,13 +171,14 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
   const assignments: { guestId: number; tableId: string }[] = []
   const unseated: { householdId: string; reason: 'too_large' | 'no_room' }[] = []
 
-  const openNewTable = (): WorkingTable => {
+  const openNewTable = (size: number): WorkingTable => {
+    const capacity = Math.max(tableCapacity, size)
     const name = `שולחן ${nextTableNumber([...names, ...newTables.map((table) => table.name)])}`
-    newTables.push({ name, capacity: tableCapacity })
+    newTables.push({ name, capacity })
     const table: WorkingTable = {
       key: `new:${newTables.length - 1}`,
-      capacity: tableCapacity,
-      freeSeats: tableCapacity,
+      capacity,
+      freeSeats: capacity,
       tags: new Set<string>(),
     }
     pool.push(table)
@@ -202,7 +203,7 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
     const target =
       bestFit(pool.filter((table) => table.tags.has(tag)), bucket.size) ??
       bestFit(pool, bucket.size) ??
-      openNewTable()
+      openNewTable(bucket.size)
 
     target.freeSeats -= bucket.size
     target.tags.add(tag)
