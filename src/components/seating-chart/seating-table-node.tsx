@@ -37,6 +37,28 @@ const seatStyle = (x: number, y: number) => ({
   height: SEAT_SIZE,
 })
 
+// One concrete chair on the plan: a named guest, or a "+1" member of a party
+type SeatSlot = { guest: SeatingGuest; extra: boolean }
+
+function ExtraSeat(props: Readonly<{ guest: SeatingGuest; x: number; y: number }>) {
+  const { guest, x, y } = props
+  const name = `${guest.firstName} ${guest.lastName}`.trim()
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <span
+          aria-hidden='true'
+          className='absolute flex items-center justify-center rounded-full border border-foreground/40 bg-muted text-[0.6rem] text-foreground/70 tabular-nums'
+          style={seatStyle(x, y)}
+        >
+          +1
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>עוד אורח/ת מהמשפחה של {name}</TooltipContent>
+    </Tooltip>
+  )
+}
+
 function SeatedGuest(
   props: Readonly<{ guest: SeatingGuest; x: number; y: number; onSelect: () => void }>
 ) {
@@ -83,9 +105,34 @@ export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
     }),
     [table.shape, table.capacity]
   )
-  const seatedGuests = table.guestIds
-    .map((id) => guestsById.get(id))
-    .filter((guest): guest is SeatingGuest => guest !== undefined)
+  // Expand each household's party into concrete chair slots: every named guest
+  // gets one chair, and the remaining (unnamed) party members fill "+1" chairs,
+  // so an 8-person family visibly occupies 8 seats instead of one name + empties.
+  const seatedSlots = useMemo(() => {
+    const slots: SeatSlot[] = []
+    const byHousehold = new Map<string, SeatingGuest[]>()
+    for (const id of table.guestIds) {
+      const guest = guestsById.get(id)
+      if (!guest) continue
+      const members = byHousehold.get(guest.householdId) ?? []
+      members.push(guest)
+      byHousehold.set(guest.householdId, members)
+    }
+    for (const members of byHousehold.values()) {
+      // The primary contact carries the full party size in seatWeights
+      const total = members.reduce(
+        (max, guest) => Math.max(max, seatWeights.get(guest.id) ?? 1),
+        0
+      )
+      for (const guest of members) slots.push({ guest, extra: false })
+      const unnamed = Math.max(0, total - members.length)
+      const primary = members.find((guest) => guest.isPrimaryContact) ?? members[0]
+      if (primary) {
+        for (let i = 0; i < unnamed; i++) slots.push({ guest: primary, extra: true })
+      }
+    }
+    return slots
+  }, [table.guestIds, guestsById, seatWeights])
 
   const dragData: DragData = { type: 'table', tableId: table.id }
   const {
@@ -125,22 +172,32 @@ export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
       }}
     >
       {seats.map((seat, index) => {
-        const guest = seatedGuests[index]
-        return guest ? (
-          <SeatedGuest
-            key={guest.id}
-            guest={guest}
+        const slot = seatedSlots[index]
+        if (!slot) {
+          return (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: empty seats have no identity
+              key={`empty-${index}`}
+              aria-hidden='true'
+              className='absolute rounded-full border border-foreground/25 border-dashed'
+              style={seatStyle(seat.x, seat.y)}
+            />
+          )
+        }
+        return slot.extra ? (
+          <ExtraSeat
+            key={`extra-${slot.guest.id}-${index}`}
+            guest={slot.guest}
             x={seat.x}
             y={seat.y}
-            onSelect={() => onSelectGuest(guest.id)}
           />
         ) : (
-          <span
-            // biome-ignore lint/suspicious/noArrayIndexKey: empty seats have no identity
-            key={`empty-${index}`}
-            aria-hidden='true'
-            className='absolute rounded-full border border-foreground/25 border-dashed'
-            style={seatStyle(seat.x, seat.y)}
+          <SeatedGuest
+            key={slot.guest.id}
+            guest={slot.guest}
+            x={seat.x}
+            y={seat.y}
+            onSelect={() => onSelectGuest(slot.guest.id)}
           />
         )
       })}
