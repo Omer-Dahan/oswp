@@ -83,28 +83,30 @@ export const voyageScript = Great_Vibes({
 })
 
 /**
- * Hebrew guest site — Fontbit typefaces (local .otf, Hebrew + Latin, regular weight).
- * `hebrewSerif` is the display face for headings, `hebrewSans` the reading face for
- * body copy and forms, and `hebrewAlt` is kept wired so the couple can switch the
- * display or text face in one place without touching any component.
+ * Hebrew guest site — Frank Ruhl Libre (local .ttf, Hebrew + Latin, real
+ * weights so headings render bold without browser synthesis). `hebrewSerif`
+ * is the display face for headings (Bold), `hebrewSans` the reading face for
+ * body copy and forms (Regular), and `hebrewAlt` the medium weight for
+ * emphasis and buttons — all three swappable in one place without touching
+ * any component.
  */
 export const hebrewSerif = localFont({
-  src: './fonts/FbPlonter-Regular.otf',
-  weight: '400',
+  src: './fonts/FrankRuhlLibre-Bold.ttf',
+  weight: '700',
   variable: '--tpl-hebrew-serif',
   display: 'swap',
 })
 
 export const hebrewSans = localFont({
-  src: './fonts/FbMesheq-Regular.otf',
+  src: './fonts/FrankRuhlLibre-Regular.ttf',
   weight: '400',
   variable: '--tpl-hebrew-sans',
   display: 'swap',
 })
 
 export const hebrewAlt = localFont({
-  src: './fonts/FbMaarav-Regular.otf',
-  weight: '400',
+  src: './fonts/FrankRuhlLibre-Medium.ttf',
+  weight: '500',
   variable: '--tpl-hebrew-alt',
   display: 'swap',
 })
