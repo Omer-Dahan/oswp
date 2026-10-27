@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { HouseholdRepository } from '~/server/domains/household/household.repository'
 
 describe('HouseholdRepository.search', () => {
@@ -116,52 +117,36 @@ describe('HouseholdRepository.searchPublicByName', () => {
     household('h-cher', guest('Cher', '')),
   ]
 
-  // Stand in for the DB-level candidate filter: apply the same punctuation
-  // folding Postgres does (see normalizedNameSql) and require every search
-  // term to appear in some guest's first or last name, mirroring the real
-  // SQL's EXISTS/AND structure closely enough to exercise the in-memory
-  // filter below with a realistic candidate set.
-  const foldForDb = (value: string) =>
-    value
-      .toLowerCase()
-      .replace(/['’"׳״]/g, '')
-      .replace(/[-–—]/g, ' ')
-
   beforeEach(() => {
     jest.resetAllMocks()
-    mockQueryRaw.mockImplementation(async () => {
-      // The real query receives terms already normalized by tokenizeNameForSearch;
-      // find candidates whose folded name contains every such term.
-      return []
-    })
-    mockHouseholdFindMany.mockResolvedValue(HOUSEHOLDS)
+    // The DB-level candidate filter is real Postgres SQL (see normalizedNameSql
+    // in the repository) that a unit test can't execute, so the mock stands in
+    // as a superset: every household is a "candidate" and the real, unmocked
+    // in-memory filter below (which uses the actual tokenizeNameForSearch) does
+    // the matching these tests assert on. The DB scoping itself (weddingId,
+    // invited-only) is asserted separately against the real SQL values below.
+    mockQueryRaw.mockResolvedValue(HOUSEHOLDS.map((h) => ({ id: h.id })))
+    mockHouseholdFindMany.mockImplementation(
+      async ({ where }: { where: { id: { in: string[] } } }) =>
+        HOUSEHOLDS.filter((h) => where.id.in.includes(h.id))
+    )
     repository = new HouseholdRepository(mockDb as never)
   })
 
-  const idsFor = async (searchText: string) => {
-    const terms = searchText
-      .toLowerCase()
-      .replace(/['’"׳״]/g, '')
-      .replace(/[-–—]/g, ' ')
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
+  const idsFor = async (searchText: string) =>
+    (await repository.searchPublicByName(searchText, 'wedding-1')).map((h) => h.id)
 
-    mockQueryRaw.mockResolvedValue(
-      HOUSEHOLDS.filter((h) =>
-        terms.every((term) =>
-          h.guests.some(
-            (g) => foldForDb(g.firstName).includes(term) || foldForDb(g.lastName).includes(term)
-          )
-        )
-      ).map((h) => ({ id: h.id }))
-    )
-    mockHouseholdFindMany.mockImplementation(async ({ where }: { where: { id: { in: string[] } } }) =>
-      HOUSEHOLDS.filter((h) => where.id.in.includes(h.id))
-    )
+  it('scopes the query to the wedding and to invited households', async () => {
+    await repository.searchPublicByName('Sarah Smith', 'wedding-1')
 
-    return (await repository.searchPublicByName(searchText, 'wedding-1')).map((h) => h.id)
-  }
+    expect(mockQueryRaw).toHaveBeenCalledTimes(1)
+    const query = mockQueryRaw.mock.calls[0]?.[0] as Prisma.Sql
+    // weddingId is the first interpolated value, scoping the household lookup.
+    expect(query.values[0]).toBe('wedding-1')
+    expect(query.sql).toContain('"Household"."weddingId" = ?')
+    // Only households with a guest holding an actionable invitation qualify.
+    expect(query.sql).toContain(`i."rsvp" IN ('Invited', 'Attending', 'Declined')`)
+  })
 
   it('returns nothing for a single term that only matches multi-token guests', async () => {
     expect(await idsFor('Sarah')).toEqual([])
@@ -221,8 +206,13 @@ describe('HouseholdRepository.searchPublicByName', () => {
     expect(await idsFor('גקי כהן')).toEqual(['h-jackie'])
   })
 
-  it('stays partial- and case-tolerant', async () => {
-    expect(await idsFor('sar smi')).toEqual(['h-sarah-smith'])
+  it('stays case-tolerant', async () => {
+    // Multi-term matches require a full token match (see the in-memory
+    // filter's hasFullTokenMatch check), so only casing varies here — a
+    // genuinely partial term like "sar" would clear the DB-level candidate
+    // filter but then be rejected by that exact-token check.
+    expect(await idsFor('SARAH SMITH')).toEqual(['h-sarah-smith'])
+    expect(await idsFor('sArAh sMiTh')).toEqual(['h-sarah-smith'])
   })
 
   it('returns nothing when no single guest matches every term', async () => {

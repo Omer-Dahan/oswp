@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import ConfirmNameForm from '~/components/website/forms/steps/confirm-name'
 
@@ -21,6 +21,7 @@ let mockFormState: {
   selectedHousehold?: unknown
   recognized?: boolean
   weddingData?: unknown
+  searchText?: string
 }
 
 jest.mock('~/components/contexts/rsvp-form-context', () => ({
@@ -31,12 +32,14 @@ jest.mock('~/components/contexts/rsvp-form-context', () => ({
 // Selecting a household re-fetches its private fields (dietary notes, wishes
 // message) via this query, gated behind a matching `searchText` — see
 // confirm-name.tsx's `onContinue`.
+const mockRefetch = jest.fn()
+
 jest.mock('~/trpc/react', () => ({
   api: {
     household: {
       getPublicHouseholdDetails: {
         useQuery: () => ({
-          refetch: jest.fn().mockResolvedValue({ data: undefined }),
+          refetch: mockRefetch,
           isFetching: false,
         }),
       },
@@ -62,6 +65,7 @@ const household = (id: string, firstName: string) => ({
 describe('ConfirmNameForm', () => {
   beforeEach(() => {
     mockUpdateRsvpForm.mockReset()
+    mockRefetch.mockReset().mockResolvedValue({ data: undefined })
     mockFormState = { matchedHouseholds: [], selectedHousehold: undefined, weddingData: {} }
   })
 
@@ -98,5 +102,24 @@ describe('ConfirmNameForm', () => {
       expect.objectContaining({ recognized: false, matchedHouseholds: [] })
     )
     expect(goBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('blocks advancing to the next step when the household-details fetch fails', async () => {
+    mockRefetch.mockResolvedValue({ error: new Error('network error') })
+    const goNext = jest.fn()
+    mockFormState = {
+      matchedHouseholds: [household('h1', 'Ron')],
+      searchText: 'Ron Weasley',
+      weddingData: {},
+    }
+    render(<ConfirmNameForm goNext={goNext} goBack={jest.fn()} />)
+
+    // Silently moving on would submit blank dietary-notes/wishes-message,
+    // overwriting whatever the guest already told the couple — see
+    // confirm-name.tsx's `onContinue`.
+    fireEvent.click(screen.getByRole('button', { name: 'CONTINUE' }))
+    await waitFor(() => expect(mockRefetch).toHaveBeenCalledTimes(1))
+
+    expect(goNext).not.toHaveBeenCalled()
   })
 })
