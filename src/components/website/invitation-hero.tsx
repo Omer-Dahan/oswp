@@ -30,6 +30,18 @@ const RSVP_PILL_CLASSES: Record<RsvpPillSize, string> = {
     'inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
 }
 
+/**
+ * The chuppah-only pill is the exception, not the default: outline instead of
+ * filled, so the full RSVP stays the obvious primary action and "רק לחופה"
+ * reads as the deliberate smaller commitment it is.
+ */
+const RSVP_PILL_OUTLINE_CLASSES: Record<RsvpPillSize, string> = {
+  mobile:
+    'inline-flex h-11 items-center justify-center rounded-full border border-foreground/30 bg-background/70 px-6 font-sans font-semibold text-foreground/90 text-sm leading-none tracking-normal backdrop-blur-[2px] transition-colors duration-200 hover:border-foreground/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]',
+  desktop:
+    'inline-flex h-12 items-center justify-center rounded-full border border-foreground/30 bg-background/70 px-8 font-sans font-semibold text-base text-foreground/90 leading-none tracking-normal backdrop-blur-[2px] transition-colors duration-200 hover:border-foreground/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]',
+}
+
 const SECONDARY_LINK_CLASSES =
   'font-sans text-foreground/70 text-xs underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]'
 
@@ -67,8 +79,12 @@ function RsvpPills({
         אישור הגעה לחתונה
       </Link>
       {chuppahEvent ? (
-        <Link href={rsvpHref} aria-label='אישור הגעה לחופה' className={RSVP_PILL_CLASSES[size]}>
-          אישור הגעה לחופה
+        <Link
+          href={rsvpHref}
+          aria-label='רק לחופה'
+          className={RSVP_PILL_OUTLINE_CLASSES[size]}
+        >
+          רק לחופה
         </Link>
       ) : null}
     </div>

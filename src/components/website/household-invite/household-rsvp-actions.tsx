@@ -53,8 +53,8 @@ export function HouseholdRsvpActions({
           <form action={rsvpActionPath} method='POST'>
             <input type='hidden' name='intent' value='attend' />
             <input type='hidden' name='eventId' value={chuppahEvent.id} />
-            <Button type='submit' size='lg'>
-              אישור הגעה לחופה
+            <Button type='submit' size='lg' variant='outline'>
+              רק לחופה
             </Button>
           </form>
         ) : null}
