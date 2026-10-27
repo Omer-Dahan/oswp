@@ -54,4 +54,37 @@ export class PrismaRateLimiter {
     })
     return updated.count <= this.opts.limit
   }
+
+  /**
+   * Same sliding window as `check`, but a request that's already over the
+   * limit does not increment the counter again (so the window doesn't keep
+   * getting pushed out by the caller's own retries) and the caller gets back
+   * how long until the window resets, so it can tell the user when to retry.
+   */
+  async checkWithRetryAfter(key: string): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+    const now = new Date()
+    const existing = await this.db.rateLimitBucket.findUnique({ where: { key } })
+
+    if (!existing || now.getTime() - existing.windowStart.getTime() > this.opts.windowMs) {
+      await this.db.rateLimitBucket.upsert({
+        where: { key },
+        create: { id: randomUUID(), key, count: 1, windowStart: now },
+        update: { count: 1, windowStart: now },
+      })
+      return { allowed: true, retryAfterSeconds: 0 }
+    }
+
+    if (existing.count >= this.opts.limit) {
+      const retryAfterSeconds = Math.ceil(
+        (existing.windowStart.getTime() + this.opts.windowMs - now.getTime()) / 1000
+      )
+      return { allowed: false, retryAfterSeconds }
+    }
+
+    const updated = await this.db.rateLimitBucket.update({
+      where: { key },
+      data: { count: { increment: 1 } },
+    })
+    return { allowed: updated.count <= this.opts.limit, retryAfterSeconds: 0 }
+  }
 }
