@@ -11,6 +11,7 @@
 // biome-ignore lint/style/noRestrictedImports: Application services use PrismaClient for cross-domain transactions
 import type { PrismaClient } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
+import { logger } from '~/lib/observability/logger'
 import type {
   SubmitPublicRsvpSchemaInput,
   SubmitRsvpSchemaInput,
@@ -81,7 +82,7 @@ export class RsvpSubmissionService {
   async submitPublicRsvp(
     data: SubmitPublicRsvpSchemaInput,
     clientIp: string
-  ): Promise<{ success: boolean }> {
+  ): Promise<{ success: boolean; partialHouseholdCoverage?: boolean }> {
     const allowed = await this.rateLimiter.check(`rsvp:${clientIp}:${data.subUrl}`)
     if (!allowed) {
       throw new TRPCError({
@@ -103,40 +104,52 @@ export class RsvpSubmissionService {
     }
 
     // A submission scoped to a single event (reached via `?event=` on the
-    // RSVP link) only carries that event's rsvpResponses, but the household
-    // fields in the payload still describe the *whole* household — stale or
-    // re-derived from a narrower view. Only trust them to overwrite the
-    // household record when this submission covers every event the
-    // household is actually invited to.
+    // RSVP link) only carries that event's rsvpResponses — but the household
+    // fields in the payload (attendingCount, dietaryNotes, extraGuestNames,
+    // ...) are always collected for the whole household regardless of which
+    // event the form was scoped to, so they must never be silently dropped.
+    // `coversAllHouseholdEvents` is only used to flag the mismatch for
+    // observability, not to gate whether the data gets saved.
     const isFullHouseholdSubmission = await this.coversAllHouseholdEvents(
       data.householdId,
       allowedRsvpResponses
     )
 
-    return this.submitRsvp(
+    if (!isFullHouseholdSubmission) {
+      logger.warn(
+        'Public RSVP submission did not cover every event the household is invited to; saving the submitted household details anyway',
+        { component: 'rsvp', household_id: data.householdId, wedding_id: weddingId }
+      )
+    }
+
+    const result = await this.submitRsvp(
       {
         rsvpResponses: allowedRsvpResponses,
         answersToQuestions: data.answersToQuestions,
       },
-      isFullHouseholdSubmission
-        ? {
-            householdId: data.householdId,
-            attendingCount: data.attendingCount,
-            childrenCount: data.childrenCount,
-            dietaryNotes: data.dietaryNotes,
-            wishesMessage: data.wishesMessage,
-            weddingId,
-            extraGuestNames: data.extraGuestNames,
-          }
-        : undefined
+      {
+        householdId: data.householdId,
+        attendingCount: data.attendingCount,
+        childrenCount: data.childrenCount,
+        dietaryNotes: data.dietaryNotes,
+        wishesMessage: data.wishesMessage,
+        weddingId,
+        extraGuestNames: data.extraGuestNames,
+      }
     )
+
+    return {
+      ...result,
+      ...(isFullHouseholdSubmission ? null : { partialHouseholdCoverage: true }),
+    }
   }
 
   /**
    * Whether `responses` touches every event this household currently holds
    * an invitation for (excluding events it was never invited to). A
    * household with no invitations at all (e.g. still mid-search) counts as
-   * "full" since there's nothing narrower to compare against.
+   * "full" since there's nothing narrower to compare against. Used only to
+   * flag an incomplete submission for observability — see submitPublicRsvp.
    */
   private async coversAllHouseholdEvents(
     householdId: string,

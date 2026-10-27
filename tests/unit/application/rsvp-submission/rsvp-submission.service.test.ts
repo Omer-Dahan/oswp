@@ -60,6 +60,9 @@ const createMockDb = () => ({
   website: {
     findFirst: jest.fn().mockResolvedValue({ weddingId: 'wedding-123', isRsvpEnabled: true }),
   },
+  invitation: {
+    findMany: jest.fn().mockResolvedValue([]),
+  },
   rateLimitBucket: {
     findUnique: jest.fn().mockResolvedValue(null),
     upsert: jest.fn().mockResolvedValue({}),
@@ -367,6 +370,40 @@ describe('RsvpSubmissionService', () => {
       'ash-and-jamie',
       'a'.repeat(32)
     )
+  })
+
+  it('saves household party details from a submission scoped to one event even when the household is also invited to a non-RSVP event (e.g. the ceremony)', async () => {
+    // The household is invited to the RSVP-collecting reception event *and*
+    // the auto-created, non-collectRsvp "חופה וקידושין" ceremony event — a
+    // submission reached via `?event=<reception>` only carries rsvpResponses
+    // for the reception, so coverage is partial, but the household-level
+    // fields must still be saved rather than silently dropped.
+    mockDb.invitation.findMany.mockResolvedValue([
+      { eventId: 'event-reception' },
+      { eventId: 'event-chuppah' },
+    ])
+
+    const result = await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-reception', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+        attendingCount: 2,
+        childrenCount: 1,
+        dietaryNotes: 'No nuts',
+        extraGuestNames: ['Extra Guest'],
+      },
+      '127.0.0.1'
+    )
+
+    expect(result).toEqual({ success: true, partialHouseholdCoverage: true })
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
+      attendingCount: 2,
+      childrenCount: 1,
+      dietaryNotes: 'No nuts',
+      wishesMessage: undefined,
+    })
   })
 
   it('rejects when the site is unknown or RSVP is disabled and no token is supplied', async () => {
