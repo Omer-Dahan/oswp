@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { IoMdClose } from 'react-icons/io'
-import type { Event, Guest, Question, RsvpPageData } from '~/app/utils/shared-types'
+import type { Event, Question, RsvpPageData } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { useConfirmReloadPage } from '~/components/hooks'
 import { AsyncState } from '~/components/ui/async-state'
@@ -21,6 +21,7 @@ import WishesMessageForm from '~/components/website/forms/steps/wishes-message'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
+import { normalizeRsvpSteps, type RsvpStepKey } from '~/lib/rsvp/steps'
 import { isChuppahOnlySelection } from '~/lib/wedding/rsvp-events'
 import { api } from '~/trpc/react'
 
@@ -30,29 +31,11 @@ const RSVP_SUBMISSION_EVENT = buildEventName({
   action: ANALYTICS_ACTIONS.started,
 })
 
-const DEFAULT_RSVP_STEPS = ['children-count', 'dietary-notes'] as const
 const RSVP_STEP_COMPONENTS = {
   'children-count': ChildrenCountForm,
   'dietary-notes': DietaryNotesForm,
   'wishes-message': WishesMessageForm,
 } as const
-type RsvpStepKey = keyof typeof RSVP_STEP_COMPONENTS
-
-export function normalizeRsvpSteps(steps: readonly string[] | undefined): RsvpStepKey[] {
-  const configuredSteps = steps ?? DEFAULT_RSVP_STEPS
-  const seen = new Set<RsvpStepKey>()
-  const normalized: RsvpStepKey[] = []
-
-  for (const step of configuredSteps) {
-    if (!(step in RSVP_STEP_COMPONENTS)) continue
-    const key = step as RsvpStepKey
-    if (seen.has(key)) continue
-    seen.add(key)
-    normalized.push(key)
-  }
-
-  return normalized
-}
 
 type MainRsvpFormProps = {
   weddingData: RsvpPageData
@@ -142,14 +125,6 @@ export default function MainRsvpForm({
     // preselectedEventId), so asking again in a dedicated event step would
     // repeat the same question. That per-event step is only needed when the
     // guest must answer for more than one event.
-    const relevantEventsCount =
-      weddingData?.events?.filter(
-        (event) =>
-          event.collectRsvp &&
-          (!rsvpFormData.preselectedEventId || event.id === rsvpFormData.preselectedEventId)
-      ).length ?? 0
-    const isSingleEventFlow = relevantEventsCount <= 1
-
     const newSteps: ReactNode[] =
       weddingData?.events?.reduce((acc: ReactNode[], event: Event) => {
         if (!event.collectRsvp) return acc
