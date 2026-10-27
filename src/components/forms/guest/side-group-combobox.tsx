@@ -143,7 +143,7 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
               openList(input ?? event.currentTarget)
             }}
             aria-label='הצגת אפשרויות'
-            className='absolute end-2 text-foreground/50 hover:text-foreground'
+            className='absolute end-0 flex h-11 w-11 items-center justify-center text-foreground/50 hover:text-foreground'
           >
             <IoIosArrowDown size={14} />
           </button>
@@ -163,7 +163,7 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
               <button
                 key={option}
                 type='button'
-                className='flex w-full cursor-pointer items-center rounded-sm p-2 text-start text-sm transition-colors hover:bg-accent'
+                className='flex min-h-11 w-full cursor-pointer items-center rounded-sm px-2 py-2 text-start text-sm transition-colors hover:bg-accent'
                 onClick={() => {
                   onChange(option)
                   setIsOpen(false)
