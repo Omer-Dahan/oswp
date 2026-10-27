@@ -156,7 +156,7 @@ describe('buildKitchenReport', () => {
     expect(chuppahReport.summary.children).toBe(0)
   })
 
-  it('never reports negative meals when childrenCount exceeds the event headcount', () => {
+  it('caps a household declared childrenCount at its own headcount for this event', () => {
     const households = [household({ id: 'h1', childrenCount: 5 })]
     const guests = [guest({ id: 1, householdId: 'h1', ageGroup: 'ADULT' })]
     const invitations = [invitation({ guestId: 1 })]
@@ -171,8 +171,38 @@ describe('buildKitchenReport', () => {
     })
 
     expect(report.summary.meals).toBe(0)
-    expect(report.summary.children).toBe(5)
+    expect(report.summary.children).toBe(1)
     expect(report.summary.attending).toBe(report.summary.meals + report.summary.children)
+  })
+
+  it("does not let one household's over-declared childrenCount eat another household's meals", () => {
+    const households = [
+      household({ id: 'h1', childrenCount: 5 }),
+      household({ id: 'h2', childrenCount: null }),
+    ]
+    const guests = [
+      guest({ id: 1, householdId: 'h1', ageGroup: 'ADULT' }),
+      guest({ id: 2, householdId: 'h2', ageGroup: 'ADULT' }),
+      guest({ id: 3, householdId: 'h2', ageGroup: 'ADULT' }),
+    ]
+    const invitations = [
+      invitation({ guestId: 1 }),
+      invitation({ guestId: 2 }),
+      invitation({ guestId: 3 }),
+    ]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+    })
+
+    expect(report.summary.children).toBe(1)
+    expect(report.summary.meals).toBe(2)
+    expect(report.summary.attending).toBe(3)
   })
 
   it('reports a null tableName for an event with no seating assignments', () => {
