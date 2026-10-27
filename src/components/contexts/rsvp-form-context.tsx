@@ -37,10 +37,10 @@ type RsvpFormState = {
   extraGuestNames?: string[]
   /** Children under 10 attending, set on the children-count step. */
   childrenCount?: number
-  /** Free-text dietary notes for the household, set on the dietary-notes step. */
-  dietaryNotes?: string
-  /** Free-text wishes/congratulations message for the couple, set on the wishes-message step. */
-  wishesMessage?: string
+  /** Free-text dietary notes for the household, set on the dietary-notes step. `null` means the guest explicitly cleared it. */
+  dietaryNotes?: string | null
+  /** Free-text wishes/congratulations message for the couple, set on the wishes-message step. `null` means the guest explicitly cleared it. */
+  wishesMessage?: string | null
   /**
    * True when the guest was identified from their save-the-date invite cookie,
    * so the flow starts on the confirm step (skipping the name search) and offers

@@ -27,7 +27,8 @@ export default function WishesMessageForm({ goNext, goBack }: StepFormProps) {
   )
 
   const onContinue = () => {
-    updateRsvpForm({ wishesMessage })
+    const trimmed = wishesMessage.trim()
+    updateRsvpForm({ wishesMessage: trimmed === '' ? null : trimmed })
     goNext?.()
   }
 
