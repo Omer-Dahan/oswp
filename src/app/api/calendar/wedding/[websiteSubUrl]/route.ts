@@ -13,7 +13,7 @@ import { coupleNamesHe } from '~/lib/wedding/couple-name'
  * that does the right thing on their device.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ websiteSubUrl: string }> }
 ) {
   const { websiteSubUrl } = await params
@@ -25,11 +25,16 @@ export async function GET(
     }
 
     const weddingData = loadResult.weddingData
+    const requestedEventIds = new Set(request.nextUrl.searchParams.getAll('event'))
+    const events =
+      requestedEventIds.size > 0
+        ? (weddingData.events ?? []).filter((event) => requestedEventIds.has(event.id))
+        : (weddingData.events ?? [])
     const names = coupleNamesHe(weddingData)
     const title = names ? `החתונה של ${names}` : 'החתונה שלנו'
     const links = buildEveningCalendarLinks({
       title,
-      events: weddingData.events ?? [],
+      events,
     })
 
     if (!links) return new Response('no dated events', { status: 404 })

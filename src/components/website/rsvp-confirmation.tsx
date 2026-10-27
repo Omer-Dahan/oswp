@@ -86,6 +86,9 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
     ? `החתונה של ${coupleNamesHe(rsvpFormData.weddingData as never)}`
     : 'החתונה שלנו'
   const websiteSubUrl = (rsvpFormData.weddingData as { website?: { subUrl?: string } }).website?.subUrl
+  const calendarEventQuery = events
+    .map((event) => `event=${encodeURIComponent(event.id)}`)
+    .join('&')
   const eveningCalendar = hasAttending
     ? buildEveningCalendarLinks({ title: eveningTitle, events })
     : null
@@ -156,7 +159,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
                       className={`${calendarPillPrimary} sm:flex-1`}
                       href={
                         websiteSubUrl
-                          ? `/api/calendar/wedding/${websiteSubUrl}`
+                          ? `/api/calendar/wedding/${websiteSubUrl}${calendarEventQuery ? `?${calendarEventQuery}` : ''}`
                           : eveningCalendar.googleUrl
                       }
                       // A real .ics URL is what makes iOS offer "Add to Calendar";
