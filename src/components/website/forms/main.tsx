@@ -12,14 +12,11 @@ import ChildrenCountForm from '~/components/website/forms/steps/children-count'
 import ConfirmNameForm from '~/components/website/forms/steps/confirm-name'
 import DeclineConfirmForm from '~/components/website/forms/steps/decline-confirm'
 import DietaryNotesForm from '~/components/website/forms/steps/dietary-notes'
-import EventRsvpForm from '~/components/website/forms/steps/event-rsvp'
-import CombinedEventRsvpForm from '~/components/website/forms/steps/combined-event-rsvp'
 import FindYourInvitationForm from '~/components/website/forms/steps/find-your-invitation'
 import QuestionMultipleChoice from '~/components/website/forms/steps/question-multiple-choice'
 import QuestionShortAnswer from '~/components/website/forms/steps/question-short-answer'
 import SendRsvp from '~/components/website/forms/steps/send-rsvp'
 import WhoIsComingForm from '~/components/website/forms/steps/who-is-coming'
-import WishesMessageForm from '~/components/website/forms/steps/wishes-message'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
@@ -43,13 +40,11 @@ type MainRsvpFormProps = {
 
 // find invitation, confirm household, who-is-coming, children-count,
 // dietary-notes, wishes-message, final step, and confirmation
-const NUM_STATIC_STEPS = 8
 
 // The short decline-intent flow (`?decline=1`): find invitation, confirm
 // household, a single decline confirmation, wishes-message, final step, and
 // confirmation — it skips who-is-coming/children/dietary/per-event steps
 // entirely.
-const NUM_DECLINE_STEPS = 6
 
 const HEBREW_CHARACTERS = /[֐-׿]/
 
@@ -128,10 +123,6 @@ export default function MainRsvpForm({
       ).length ?? 0
     const isSingleEventFlow = relevantEventsCount <= 1
 
-    // Multi-event households answer both events on ONE screen (see
-    // CombinedEventRsvpForm): two separate steps read as two invitations.
-    const combinedEntries: Array<{ event: Event; invitedGuests: Guest[] }> = []
-
     const newSteps: ReactNode[] =
       weddingData?.events?.reduce((acc: ReactNode[], event: Event) => {
         if (!event.collectRsvp) return acc
@@ -147,11 +138,9 @@ export default function MainRsvpForm({
         )
 
         if (invitedGuests !== undefined && invitedGuests.length > 0) {
-          if (!isSingleEventFlow) {
-            combinedEntries.push({ event, invitedGuests })
-          }
-          // Only show question steps for guests who confirmed attendance.
-          // Fall back to all invited guests if responses haven't been recorded yet.
+          // Attendance for every event is already collected on the
+          // who-is-coming screen (one toggle per guest covers all their
+          // invitations), so there is no separate per-event step.
           const hasResponsesForEvent = rsvpFormData.rsvpResponses.some(
             (r) => r.eventId === event.id
           )
@@ -174,25 +163,6 @@ export default function MainRsvpForm({
         }
         return acc
       }, []) ?? []
-
-    if (!isSingleEventFlow) {
-      if (combinedEntries.length === 1) {
-        const only = combinedEntries[0]
-        if (only) {
-          newSteps.unshift(
-            <EventRsvpForm
-              key={only.event.id}
-              event={only.event}
-              invitedGuests={only.invitedGuests}
-            />
-          )
-        }
-      } else if (combinedEntries.length > 1) {
-        newSteps.unshift(
-          <CombinedEventRsvpForm key='combined-event-rsvp' entries={combinedEntries} />
-        )
-      }
-    }
 
     weddingData?.website?.generalQuestions?.forEach((question: Question) => {
       if (question.type === 'Text') {
@@ -219,9 +189,15 @@ export default function MainRsvpForm({
     [weddingData?.events, rsvpFormData.preselectedEventId]
   )
 
+  // Counted from the rendered list rather than a magic constant: the flow now
+  // ends without a wishes step, and the chuppah-only variant skips the two meal
+  // steps, so a fixed number drifts out of sync with the progress bar.
   const numSteps = isDeclineFlow
-    ? NUM_DECLINE_STEPS
-    : dynamicStepForms.length + NUM_STATIC_STEPS - (isChuppahOnlyFlow ? 2 : 0)
+    ? 5 // find, confirm, decline confirmation, send, confirmation
+    : 2 + // find, confirm
+      (isChuppahOnlyFlow ? 1 : 3) + // who is coming (+ children, dietary)
+      dynamicStepForms.length +
+      2 // send, confirmation
   const progress = (currentStep / numSteps) * 100
   useConfirmReloadPage(currentStep > 1 && currentStep < numSteps)
 
@@ -330,7 +306,6 @@ export default function MainRsvpForm({
               ...dynamicStepForms,
             ]
           )}
-          <WishesMessageForm />
           <SendRsvp isFetching={submitRsvpForm.isPending} />
           <RsvpConfirmation basePath={basePath} />
         </MultistepRsvpForm>
