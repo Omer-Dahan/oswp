@@ -18,6 +18,11 @@ type RsvpConfirmationProps = {
 }
 
 const bodyFont = 'font-[family-name:var(--tpl-body-font)]'
+const calendarPillPrimary =
+  `${bodyFont} inline-flex h-12 items-center justify-center rounded-full bg-primary px-5 text-base text-primary-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+const calendarPillSecondary =
+  `${bodyFont} inline-flex h-12 items-center justify-center rounded-full border border-foreground/30 bg-white/70 px-5 text-base text-foreground/90 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+
 const quietLinkClassName =
   `${bodyFont} text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline`
 
@@ -80,6 +85,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const eveningTitle = coupleNamesHe(rsvpFormData.weddingData as never)
     ? `החתונה של ${coupleNamesHe(rsvpFormData.weddingData as never)}`
     : 'החתונה שלנו'
+  const websiteSubUrl = (rsvpFormData.weddingData as { website?: { subUrl?: string } }).website?.subUrl
   const eveningCalendar = hasAttending
     ? buildEveningCalendarLinks({ title: eveningTitle, events })
     : null
@@ -145,33 +151,40 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
                   <p className={`${bodyFont} text-center text-foreground/80 text-sm`}>
                     {eveningCalendar.timeLine}
                   </p>
-                  <button
-                    type='button'
-                    className={stepPrimaryClassName}
-                    onClick={() => downloadIcs(eveningCalendar.ics, eveningCalendar.fileName)}
-                  >
-                    {t('addEveningToCalendar')}
-                  </button>
-                  <div className='flex flex-wrap items-center justify-center gap-4'>
+                  <div className='flex w-full flex-col gap-2 sm:flex-row'>
                     <a
-                      className={quietLinkClassName}
+                      className={`${calendarPillPrimary} sm:flex-1`}
+                      href={
+                        websiteSubUrl
+                          ? `/api/calendar/wedding/${websiteSubUrl}`
+                          : eveningCalendar.googleUrl
+                      }
+                      // A real .ics URL is what makes iOS offer "Add to Calendar";
+                      // a blob download only lands in Files.
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {t('addToAppleCalendar')}
+                    </a>
+                    <a
+                      className={`${calendarPillSecondary} sm:flex-1`}
                       href={eveningCalendar.googleUrl}
                       target='_blank'
                       rel='noopener noreferrer'
                     >
-                      {tCommon('addToCalendar')}
+                      {t('addGoogleCalendar')}
                     </a>
-                    {wazeHref && (
-                      <a
-                        className={quietLinkClassName}
-                        href={wazeHref}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
-                        {t('navigateToVenue')}
-                      </a>
-                    )}
                   </div>
+                  {wazeHref && (
+                    <a
+                      className={quietLinkClassName}
+                      href={wazeHref}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {t('navigateToVenue')}
+                    </a>
+                  )}
                 </div>
               )}
             </div>

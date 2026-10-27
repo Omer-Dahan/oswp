@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
+import { isChuppahOnlySelection } from '~/lib/wedding/rsvp-events'
 import {
   StepActions,
   StepHeading,
@@ -18,14 +19,21 @@ interface SendRsvpProps extends StepFormProps {
 export default function SendRsvp({ goBack, isFetching }: SendRsvpProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
-  const { weddingData, declineIntent, attendingCount, childrenCount, dietaryNotes } =
+  const { weddingData, declineIntent, attendingCount, childrenCount, dietaryNotes, preselectedEventId } =
     useRsvpForm()
   const isDeclineFlow = declineIntent === true
+  // Confirming the chuppah alone is a narrower answer than RSVPing the wedding:
+  // say so on the summary line instead of leaving the guest to infer it.
+  const isChuppahOnly = isChuppahOnlySelection(weddingData.events ?? [], preselectedEventId)
+  const attendingRow = (count: number) => {
+    const line = count === 1 ? t('summaryAttendingOne') : t('summaryAttending', { count })
+    return isChuppahOnly ? `${line} · ${t('summaryChuppahOnly')}` : line
+  }
 
   const summaryRows = isDeclineFlow
     ? []
     : [
-        attendingCount != null ? t('summaryAttending', { count: attendingCount }) : null,
+        attendingCount != null ? attendingRow(attendingCount) : null,
         childrenCount != null && childrenCount > 0
           ? t('summaryChildren', { count: childrenCount })
           : null,
