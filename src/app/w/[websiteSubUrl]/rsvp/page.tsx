@@ -96,8 +96,16 @@ export default async function RsvpPage({ params, searchParams }: RsvpPageProps) 
       )
     )
   )
+  // Mirrors the hero's hasMultipleRsvpableEvents guard: with more than one
+  // collectRsvp event, a single-event preselect would have the server drop
+  // the rest of the household's submission (see coversAllHouseholdEvents in
+  // rsvp-submission.service.ts) - let the full flow handle it instead.
+  const hasMultipleRsvpableEvents =
+    loadResult.weddingData.events.filter((event) => event.collectRsvp).length > 1
   const preselectedEventId =
-    requestedEventExists && !householdHasOtherActiveInvitation ? requestedEventId : undefined
+    requestedEventExists && !householdHasOtherActiveInvitation && !hasMultipleRsvpableEvents
+      ? requestedEventId
+      : undefined
 
   const form = (
     <RsvpFormProvider
