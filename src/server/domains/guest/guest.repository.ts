@@ -359,12 +359,21 @@ export class GuestRepository {
    * when its name is explicitly absent from `names` — this keeps manually
    * added tag-alongs (and their seating/tags/answers, which cascade off the
    * guest row) alive across resubmissions that don't touch this list.
+   *
+   * Invitation rows for kept tag-alongs are synced both ways: `attendingEventIds`
+   * are upserted to 'Attending' and `declinedEventIds` are flipped to 'Declined',
+   * so a tag-along can't stay 'Attending' an event the household just declined.
+   * A brand-new tag-along is only created when there's at least one attending
+   * event — otherwise it would end up with zero invitation rows and be invisible
+   * to seating/kitchen counts, so we skip creating it entirely rather than leave
+   * it in that state.
    */
   async replaceTagAlongs(
     householdId: string,
     weddingId: string,
     names: string[],
-    attendingEventIds: string[]
+    attendingEventIds: string[],
+    declinedEventIds: string[] = []
   ): Promise<void> {
     const existingTagAlongs = await this.db.guest.findMany({
       where: { householdId, isTagAlong: true },
@@ -397,10 +406,15 @@ export class GuestRepository {
     )
 
     if (matchedExistingIds.size > 0 && attendingEventIds.length > 0) {
-      // A tag-along kept across resubmissions may be missing invitation rows
-      // from an earlier submission that computed no attending events (e.g.
-      // the household declined by name but this guest still attends) —
-      // skipDuplicates leaves any already-created row untouched.
+      // Flip any existing row (e.g. 'Declined' from a prior submission) back
+      // to 'Attending', then fill in rows that never existed yet.
+      await this.db.invitation.updateMany({
+        where: {
+          guestId: { in: Array.from(matchedExistingIds) },
+          eventId: { in: attendingEventIds },
+        },
+        data: { rsvp: 'Attending' },
+      })
       await this.db.invitation.createMany({
         data: Array.from(matchedExistingIds).flatMap((guestId) =>
           attendingEventIds.map((eventId) => ({
@@ -414,31 +428,43 @@ export class GuestRepository {
       })
     }
 
-    for (const name of names) {
-      const trimmedName = name.trim()
-      if (existingNames.has(trimmedName)) continue
-
-      const [firstName, ...rest] = trimmedName.split(/\s+/)
-      await this.db.guest.create({
-        data: {
-          firstName: firstName ?? trimmedName,
-          lastName: rest.join(' '),
-          householdId,
-          weddingId,
-          isTagAlong: true,
-          invitations: attendingEventIds.length
-            ? {
-                createMany: {
-                  data: attendingEventIds.map((eventId) => ({
-                    eventId,
-                    weddingId,
-                    rsvp: 'Attending',
-                  })),
-                },
-              }
-            : undefined,
+    if (matchedExistingIds.size > 0 && declinedEventIds.length > 0) {
+      // Only updates rows that already exist — there's nothing to flip to
+      // 'Declined' for an event this tag-along was never invited to.
+      await this.db.invitation.updateMany({
+        where: {
+          guestId: { in: Array.from(matchedExistingIds) },
+          eventId: { in: declinedEventIds },
         },
+        data: { rsvp: 'Declined' },
       })
+    }
+
+    if (attendingEventIds.length > 0) {
+      for (const name of names) {
+        const trimmedName = name.trim()
+        if (existingNames.has(trimmedName)) continue
+
+        const [firstName, ...rest] = trimmedName.split(/\s+/)
+        await this.db.guest.create({
+          data: {
+            firstName: firstName ?? trimmedName,
+            lastName: rest.join(' '),
+            householdId,
+            weddingId,
+            isTagAlong: true,
+            invitations: {
+              createMany: {
+                data: attendingEventIds.map((eventId) => ({
+                  eventId,
+                  weddingId,
+                  rsvp: 'Attending',
+                })),
+              },
+            },
+          },
+        })
+      }
     }
   }
 }

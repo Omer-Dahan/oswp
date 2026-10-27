@@ -268,11 +268,20 @@ export class RsvpSubmissionService {
             )
           )
 
+          const declinedEventIds = Array.from(
+            new Set(
+              data.rsvpResponses
+                .filter((response) => response.rsvp === 'Declined')
+                .map((response) => response.eventId)
+            )
+          )
+
           await txGuestRepo.replaceTagAlongs(
             householdPartyDetails.householdId,
             householdPartyDetails.weddingId,
             householdPartyDetails.extraGuestNames,
-            attendingEventIds
+            attendingEventIds,
+            declinedEventIds
           )
         }
       }
