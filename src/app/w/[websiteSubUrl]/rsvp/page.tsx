@@ -8,6 +8,7 @@ import { RsvpFormProvider } from '~/components/contexts/rsvp-form-context'
 import MainRsvpForm from '~/components/website/forms/main'
 import PasswordPage from '~/components/website/password-page'
 import RsvpNotAcceptingMessage from '~/components/website/rsvp-not-accepting-message'
+import { isChuppahEventName } from '~/lib/wedding/rsvp-events'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
 import { VoyageSiteShell } from '~/templates/voyage/components/site-shell'
 
@@ -102,8 +103,17 @@ export default async function RsvpPage({ params, searchParams }: RsvpPageProps) 
   // rsvp-submission.service.ts) - let the full flow handle it instead.
   const hasMultipleRsvpableEvents =
     loadResult.weddingData.events.filter((event) => event.collectRsvp).length > 1
+  // "רק לחופה" is a deliberate narrower answer, so a chuppah link is honoured
+  // even for a household invited to both events: that flow asks only about the
+  // ceremony and leaves the wedding RSVP (and the meal details) untouched.
+  const isChuppahRequest =
+    requestedEventExists &&
+    isChuppahEventName(
+      loadResult.weddingData.events.find((event) => event.id === requestedEventId)?.name
+    )
   const preselectedEventId =
-    requestedEventExists && !householdHasOtherActiveInvitation && !hasMultipleRsvpableEvents
+    requestedEventExists &&
+    (isChuppahRequest || (!householdHasOtherActiveInvitation && !hasMultipleRsvpableEvents))
       ? requestedEventId
       : undefined
 
