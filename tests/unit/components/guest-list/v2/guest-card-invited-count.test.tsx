@@ -3,6 +3,16 @@ import { render, screen } from '@testing-library/react'
 import { GuestCard } from '~/components/guest-list/v2/list/guest-card'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
+jest.mock('~/trpc/react', () => ({
+  api: {
+    householdInvite: {
+      generateLink: {
+        useMutation: () => ({ mutateAsync: jest.fn() }),
+      },
+    },
+  },
+}))
+
 const baseHousehold: HouseholdWithGuests = {
   id: 'household-1',
   weddingId: 'wedding-1',
