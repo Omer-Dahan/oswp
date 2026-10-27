@@ -15,6 +15,7 @@ import { weddingService } from '~/server/domains/wedding'
 import {
   createWeddingSchema,
   toggleWeddingAddOnSchema,
+  updateRsvpStepsSchema,
   updateWeddingDetailsSchema,
   updateWeddingSchema,
 } from '~/server/domains/wedding/wedding.validator'
@@ -100,6 +101,21 @@ export const weddingRouter = createTRPCRouter({
         weddingId,
         addOn: input.addOn,
         enabled: input.enabled,
+      })
+    }),
+
+  updateRsvpSteps: protectedProcedure
+    .input(updateRsvpStepsSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!readWorkspaceCapabilities(ctx.auth.activeOrganization?.role).canAccessSettings) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return weddingService.updateWedding({
+        ctx: ctx.authz,
+        weddingId,
+        data: { rsvpSteps: input.rsvpSteps },
       })
     }),
 

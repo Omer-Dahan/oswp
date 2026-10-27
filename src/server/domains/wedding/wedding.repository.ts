@@ -53,6 +53,7 @@ export class WeddingRepository {
     brideFirstName: string
     brideLastName: string
     enabledAddOns?: string[]
+    rsvpSteps?: string[]
   }): Promise<Wedding> {
     // Create wedding and UserWedding join entry in a single transaction
     return this.db.wedding.create({
@@ -62,6 +63,7 @@ export class WeddingRepository {
         brideFirstName: data.brideFirstName,
         brideLastName: data.brideLastName,
         enabledAddOns: data.enabledAddOns ?? [],
+        rsvpSteps: data.rsvpSteps,
         userWeddings: {
           create: {
             userId: data.userId,
@@ -84,6 +86,7 @@ export class WeddingRepository {
       brideFirstName?: string
       brideLastName?: string
       enabledAddOns?: string[]
+      rsvpSteps?: string[]
     }
   ): Promise<Wedding> {
     return this.db.wedding.update({
@@ -94,6 +97,7 @@ export class WeddingRepository {
         brideFirstName: data.brideFirstName,
         brideLastName: data.brideLastName,
         enabledAddOns: data.enabledAddOns,
+        rsvpSteps: data.rsvpSteps,
       },
     })
   }
