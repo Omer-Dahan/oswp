@@ -161,23 +161,6 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
     )
   })
 
-  // Children attending (the RSVP answer, falling back to the guest rows) are
-  // not a meal each: the kitchen cooks only for guests over age 10. Counted
-  // only for households with a named guest row on THIS event's invitations
-  // (attendingGuestsByHousehold is already scoped to eventId), never from a
-  // household's events in general.
-  let children = 0
-  for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
-    const household = householdsById.get(householdId)
-    if (household?.childrenCount != null) {
-      children += household.childrenCount
-    } else {
-      children += attendingInHousehold.filter(
-        (guest) => guest.ageGroup !== null && CHILD_AGE_GROUPS.has(guest.ageGroup)
-      ).length
-    }
-  }
-
   // A household's self-reported attendingCount (from the RSVP stepper) is a
   // single total headcount for the whole wedding, not per event. The named
   // count it's compared against must therefore be every guest in the
@@ -194,20 +177,38 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
     namedAnyEventByHousehold.set(guest.householdId, set)
   }
 
-  let extraUnnamed = 0
+  // Children attending (the RSVP answer, falling back to the guest rows) are
+  // not a meal each: the kitchen cooks only for guests over age 10. Counted
+  // only for households with a named guest row on THIS event's invitations
+  // (attendingGuestsByHousehold is already scoped to eventId), never from a
+  // household's events in general. Capped per household at that household's
+  // own headcount for this event, so a family that over-reports childrenCount
+  // (more children than it actually has attending) can't eat into the meal
+  // count of other families via the global clamp below.
+  let children = 0
+  let headcount = 0
   for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
     const household = householdsById.get(householdId)
-    if (household?.attendingCount == null) continue
     const namedAnyEvent =
       namedAnyEventByHousehold.get(householdId)?.size ?? attendingInHousehold.length
-    extraUnnamed += Math.max(0, household.attendingCount - namedAnyEvent)
+    const extraForHousehold =
+      household?.attendingCount != null ? Math.max(0, household.attendingCount - namedAnyEvent) : 0
+    const householdHeadcount = attendingInHousehold.length + extraForHousehold
+    headcount += householdHeadcount
+
+    const rawChildren =
+      household?.childrenCount != null
+        ? household.childrenCount
+        : attendingInHousehold.filter(
+            (guest) => guest.ageGroup !== null && CHILD_AGE_GROUPS.has(guest.ageGroup)
+          ).length
+    children += Math.min(rawChildren, householdHeadcount)
   }
 
-  // meals can never go negative (a household's reported childrenCount can
-  // exceed this event's attendance). attending is derived from meals so that
-  // attending = meals + children stays an invariant rather than something
-  // that can drift apart once the clamp kicks in.
-  const headcount = rows.length + extraUnnamed
+  // meals can never go negative - this is now just a final safety net since
+  // children is already capped per household above. attending is derived
+  // from meals so that attending = meals + children stays an invariant
+  // rather than something that can drift apart once the clamp kicks in.
   const meals = Math.max(0, headcount - children)
   const attending = meals + children
 
