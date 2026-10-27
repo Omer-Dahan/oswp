@@ -47,6 +47,7 @@ jest.mock('~/server/application/rsvp-submission', () => {
     rsvpSubmissionService: {
       submitPublicRsvp: jest.fn(),
     },
+    getClientIp: jest.fn().mockReturnValue('127.0.0.1'),
   }
 })
 
@@ -83,7 +84,7 @@ describe('websiteRouter public RSVP boundary', () => {
     const result = await caller.submitPublicRsvpForm(validInput)
 
     expect(result).toEqual({ success: true })
-    expect(mockSubmitPublicRsvp).toHaveBeenCalledWith(validInput)
+    expect(mockSubmitPublicRsvp).toHaveBeenCalledWith(validInput, '127.0.0.1')
   })
 
   it('propagates invalid or expired token rejection', async () => {
