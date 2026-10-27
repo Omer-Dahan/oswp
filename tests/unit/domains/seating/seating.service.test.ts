@@ -299,7 +299,10 @@ describe('SeatingService', () => {
 
       await expect(
         service.assignGuests(ctx, WEDDING_ID, { tableId: 'table-1', guestIds: [3] })
-      ).rejects.toMatchObject({ code: 'BAD_REQUEST', message: 'Table 1 only has 0 open seats' })
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'בשולחן Table 1 נשארו 0 מקומות פנויים',
+      })
       expect(mockLockedReplaceAssignments).not.toHaveBeenCalled()
     })
 
@@ -310,7 +313,10 @@ describe('SeatingService', () => {
 
       await expect(
         service.assignGuests(ctx, WEDDING_ID, { tableId: 'table-1', guestIds: [3] })
-      ).rejects.toMatchObject({ code: 'BAD_REQUEST', message: 'Table 1 only has 0 open seats' })
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'בשולחן Table 1 נשארו 0 מקומות פנויים',
+      })
       expect(mockLockedReplaceAssignments).not.toHaveBeenCalled()
       mockLockedTableRow.capacity = 4
     })
@@ -331,7 +337,7 @@ describe('SeatingService', () => {
         service.assignGuests(ctx, WEDDING_ID, { tableId: 'table-1', guestIds: [3, 4, 5] })
       ).rejects.toMatchObject({
         code: 'BAD_REQUEST',
-        message: 'Table 1 only has 2 open seats',
+        message: 'בשולחן Table 1 נשארו 2 מקומות פנויים',
       })
       expect(mockLockedReplaceAssignments).not.toHaveBeenCalled()
     })

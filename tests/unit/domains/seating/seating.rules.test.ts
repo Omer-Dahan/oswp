@@ -22,9 +22,9 @@ describe('seating rules', () => {
       expect(tableHasRoom({ capacity: 2, guestIds: [1] }, [2, 3])).toBe(false)
     })
 
-    it('pluralises the open seats message', () => {
-      expect(openSeatsMessage('Table 1', 1)).toBe('Table 1 only has 1 open seat')
-      expect(openSeatsMessage('Table 1', 0)).toBe('Table 1 only has 0 open seats')
+    it('reports the open seats message', () => {
+      expect(openSeatsMessage('Table 1', 1)).toBe('בשולחן Table 1 נשארו 1 מקומות פנויים')
+      expect(openSeatsMessage('Table 1', 0)).toBe('בשולחן Table 1 נשארו 0 מקומות פנויים')
     })
   })
 

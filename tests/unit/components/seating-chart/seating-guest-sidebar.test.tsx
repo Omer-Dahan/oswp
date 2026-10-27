@@ -63,7 +63,7 @@ describe('SeatingGuestSidebar', () => {
     expect(screen.getByRole('button', { name: /Ann Smith/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Ben Smith/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Jones household/ })).toBeInTheDocument()
-    expect(screen.getByText('1/3 seated')).toBeInTheDocument()
+    expect(screen.getByText('1/3 משובצים')).toBeInTheDocument()
   })
 
   it('opens guest details when a guest is clicked', () => {
