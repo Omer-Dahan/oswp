@@ -59,9 +59,12 @@ const HEBREW_CHARACTERS = /[֐-׿]/
  * generic Hebrew message.
  */
 function getRsvpSubmitErrorMessage(
-  err: { message?: string; data?: { code?: string } | null },
+  err: { message?: string; data?: { code?: string; zodError?: unknown } | null },
   fallback: string
 ): string {
+  if (err.data?.zodError || err.data?.code === 'BAD_REQUEST') {
+    return fallback
+  }
   if (err.data?.code === 'TOO_MANY_REQUESTS') {
     return err.message || fallback
   }
