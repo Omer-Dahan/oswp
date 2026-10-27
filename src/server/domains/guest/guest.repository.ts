@@ -466,6 +466,7 @@ export class GuestRepository {
             },
           },
         })
+        existingNames.add(trimmedName)
       }
     }
   }
