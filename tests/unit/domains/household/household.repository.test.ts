@@ -178,6 +178,10 @@ describe('HouseholdRepository.searchPublicByName', () => {
     expect(await idsFor('Sarah Smith')).toEqual(['h-sarah-smith'])
   })
 
+  it('does not treat a repeated first name as a two-part identity match', async () => {
+    expect(await idsFor('Sarah Sarah')).toEqual([])
+  })
+
   it('requires all terms to match the SAME guest, not different household members', async () => {
     // "Papa Baby" would match the Bears household if terms could spread across
     // members; matched against a single guest it should find no one.
