@@ -30,21 +30,22 @@ export class PrismaRateLimiter {
 
     // No bucket yet — create it with this hit as the first entry.
     if (!existing) {
-      await this.db.rateLimitBucket.upsert({
+      const claimed = await this.db.rateLimitBucket.upsert({
         where: { key },
         create: { id: randomUUID(), key, count: 1, windowStart: now },
-        update: {},
+        update: { count: { increment: 1 } },
       })
-      return true
+      return claimed.count <= this.opts.limit
     }
 
     // Window expired — reset atomically to a new window starting now.
     if (now.getTime() - existing.windowStart.getTime() > this.opts.windowMs) {
-      await this.db.rateLimitBucket.update({
-        where: { key },
+      const reset = await this.db.rateLimitBucket.updateMany({
+        where: { key, windowStart: existing.windowStart },
         data: { count: 1, windowStart: now },
       })
-      return true
+      if (reset.count === 1) return true
+      return this.check(key)
     }
 
     // Live window — atomically increment and compare the returned count.
@@ -65,13 +66,22 @@ export class PrismaRateLimiter {
     const now = new Date()
     const existing = await this.db.rateLimitBucket.findUnique({ where: { key } })
 
-    if (!existing || now.getTime() - existing.windowStart.getTime() > this.opts.windowMs) {
-      await this.db.rateLimitBucket.upsert({
+    if (!existing) {
+      const claimed = await this.db.rateLimitBucket.upsert({
         where: { key },
         create: { id: randomUUID(), key, count: 1, windowStart: now },
-        update: { count: 1, windowStart: now },
+        update: { count: { increment: 1 } },
       })
-      return { allowed: true, retryAfterSeconds: 0 }
+      return { allowed: claimed.count <= this.opts.limit, retryAfterSeconds: 0 }
+    }
+
+    if (now.getTime() - existing.windowStart.getTime() > this.opts.windowMs) {
+      const reset = await this.db.rateLimitBucket.updateMany({
+        where: { key, windowStart: existing.windowStart },
+        data: { count: 1, windowStart: now },
+      })
+      if (reset.count === 1) return { allowed: true, retryAfterSeconds: 0 }
+      return this.checkWithRetryAfter(key)
     }
 
     if (existing.count >= this.opts.limit) {
