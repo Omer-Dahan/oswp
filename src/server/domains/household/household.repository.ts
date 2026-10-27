@@ -351,8 +351,8 @@ export class HouseholdRepository {
   async updateRsvpPartyDetails(
     id: string,
     data: {
-      attendingCount: number | null
-      childrenCount: number | null
+      attendingCount?: number | null
+      childrenCount?: number | null
       dietaryNotes?: string | null
       wishesMessage?: string | null
     }
