@@ -66,7 +66,7 @@ const createMockDb = () => ({
   },
   rateLimitBucket: {
     findUnique: jest.fn().mockResolvedValue(null),
-    upsert: jest.fn().mockResolvedValue({}),
+    upsert: jest.fn().mockResolvedValue({ count: 1 }),
     update: jest.fn().mockResolvedValue({ count: 1 }),
   },
 })
