@@ -93,7 +93,10 @@ describe('RsvpConfirmation', () => {
     // Two side-by-side links — one for Apple (a real .ics URL so iOS offers
     // "Add to Calendar") and one for Google — not a pair per event.
     const appleLink = screen.getByRole('link', { name: 'ADD TO APPLE CALENDAR' })
-    expect(appleLink).toHaveAttribute('href', '/api/calendar/wedding/the-wedding')
+    expect(appleLink).toHaveAttribute(
+      'href',
+      '/api/calendar/wedding/the-wedding?event=e1&event=e2'
+    )
     const googleLinks = screen
       .getAllByRole('link')
       .filter((link) =>
@@ -125,5 +128,44 @@ describe('RsvpConfirmation', () => {
     render(<RsvpConfirmation basePath='/site' />)
 
     expect(screen.getByText('No nuts for Harry')).toBeInTheDocument()
+  })
+
+  it('scopes the Apple calendar link to a chuppah-only response', () => {
+    mockFormState = {
+      weddingData: {
+        groomFirstName: 'Ron',
+        brideFirstName: 'Hermione',
+        website: { subUrl: 'the-wedding' },
+        events: [
+          {
+            id: 'chuppah',
+            name: 'החופה',
+            date: new Date('2026-11-24T00:00:00.000Z'),
+            startTime: '19:30',
+            endTime: '20:30',
+            venue: 'אגדתא',
+          },
+          {
+            id: 'meal',
+            name: 'החתונה',
+            date: new Date('2026-11-24T00:00:00.000Z'),
+            startTime: '18:30',
+            endTime: '00:30',
+            venue: 'אגדתא',
+          },
+        ],
+      },
+      rsvpResponses: [
+        { eventId: 'chuppah', guestId: 'g1', guestName: 'Harry Potter', rsvp: 'Attending' },
+      ],
+      attendingCount: 1,
+    }
+
+    render(<RsvpConfirmation basePath='/site' />)
+
+    expect(screen.getByRole('link', { name: 'ADD TO APPLE CALENDAR' })).toHaveAttribute(
+      'href',
+      '/api/calendar/wedding/the-wedding?event=chuppah'
+    )
   })
 })
