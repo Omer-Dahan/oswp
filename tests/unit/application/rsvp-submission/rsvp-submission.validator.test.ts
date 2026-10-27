@@ -321,3 +321,18 @@ describe('submitPublicRsvpSchema attendingCount/childrenCount bounds', () => {
     }
   })
 })
+
+describe('submitPublicRsvpSchema party-size consistency', () => {
+  it('rejects named attendees that exceed the reported household total', () => {
+    const result = submitPublicRsvpSchema.safeParse({
+      subUrl: 'ash-and-jamie',
+      householdId: 'household-123',
+      attendingCount: 1,
+      extraGuestNames: ['Extra One'],
+      rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
+      answersToQuestions: [],
+    })
+
+    expect(result.success).toBe(false)
+  })
+})
