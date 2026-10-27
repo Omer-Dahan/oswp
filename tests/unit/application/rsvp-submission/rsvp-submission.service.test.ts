@@ -20,6 +20,7 @@ import {
   GuestRepository,
   mockCountByIdsInHousehold,
   mockCountByIdsInWedding as mockGuestCountByIdsInWedding,
+  mockReplaceTagAlongs,
   resetMocks as resetGuestMocks,
 } from '~/server/domains/guest/guest.repository'
 import {
@@ -429,6 +430,34 @@ describe('RsvpSubmissionService', () => {
       dietaryNotes: 'No nuts',
       wishesMessage: undefined,
     })
+  })
+
+  it('keeps a tag-along attending an event the household attends, even when another guest in the household declines that same event', async () => {
+    mockCountByIdsInHousehold.mockResolvedValue(2)
+    mockCountByWeddingAndGuestEventPairs.mockResolvedValue(2)
+
+    const result = await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [
+          { eventId: 'event-123', guestId: 1, rsvp: 'Attending' },
+          { eventId: 'event-123', guestId: 2, rsvp: 'Declined' },
+        ],
+        answersToQuestions: [],
+        extraGuestNames: ['Extra Guest'],
+      },
+      '127.0.0.1'
+    )
+
+    expect(result).toEqual({ success: true })
+    expect(mockReplaceTagAlongs).toHaveBeenCalledWith(
+      'household-123',
+      'wedding-123',
+      ['Extra Guest'],
+      ['event-123'],
+      []
+    )
   })
 
   it('rejects when the site is unknown or RSVP is disabled and no token is supplied', async () => {

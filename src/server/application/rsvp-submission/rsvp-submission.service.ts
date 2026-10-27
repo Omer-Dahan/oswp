@@ -268,10 +268,15 @@ export class RsvpSubmissionService {
             )
           )
 
+          const attendingEventIdSet = new Set(attendingEventIds)
+
           const declinedEventIds = Array.from(
             new Set(
               data.rsvpResponses
-                .filter((response) => response.rsvp === 'Declined')
+                .filter(
+                  (response) =>
+                    response.rsvp === 'Declined' && !attendingEventIdSet.has(response.eventId)
+                )
                 .map((response) => response.eventId)
             )
           )
