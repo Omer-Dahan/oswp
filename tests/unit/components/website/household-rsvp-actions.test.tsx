@@ -13,7 +13,7 @@ describe('HouseholdRsvpActions', () => {
     )
 
     expect(screen.getByRole('button', { name: 'אישור הגעה לחתונה' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'אישור הגעה לחופה' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'רק לחופה' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'לצערי לא נוכל להגיע' })).toBeInTheDocument()
   })
 
@@ -27,7 +27,7 @@ describe('HouseholdRsvpActions', () => {
     )
 
     expect(screen.getByRole('button', { name: 'אישור הגעה לחתונה' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'אישור הגעה לחופה' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'רק לחופה' })).not.toBeInTheDocument()
   })
 
   it('shows a confirmation message after a redirect back with an outcome', () => {

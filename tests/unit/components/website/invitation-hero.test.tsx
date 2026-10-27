@@ -38,7 +38,7 @@ describe('InvitationHero', () => {
     )
 
     const weddingLinks = screen.getAllByRole('link', { name: 'אישור הגעה לחתונה' })
-    const chuppahLinks = screen.getAllByRole('link', { name: 'אישור הגעה לחופה' })
+    const chuppahLinks = screen.getAllByRole('link', { name: 'רק לחופה' })
 
     expect(weddingLinks.length).toBeGreaterThan(0)
     expect(chuppahLinks.length).toBeGreaterThan(0)
@@ -71,7 +71,7 @@ describe('InvitationHero', () => {
     for (const link of weddingLinks) {
       expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?event=reception-event')
     }
-    expect(screen.queryByRole('link', { name: 'אישור הגעה לחופה' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'רק לחופה' })).not.toBeInTheDocument()
   })
 
   it('renders only the wedding pill when the wedding has a single event', () => {
@@ -83,7 +83,7 @@ describe('InvitationHero', () => {
     )
 
     expect(screen.getAllByRole('link', { name: 'אישור הגעה לחתונה' }).length).toBeGreaterThan(0)
-    expect(screen.queryByRole('link', { name: 'אישור הגעה לחופה' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'רק לחופה' })).not.toBeInTheDocument()
   })
 
   it('does not render the copy-link action when no household is resolved', () => {
