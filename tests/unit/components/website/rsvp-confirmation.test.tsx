@@ -14,7 +14,8 @@ const translations: Record<string, string> = {
   'rsvp.accepted': 'ACCEPTED',
   'rsvp.declined': 'DECLINED',
   'rsvp.dietaryNotesTitle': 'DIETARY NOTES',
-  'rsvp.addEveningToCalendar': 'ADD THE EVENING TO MY CALENDAR',
+  'rsvp.addToAppleCalendar': 'ADD TO APPLE CALENDAR',
+  'rsvp.addGoogleCalendar': 'ADD TO GOOGLE CALENDAR',
   'rsvp.navigateToVenue': 'NAVIGATE TO VENUE',
 }
 
@@ -60,6 +61,7 @@ describe('RsvpConfirmation', () => {
       weddingData: {
         groomFirstName: 'Ron',
         brideFirstName: 'Hermione',
+        website: { subUrl: 'the-wedding' },
         events: [
           {
             id: 'e1',
@@ -88,8 +90,10 @@ describe('RsvpConfirmation', () => {
 
     render(<RsvpConfirmation basePath='/site' />)
 
-    // One download button, one Google Calendar link — not one pair per event.
-    expect(screen.getAllByRole('button', { name: 'ADD THE EVENING TO MY CALENDAR' })).toHaveLength(1)
+    // Two side-by-side links — one for Apple (a real .ics URL so iOS offers
+    // "Add to Calendar") and one for Google — not a pair per event.
+    const appleLink = screen.getByRole('link', { name: 'ADD TO APPLE CALENDAR' })
+    expect(appleLink).toHaveAttribute('href', '/api/calendar/wedding/the-wedding')
     const googleLinks = screen
       .getAllByRole('link')
       .filter((link) =>
@@ -110,6 +114,7 @@ describe('RsvpConfirmation', () => {
       weddingData: {
         groomFirstName: 'Ron',
         brideFirstName: 'Hermione',
+        website: { subUrl: 'the-wedding' },
         events: [],
       },
       rsvpResponses: [],
