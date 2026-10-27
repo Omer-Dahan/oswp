@@ -23,12 +23,6 @@ type InvitationHeroProps = {
 
 type RsvpPillSize = 'mobile' | 'desktop'
 
-/**
- * Who is actually inviting the guest. Not everyone knows the couple by name, so
- * the invitation signs itself the way a printed one would.
- */
-const HOST_SIGNATURE = 'בכבוד רב, יהודה מנחם'
-
 const RSVP_PILL_CLASSES: Record<RsvpPillSize, string> = {
   mobile:
     'inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 font-sans font-semibold text-foreground text-sm leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
@@ -211,7 +205,6 @@ export function InvitationHero({
               rsvpHref={rsvpHref}
               householdInviteCode={invitedHousehold ? householdInviteCode : null}
             />
-            <p className='font-sans text-foreground/70 text-xs'>{HOST_SIGNATURE}</p>
           </div>
         </div>
       </div>
@@ -268,7 +261,6 @@ export function InvitationHero({
             rsvpHref={rsvpHref}
             householdInviteCode={invitedHousehold ? householdInviteCode : null}
           />
-          <p className='relative z-10 font-sans text-foreground/70 text-sm'>{HOST_SIGNATURE}</p>
         </div>
       </div>
     </div>
