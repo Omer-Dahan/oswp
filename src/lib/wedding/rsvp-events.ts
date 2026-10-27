@@ -14,6 +14,10 @@ export type RsvpEventRef = {
 
 const CHUPPAH_NAME_PATTERN = /חופה|ceremony/i
 
+/** True when an event's name marks it as the chuppah/ceremony rather than the meal. */
+export const isChuppahEventName = (name: string | null | undefined): boolean =>
+  CHUPPAH_NAME_PATTERN.test(name ?? '')
+
 /**
  * Resolve the wedding's two RSVP-able events from the wedding's event list:
  * the chuppah/ceremony (the event whose name matches "חופה"/"ceremony",
@@ -41,4 +45,20 @@ export function resolveRsvpEvents(events: RsvpEventInput[]): {
       : rsvpable.find((event) => event.isPrimary) ?? rsvpable[0] ?? null
 
   return { weddingEvent, chuppahEvent }
+}
+
+/**
+ * True when the guest is answering for the chuppah alone: exactly one
+ * RSVP-able event is in play (either it is the only one, or `preselectedEventId`
+ * narrows the flow to it) and that event is the ceremony. The form uses this to
+ * drop the children and dietary steps, which only make sense for the meal.
+ */
+export function isChuppahOnlySelection(
+  events: RsvpEventInput[],
+  preselectedEventId: string | null | undefined
+): boolean {
+  const relevant = events.filter(
+    (event) => event.collectRsvp !== false && (!preselectedEventId || event.id === preselectedEventId)
+  )
+  return relevant.length === 1 && isChuppahEventName(relevant[0]?.name)
 }

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { IoMdClose } from 'react-icons/io'
-import type { Event, Question, RsvpPageData } from '~/app/utils/shared-types'
+import type { Event, Guest, Question, RsvpPageData } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { useConfirmReloadPage } from '~/components/hooks'
 import { AsyncState } from '~/components/ui/async-state'
@@ -13,6 +13,7 @@ import ConfirmNameForm from '~/components/website/forms/steps/confirm-name'
 import DeclineConfirmForm from '~/components/website/forms/steps/decline-confirm'
 import DietaryNotesForm from '~/components/website/forms/steps/dietary-notes'
 import EventRsvpForm from '~/components/website/forms/steps/event-rsvp'
+import CombinedEventRsvpForm from '~/components/website/forms/steps/combined-event-rsvp'
 import FindYourInvitationForm from '~/components/website/forms/steps/find-your-invitation'
 import QuestionMultipleChoice from '~/components/website/forms/steps/question-multiple-choice'
 import QuestionShortAnswer from '~/components/website/forms/steps/question-short-answer'
@@ -22,6 +23,7 @@ import WishesMessageForm from '~/components/website/forms/steps/wishes-message'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
+import { isChuppahOnlySelection } from '~/lib/wedding/rsvp-events'
 import { api } from '~/trpc/react'
 
 const RSVP_SUBMISSION_EVENT = buildEventName({
@@ -126,6 +128,10 @@ export default function MainRsvpForm({
       ).length ?? 0
     const isSingleEventFlow = relevantEventsCount <= 1
 
+    // Multi-event households answer both events on ONE screen (see
+    // CombinedEventRsvpForm): two separate steps read as two invitations.
+    const combinedEntries: Array<{ event: Event; invitedGuests: Guest[] }> = []
+
     const newSteps: ReactNode[] =
       weddingData?.events?.reduce((acc: ReactNode[], event: Event) => {
         if (!event.collectRsvp) return acc
@@ -142,7 +148,7 @@ export default function MainRsvpForm({
 
         if (invitedGuests !== undefined && invitedGuests.length > 0) {
           if (!isSingleEventFlow) {
-            acc.push(<EventRsvpForm event={event} invitedGuests={invitedGuests} />)
+            combinedEntries.push({ event, invitedGuests })
           }
           // Only show question steps for guests who confirmed attendance.
           // Fall back to all invited guests if responses haven't been recorded yet.
@@ -169,6 +175,25 @@ export default function MainRsvpForm({
         return acc
       }, []) ?? []
 
+    if (!isSingleEventFlow) {
+      if (combinedEntries.length === 1) {
+        const only = combinedEntries[0]
+        if (only) {
+          newSteps.unshift(
+            <EventRsvpForm
+              key={only.event.id}
+              event={only.event}
+              invitedGuests={only.invitedGuests}
+            />
+          )
+        }
+      } else if (combinedEntries.length > 1) {
+        newSteps.unshift(
+          <CombinedEventRsvpForm key='combined-event-rsvp' entries={combinedEntries} />
+        )
+      }
+    }
+
     weddingData?.website?.generalQuestions?.forEach((question: Question) => {
       if (question.type === 'Text') {
         newSteps.push(<QuestionShortAnswer question={question} />)
@@ -185,9 +210,18 @@ export default function MainRsvpForm({
     rsvpFormData.preselectedEventId,
   ])
 
+  // The chuppah is a ceremony, not a meal: when the guest answers for the
+  // chuppah alone there is nothing to collect about children or food, and those
+  // two steps only make the form longer and more confusing. The step count has
+  // to shrink with them or the progress bar ends at 75%.
+  const isChuppahOnlyFlow = useMemo(
+    () => isChuppahOnlySelection(weddingData?.events ?? [], rsvpFormData.preselectedEventId),
+    [weddingData?.events, rsvpFormData.preselectedEventId]
+  )
+
   const numSteps = isDeclineFlow
     ? NUM_DECLINE_STEPS
-    : dynamicStepForms.length + NUM_STATIC_STEPS
+    : dynamicStepForms.length + NUM_STATIC_STEPS - (isChuppahOnlyFlow ? 2 : 0)
   const progress = (currentStep / numSteps) * 100
   useConfirmReloadPage(currentStep > 1 && currentStep < numSteps)
 
@@ -259,9 +293,12 @@ export default function MainRsvpForm({
             subUrl,
             householdId,
             ...(token ? { token } : {}),
-            attendingCount: rsvpFormData.attendingCount,
-            childrenCount: rsvpFormData.childrenCount,
-            dietaryNotes: rsvpFormData.dietaryNotes,
+            // A chuppah-only answer says nothing about the meal: sending the
+            // household's counts from that narrower view would overwrite the
+            // numbers collected for the wedding itself.
+            attendingCount: isChuppahOnlyFlow ? undefined : rsvpFormData.attendingCount,
+            childrenCount: isChuppahOnlyFlow ? undefined : rsvpFormData.childrenCount,
+            dietaryNotes: isChuppahOnlyFlow ? undefined : rsvpFormData.dietaryNotes,
             wishesMessage: rsvpFormData.wishesMessage,
             extraGuestNames: rsvpFormData.extraGuestNames ?? [],
             rsvpResponses: rsvpFormData.rsvpResponses.map((response) => ({
@@ -284,8 +321,12 @@ export default function MainRsvpForm({
           ) : (
             [
               <WhoIsComingForm key='who-is-coming' />,
-              <ChildrenCountForm key='children-count' />,
-              <DietaryNotesForm key='dietary-notes' />,
+              ...(isChuppahOnlyFlow
+                ? []
+                : [
+                    <ChildrenCountForm key='children-count' />,
+                    <DietaryNotesForm key='dietary-notes' />,
+                  ]),
               ...dynamicStepForms,
             ]
           )}

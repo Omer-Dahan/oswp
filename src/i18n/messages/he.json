@@ -102,7 +102,9 @@
     "dietaryNotesHelper": "פרטו למי ומה · המטבח יקבל את זה כפי שהוא",
     "wishesMessageTitle": "ברכה ואיחולים לזוג",
     "wishesMessageHelper": "השאירו ברכה לזוג (אופציונלי)",
-    "wishesMessagePlaceholder": "כתבו משהו לחתן ולכלה... (אופציונלי)"
+    "wishesMessagePlaceholder": "כתבו משהו לחתן ולכלה... (אופציונלי)",
+    "eventsTitle": "לאילו אירועים תגיעו?",
+    "chuppahOnlyHint": "אפשר לאשר גם רק לחופה"
   },
   "questions": {
     "other": "אחר",
