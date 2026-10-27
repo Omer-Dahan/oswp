@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { IoIosArrowDown } from 'react-icons/io'
-import { useOuterClick } from '~/components/hooks'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 type HouseholdSideGroup = Pick<HouseholdWithGuests, 'side' | 'groupName'>
@@ -52,11 +52,20 @@ type SideGroupComboboxProps = {
   className?: string
 }
 
-/** Free-text input with a dropdown of existing values; typing a new value is always allowed. */
+/**
+ * Free-text input with a dropdown of existing values; typing a new value is
+ * always allowed.
+ *
+ * The list is portalled to the body at fixed coordinates: inside the guest
+ * drawer it used to be an absolutely-positioned child of a scrolling panel, so
+ * the panel's overflow clipped it and the options were unusable.
+ */
 export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
   const { id, value, onChange, options, placeholder, className } = props
   const [isOpen, setIsOpen] = useState(false)
-  const ref = useOuterClick<HTMLDivElement>(() => setIsOpen(false))
+  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   const filteredOptions = useMemo(() => {
     const normalized = value.trim().toLowerCase()
@@ -64,15 +73,47 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
     return options.filter((option) => option.toLowerCase().includes(normalized))
   }, [options, value])
 
+  const openList = useCallback((element: HTMLElement | null) => {
+    if (!element) return
+    const rect = element.getBoundingClientRect()
+    setAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+    setIsOpen(true)
+  }, [])
+
+  // A fixed-position list cannot follow the drawer while it scrolls, so close it
+  // rather than letting it float away from its input.
+  useEffect(() => {
+    if (!isOpen) return
+    const close = () => setIsOpen(false)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (wrapperRef.current?.contains(target)) return
+      if (listRef.current?.contains(target)) return
+      setIsOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    return () => document.removeEventListener('mousedown', onPointerDown)
+  }, [isOpen])
+
   return (
-    <div ref={ref} className='relative'>
+    <div ref={wrapperRef} className='relative'>
       <div className='relative flex items-center'>
         <input
           id={id}
           type='text'
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          onFocus={() => setIsOpen(true)}
+          onFocus={(event) => openList(event.currentTarget)}
           placeholder={placeholder}
           className={className}
           autoComplete='off'
@@ -80,7 +121,14 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
         {options.length > 0 && (
           <button
             type='button'
-            onClick={() => setIsOpen((prev) => !prev)}
+            onClick={(event) => {
+              if (isOpen) {
+                setIsOpen(false)
+                return
+              }
+              const input = event.currentTarget.parentElement?.querySelector('input') ?? null
+              openList(input ?? event.currentTarget)
+            }}
             aria-label='הצגת אפשרויות'
             className='absolute end-2 text-foreground/50 hover:text-foreground'
           >
@@ -88,23 +136,32 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
           </button>
         )}
       </div>
-      {isOpen && filteredOptions.length > 0 && (
-        <div className='absolute top-full start-0 z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-          {filteredOptions.map((option) => (
-            <button
-              key={option}
-              type='button'
-              className='flex w-full cursor-pointer items-center rounded-sm p-2 text-start text-sm transition-colors hover:bg-accent'
-              onClick={() => {
-                onChange(option)
-                setIsOpen(false)
-              }}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      )}
+      {isOpen &&
+        anchor &&
+        filteredOptions.length > 0 &&
+        createPortal(
+          <div
+            ref={listRef}
+            dir='rtl'
+            style={{ position: 'fixed', top: anchor.top, left: anchor.left, width: anchor.width }}
+            className='z-[80] max-h-48 overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
+          >
+            {filteredOptions.map((option) => (
+              <button
+                key={option}
+                type='button'
+                className='flex w-full cursor-pointer items-center rounded-sm p-2 text-start text-sm transition-colors hover:bg-accent'
+                onClick={() => {
+                  onChange(option)
+                  setIsOpen(false)
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
