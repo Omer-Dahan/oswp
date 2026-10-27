@@ -8,6 +8,7 @@ import { formatDateStandard } from '~/app/utils/helpers'
 import type { Event, Guest, RsvpFormResponse, StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { upsertRsvpResponses } from '~/components/website/forms/rsvp-state'
+import { isChuppahEventName } from '~/lib/wedding/rsvp-events'
 import {
   StepActions,
   StepHeading,
@@ -68,6 +69,17 @@ export default function CombinedEventRsvpForm({
 
   const [responsesByKey, setResponsesByKey] = useState<Record<string, RsvpFormResponse>>(initialResponses)
 
+  // A guest who comes to the wedding comes to the chuppah that same evening, so
+  // confirming the meal pre-fills the chuppah row instead of asking twice.
+  const chuppahEventId = useMemo(
+    () => entries.find((entry) => isChuppahEventName(entry.event.name))?.event.id ?? null,
+    [entries]
+  )
+  const mealEventId = useMemo(
+    () => entries.find((entry) => !isChuppahEventName(entry.event.name))?.event.id ?? null,
+    [entries]
+  )
+
   const guests = useMemo(() => {
     const byId = new Map<number, Guest>()
     for (const entry of entries) {
@@ -127,7 +139,22 @@ export default function CombinedEventRsvpForm({
                     guestName={`${guest.firstName} ${guest.lastName}`}
                     response={responsesByKey[key]}
                     onSelect={(response) =>
-                      setResponsesByKey((prev) => ({ ...prev, [key]: response }))
+                      setResponsesByKey((prev) => {
+                        const next = { ...prev, [key]: response }
+                        const chuppahKey =
+                          chuppahEventId !== null
+                            ? responseKey(chuppahEventId, response.guestId)
+                            : null
+                        if (
+                          response.eventId === mealEventId &&
+                          response.rsvp === 'Attending' &&
+                          chuppahKey !== null &&
+                          next[chuppahKey] === undefined
+                        ) {
+                          next[chuppahKey] = { ...response, eventId: chuppahEventId as string }
+                        }
+                        return next
+                      })
                     }
                   />
                 </div>

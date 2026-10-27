@@ -218,3 +218,118 @@ export function buildSingleEventCalendarLinks(
     fileName: `${event.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'event'}.ics`,
   }
 }
+
+export type EveningEventInput = {
+  name: string
+  date: Date | null
+  startTime?: string | null
+  endTime?: string | null
+  venue?: string | null
+  venueAddress?: string | null
+  venueWazeUrl?: string | null
+}
+
+const ISRAEL_UTC_OFFSET = '+02:00' // November: Israeli DST is already over
+
+function isoDateUtc(date: Date): string {
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function utcStamp(date: Date): string {
+  return `${date.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`
+}
+
+function parseLocalDateTime(day: string, time: string): Date | null {
+  const [hours, minutes] = time.split(':').map(Number)
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null
+  const parsed = new Date(`${day}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00${ISRAEL_UTC_OFFSET}`)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+/**
+ * ONE calendar entry for the whole evening: the invitation says the guest is
+ * coming to the wedding, and the chuppah is part of that evening rather than a
+ * separate appointment, so the guest gets a single block (chuppah time and the
+ * meal inside its description) instead of two unrelated entries.
+ */
+export function buildEveningCalendarLinks(
+  input: { title: string; events: ReadonlyArray<EveningEventInput> },
+  stamp: Date = new Date()
+): (Pick<SaveTheDateCalendarLinks, 'googleUrl' | 'ics' | 'fileName'> & { timeLine: string }) | null {
+  const dated = input.events.filter((event) => event.date)
+  if (dated.length === 0) return null
+
+  const day = isoDateUtc(dated[0]!.date!)
+  const withTimes = dated
+    .map((event) => {
+      const start = event.startTime ? parseLocalDateTime(day, event.startTime) : null
+      const end = event.endTime ? parseLocalDateTime(day, event.endTime) : null
+      return { event, start, end }
+    })
+    .filter((entry) => entry.start !== null)
+    .sort((a, b) => (a.start!.getTime() - b.start!.getTime()))
+
+  const anchor = withTimes.find((entry) => entry.end) ?? withTimes[0]
+  const start = anchor?.start ?? parseLocalDateTime(day, '18:00')
+  if (!start) return null
+
+  let end = anchor?.end ?? null
+  if (end && end.getTime() <= start.getTime()) {
+    end = new Date(end.getTime() + MS_PER_DAY)
+  }
+  if (!end) end = new Date(start.getTime() + 4 * 60 * 60 * 1000)
+
+  const venueSource = {
+    venue: dated[0]!.venue ?? null,
+    venueAddress: dated[0]!.venueAddress ?? null,
+    venueWazeUrl: dated[0]!.venueWazeUrl ?? null,
+  }
+  const location = venueQuery(venueSource)
+  const wazeUrl = resolveWazeUrl(venueSource)
+
+  const timeLine = withTimes
+    .map(({ event }) =>
+      [event.startTime, event.endTime].filter(Boolean).length > 0
+        ? `${event.name} ${event.startTime ?? ''}${event.endTime ? `–${event.endTime}` : ''}`.trim()
+        : event.name
+    )
+    .join(' · ')
+
+  const description = [timeLine, wazeUrl ? `ניווט: ${wazeUrl}` : null]
+    .filter((line): line is string => !!line)
+    .join('\n')
+
+  const icsLines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//OSWP//Wedding//HE',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${start.getTime()}@wedding`,
+    `DTSTAMP:${utcStamp(stamp)}`,
+    `DTSTART:${utcStamp(start)}`,
+    `DTEND:${utcStamp(end)}`,
+    `SUMMARY:${input.title}`,
+    location ? `LOCATION:${location}` : null,
+    description ? `DESCRIPTION:${description.replace(/\n/g, '\\n')}` : null,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter((line): line is string => line !== null)
+
+  const googleUrl =
+    'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+    `&text=${encodeURIComponent(input.title)}` +
+    `&dates=${utcStamp(start)}/${utcStamp(end)}` +
+    (location ? `&location=${encodeURIComponent(location)}` : '') +
+    (description ? `&details=${encodeURIComponent(description)}` : '')
+
+  return {
+    googleUrl,
+    ics: icsLines.join('\r\n'),
+    fileName: 'wedding-evening.ics',
+    timeLine,
+  }
+}
