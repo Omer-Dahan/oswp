@@ -22,7 +22,7 @@ function buildMockDb() {
     }: {
       where: { key: string }
       create: Bucket
-      update: Partial<Bucket>
+      update: Partial<Bucket> & { count?: number | { increment: number } }
     }) => {
       const existing = store.get(where.key)
       if (!existing) {
@@ -30,7 +30,11 @@ function buildMockDb() {
         store.set(where.key, row)
         return row
       }
-      const merged = { ...existing, ...update }
+      const nextCount =
+        typeof update.count === 'object' && update.count && 'increment' in update.count
+          ? existing.count + update.count.increment
+          : update.count ?? existing.count
+      const merged = { ...existing, ...update, count: nextCount }
       store.set(where.key, merged)
       return merged
     }
@@ -66,10 +70,25 @@ function buildMockDb() {
     }
   )
 
+  const updateMany = jest.fn(
+    async ({
+      where,
+      data,
+    }: {
+      where: { key: string; windowStart: Date }
+      data: { count: number; windowStart: Date }
+    }) => {
+      const row = store.get(where.key)
+      if (!row || row.windowStart.getTime() !== where.windowStart.getTime()) return { count: 0 }
+      store.set(where.key, { ...row, ...data })
+      return { count: 1 }
+    }
+  )
+
   return {
     store,
     db: {
-      rateLimitBucket: { upsert, findUnique, update },
+      rateLimitBucket: { upsert, findUnique, update, updateMany },
     } as never,
   }
 }
@@ -143,5 +162,36 @@ describe('PrismaRateLimiter', () => {
     expect(await limiter.check('b')).toBe(true)
     expect(await limiter.check('a')).toBe(false)
     expect(await limiter.check('b')).toBe(false)
+  })
+
+  it('allows only the configured number of concurrent first hits', async () => {
+    const { db, store } = buildMockDb()
+    const limiter = new PrismaRateLimiter(db, { limit: 2, windowMs: 60_000 })
+
+    const results = await Promise.all([
+      limiter.check('new-key'),
+      limiter.check('new-key'),
+      limiter.check('new-key'),
+      limiter.check('new-key'),
+    ])
+
+    expect(results.filter(Boolean)).toHaveLength(2)
+    expect(store.get('new-key')?.count).toBe(4)
+  })
+
+  it('allows only one concurrent reset after an expired window', async () => {
+    const { db } = buildMockDb()
+    const limiter = new PrismaRateLimiter(db, { limit: 1, windowMs: 60_000 })
+
+    expect(await limiter.check('user:1')).toBe(true)
+    jest.advanceTimersByTime(60_001)
+
+    const results = await Promise.all([
+      limiter.checkWithRetryAfter('user:1'),
+      limiter.checkWithRetryAfter('user:1'),
+      limiter.checkWithRetryAfter('user:1'),
+    ])
+
+    expect(results.filter((result) => result.allowed)).toHaveLength(1)
   })
 })
