@@ -24,6 +24,24 @@ function invitation(
 }
 
 describe('buildKitchenReport', () => {
+  it('returns non-negative meal totals when households have no configured meal answers', () => {
+    const households = [household({ id: 'h1', childrenCount: null, dietaryNotes: null })]
+    const guests = [guest({ id: 1, householdId: 'h1' })]
+    const invitations = [invitation({ guestId: 1 })]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+    })
+
+    expect(report.summary).toEqual({ attending: 1, meals: 1, children: 0, dietary: 0 })
+    expect(report.summary.meals).toBeGreaterThanOrEqual(0)
+  })
+
   it('falls back to counting attending CHILD/INFANT guests when childrenCount is not declared', () => {
     const households = [household({ id: 'h1', childrenCount: null })]
     const guests = [

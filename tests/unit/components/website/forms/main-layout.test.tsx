@@ -213,12 +213,37 @@ describe('Main RSVP layout', () => {
     }
   })
 
-  it('omits disabled step values from the submission payload', () => {
+  it.each([
+    [
+      ['dietary-notes', 'wishes-message'],
+      {
+        childrenCount: undefined,
+        dietaryNotes: 'Previously saved allergy',
+        wishesMessage: 'Congratulations',
+      },
+    ],
+    [
+      ['children-count', 'wishes-message'],
+      {
+        childrenCount: 2,
+        dietaryNotes: undefined,
+        wishesMessage: 'Congratulations',
+      },
+    ],
+    [
+      ['children-count', 'dietary-notes'],
+      {
+        childrenCount: 2,
+        dietaryNotes: 'Previously saved allergy',
+        wishesMessage: undefined,
+      },
+    ],
+  ])('preserves saved values when the corresponding step is absent from %j', (rsvpSteps, expected) => {
     const { container } = render(
       <MainRsvpForm
         weddingData={
           {
-            rsvpSteps: [],
+            rsvpSteps,
             events: [],
             website: { subUrl: 'our-wedding', generalQuestions: [] },
           } as never
@@ -228,17 +253,11 @@ describe('Main RSVP layout', () => {
     )
 
     act(() => {
-      capturedSetCurrentStep?.(4)
+      capturedSetCurrentStep?.(6)
     })
     fireEvent.submit(container.querySelector('form') as HTMLFormElement)
 
-    expect(mockMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        childrenCount: undefined,
-        dietaryNotes: undefined,
-        wishesMessage: undefined,
-      })
-    )
+    expect(mockMutate).toHaveBeenCalledWith(expect.objectContaining(expected))
   })
 
   it('keeps progress in normal flow when embedded below wedding navigation', () => {
