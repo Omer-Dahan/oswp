@@ -66,6 +66,7 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const filteredOptions = useMemo(() => {
     const normalized = value.trim().toLowerCase()
@@ -80,18 +81,29 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
     setIsOpen(true)
   }, [])
 
-  // A fixed-position list cannot follow the drawer while it scrolls, so close it
-  // rather than letting it float away from its input.
+  // Keep the fixed list glued to its input instead of closing it: scrolling the
+  // list itself must not dismiss it (the drawer scrolls too), so only scrolls
+  // that originate outside the list reposition it.
   useEffect(() => {
     if (!isOpen) return
-    const close = () => setIsOpen(false)
-    window.addEventListener('scroll', close, true)
-    window.addEventListener('resize', close)
-    return () => {
-      window.removeEventListener('scroll', close, true)
-      window.removeEventListener('resize', close)
+    const reposition = (event?: Event) => {
+      const target = event?.target
+      if (target instanceof Node && listRef.current?.contains(target)) return
+      const element = inputRef.current
+      if (!element) return
+      const rect = element.getBoundingClientRect()
+      const room = window.innerHeight - rect.bottom
+      const listHeight = Math.min(192, filteredOptions.length * 36 + 8)
+      const top = room > listHeight ? rect.bottom + 4 : Math.max(8, rect.top - listHeight - 4)
+      setAnchor({ top, left: rect.left, width: rect.width })
     }
-  }, [isOpen])
+    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('resize', reposition)
+    return () => {
+      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('resize', reposition)
+    }
+  }, [isOpen, filteredOptions.length])
 
   useEffect(() => {
     if (!isOpen) return
@@ -109,6 +121,7 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
     <div ref={wrapperRef} className='relative'>
       <div className='relative flex items-center'>
         <input
+          ref={inputRef}
           id={id}
           type='text'
           value={value}
@@ -144,7 +157,7 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
             ref={listRef}
             dir='rtl'
             style={{ position: 'fixed', top: anchor.top, left: anchor.left, width: anchor.width }}
-            className='z-[80] max-h-48 overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
+            className='z-[80] max-h-48 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
           >
             {filteredOptions.map((option) => (
               <button

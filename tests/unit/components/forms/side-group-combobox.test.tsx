@@ -42,3 +42,30 @@ describe('SideGroupCombobox', () => {
     expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly')
   })
 })
+
+describe('SideGroupCombobox scrolling', () => {
+  const many = Array.from({ length: 12 }, (_, i) => `קבוצה ${i + 1}`)
+
+  it('stays open while the guest scrolls inside the option list', () => {
+    render(<SideGroupCombobox id='groupName' value='' onChange={jest.fn()} options={many} />)
+
+    fireEvent.focus(screen.getByRole('textbox'))
+    const option = screen.getByText('קבוצה 3')
+    const list = option.parentElement as HTMLElement
+
+    // A scroll inside the list must not dismiss it.
+    fireEvent.scroll(list)
+
+    expect(screen.getByText('קבוצה 3')).toBeInTheDocument()
+    expect(screen.getByText('קבוצה 12')).toBeInTheDocument()
+  })
+
+  it('survives a page scroll (repositions instead of closing)', () => {
+    render(<SideGroupCombobox id='groupName' value='' onChange={jest.fn()} options={many} />)
+
+    fireEvent.focus(screen.getByRole('textbox'))
+    fireEvent.scroll(window)
+
+    expect(screen.getByText('קבוצה 1')).toBeInTheDocument()
+  })
+})
