@@ -94,12 +94,11 @@ describe('WeddingWebsite', () => {
     expect(screen.queryByRole('link', { name: 'אישור הגעה לחתונה' })).not.toBeInTheDocument()
   })
 
-  it('shows the neutral greeting when no household is recognized', async () => {
+  it('shows no personalized greeting when no household is recognized', async () => {
     render(
       await WeddingWebsite({ websiteSubUrl: 'shrek-and-fiona', weddingData: createWeddingData() })
     )
 
-    expect(screen.getAllByText('נשמח לראותכם').length).toBeGreaterThan(0)
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
   })
 
@@ -119,6 +118,6 @@ describe('WeddingWebsite', () => {
     expect(screen.getByRole('complementary', { name: 'ברכת שלום אישית' })).toHaveTextContent(
       'שלום Donkey'
     )
-    expect(screen.getAllByText('שלום Donkey, נשמח לראותכם ביום שלנו 🤍').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('שלום Donkey, נשמח לדעת אם תגיעו 🤍').length).toBeGreaterThan(0)
   })
 })
