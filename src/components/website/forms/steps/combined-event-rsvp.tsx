@@ -8,6 +8,7 @@ import { formatDateStandard } from '~/app/utils/helpers'
 import type { Event, Guest, RsvpFormResponse, StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { upsertRsvpResponses } from '~/components/website/forms/rsvp-state'
+import { fullEveningLabel, timeRangeLabel } from '~/lib/wedding/evening-time'
 import { isChuppahEventName } from '~/lib/wedding/rsvp-events'
 import {
   StepActions,
@@ -24,38 +25,6 @@ export type CombinedRsvpEntry = {
 
 type CombinedEventRsvpFormProps = StepFormProps & {
   entries: CombinedRsvpEntry[]
-}
-
-/** "19:30–20:30" when both ends are known, otherwise whatever we have. */
-function timeRangeLabel(event: Event): string {
-  if (event.startTime && event.endTime) return `${event.startTime}–${event.endTime}`
-  return event.startTime ?? event.endTime ?? ''
-}
-
-const toMinutes = (value: string): number => {
-  const [hours, minutes] = value.split(':').map(Number)
-  return (hours ?? 0) * 60 + (minutes ?? 0)
-}
-
-const toClock = (minutes: number): string => {
-  const wrapped = ((minutes % 1440) + 1440) % 1440
-  return `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`
-}
-
-/**
- * The evening as a whole: earliest start to latest end across the events. Ends
- * after midnight count as the next day, so 00:30 is later than 20:30 even
- * though it sorts earlier as a string.
- */
-function fullEveningLabel(entries: CombinedRsvpEntry[]): string {
-  const starts = entries.map((entry) => entry.event.startTime).filter(Boolean) as string[]
-  const ends = entries.map((entry) => entry.event.endTime).filter(Boolean) as string[]
-  if (starts.length === 0) return ''
-  const earliest = Math.min(...starts.map(toMinutes))
-  const latest = ends.length
-    ? Math.max(...ends.map((end) => (toMinutes(end) < earliest ? toMinutes(end) + 1440 : toMinutes(end))))
-    : earliest
-  return latest !== earliest ? `${toClock(earliest)}–${toClock(latest)}` : toClock(earliest)
 }
 
 const responseKey = (eventId: string, guestId: number) => `${eventId}:${guestId}`
@@ -113,7 +82,7 @@ export default function CombinedEventRsvpForm({
   )
 
   const eventDate = entries.find((entry) => entry.event.date)?.event.date
-  const evening = fullEveningLabel(entries)
+  const evening = fullEveningLabel(entries.map((entry) => entry.event))
 
   return (
     <StepShell>
