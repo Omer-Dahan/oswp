@@ -104,7 +104,9 @@
     "wishesMessageHelper": "השאירו ברכה לזוג (אופציונלי)",
     "wishesMessagePlaceholder": "כתבו משהו לחתן ולכלה... (אופציונלי)",
     "eventsTitle": "לאילו אירועים תגיעו?",
-    "chuppahOnlyHint": "אפשר לאשר גם רק לחופה"
+    "chuppahOnlyHint": "אפשר לאשר גם רק לחופה",
+    "addEveningToCalendar": "הוספת הערב ליומן",
+    "navigateToVenue": "ניווט לאולם"
   },
   "questions": {
     "other": "אחר",

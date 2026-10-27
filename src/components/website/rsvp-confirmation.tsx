@@ -9,7 +9,9 @@ import { formatDateStandard } from '~/app/utils/helpers'
 import type { Event, RsvpFormResponse } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { stepHeadingFont, stepPrimaryClassName } from '~/components/website/forms/steps/step-ui'
-import { buildSingleEventCalendarLinks } from '~/lib/website/calendar'
+import { buildEveningCalendarLinks } from '~/lib/website/calendar'
+import { resolveWazeUrl } from '~/lib/website/maps'
+import { coupleNamesHe } from '~/lib/wedding/couple-name'
 
 type RsvpConfirmationProps = {
   basePath: string
@@ -72,6 +74,24 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
     rsvpFormData.rsvpResponses.some((response) => event.id === response.eventId)
   )
 
+  // One calendar entry for the whole evening: the chuppah is part of the same
+  // night, not a second appointment, so the guest saves one block that names
+  // both times instead of clicking "add to calendar" twice.
+  const eveningTitle = coupleNamesHe(rsvpFormData.weddingData as never)
+    ? `החתונה של ${coupleNamesHe(rsvpFormData.weddingData as never)}`
+    : 'החתונה שלנו'
+  const eveningCalendar = hasAttending
+    ? buildEveningCalendarLinks({ title: eveningTitle, events })
+    : null
+  const venueEvent = events[0]
+  const wazeHref = venueEvent
+    ? resolveWazeUrl({
+        venue: venueEvent.venue ?? null,
+        venueAddress: venueEvent.venueAddress ?? null,
+        venueWazeUrl: venueEvent.venueWazeUrl ?? null,
+      })
+    : null
+
   return (
     <div className='fixed inset-0 z-0 overflow-y-auto'>
       <div className='absolute inset-0'>
@@ -120,31 +140,40 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
                 {t('backToHomepage')}
               </Link>
 
-              <div className='flex flex-col items-center gap-2'>
-                {hasAttending && events.map((event: Event) => {
-                  const calendarLinks = buildSingleEventCalendarLinks(event)
-                  if (!calendarLinks) return null
-                  return (
-                    <div key={event.id} className='flex flex-wrap items-center justify-center gap-4'>
+              {eveningCalendar && (
+                <div className='rsvp-confirmation-block flex w-full flex-col items-center gap-3 rounded-[14px] border border-foreground/10 bg-white/50 p-4'>
+                  <p className={`${bodyFont} text-center text-foreground/80 text-sm`}>
+                    {eveningCalendar.timeLine}
+                  </p>
+                  <button
+                    type='button'
+                    className={stepPrimaryClassName}
+                    onClick={() => downloadIcs(eveningCalendar.ics, eveningCalendar.fileName)}
+                  >
+                    {t('addEveningToCalendar')}
+                  </button>
+                  <div className='flex flex-wrap items-center justify-center gap-4'>
+                    <a
+                      className={quietLinkClassName}
+                      href={eveningCalendar.googleUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {tCommon('addToCalendar')}
+                    </a>
+                    {wazeHref && (
                       <a
                         className={quietLinkClassName}
-                        href={calendarLinks.googleUrl}
+                        href={wazeHref}
                         target='_blank'
                         rel='noopener noreferrer'
                       >
-                        {tCommon('addToCalendar')} · {event.name}
+                        {t('navigateToVenue')}
                       </a>
-                      <button
-                        type='button'
-                        className={quietLinkClassName}
-                        onClick={() => downloadIcs(calendarLinks.ics, calendarLinks.fileName)}
-                      >
-                        {tCommon('downloadIcs')}
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {dietaryNotes && (
