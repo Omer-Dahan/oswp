@@ -3,6 +3,16 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { GuestCard } from '~/components/guest-list/v2/list/guest-card'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
+jest.mock('~/trpc/react', () => ({
+  api: {
+    householdInvite: {
+      generateLink: {
+        useMutation: () => ({ mutateAsync: jest.fn() }),
+      },
+    },
+  },
+}))
+
 const mockHousehold: HouseholdWithGuests = {
   id: 'household-1',
   weddingId: 'wedding-1',
@@ -133,8 +143,8 @@ describe('GuestCard', () => {
     expect(screen.getByText('Alex Rivera +1')).toBeInTheDocument()
     expect(screen.getAllByText('AR').length).toBeGreaterThan(0)
     expect(screen.getByText(/אורחים/)).toBeInTheDocument()
-    expect(screen.getByText('1 מגיעים')).toBeInTheDocument()
-    expect(screen.getByText('1 הוזמנו')).toBeInTheDocument()
+    expect(screen.getByText('מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
   })
 
   it('uses selected styling when card is active', () => {
@@ -168,6 +178,6 @@ describe('GuestCard', () => {
     )
 
     // Only the regular guest has invitations
-    expect(screen.getByText('1 מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('מגיעים')).toBeInTheDocument()
   })
 })
