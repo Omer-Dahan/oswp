@@ -89,9 +89,11 @@ export default function MainRsvpForm({
   const rsvpFormData = useRsvpForm()
   const isDeclineFlow = rsvpFormData.declineIntent === true
   const updateRsvpForm = useUpdateRsvpForm()
-  // A recognized guest (identified by their save-the-date invite) skips the name
-  // search and lands on the confirm step (step 2).
-  const [currentStep, setCurrentStep] = useState<number>(rsvpFormData.recognized ? 2 : 1)
+  // A guest arriving from their personal save-the-date link is already known:
+  // asking them to search for themselves and then to re-confirm who they are is
+  // two screens of nothing, so the flow starts straight at "who is coming".
+  const skipIdentitySteps = rsvpFormData.recognized === true
+  const [currentStep, setCurrentStep] = useState<number>(1)
   const [submitError, setSubmitError] = useState<string | null>(null)
   useEffect(() => {
     updateRsvpForm({ weddingData })
@@ -192,14 +194,17 @@ export default function MainRsvpForm({
   // Counted from the rendered list rather than a magic constant: the flow now
   // ends without a wishes step, and the chuppah-only variant skips the two meal
   // steps, so a fixed number drifts out of sync with the progress bar.
+  const identitySteps = skipIdentitySteps ? 0 : 2 // find, confirm
   const numSteps = isDeclineFlow
-    ? 5 // find, confirm, decline confirmation, send, confirmation
-    : 2 + // find, confirm
+    ? identitySteps + 3 // decline confirmation, send, confirmation
+    : identitySteps +
       (isChuppahOnlyFlow ? 1 : 3) + // who is coming (+ children, dietary)
       dynamicStepForms.length +
       2 // send, confirmation
   const progress = (currentStep / numSteps) * 100
-  useConfirmReloadPage(currentStep > 1 && currentStep < numSteps)
+  // With no identity steps in front, the "who is coming" screen IS the first
+  // step and nothing has been typed yet, so leaving it needs no confirmation.
+  useConfirmReloadPage(currentStep > Math.max(1, identitySteps) && currentStep < numSteps)
 
   return (
     // pt-24 reserves space for the fixed ProgressBar so the first step's copy
@@ -211,6 +216,7 @@ export default function MainRsvpForm({
         currentStep={currentStep}
         progress={progress}
         numSteps={numSteps}
+        identityStepCount={identitySteps}
         basePath={basePath}
         embedded={embedded}
       />
@@ -290,8 +296,8 @@ export default function MainRsvpForm({
       >
         <AsyncState error={submitError} className='mb-4 text-center' />
         <MultistepRsvpForm currentStep={currentStep} setCurrentStep={setCurrentStep}>
-          <FindYourInvitationForm accessToken={accessToken} />
-          <ConfirmNameForm accessToken={accessToken} />
+          {!skipIdentitySteps && <FindYourInvitationForm accessToken={accessToken} />}
+          {!skipIdentitySteps && <ConfirmNameForm accessToken={accessToken} />}
           {isDeclineFlow ? (
             <DeclineConfirmForm />
           ) : (
@@ -318,12 +324,14 @@ const ProgressBar = ({
   currentStep,
   progress,
   numSteps,
+  identityStepCount,
   basePath,
   embedded,
 }: {
   currentStep: number
   progress: number
   numSteps: number
+  identityStepCount: number
   basePath: string
   embedded: boolean
 }) => {
@@ -354,7 +362,12 @@ const ProgressBar = ({
         <div
           className='absolute start-0 top-0 h-1 rounded-full bg-primary transition-[width]'
           style={{
-            width: currentStep < 3 ? '3%' : currentStep === numSteps - 1 ? '99%' : `${progress}%`,
+            width:
+              currentStep <= identityStepCount
+                ? '3%'
+                : currentStep === numSteps - 1
+                  ? '99%'
+                  : `${progress}%`,
           }}
         ></div>
       </div>
