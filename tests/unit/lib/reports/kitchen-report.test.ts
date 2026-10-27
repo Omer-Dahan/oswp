@@ -46,12 +46,12 @@ describe('buildKitchenReport', () => {
       eventId: EVENT_ID,
     })
 
-    expect(report.summary.kidsMeals).toBe(2)
+    expect(report.summary.children).toBe(2)
     expect(report.rows.find((row) => row.guestId === 2)?.isChild).toBe(true)
     expect(report.rows.find((row) => row.guestId === 1)?.isChild).toBe(false)
   })
 
-  it('uses the declared childrenCount instead of the fallback when present', () => {
+  it('uses the declared childrenCount instead of the fallback, capped at attendance', () => {
     const households = [household({ id: 'h1', childrenCount: 3 })]
     const guests = [guest({ id: 1, householdId: 'h1', ageGroup: 'CHILD' })]
     const invitations = [invitation({ guestId: 1 })]
@@ -65,7 +65,7 @@ describe('buildKitchenReport', () => {
       eventId: EVENT_ID,
     })
 
-    expect(report.summary.kidsMeals).toBe(3)
+    expect(report.summary.children).toBe(1)
   })
 
   it('picks up a dietary note from either the per-guest invitation or the household', () => {
@@ -93,7 +93,7 @@ describe('buildKitchenReport', () => {
       eventId: EVENT_ID,
     })
 
-    expect(report.summary.dietary).toBe(3)
+    expect(report.summary.dietary).toBe(2)
     expect(report.rows.find((row) => row.guestId === 1)?.dietaryNote).toBe('Gluten-free')
     expect(report.rows.find((row) => row.guestId === 2)?.dietaryNote).toBe('Kosher')
     expect(report.rows.find((row) => row.guestId === 3)?.dietaryNote).toBe('Kosher')
