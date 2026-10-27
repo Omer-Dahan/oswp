@@ -209,6 +209,18 @@ describe('proxy', () => {
     expect(batchedResponse.headers.get('location')).toBeNull()
   })
 
+  it('allows the public household-details fetch used by the confirm-name step', async () => {
+    mockGetSessionCookie.mockReturnValue(null)
+
+    // confirm-name.tsx calls this, unauthenticated, to release dietary notes
+    // and the wishes message once the guest has picked their household.
+    const response = await proxy(
+      createRequest('/api/trpc/household.getPublicHouseholdDetails', undefined, '?batch=1')
+    )
+
+    expect(response.headers.get('location')).toBeNull()
+  })
+
   it.each([
     'weekend',
     'stay',

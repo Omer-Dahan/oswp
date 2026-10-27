@@ -51,6 +51,29 @@ describe('InvitationHero', () => {
     }
   })
 
+  it('preselects the single RSVP-able event when the household is also invited to a non-collectRsvp event', () => {
+    // e.g. the auto-created, non-collectRsvp "חופה וקידושין" ceremony event
+    // alongside the RSVP-collecting reception — only one event actually
+    // collects RSVPs, so it's safe to preselect it (see hasMultipleRsvpableEvents
+    // in invitation-hero.tsx, which counts only collectRsvp events).
+    render(
+      <InvitationHero
+        {...baseProps}
+        events={[
+          { id: 'reception-event', name: 'קבלת פנים', isPrimary: true, collectRsvp: true },
+          { id: 'chuppah-event', name: 'חופה וקידושין', isPrimary: false, collectRsvp: false },
+        ]}
+      />
+    )
+
+    const weddingLinks = screen.getAllByRole('link', { name: 'אישור הגעה לחתונה' })
+    expect(weddingLinks.length).toBeGreaterThan(0)
+    for (const link of weddingLinks) {
+      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?event=reception-event')
+    }
+    expect(screen.queryByRole('link', { name: 'אישור הגעה לחופה' })).not.toBeInTheDocument()
+  })
+
   it('renders only the wedding pill when the wedding has a single event', () => {
     render(
       <InvitationHero
@@ -101,8 +124,10 @@ describe('InvitationHero', () => {
 
     const links = screen.getAllByRole('link', { name: 'לצערינו לא מתאפשר' })
     expect(links.length).toBeGreaterThan(0)
+    // Decline is a confirmation flow, not a one-click action (see
+    // src/app/w/[websiteSubUrl]/rsvp/page.tsx), so the link carries ?decline=1.
     for (const link of links) {
-      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp')
+      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?decline=1')
     }
   })
 })

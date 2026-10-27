@@ -330,6 +330,31 @@ describe('RsvpSubmissionService', () => {
     })
   })
 
+  it('preserves the existing dietary notes/wishes message when submitted blank, but clears them on an explicit null', async () => {
+    await service.submitRsvp(
+      {
+        rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+      },
+      {
+        householdId: 'household-123',
+        dietaryNotes: '   ',
+        wishesMessage: null,
+      }
+    )
+
+    // A blank string means the guest left the field untouched (the step
+    // seeds from whatever was already saved), so it must not overwrite the
+    // stored value; only an explicit `null` clears it. See
+    // preserveExistingWhenBlank in rsvp-submission.service.ts.
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
+      attendingCount: null,
+      childrenCount: null,
+      dietaryNotes: undefined,
+      wishesMessage: null,
+    })
+  })
+
   it('does not touch the household row when no party details are submitted', async () => {
     await service.submitRsvp({
       rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
