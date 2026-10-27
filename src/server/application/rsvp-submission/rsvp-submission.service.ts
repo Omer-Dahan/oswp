@@ -33,8 +33,8 @@ type PublicRsvpResponse = SubmitPublicRsvpSchemaInput['rsvpResponses'][number]
 /** Extract the caller's IP from standard proxy headers, for rate limiting only. */
 export function getClientIp(headers: Headers): string {
   const forwardedFor = headers.get('x-forwarded-for')
-  const first = forwardedFor?.split(',')[0]?.trim()
-  if (first) return first
+  const proxyAppended = forwardedFor?.split(',').at(-1)?.trim()
+  if (proxyAppended) return proxyAppended
   return headers.get('x-real-ip') ?? 'unknown'
 }
 
