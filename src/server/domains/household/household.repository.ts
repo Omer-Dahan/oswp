@@ -472,7 +472,7 @@ export class HouseholdRepository {
     searchText: string,
     weddingId: string
   ): Promise<PublicHouseholdSearchResult[]> {
-    const terms = tokenizeNameForSearch(searchText)
+    const terms = Array.from(new Set(tokenizeNameForSearch(searchText)))
     if (terms.length === 0 || terms.some((term) => term.length < 2)) return []
 
     const termConditions = Prisma.join(
