@@ -79,7 +79,8 @@ describe('website suburl metadata + page wiring', () => {
       params: Promise.resolve({ websiteSubUrl: 'john-and-jane' }),
     })
 
-    expect(metadata.title).toBe('John Doe & Jane Smith Wedding')
+    // The share card is guest-facing, so it reads in Hebrew like the invitation.
+    expect(metadata.title).toBe('החתונה של John Doe וJane Smith')
     expect(mockLoadVisitorWedding).toHaveBeenCalledWith('john-and-jane')
   })
 
