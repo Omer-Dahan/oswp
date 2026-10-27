@@ -22,6 +22,9 @@ jest.mock('~/server/authz/permission-checker', () => ({
 jest.mock('~/lib/etta/provision', () => ({
   provisionEtta: jest.fn().mockResolvedValue(undefined),
 }))
+jest.mock('~/server/application/workspace/provision-wedding-workspace', () => ({
+  provisionWeddingWorkspace: jest.fn().mockResolvedValue({ organizationId: 'org-123' }),
+}))
 
 // @ts-expect-error - Importing mock functions from mocked module
 import {
@@ -133,15 +136,15 @@ describe('WeddingService', () => {
       })
 
       expect(mockSeedInitialTagsFn).toHaveBeenCalledWith('wedding-123', [
-        { name: 'Family', color: '#3b82f6' },
-        { name: 'MutualFriends', color: '#10b981' },
-        { name: 'Coworkers', color: '#8b5cf6' },
-        { name: 'Plus One', color: '#f59e0b' },
+        { name: 'משפחה', color: '#3b82f6' },
+        { name: 'חברים משותפים', color: '#10b981' },
+        { name: 'עבודה', color: '#8b5cf6' },
+        { name: 'מלווה', color: '#f59e0b' },
       ])
     })
 
     it('should prevent creating duplicate wedding for same user', async () => {
-      mockExistsForUserFn.mockResolvedValue(true)
+      mockFindByUserIdFn.mockResolvedValue(mockWedding)
 
       await expect(
         weddingService.createWedding('user-123', {
@@ -181,7 +184,7 @@ describe('WeddingService', () => {
       })
 
       expect(mockCreateEventFn).toHaveBeenCalledWith('wedding-123', {
-        eventName: 'Ceremony',
+        eventName: 'חופה וקידושין',
         date: weddingDate,
         venue: 'Beach Resort',
         collectRsvp: false,

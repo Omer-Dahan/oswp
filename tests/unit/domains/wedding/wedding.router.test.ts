@@ -31,6 +31,7 @@ const mockGetByIdFn = mockGetById as jest.Mock
 const mockToggleAddOnFn = mockToggleAddOn as jest.Mock
 const mockUpdateWeddingFn = mockUpdateWedding as jest.Mock
 const mockGetWeddingEvents = eventService.getWeddingEvents as jest.Mock
+const mockGetPrimaryEvent = eventService.getPrimaryEvent as jest.Mock
 const mockCreateEvent = eventService.createEvent as jest.Mock
 const mockUpdateEvent = eventService.updateEvent as jest.Mock
 
@@ -59,6 +60,7 @@ describe('weddingRouter', () => {
   beforeEach(() => {
     resetWeddingMocks()
     mockGetWeddingEvents.mockReset()
+    mockGetPrimaryEvent.mockReset()
     mockCreateEvent.mockReset()
     mockUpdateEvent.mockReset()
   })
@@ -83,15 +85,13 @@ describe('weddingRouter', () => {
 
     it('should return wedding details with event date and location', async () => {
       mockGetByIdFn.mockResolvedValue(mockWedding)
-      mockGetWeddingEvents.mockResolvedValue([
-        {
-          id: 'event-123',
-          name: 'Ceremony',
-          date: new Date('2025-06-15'),
-          venue: 'Beach Resort',
-          allowTagAlongs: false,
-        },
-      ])
+      mockGetPrimaryEvent.mockResolvedValue({
+        id: 'event-123',
+        name: 'Ceremony',
+        date: new Date('2025-06-15'),
+        venue: 'Beach Resort',
+        allowTagAlongs: false,
+      })
 
       const caller = makeAuthCaller()
       const result = await caller.getDetails()
@@ -111,7 +111,7 @@ describe('weddingRouter', () => {
 
     it('should return undefined date/location when no events exist', async () => {
       mockGetByIdFn.mockResolvedValue(mockWedding)
-      mockGetWeddingEvents.mockResolvedValue([])
+      mockGetPrimaryEvent.mockResolvedValue(null)
 
       const caller = makeAuthCaller()
       const result = await caller.getDetails()
@@ -266,6 +266,8 @@ describe('weddingRouter', () => {
           canManageMembers: true,
           canSendInvites: true,
           canViewPlanning: true,
+          canAccessSettings: true,
+          canDeleteAllGuests: true,
         },
       })
     })
@@ -282,6 +284,8 @@ describe('weddingRouter', () => {
           canManageMembers: false,
           canSendInvites: false,
           canViewPlanning: false,
+          canAccessSettings: false,
+          canDeleteAllGuests: false,
         },
       })
     })

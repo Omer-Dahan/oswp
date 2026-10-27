@@ -9,6 +9,7 @@ export const eventService = {
   createEvent: jest.fn(),
   getById: jest.fn(),
   getWeddingEvents: jest.fn(),
+  getPrimaryEvent: jest.fn(),
   getWeddingEventsWithStats: jest.fn(),
   updateEvent: jest.fn(),
   updateCollectRsvp: jest.fn(),
