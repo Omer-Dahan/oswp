@@ -56,6 +56,7 @@ export const mockFindTableById = jest.fn()
 export const mockCreateTable = jest.fn()
 export const mockDeleteTable = jest.fn()
 export const mockFindSeatableGuestIds = jest.fn()
+export const mockFindSeatWeights = jest.fn()
 export const mockDeleteAssignments = jest.fn()
 
 // Locked-table transaction: the callback runs against these lock helpers
@@ -83,6 +84,7 @@ export const SeatingRepository = jest.fn().mockImplementation(() => ({
   createTable: mockCreateTable,
   deleteTable: mockDeleteTable,
   findSeatableGuestIds: mockFindSeatableGuestIds,
+  findSeatWeights: mockFindSeatWeights,
   deleteAssignments: mockDeleteAssignments,
   withLockedTable: mockWithLockedTable,
 }))
@@ -95,6 +97,8 @@ export const resetMocks = (): void => {
   mockCreateTable.mockReset()
   mockDeleteTable.mockReset()
   mockFindSeatableGuestIds.mockReset()
+  mockFindSeatWeights.mockReset()
+  mockFindSeatWeights.mockResolvedValue(new Map())
   mockDeleteAssignments.mockReset()
   mockLockedSeatedGuestIds.mockReset()
   mockLockedReplaceAssignments.mockReset()

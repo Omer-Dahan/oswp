@@ -197,11 +197,12 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
     }
 
     // A table already holding the same side+group is preferred; failing
-    // that, any table with room is packed full before a new one opens
+    // that, an untouched table is packed before a new one opens, but a table
+    // already claimed by a different side+group is never mixed into
     const tag = tagOf(bucket.side, bucket.groupName)
     const target =
       bestFit(pool.filter((table) => table.tags.has(tag)), bucket.size) ??
-      bestFit(pool, bucket.size) ??
+      bestFit(pool.filter((table) => table.tags.size === 0), bucket.size) ??
       openNewTable(bucket.size)
 
     target.freeSeats -= bucket.size
