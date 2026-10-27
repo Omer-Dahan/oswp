@@ -14,6 +14,8 @@ const translations: Record<string, string> = {
   'rsvp.accepted': 'ACCEPTED',
   'rsvp.declined': 'DECLINED',
   'rsvp.dietaryNotesTitle': 'DIETARY NOTES',
+  'rsvp.addEveningToCalendar': 'ADD THE EVENING TO MY CALENDAR',
+  'rsvp.navigateToVenue': 'NAVIGATE TO VENUE',
 }
 
 jest.mock('next-intl', () => ({
@@ -53,14 +55,28 @@ jest.mock('~/components/contexts/rsvp-form-context', () => ({
 }))
 
 describe('RsvpConfirmation', () => {
-  it('renders a working Google Calendar link for a dated event and no calendar control for an undated event', () => {
+  it('offers ONE calendar entry for the whole evening instead of one per event', () => {
     mockFormState = {
       weddingData: {
         groomFirstName: 'Ron',
         brideFirstName: 'Hermione',
         events: [
-          { id: 'e1', name: 'Wedding Ceremony', date: new Date('2026-06-01T00:00:00.000Z') },
-          { id: 'e2', name: 'Rehearsal Dinner', date: null },
+          {
+            id: 'e1',
+            name: 'Wedding Ceremony',
+            date: new Date('2026-06-01T00:00:00.000Z'),
+            startTime: '19:30',
+            endTime: '20:30',
+            venue: 'The Hall',
+          },
+          {
+            id: 'e2',
+            name: 'Reception',
+            date: new Date('2026-06-01T00:00:00.000Z'),
+            startTime: '18:30',
+            endTime: '00:30',
+            venue: 'The Hall',
+          },
         ],
       },
       rsvpResponses: [
@@ -72,15 +88,21 @@ describe('RsvpConfirmation', () => {
 
     render(<RsvpConfirmation basePath='/site' />)
 
-    const googleLinks = screen.getAllByRole('link').filter((link) =>
-      (link as HTMLAnchorElement).href.startsWith('https://calendar.google.com/calendar/render')
-    )
+    // One download button, one Google Calendar link — not one pair per event.
+    expect(screen.getAllByRole('button', { name: 'ADD THE EVENING TO MY CALENDAR' })).toHaveLength(1)
+    const googleLinks = screen
+      .getAllByRole('link')
+      .filter((link) =>
+        (link as HTMLAnchorElement).href.startsWith('https://calendar.google.com/calendar/render')
+      )
     expect(googleLinks).toHaveLength(1)
-    expect(googleLinks[0]).toHaveAccessibleName(expect.stringContaining('Wedding Ceremony'))
+    expect(screen.queryByText(/ADD TO CALENDAR · /)).toBeNull()
 
+    // Both events still appear, each with its own time, and the evening reads as
+    // a single span from the reception to after midnight.
     expect(screen.getByText('Wedding Ceremony')).toBeInTheDocument()
-    expect(screen.getByText('Rehearsal Dinner')).toBeInTheDocument()
-    expect(screen.queryByText('DOWNLOAD ICS')).toBeInTheDocument()
+    expect(screen.getByText('Reception')).toBeInTheDocument()
+    expect(screen.getByText(/18:30–00:30/)).toBeInTheDocument()
   })
 
   it('shows the dietary note verbatim when the household submitted one', () => {
