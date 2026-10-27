@@ -237,8 +237,8 @@ export class RsvpSubmissionService {
 
       if (householdPartyDetails) {
         await txHouseholdRepo.updateRsvpPartyDetails(householdPartyDetails.householdId, {
-          attendingCount: householdPartyDetails.attendingCount ?? null,
-          childrenCount: householdPartyDetails.childrenCount ?? null,
+          attendingCount: householdPartyDetails.attendingCount,
+          childrenCount: householdPartyDetails.childrenCount,
           dietaryNotes: preserveExistingWhenBlank(householdPartyDetails.dietaryNotes),
           wishesMessage: preserveExistingWhenBlank(householdPartyDetails.wishesMessage),
         })

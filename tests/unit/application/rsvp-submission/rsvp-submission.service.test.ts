@@ -349,10 +349,30 @@ describe('RsvpSubmissionService', () => {
     // stored value; only an explicit `null` clears it. See
     // preserveExistingWhenBlank in rsvp-submission.service.ts.
     expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
-      attendingCount: null,
-      childrenCount: null,
+      attendingCount: undefined,
+      childrenCount: undefined,
       dietaryNotes: undefined,
       wishesMessage: null,
+    })
+  })
+
+  it('preserves meal counts when a chuppah-only submission omits them', async () => {
+    await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-chuppah', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+        wishesMessage: 'See you there',
+      },
+      '127.0.0.1'
+    )
+
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
+      attendingCount: undefined,
+      childrenCount: undefined,
+      dietaryNotes: undefined,
+      wishesMessage: 'See you there',
     })
   })
 
