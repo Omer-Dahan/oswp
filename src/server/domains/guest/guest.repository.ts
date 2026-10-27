@@ -412,6 +412,7 @@ export class GuestRepository {
         where: {
           guestId: { in: Array.from(matchedExistingIds) },
           eventId: { in: attendingEventIds },
+          rsvp: { not: 'Not Invited' },
         },
         data: { rsvp: 'Attending' },
       })
@@ -435,6 +436,7 @@ export class GuestRepository {
         where: {
           guestId: { in: Array.from(matchedExistingIds) },
           eventId: { in: declinedEventIds },
+          rsvp: { not: 'Not Invited' },
         },
         data: { rsvp: 'Declined' },
       })
