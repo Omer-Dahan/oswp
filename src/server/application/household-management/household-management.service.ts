@@ -42,6 +42,7 @@ import { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 
 export class HouseholdManagementService {
   private publicSearchRateLimiter: PrismaRateLimiter
+  private publicDetailsRateLimiter: PrismaRateLimiter
 
   constructor(
     private householdRepo: HouseholdRepository,
@@ -55,6 +56,11 @@ export class HouseholdManagementService {
     // Generous enough for a guest retrying a typo while searching for their
     // name, tight enough to stop a scripted sweep of the guest list.
     this.publicSearchRateLimiter = new PrismaRateLimiter(db, { limit: 10, windowMs: 10 * 60_000 })
+    // Its own budget, separate from the search bucket above: a guest who
+    // picks a household from the search results shouldn't get locked out of
+    // the details fetch (and the rest of the form) just because searching
+    // for their name already used up most of the shared bucket.
+    this.publicDetailsRateLimiter = new PrismaRateLimiter(db, { limit: 30, windowMs: 10 * 60_000 })
   }
 
   async createHouseholdWithGuests(
@@ -431,7 +437,13 @@ export class HouseholdManagementService {
     clientIp: string,
     accessToken?: string
   ): Promise<PublicHouseholdSearchResult[]> {
-    const weddingId = await this.authorizePublicHouseholdAccess(subUrl, clientIp, accessToken)
+    const weddingId = await this.authorizePublicHouseholdAccess(
+      subUrl,
+      clientIp,
+      accessToken,
+      this.publicSearchRateLimiter,
+      'household-search'
+    )
     return this.householdRepo.searchPublicByName(searchText, weddingId)
   }
 
@@ -451,7 +463,13 @@ export class HouseholdManagementService {
     clientIp: string,
     accessToken?: string
   ): Promise<PublicHouseholdDetails> {
-    const weddingId = await this.authorizePublicHouseholdAccess(subUrl, clientIp, accessToken)
+    const weddingId = await this.authorizePublicHouseholdAccess(
+      subUrl,
+      clientIp,
+      accessToken,
+      this.publicDetailsRateLimiter,
+      'household-details'
+    )
 
     const details = await this.householdRepo.getPublicHouseholdDetails(
       householdId,
@@ -473,17 +491,26 @@ export class HouseholdManagementService {
    * Shared rate-limit + website lookup + password gate for the public
    * guest-facing household endpoints. Returns the wedding id the caller is
    * authorized to read households from.
+   *
+   * `rateLimiter`/`rateLimitKeyPrefix` are per-endpoint so a guest burning
+   * through the search bucket doesn't also lock themselves out of the
+   * details fetch (or vice versa).
    */
   private async authorizePublicHouseholdAccess(
     subUrl: string,
     clientIp: string,
-    accessToken?: string
+    accessToken: string | undefined,
+    rateLimiter: PrismaRateLimiter,
+    rateLimitKeyPrefix: string
   ): Promise<string> {
-    const allowed = await this.publicSearchRateLimiter.check(`household-search:${clientIp}:${subUrl}`)
+    const { allowed, retryAfterSeconds } = await rateLimiter.checkWithRetryAfter(
+      `${rateLimitKeyPrefix}:${clientIp}:${subUrl}`
+    )
     if (!allowed) {
+      const retryAfterMinutes = Math.max(1, Math.ceil(retryAfterSeconds / 60))
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',
-        message: 'יותר מדי ניסיונות חיפוש. נסו שוב בעוד כמה דקות.',
+        message: `יותר מדי ניסיונות. נסו שוב בעוד ${retryAfterMinutes} דקות.`,
       })
     }
 

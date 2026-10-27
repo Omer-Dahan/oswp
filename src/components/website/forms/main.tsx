@@ -49,6 +49,28 @@ const NUM_STATIC_STEPS = 8
 // entirely.
 const NUM_DECLINE_STEPS = 6
 
+const HEBREW_CHARACTERS = /[֐-׿]/
+
+/**
+ * Server-thrown TRPCErrors on this flow are a mix of guest-facing Hebrew
+ * copy (safe to show as-is) and technical messages — raw zod validation
+ * JSON, or English messages meant for developers, not guests. Only the
+ * former should ever reach the guest; everything else falls back to a
+ * generic Hebrew message.
+ */
+function getRsvpSubmitErrorMessage(
+  err: { message?: string; data?: { code?: string } | null },
+  fallback: string
+): string {
+  if (err.data?.code === 'TOO_MANY_REQUESTS') {
+    return err.message || fallback
+  }
+  if (err.message && HEBREW_CHARACTERS.test(err.message)) {
+    return err.message
+  }
+  return fallback
+}
+
 export const shouldConfirmRsvpClose = ({
   currentStep,
   numSteps,
@@ -83,7 +105,7 @@ export default function MainRsvpForm({
     },
     onError: (err) => {
       console.error('Failed to submit RSVP', err)
-      setSubmitError(err.message || tCommon('submitError'))
+      setSubmitError(getRsvpSubmitErrorMessage(err, tCommon('submitError')))
     },
   })
 
