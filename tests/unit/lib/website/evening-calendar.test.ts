@@ -43,4 +43,14 @@ describe('buildEveningCalendarLinks', () => {
   it('returns null when no event has a date', () => {
     expect(buildEveningCalendarLinks({ title: 'x', events: [{ ...wedding, date: null }] })).toBeNull()
   })
+
+  it('escapes punctuation in ICS text fields', () => {
+    const links = buildEveningCalendarLinks({
+      title: 'החתונה של דוד, מורשה',
+      events: [{ ...wedding, venue: 'אגדתא, צומת ראם' }],
+    })
+
+    expect(links!.ics).toContain('SUMMARY:החתונה של דוד\\, מורשה')
+    expect(links!.ics).toContain('LOCATION:אגדתא\\, צומת ראם')
+  })
 })
