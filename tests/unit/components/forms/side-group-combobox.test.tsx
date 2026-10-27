@@ -30,6 +30,16 @@ describe('SideGroupCombobox', () => {
     expect(onChange).toHaveBeenCalledWith('כלה - חברות')
   })
 
+  it('keeps the mobile disclosure and options at least 44px tall', () => {
+    render(<SideGroupCombobox id='side' value='' onChange={jest.fn()} options={options} />)
+
+    const disclosure = screen.getByRole('button', { name: 'הצגת אפשרויות' })
+    expect(disclosure).toHaveClass('h-11', 'w-11')
+
+    fireEvent.focus(screen.getByRole('textbox'))
+    expect(screen.getByRole('button', { name: 'חתן - משפחה' })).toHaveClass('min-h-11')
+  })
+
   it('filters as the guest types and still allows a brand-new value', () => {
     const onChange = jest.fn()
     render(<SideGroupCombobox id='side' value='כלה' onChange={onChange} options={options} />)
