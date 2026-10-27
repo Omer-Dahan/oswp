@@ -22,21 +22,21 @@ const RESET_URL = 'https://example.com/reset?token=abc123'
 describe('ResetPasswordEmail', () => {
   it('renders a reset password link with the provided url', () => {
     render(<ResetPasswordEmail url={RESET_URL} />)
-    expect(screen.getByRole('link', { name: 'Reset Password' })).toHaveAttribute('href', RESET_URL)
+    expect(screen.getByRole('link', { name: 'איפוס הסיסמה' })).toHaveAttribute('href', RESET_URL)
   })
 
   it('includes personalised greeting when userName is provided', () => {
     render(<ResetPasswordEmail url={RESET_URL} userName='Shrek' />)
-    expect(screen.getByText(/Hi Shrek/)).toBeInTheDocument()
+    expect(screen.getByText(/הי Shrek/)).toBeInTheDocument()
   })
 
   it('omits personalised greeting when userName is not provided', () => {
     render(<ResetPasswordEmail url={RESET_URL} />)
-    expect(screen.queryByText(/Hi /)).not.toBeInTheDocument()
+    expect(screen.queryByText(/הי /)).not.toBeInTheDocument()
   })
 
   it('includes safety disclaimer', () => {
     render(<ResetPasswordEmail url={RESET_URL} />)
-    expect(screen.getByText(/didn/)).toBeInTheDocument()
+    expect(screen.getByText(/בבטחה/)).toBeInTheDocument()
   })
 })

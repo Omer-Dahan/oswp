@@ -28,26 +28,26 @@ describe('OtpEmail', () => {
 
   it('shows correct heading for sign-in type', () => {
     render(<OtpEmail otp='000000' type='sign-in' />)
-    expect(screen.getByRole('heading', { name: 'Your sign-in code' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'קוד הכניסה שלכם' })).toBeInTheDocument()
   })
 
   it('shows correct heading for email-verification type', () => {
     render(<OtpEmail otp='000000' type='email-verification' />)
-    expect(screen.getByRole('heading', { name: 'Verify your email' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'אימות כתובת האימייל שלכם' })).toBeInTheDocument()
   })
 
   it('shows correct heading for forget-password type', () => {
     render(<OtpEmail otp='000000' type='forget-password' />)
-    expect(screen.getByRole('heading', { name: 'Reset your password' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'איפוס הסיסמה שלכם' })).toBeInTheDocument()
   })
 
   it('includes expiry message in the body', () => {
     render(<OtpEmail otp='111111' type='sign-in' />)
-    expect(screen.getByText(/10 minutes/)).toBeInTheDocument()
+    expect(screen.getByText(/10 דקות/)).toBeInTheDocument()
   })
 
   it('includes safety disclaimer', () => {
     render(<OtpEmail otp='111111' type='sign-in' />)
-    expect(screen.getByText(/didn/)).toBeInTheDocument()
+    expect(screen.getByText(/בבטחה/)).toBeInTheDocument()
   })
 })

@@ -30,10 +30,7 @@ describe('OrganizationInvitationEmail', () => {
       />
     )
 
-    expect(screen.getByRole('link', { name: 'Accept Invitation' })).toHaveAttribute(
-      'href',
-      INVITE_URL
-    )
+    expect(screen.getByRole('link', { name: 'אישור ההזמנה' })).toHaveAttribute('href', INVITE_URL)
   })
 
   it('includes organization and role details', () => {
@@ -60,6 +57,6 @@ describe('OrganizationInvitationEmail', () => {
       />
     )
 
-    expect(screen.getByText(/Fiona invited you/i)).toBeInTheDocument()
+    expect(screen.getByText(/Fiona הזמינו אתכם/)).toBeInTheDocument()
   })
 })
