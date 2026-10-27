@@ -117,6 +117,12 @@ export const RsvpFormProvider = ({
     ...(recognizedHousehold
       ? {
           matchedHouseholds: [recognizedHousehold],
+          selectedHousehold: {
+            ...recognizedHousehold,
+            primaryContact:
+              recognizedHousehold.guests.find((guest) => guest.isPrimaryContact) ??
+              recognizedHousehold.guests[0],
+          },
           recognized: true,
           dietaryNotes: recognizedHousehold.dietaryNotes ?? undefined,
           wishesMessage: recognizedHousehold.wishesMessage ?? undefined,
