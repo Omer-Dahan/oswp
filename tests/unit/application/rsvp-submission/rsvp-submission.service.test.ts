@@ -460,6 +460,29 @@ describe('RsvpSubmissionService', () => {
     )
   })
 
+  it('creates invitation rows when only named extra guests are attending', async () => {
+    const result = await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Declined' }],
+        answersToQuestions: [],
+        attendingCount: 1,
+        extraGuestNames: ['Extra Guest'],
+      },
+      '127.0.0.1'
+    )
+
+    expect(result).toEqual({ success: true })
+    expect(mockReplaceTagAlongs).toHaveBeenCalledWith(
+      'household-123',
+      'wedding-123',
+      ['Extra Guest'],
+      ['event-123'],
+      []
+    )
+  })
+
   it('rejects when the site is unknown or RSVP is disabled and no token is supplied', async () => {
     mockDb.website.findFirst.mockResolvedValue(null)
 
