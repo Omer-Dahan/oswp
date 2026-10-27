@@ -9,6 +9,18 @@ import { z } from 'zod'
 const NAME_MAX = 100
 const nameTooLong = 'השם חייב להיות עד 100 תווים'
 
+export const RSVP_STEP_KEYS = ['children-count', 'dietary-notes', 'wishes-message'] as const
+export type RsvpStepKey = (typeof RSVP_STEP_KEYS)[number]
+
+export const updateRsvpStepsSchema = z.object({
+  rsvpSteps: z
+    .array(z.enum(RSVP_STEP_KEYS))
+    .max(RSVP_STEP_KEYS.length)
+    .refine((steps) => new Set(steps).size === steps.length, {
+      message: 'RSVP steps must be unique',
+    }),
+})
+
 /**
  * Schema for creating a new wedding (onboarding)
  */
@@ -33,6 +45,7 @@ export const updateWeddingSchema = z.object({
   brideFirstName: z.string().min(1).max(NAME_MAX, nameTooLong).optional(),
   brideLastName: z.string().min(1).max(NAME_MAX, nameTooLong).optional(),
   enabledAddOns: z.array(z.string()).optional(),
+  rsvpSteps: updateRsvpStepsSchema.shape.rsvpSteps.optional(),
 })
 
 /**
@@ -64,3 +77,4 @@ export type CreateWeddingSchemaInput = z.infer<typeof createWeddingSchema>
 export type ToggleWeddingAddOnInput = z.infer<typeof toggleWeddingAddOnSchema>
 export type UpdateWeddingSchemaInput = z.infer<typeof updateWeddingSchema>
 export type UpdateWeddingDetailsInput = z.infer<typeof updateWeddingDetailsSchema>
+export type UpdateRsvpStepsInput = z.infer<typeof updateRsvpStepsSchema>

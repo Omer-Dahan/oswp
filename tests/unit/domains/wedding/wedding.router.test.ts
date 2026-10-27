@@ -246,6 +246,31 @@ describe('weddingRouter', () => {
     })
   })
 
+  describe('updateRsvpSteps', () => {
+    it('rejects a viewer without settings access', async () => {
+      const caller = makeAuthCaller('user-123', 'wedding-123', 'viewer')
+
+      await expect(caller.updateRsvpSteps({ rsvpSteps: ['children-count'] })).rejects.toMatchObject(
+        { code: 'FORBIDDEN' }
+      )
+      expect(mockUpdateWeddingFn).not.toHaveBeenCalled()
+    })
+
+    it('persists the configured order exactly', async () => {
+      const rsvpSteps = ['wishes-message', 'children-count'] as const
+      mockUpdateWeddingFn.mockResolvedValue({ ...mockWedding, rsvpSteps: [...rsvpSteps] })
+
+      const result = await makeAuthCaller().updateRsvpSteps({ rsvpSteps: [...rsvpSteps] })
+
+      expect(result.rsvpSteps).toEqual(rsvpSteps)
+      expect(mockUpdateWeddingFn).toHaveBeenCalledWith({
+        ctx: expect.objectContaining({ userId: 'user-123' }),
+        weddingId: 'wedding-123',
+        data: { rsvpSteps: [...rsvpSteps] },
+      })
+    })
+  })
+
   describe('getByUserId', () => {
     it('should throw FORBIDDEN for viewer role', async () => {
       const caller = makeAuthCaller('user-123', 'wedding-123', 'viewer')
