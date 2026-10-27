@@ -157,7 +157,7 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
             ref={listRef}
             dir='rtl'
             style={{ position: 'fixed', top: anchor.top, left: anchor.left, width: anchor.width }}
-            className='z-[80] max-h-48 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
+            className='z-[96] max-h-48 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
           >
             {filteredOptions.map((option) => (
               <button
