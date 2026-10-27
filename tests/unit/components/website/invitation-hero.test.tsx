@@ -26,7 +26,7 @@ const baseProps = {
 }
 
 describe('InvitationHero', () => {
-  it('renders a wedding pill and a chuppah pill, neither preselecting an event', () => {
+  it('renders a wedding pill and a chuppah pill, and only the chuppah preselects its event', () => {
     render(
       <InvitationHero
         {...baseProps}
@@ -42,12 +42,14 @@ describe('InvitationHero', () => {
 
     expect(weddingLinks.length).toBeGreaterThan(0)
     expect(chuppahLinks.length).toBeGreaterThan(0)
-    // A household invited to more than one RSVP-able event is never
-    // preselected into either one — an event-scoped submission would
-    // silently drop the other event's answers (see RsvpPills in
-    // invitation-hero.tsx) — so both pills link to the plain RSVP form.
-    for (const link of [...weddingLinks, ...chuppahLinks]) {
+    // "רק לחופה" is a deliberately narrower answer, so it preselects the chuppah
+    // and the form then drops the meal-only steps (children, dietary). The full
+    // RSVP pill stays unscoped so it keeps covering every event.
+    for (const link of weddingLinks) {
       expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp')
+    }
+    for (const link of chuppahLinks) {
+      expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?event=chuppah-event')
     }
   })
 

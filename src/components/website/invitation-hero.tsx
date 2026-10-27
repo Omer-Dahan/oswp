@@ -80,7 +80,7 @@ function RsvpPills({
       </Link>
       {chuppahEvent ? (
         <Link
-          href={rsvpHref}
+          href={`${rsvpHref}?event=${chuppahEvent.id}`}
           aria-label='רק לחופה'
           className={RSVP_PILL_OUTLINE_CLASSES[size]}
         >
