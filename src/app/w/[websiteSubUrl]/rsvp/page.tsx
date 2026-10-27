@@ -79,12 +79,25 @@ export default async function RsvpPage({ params, searchParams }: RsvpPageProps) 
 
   // An unrecognized eventId (stale link, tampering) must not silently narrow
   // the form to zero events — fall back to the full, all-events flow instead.
+  // Likewise, a recognized household that holds another invitation (e.g. the
+  // auto-created ceremony event) which isn't `Not Invited` must not be
+  // narrowed to just the requested event either — the single-event flow only
+  // submits that one event's RSVP, so the server would see the submission as
+  // not covering the whole household (see coversAllHouseholdEvents in
+  // rsvp-submission.service.ts) and flag it as incomplete.
   const requestedEventId = resolvedSearchParams?.event
-  const preselectedEventId = loadResult.weddingData.events.some(
+  const requestedEventExists = loadResult.weddingData.events.some(
     (event) => event.id === requestedEventId
   )
-    ? requestedEventId
-    : undefined
+  const householdHasOtherActiveInvitation = Boolean(
+    recognizedHousehold?.guests.some((guest) =>
+      guest.invitations.some(
+        (invitation) => invitation.eventId !== requestedEventId && invitation.rsvp !== 'Not Invited'
+      )
+    )
+  )
+  const preselectedEventId =
+    requestedEventExists && !householdHasOtherActiveInvitation ? requestedEventId : undefined
 
   const form = (
     <RsvpFormProvider
