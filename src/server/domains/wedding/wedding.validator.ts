@@ -5,12 +5,10 @@
  */
 
 import { z } from 'zod'
+import { RSVP_STEP_KEYS } from '~/lib/rsvp/steps'
 
 const NAME_MAX = 100
 const nameTooLong = 'השם חייב להיות עד 100 תווים'
-
-export const RSVP_STEP_KEYS = ['children-count', 'dietary-notes', 'wishes-message'] as const
-export type RsvpStepKey = (typeof RSVP_STEP_KEYS)[number]
 
 export const updateRsvpStepsSchema = z.object({
   rsvpSteps: z

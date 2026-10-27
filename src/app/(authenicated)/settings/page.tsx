@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { PluginsSettingsCard } from '~/app/_components/settings/plugins-settings-card'
+import { RsvpStepsSettingsCard } from '~/app/_components/settings/rsvp-steps-settings-card'
 import DashboardTopbar from '~/components/dashboard/dashboard-topbar'
 import WeddingSettingsForm from '~/components/forms/wedding-settings-form'
 import { OrganizationMembersSettingsCard } from '~/components/settings/organization-members-settings-card'
@@ -79,6 +80,9 @@ export default async function SettingsPage() {
                 לא נמצאה חתונה. אנא השלימו את תהליך ההצטרפות תחילה.
               </p>
             )}
+            <div className='space-y-3'>
+              <RsvpStepsSettingsCard rsvpSteps={wedding.rsvpSteps} />
+            </div>
             <div className='space-y-3'>
               <div>
                 <h3 className='font-serif text-foreground text-xl'>תוספים</h3>
