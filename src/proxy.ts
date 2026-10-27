@@ -22,6 +22,7 @@ const PUBLIC_PREFIXES = [
   '/api/cron',
   '/api/whatsapp/webhook',
   '/api/og',
+  '/api/calendar',
 ]
 
 // Guest-facing tRPC procedures that must be reachable without a session. The
