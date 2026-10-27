@@ -312,9 +312,9 @@ export function buildEveningCalendarLinks(
     `DTSTAMP:${utcStamp(stamp)}`,
     `DTSTART:${utcStamp(start)}`,
     `DTEND:${utcStamp(end)}`,
-    `SUMMARY:${input.title}`,
-    location ? `LOCATION:${location}` : null,
-    description ? `DESCRIPTION:${description.replace(/\n/g, '\\n')}` : null,
+    `SUMMARY:${escapeIcsText(input.title)}`,
+    location ? `LOCATION:${escapeIcsText(location)}` : null,
+    description ? `DESCRIPTION:${escapeIcsText(description)}` : null,
     'END:VEVENT',
     'END:VCALENDAR',
   ].filter((line): line is string => line !== null)
