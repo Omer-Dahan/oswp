@@ -8,6 +8,7 @@ export const mockCreateEvent = jest.fn()
 export const mockCreateEventSystem = jest.fn()
 export const mockGetById = jest.fn()
 export const mockGetAllByWeddingId = jest.fn()
+export const mockGetWeddingEvents = jest.fn()
 export const mockUpdateEvent = jest.fn()
 export const mockDeleteEvent = jest.fn()
 export const mockUpdateCollectRsvp = jest.fn()
@@ -17,6 +18,7 @@ export const EventService = jest.fn().mockImplementation(() => ({
   createEventSystem: mockCreateEventSystem,
   getById: mockGetById,
   getAllByWeddingId: mockGetAllByWeddingId,
+  getWeddingEvents: mockGetWeddingEvents,
   updateEvent: mockUpdateEvent,
   deleteEvent: mockDeleteEvent,
   updateCollectRsvp: mockUpdateCollectRsvp,
@@ -28,6 +30,7 @@ export const resetMocks = (): void => {
   mockCreateEventSystem.mockReset()
   mockGetById.mockReset()
   mockGetAllByWeddingId.mockReset()
+  mockGetWeddingEvents.mockReset()
   mockUpdateEvent.mockReset()
   mockDeleteEvent.mockReset()
   mockUpdateCollectRsvp.mockReset()
