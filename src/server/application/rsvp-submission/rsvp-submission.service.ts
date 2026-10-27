@@ -262,9 +262,11 @@ export class RsvpSubmissionService {
                 ? data.rsvpResponses
                     .filter((response) => response.rsvp === 'Attending')
                     .map((response) => response.eventId)
-                : data.rsvpResponses
-                    .filter((response) => response.rsvp !== 'Declined')
-                    .map((response) => response.eventId)
+                : householdPartyDetails.extraGuestNames.length > 0
+                  ? data.rsvpResponses.map((response) => response.eventId)
+                  : data.rsvpResponses
+                      .filter((response) => response.rsvp !== 'Declined')
+                      .map((response) => response.eventId)
             )
           )
 
