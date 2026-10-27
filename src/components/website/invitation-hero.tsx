@@ -150,7 +150,7 @@ export function InvitationHero({
         </div>
         <div className='absolute inset-0 bg-background/35' />
 
-        <div className='relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 px-6'>
+        <div className='relative z-10 flex min-h-[100svh] w-full flex-col items-center justify-center gap-3 px-6'>
           <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
             <div>
               <HeroCard
@@ -194,7 +194,7 @@ export function InvitationHero({
       </div>
 
       {/* Desktop: linen backdrop, two interactive cards, greeting + RSVP below them. */}
-      <div className='relative hidden h-full w-full flex-col items-center justify-center gap-8 px-10 md:flex'>
+      <div className='relative hidden min-h-[100svh] w-full flex-col items-center justify-center gap-8 px-10 md:flex'>
         <div className='absolute inset-0'>
           <Image
             src='/brand/linen-bg.png'
