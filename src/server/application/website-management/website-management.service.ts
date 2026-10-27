@@ -270,6 +270,7 @@ export class WebsiteManagementService {
         numberFormat: formatDateNumber(weddingDate),
       },
       websiteBuilderEnabled: wedding.enabledAddOns.includes('website_builder'),
+      rsvpSteps: wedding.rsvpSteps,
       website: this.toPublicWebsiteWithQuestions(website, {
         introText,
         headline: homeContent?.headline,

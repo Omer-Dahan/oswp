@@ -17,6 +17,7 @@ import QuestionMultipleChoice from '~/components/website/forms/steps/question-mu
 import QuestionShortAnswer from '~/components/website/forms/steps/question-short-answer'
 import SendRsvp from '~/components/website/forms/steps/send-rsvp'
 import WhoIsComingForm from '~/components/website/forms/steps/who-is-coming'
+import WishesMessageForm from '~/components/website/forms/steps/wishes-message'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
@@ -28,6 +29,30 @@ const RSVP_SUBMISSION_EVENT = buildEventName({
   object: 'public_submission',
   action: ANALYTICS_ACTIONS.started,
 })
+
+const DEFAULT_RSVP_STEPS = ['children-count', 'dietary-notes'] as const
+const RSVP_STEP_COMPONENTS = {
+  'children-count': ChildrenCountForm,
+  'dietary-notes': DietaryNotesForm,
+  'wishes-message': WishesMessageForm,
+} as const
+type RsvpStepKey = keyof typeof RSVP_STEP_COMPONENTS
+
+export function normalizeRsvpSteps(steps: readonly string[] | undefined): RsvpStepKey[] {
+  const configuredSteps = steps ?? DEFAULT_RSVP_STEPS
+  const seen = new Set<RsvpStepKey>()
+  const normalized: RsvpStepKey[] = []
+
+  for (const step of configuredSteps) {
+    if (!(step in RSVP_STEP_COMPONENTS)) continue
+    const key = step as RsvpStepKey
+    if (seen.has(key)) continue
+    seen.add(key)
+    normalized.push(key)
+  }
+
+  return normalized
+}
 
 type MainRsvpFormProps = {
   weddingData: RsvpPageData
@@ -190,6 +215,16 @@ export default function MainRsvpForm({
     () => isChuppahOnlySelection(weddingData?.events ?? [], rsvpFormData.preselectedEventId),
     [weddingData?.events, rsvpFormData.preselectedEventId]
   )
+  const configuredRsvpSteps = useMemo(() => {
+    const normalized = normalizeRsvpSteps(weddingData.rsvpSteps)
+    return isChuppahOnlyFlow
+      ? normalized.filter((step) => step !== 'children-count' && step !== 'dietary-notes')
+      : normalized
+  }, [isChuppahOnlyFlow, weddingData.rsvpSteps])
+  const configuredRsvpStepSet = useMemo(
+    () => new Set<RsvpStepKey>(configuredRsvpSteps),
+    [configuredRsvpSteps]
+  )
 
   // Counted from the rendered list rather than a magic constant: the flow now
   // ends without a wishes step, and the chuppah-only variant skips the two meal
@@ -198,7 +233,8 @@ export default function MainRsvpForm({
   const numSteps = isDeclineFlow
     ? identitySteps + 3 // decline confirmation, send, confirmation
     : identitySteps +
-      (isChuppahOnlyFlow ? 1 : 3) + // who is coming (+ children, dietary)
+      1 + // who is coming
+      configuredRsvpSteps.length +
       dynamicStepForms.length +
       2 // send, confirmation
   const progress = (currentStep / numSteps) * 100
@@ -279,9 +315,15 @@ export default function MainRsvpForm({
             // household's counts from that narrower view would overwrite the
             // numbers collected for the wedding itself.
             attendingCount: isChuppahOnlyFlow ? undefined : rsvpFormData.attendingCount,
-            childrenCount: isChuppahOnlyFlow ? undefined : rsvpFormData.childrenCount,
-            dietaryNotes: isChuppahOnlyFlow ? undefined : rsvpFormData.dietaryNotes,
-            wishesMessage: rsvpFormData.wishesMessage,
+            childrenCount: configuredRsvpStepSet.has('children-count')
+              ? rsvpFormData.childrenCount
+              : undefined,
+            dietaryNotes: configuredRsvpStepSet.has('dietary-notes')
+              ? rsvpFormData.dietaryNotes
+              : undefined,
+            wishesMessage: configuredRsvpStepSet.has('wishes-message')
+              ? rsvpFormData.wishesMessage
+              : undefined,
             extraGuestNames: rsvpFormData.extraGuestNames ?? [],
             rsvpResponses: rsvpFormData.rsvpResponses.map((response) => ({
               eventId: response.eventId,
@@ -303,12 +345,10 @@ export default function MainRsvpForm({
           ) : (
             [
               <WhoIsComingForm key='who-is-coming' />,
-              ...(isChuppahOnlyFlow
-                ? []
-                : [
-                    <ChildrenCountForm key='children-count' />,
-                    <DietaryNotesForm key='dietary-notes' />,
-                  ]),
+              ...configuredRsvpSteps.map((step) => {
+                const StepComponent = RSVP_STEP_COMPONENTS[step]
+                return <StepComponent key={step} />
+              }),
               ...dynamicStepForms,
             ]
           )}

@@ -290,6 +290,7 @@ describe('WebsiteManagementService', () => {
         url: 'https://oswp.example/w/johndoeandjanesmith',
       })
       expect(result.websiteBuilderEnabled).toBe(false)
+      expect(result.rsvpSteps).toEqual(['children-count', 'dietary-notes'])
       expect(result.website).not.toHaveProperty('password')
       expect(result.events).toHaveLength(1)
       // Only enabled, non-HOME sections are surfaced, in position order.

@@ -14,6 +14,9 @@ jest.mock('~/components/contexts/rsvp-form-context', () => ({
     selectedHousehold: { id: 'household-1', guests: [] },
     rsvpResponses: [],
     answersToQuestions: [],
+    childrenCount: 2,
+    dietaryNotes: 'Previously saved allergy',
+    wishesMessage: 'Congratulations',
   }),
   useUpdateRsvpForm: () => jest.fn(),
 }))
@@ -72,6 +75,30 @@ jest.mock('~/components/website/forms/steps/question-short-answer', () => {
 jest.mock('~/components/website/forms/steps/send-rsvp', () => {
   return function MockSendRsvp() {
     return <div>Send RSVP</div>
+  }
+})
+
+jest.mock('~/components/website/forms/steps/who-is-coming', () => {
+  return function MockWhoIsComingForm() {
+    return <div>Who is coming</div>
+  }
+})
+
+jest.mock('~/components/website/forms/steps/children-count', () => {
+  return function MockChildrenCountForm() {
+    return <div>Children count</div>
+  }
+})
+
+jest.mock('~/components/website/forms/steps/dietary-notes', () => {
+  return function MockDietaryNotesForm() {
+    return <div>Dietary notes</div>
+  }
+})
+
+jest.mock('~/components/website/forms/steps/wishes-message', () => {
+  return function MockWishesMessageForm() {
+    return <div>Wishes message</div>
   }
 })
 
@@ -156,6 +183,62 @@ describe('Main RSVP layout', () => {
     expect(sharedStyles.sidebarFormWidth).toContain('w-full')
     expect(sharedStyles.sidebarFormWidth).toContain('max-w-')
     expect(sharedStyles.sidebarFormWidth).not.toContain('w-[525px]')
+  })
+
+  it.each([
+    [[], ['Who is coming', 'Send RSVP']],
+    [['children-count'], ['Who is coming', 'Children count', 'Send RSVP']],
+    [
+      ['wishes-message', 'dietary-notes', 'children-count'],
+      ['Who is coming', 'Wishes message', 'Dietary notes', 'Children count', 'Send RSVP'],
+    ],
+    [
+      ['unknown-step', 'wishes-message', 'wishes-message', 'children-count'],
+      ['Who is coming', 'Wishes message', 'Children count', 'Send RSVP'],
+    ],
+  ])('renders configured RSVP steps in order for %j', (rsvpSteps, expectedOrder) => {
+    render(
+      <MainRsvpForm
+        weddingData={{ rsvpSteps, events: [], website: { generalQuestions: [] } } as never}
+        basePath='/wedding'
+      />
+    )
+
+    const renderedPositions = expectedOrder.map((label) => screen.getByText(label))
+    for (let index = 1; index < renderedPositions.length; index += 1) {
+      expect(
+        renderedPositions[index - 1]?.compareDocumentPosition(renderedPositions[index] as Node) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+    }
+  })
+
+  it('omits disabled step values from the submission payload', () => {
+    const { container } = render(
+      <MainRsvpForm
+        weddingData={
+          {
+            rsvpSteps: [],
+            events: [],
+            website: { subUrl: 'our-wedding', generalQuestions: [] },
+          } as never
+        }
+        basePath='/wedding'
+      />
+    )
+
+    act(() => {
+      capturedSetCurrentStep?.(4)
+    })
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement)
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        childrenCount: undefined,
+        dietaryNotes: undefined,
+        wishesMessage: undefined,
+      })
+    )
   })
 
   it('keeps progress in normal flow when embedded below wedding navigation', () => {
