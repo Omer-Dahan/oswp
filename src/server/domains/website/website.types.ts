@@ -121,6 +121,7 @@ export type WeddingPageData = {
   brideLastName: string | null
   date: WeddingDate
   websiteBuilderEnabled: boolean
+  rsvpSteps: string[]
   website: PublicWebsiteWithQuestions & {
     introText: string
     /** Optional hero headline + emphasised tail (HOME section, hero templates). */
