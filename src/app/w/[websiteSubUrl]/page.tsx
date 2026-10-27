@@ -41,8 +41,12 @@ export async function generateMetadata({ params }: RootRouteHandlerProps): Promi
 
   const brideName = brideFirstName && brideLastName ? `${brideFirstName} ${brideLastName}` : ''
   const groomName = groomFirstName && groomLastName ? `${groomFirstName} ${groomLastName}` : ''
-  const title = brideName && groomName ? `${groomName} & ${brideName} Wedding` : 'Wedding Website'
-  const description = introText || `Join us for the wedding of ${groomName} and ${brideName}.`
+  // The share card is read by guests, not by the couple: Hebrew only, the way
+  // the invitation itself reads. English here surfaced in every WhatsApp preview.
+  const title =
+    brideName && groomName ? `החתונה של ${groomName} ו${brideName}` : 'הזמנה לחתונה'
+  const description =
+    introText || (groomName && brideName ? `נשמח לראותכם בחתונה של ${groomName} ו${brideName}` : '')
 
   const ogImageUrl = `/api/og/wedding/${websiteSubUrl}`
 

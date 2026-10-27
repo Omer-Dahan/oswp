@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import type { NextRequest } from 'next/server'
 import sharp from 'sharp'
 
@@ -5,6 +7,9 @@ import { loadWeddingBySubUrl } from '~/app/w/[websiteSubUrl]/_lib/load-wedding-b
 
 const DEFAULT_OG_IMAGE_WIDTH = 1200
 const DEFAULT_OG_IMAGE_HEIGHT = 630
+
+/** The invitation artwork doubles as the default share card. */
+const DEFAULT_OG_ARTWORK_PATH = path.join(process.cwd(), 'public', 'brand', 'invitation-v2.png')
 
 function escapeXml(unsafe: string): string {
   return unsafe.replace(/[<>&'"]/g, (c) => {
@@ -64,7 +69,8 @@ async function generateWeddingOgImage(
   headline?: string,
   accent?: string
 ): Promise<Buffer> {
-  let baseImage = null
+  let baseImage: Buffer | null = null
+  let usedHeaderImage = false
 
   if (headerImageUrl) {
     try {
@@ -77,6 +83,7 @@ async function generateWeddingOgImage(
             position: 'center',
           })
           .toBuffer()
+        usedHeaderImage = true
       }
     } catch {
       // If image fetch fails, use default
@@ -84,18 +91,21 @@ async function generateWeddingOgImage(
   }
 
   if (!baseImage) {
-    baseImage = await sharp({
-      create: {
-        width: DEFAULT_OG_IMAGE_WIDTH,
-        height: DEFAULT_OG_IMAGE_HEIGHT,
-        channels: 3,
-        background: { r: 245, g: 245, b: 245 },
-      },
-    }).toBuffer()
+    // Share card defaults to the invitation artwork itself — letterboxed on the
+    // parchment tone — so a WhatsApp/Facebook preview looks like the invitation
+    // it links to instead of an empty grey card.
+    baseImage = await sharp(DEFAULT_OG_ARTWORK_PATH)
+      .resize(DEFAULT_OG_IMAGE_WIDTH, DEFAULT_OG_IMAGE_HEIGHT, {
+        fit: 'contain',
+        background: { r: 246, g: 242, b: 233 },
+      })
+      .png()
+      .toBuffer()
   }
 
-  // Overlay text if provided
-  if (headline || accent) {
+  // Overlay text only on a header photo: the artwork already carries the names
+  // and date, and the SVG overlay cannot render Hebrew (no font in sharp).
+  if (usedHeaderImage && (headline || accent)) {
     const textSvg = createTextOverlaySvg(headline || '', accent || '')
     const textBuffer = Buffer.from(textSvg)
     // Convert SVG to PNG first
@@ -124,28 +134,43 @@ export async function GET(
   try {
     const { websiteSubUrl } = await params
 
-    const loadResult = await loadWeddingBySubUrl(websiteSubUrl)
+    // The share card must never depend on the page load succeeding: a guest
+    // pasting the link into WhatsApp has to see the invitation artwork even if
+    // the wedding lookup fails.
+    try {
+      const loadResult = await loadWeddingBySubUrl(websiteSubUrl)
 
-    let headerImageUrl: string | null = null
-    let headline: string | undefined
-    let accent: string | undefined
+      let headerImageUrl: string | null = null
+      let headline: string | undefined
+      let accent: string | undefined
 
-    if (loadResult.status === 'ready') {
-      headerImageUrl = loadResult.weddingData.website.headerImageUrl
-      headline = loadResult.weddingData.website.headline
-      accent = loadResult.weddingData.website.headlineAccent
+      if (loadResult.status === 'ready') {
+        headerImageUrl = loadResult.weddingData.website.headerImageUrl
+        headline = loadResult.weddingData.website.headline
+        accent = loadResult.weddingData.website.headlineAccent
+      }
+
+      const buffer = await generateWeddingOgImage(headerImageUrl, headline, accent)
+
+      return new Response(new Blob([new Uint8Array(buffer)], { type: 'image/png' }), {
+        headers: {
+          'Content-Type': 'image/png',
+          'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+          'CDN-Cache-Control': 'max-age=86400',
+        },
+      })
+    } catch (error) {
+      console.warn('[og] wedding lookup failed, serving the artwork card', error)
+      const buffer = await generateWeddingOgImage(null)
+      return new Response(new Blob([new Uint8Array(buffer)], { type: 'image/png' }), {
+        headers: {
+          'Content-Type': 'image/png',
+          'Cache-Control': 'public, max-age=300',
+        },
+      })
     }
-
-    const buffer = await generateWeddingOgImage(headerImageUrl, headline, accent)
-
-    return new Response(new Blob([new Uint8Array(buffer)], { type: 'image/png' }), {
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
-        'CDN-Cache-Control': 'max-age=86400',
-      },
-    })
-  } catch {
+  } catch (error) {
+    console.error('[og] failed to build the share image', error)
     // Return a basic image on error
     const errorImageBuffer = await sharp({
       create: {
