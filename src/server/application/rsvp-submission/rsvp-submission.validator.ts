@@ -89,6 +89,32 @@ function rejectDuplicateSubmissions(
   })
 }
 
+function rejectInconsistentPartySize(
+  data: {
+    attendingCount?: number | null
+    extraGuestNames?: string[]
+    rsvpResponses: Array<{ guestId: number; rsvp: string }>
+  },
+  ctx: z.RefinementCtx
+): void {
+  if (data.attendingCount == null) return
+
+  const namedAttendeeIds = new Set(
+    data.rsvpResponses
+      .filter((response) => response.rsvp === 'Attending')
+      .map((response) => response.guestId)
+  )
+  const knownAttendees = namedAttendeeIds.size + (data.extraGuestNames?.length ?? 0)
+
+  if (knownAttendees > data.attendingCount) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'מספר המגיעים קטן ממספר האורחים שסומנו כמגיעים',
+      path: ['attendingCount'],
+    })
+  }
+}
+
 /**
  * Schema for complete RSVP form submission (authenticated coordinator flow)
  */
@@ -132,6 +158,9 @@ export const submitPublicRsvpSchema = z
     // the same MAX_ATTENDING ceiling as the rest of the household's party.
     extraGuestNames: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   })
-  .superRefine(rejectDuplicateSubmissions)
+  .superRefine((data, ctx) => {
+    rejectDuplicateSubmissions(data, ctx)
+    rejectInconsistentPartySize(data, ctx)
+  })
 
 export type SubmitPublicRsvpSchemaInput = z.infer<typeof submitPublicRsvpSchema>
