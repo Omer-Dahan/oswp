@@ -84,6 +84,17 @@ describe('GuestRepository.replaceTagAlongs', () => {
     ])
   })
 
+  it('creates only one tag-along when a submitted name is duplicated', async () => {
+    await repository.replaceTagAlongs(
+      'household-1',
+      'wedding-1',
+      ['Jamie Doe', 'Jamie Doe'],
+      ['event-1']
+    )
+
+    expect(mockGuestCreate).toHaveBeenCalledTimes(1)
+  })
+
   it('creates no rows and skips invitations when there are no named extras', async () => {
     await repository.replaceTagAlongs('household-1', 'wedding-1', [], ['event-1'])
 
