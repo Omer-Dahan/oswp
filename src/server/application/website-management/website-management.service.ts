@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server'
 import { getLocale } from 'next-intl/server'
 
 import { calculateDaysRemaining, formatDateNumber } from '~/app/utils/helpers'
+import { readRsvpCopy } from '~/lib/rsvp/copy'
 import { deriveWeddingSubUrl } from '~/lib/website-slug'
 import type { HouseholdInviteService } from '~/server/application/household-invite/household-invite.service'
 import type { AuthzContext } from '~/server/authz/authorization.types'
@@ -271,6 +272,7 @@ export class WebsiteManagementService {
       },
       websiteBuilderEnabled: wedding.enabledAddOns.includes('website_builder'),
       rsvpSteps: wedding.rsvpSteps,
+      rsvpCopy: readRsvpCopy(wedding.rsvpCopy),
       website: this.toPublicWebsiteWithQuestions(website, {
         introText,
         headline: homeContent?.headline,

@@ -1,17 +1,45 @@
-import { NextIntlClientProvider } from 'next-intl'
+import { type AbstractIntlMessages, NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
+import { loadVisitorWedding } from '~/app/w/[websiteSubUrl]/_lib/load-visitor-wedding'
 import { LocaleToggle } from '~/components/locale-toggle'
+import type { RsvpCopyOverrides } from '~/lib/rsvp/copy'
 import { hebrewAlt, hebrewLight, hebrewSans, hebrewSerif } from '~/templates/fonts'
+
+export function mergeGuestRsvpMessages(
+  messages: AbstractIntlMessages,
+  overrides: RsvpCopyOverrides
+): AbstractIntlMessages {
+  const rsvpMessages = messages.rsvp
+  if (!rsvpMessages || typeof rsvpMessages !== 'object' || Array.isArray(rsvpMessages)) {
+    return messages
+  }
+  return { ...messages, rsvp: { ...rsvpMessages, ...overrides } }
+}
 
 export default async function WeddingWebsiteLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
-  const locale = await getLocale()
-  const messages = await getMessages()
+  params,
+}: Readonly<{
+  children: React.ReactNode
+  params: Promise<{ websiteSubUrl: string }>
+}>) {
+  const [locale, messages, { websiteSubUrl }] = await Promise.all([
+    getLocale(),
+    getMessages(),
+    params,
+  ])
   const isHebrew = locale === 'he'
+  let guestMessages = messages
+
+  if (isHebrew) {
+    const { loadResult } = await loadVisitorWedding(websiteSubUrl)
+    if (loadResult.status === 'ready') {
+      guestMessages = mergeGuestRsvpMessages(messages, loadResult.weddingData.rsvpCopy)
+    }
+  }
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={guestMessages}>
       {/* Guest-facing pages keep the original styling; see globals.css. */}
       <div
         data-guest-surface
