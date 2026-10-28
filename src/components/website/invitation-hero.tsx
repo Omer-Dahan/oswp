@@ -124,28 +124,37 @@ function topGreetingText(invitedHousehold: InvitedHousehold | null): string | nu
 function GreetingFrame({ name }: Readonly<{ name: string }>) {
   return (
     <header
-      className='relative z-10 grid min-h-[154px] w-full max-w-[306px] place-content-center px-7 py-6 text-center md:min-h-40 md:max-w-[440px] md:px-10'
+      className='relative z-10 grid min-h-[154px] w-full max-w-[340px] place-content-center px-7 py-8 text-center md:min-h-40 md:max-w-[520px] md:px-10'
       dir='rtl'
       lang='he'
     >
       <svg
-        className='pointer-events-none absolute inset-0 size-full text-border'
+        className='pointer-events-none absolute inset-0 size-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]'
         viewBox='0 0 440 160'
         preserveAspectRatio='none'
         aria-hidden='true'
       >
-        <rect x='7' y='7' width='426' height='146' rx='1' fill='none' stroke='currentColor' />
+        <rect
+          x='7'
+          y='7'
+          width='426'
+          height='146'
+          rx='1'
+          fill='none'
+          stroke='rgba(255,255,255,0.95)'
+          strokeWidth='3'
+        />
         <path
           d='M7 28V7h21M433 28V7h-21M7 132v21h21M433 132v21h-21'
           fill='none'
-          stroke='currentColor'
-          strokeWidth='1.2'
+          stroke='rgba(255,255,255,0.95)'
+          strokeWidth='3.6'
         />
         <path
           d='M7 18c8 0 11-3 11-11M422 7c0 8 3 11 11 11M7 142c8 0 11 3 11 11M422 153c0-8 3-11 11-11'
           fill='none'
-          stroke='currentColor'
-          strokeWidth='.8'
+          stroke='rgba(255,255,255,0.95)'
+          strokeWidth='2.4'
         />
       </svg>
       <h1 className='m-0 font-[family-name:var(--tpl-hebrew-serif)] text-[36px] text-foreground leading-[1.05] md:text-5xl'>
