@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod'
+import { isRsvpCopyKey, normalizeRsvpCopy } from '~/lib/rsvp/copy'
 import { RSVP_STEP_KEYS } from '~/lib/rsvp/steps'
 
 const NAME_MAX = 100
@@ -18,6 +19,23 @@ export const updateRsvpStepsSchema = z.object({
       message: 'RSVP steps must be unique',
     }),
 })
+
+export const updateRsvpCopySchema = z
+  .object({
+    rsvpCopy: z.record(z.string(), z.string().max(600)),
+  })
+  .superRefine(({ rsvpCopy }, context) => {
+    for (const key of Object.keys(rsvpCopy)) {
+      if (!isRsvpCopyKey(key)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['rsvpCopy', key],
+          message: `Unknown RSVP copy key: ${key}`,
+        })
+      }
+    }
+  })
+  .transform(({ rsvpCopy }) => ({ rsvpCopy: normalizeRsvpCopy(rsvpCopy) }))
 
 /**
  * Schema for creating a new wedding (onboarding)
@@ -76,3 +94,4 @@ export type ToggleWeddingAddOnInput = z.infer<typeof toggleWeddingAddOnSchema>
 export type UpdateWeddingSchemaInput = z.infer<typeof updateWeddingSchema>
 export type UpdateWeddingDetailsInput = z.infer<typeof updateWeddingDetailsSchema>
 export type UpdateRsvpStepsInput = z.infer<typeof updateRsvpStepsSchema>
+export type UpdateRsvpCopyInput = z.infer<typeof updateRsvpCopySchema>

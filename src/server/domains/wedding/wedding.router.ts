@@ -6,6 +6,7 @@
  */
 
 import { TRPCError } from '@trpc/server'
+import { readRsvpCopy } from '~/lib/rsvp/copy'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { requirePermission } from '~/server/authz/permission-checker'
@@ -15,6 +16,7 @@ import { weddingService } from '~/server/domains/wedding'
 import {
   createWeddingSchema,
   toggleWeddingAddOnSchema,
+  updateRsvpCopySchema,
   updateRsvpStepsSchema,
   updateWeddingDetailsSchema,
   updateWeddingSchema,
@@ -117,6 +119,30 @@ export const weddingRouter = createTRPCRouter({
         weddingId,
         data: { rsvpSteps: input.rsvpSteps },
       })
+    }),
+
+  getRsvpCopy: protectedProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx.authz, { wedding: ['read'] })
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    const wedding = await weddingService.getById(weddingId)
+    if (!wedding) throw new TRPCError({ code: 'NOT_FOUND', message: 'Wedding not found' })
+    return readRsvpCopy(wedding.rsvpCopy)
+  }),
+
+  updateRsvpCopy: protectedProcedure
+    .input(updateRsvpCopySchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!readWorkspaceCapabilities(ctx.auth.activeOrganization?.role).canAccessSettings) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      const wedding = await weddingService.updateWedding({
+        ctx: ctx.authz,
+        weddingId,
+        data: { rsvpCopy: input.rsvpCopy },
+      })
+      return readRsvpCopy(wedding.rsvpCopy)
     }),
 
   /**

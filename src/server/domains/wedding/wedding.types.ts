@@ -1,3 +1,5 @@
+import type { RsvpCopyOverrides } from '~/lib/rsvp/copy'
+
 /**
  * Wedding Domain - Types
  *
@@ -17,6 +19,7 @@ export type Wedding = {
   brideLastName: string
   enabledAddOns: string[] // e.g., ["website", "tasks", "gifts"]
   rsvpSteps: string[]
+  rsvpCopy: unknown
   selfFillToken: string | null
   selfFillTokenGeneratedAt: Date | null
   createdAt: Date
@@ -60,4 +63,5 @@ export type UpdateWeddingInput = {
   brideLastName?: string
   enabledAddOns?: string[]
   rsvpSteps?: string[]
+  rsvpCopy?: RsvpCopyOverrides
 }
