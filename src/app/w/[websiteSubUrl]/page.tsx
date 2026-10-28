@@ -13,6 +13,8 @@ type RootRouteHandlerProps = {
   }>
 }
 
+const OG_IMAGE_VERSION = '3'
+
 export async function generateMetadata({ params }: RootRouteHandlerProps): Promise<Metadata> {
   const { websiteSubUrl } = await params
   const { loadResult } = await loadVisitorWedding(websiteSubUrl)
@@ -48,7 +50,7 @@ export async function generateMetadata({ params }: RootRouteHandlerProps): Promi
   const description =
     introText || (groomName && brideName ? `נשמח לראותכם בחתונה של ${groomName} ו${brideName}` : '')
 
-  const ogImageUrl = `/api/og/wedding/${websiteSubUrl}`
+  const ogImageUrl = `/api/og/wedding/${websiteSubUrl}?v=${OG_IMAGE_VERSION}`
 
   return {
     title,
