@@ -70,9 +70,7 @@ function RsvpPills({
   // multi-event household itself. This must key off the actual count of
   // RSVP-able events, not chuppah detection — two non-chuppah events (e.g.
   // "חינה" and "חתונה") are still multiple events.
-  const weddingHref = hasMultipleRsvpableEvents
-    ? rsvpHref
-    : `${rsvpHref}?event=${weddingEvent.id}`
+  const weddingHref = hasMultipleRsvpableEvents ? rsvpHref : `${rsvpHref}?event=${weddingEvent.id}`
   return (
     <div className='flex flex-col items-center gap-2 min-[376px]:flex-row'>
       <Link href={weddingHref} aria-label='אישור הגעה לחתונה' className={RSVP_PILL_CLASSES[size]}>
@@ -116,12 +114,48 @@ function SecondaryActions({
   )
 }
 
-/** The top-of-page greeting with the household's family name; null for an unrecognised visitor. */
+/** The household name used by the greeting; null for an unrecognised visitor. */
 function topGreetingText(invitedHousehold: InvitedHousehold | null): string | null {
   const contact = invitedHousehold?.primaryContactGreeting
   if (!contact) return null
-  const name = contact.kind === 'family' ? `משפחת ${contact.name}` : contact.name
-  return `שלום ${name}, נשמח לדעת אם תגיעו 🤍`
+  return contact.kind === 'family' ? `משפחת ${contact.name}` : contact.name
+}
+
+function GreetingFrame({ name }: Readonly<{ name: string }>) {
+  return (
+    <header
+      className='relative z-10 grid min-h-[154px] w-full max-w-[306px] place-content-center px-7 py-6 text-center md:min-h-40 md:max-w-[440px] md:px-10'
+      dir='rtl'
+      lang='he'
+    >
+      <svg
+        className='pointer-events-none absolute inset-0 size-full text-border'
+        viewBox='0 0 440 160'
+        preserveAspectRatio='none'
+        aria-hidden='true'
+      >
+        <rect x='7' y='7' width='426' height='146' rx='1' fill='none' stroke='currentColor' />
+        <path
+          d='M7 28V7h21M433 28V7h-21M7 132v21h21M433 132v21h-21'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='1.2'
+        />
+        <path
+          d='M7 18c8 0 11-3 11-11M422 7c0 8 3 11 11 11M7 142c8 0 11 3 11 11M422 153c0-8 3-11 11-11'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='.8'
+        />
+      </svg>
+      <h1 className='m-0 font-[family-name:var(--tpl-hebrew-serif)] text-[36px] text-foreground leading-[1.05] md:text-5xl'>
+        {name}
+      </h1>
+      <p className='mx-auto mt-2 max-w-[240px] font-[family-name:var(--tpl-hebrew-sans)] text-base text-foreground/85 leading-relaxed'>
+        נשמח לדעת אם תגיעו
+      </p>
+    </header>
+  )
 }
 
 /**
@@ -167,6 +201,8 @@ export function InvitationHero({
         <div className='absolute inset-0 bg-background/35' />
 
         <div className='relative z-10 flex min-h-[100svh] w-full flex-col items-center justify-center gap-3 px-6'>
+          {topGreeting ? <GreetingFrame name={topGreeting} /> : null}
+
           <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
             <div>
               <HeroCard
@@ -174,7 +210,7 @@ export function InvitationHero({
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
-                className='aspect-square w-[min(92vw,calc((100svh-220px)/2))]'
+                className='aspect-square w-[min(92vw,calc((100svh-300px)/2))]'
                 mobile
                 priority
               />
@@ -185,7 +221,7 @@ export function InvitationHero({
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,calc((100svh-220px)/2))]'
+                className='aspect-square w-[min(92vw,calc((100svh-300px)/2))]'
                 mobile
               />
             </div>
@@ -225,9 +261,7 @@ export function InvitationHero({
         {/* Soft warm veil so the white cards and copy read clearly against the linen. */}
         <div className='absolute inset-0 bg-background/35' />
 
-        {topGreeting ? (
-          <p className='relative z-10 font-serif text-foreground text-lg'>{topGreeting}</p>
-        ) : null}
+        {topGreeting ? <GreetingFrame name={topGreeting} /> : null}
 
         <HeroCardsGroup className='hero-cards relative z-10 flex items-stretch justify-center gap-6 lg:gap-10'>
           <div className='hero-card-enter'>

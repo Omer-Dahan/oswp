@@ -26,6 +26,56 @@ const baseProps = {
 }
 
 describe('InvitationHero', () => {
+  it('renders the family contact and invitation subtitle in both compositions', () => {
+    render(
+      <InvitationHero
+        {...baseProps}
+        invitedHousehold={{
+          guestFirstNames: ['נועה'],
+          greeting: 'משפחת כהן',
+          primaryContactGreeting: { name: 'כהן', kind: 'family' },
+        }}
+        events={[]}
+      />
+    )
+
+    expect(screen.getAllByRole('heading', { name: 'משפחת כהן' })).toHaveLength(2)
+    expect(screen.getAllByText('נשמח לדעת אם תגיעו')).toHaveLength(2)
+  })
+
+  it('renders a single contact without a family prefix', () => {
+    render(
+      <InvitationHero
+        {...baseProps}
+        invitedHousehold={{
+          guestFirstNames: ['נועה'],
+          greeting: 'נועה',
+          primaryContactGreeting: { name: 'נועה', kind: 'firstName' },
+        }}
+        events={[]}
+      />
+    )
+
+    expect(screen.getAllByRole('heading', { name: 'נועה' })).toHaveLength(2)
+    expect(screen.queryByText('משפחת נועה')).not.toBeInTheDocument()
+  })
+
+  it('does not render the greeting without a primary contact', () => {
+    const { rerender } = render(<InvitationHero {...baseProps} events={[]} />)
+
+    expect(screen.queryByText('נשמח לדעת אם תגיעו')).not.toBeInTheDocument()
+
+    rerender(
+      <InvitationHero
+        {...baseProps}
+        invitedHousehold={{ guestFirstNames: [], greeting: null, primaryContactGreeting: null }}
+        events={[]}
+      />
+    )
+
+    expect(screen.queryByText('נשמח לדעת אם תגיעו')).not.toBeInTheDocument()
+  })
+
   it('renders a wedding pill and a chuppah pill, and only the chuppah preselects its event', () => {
     render(
       <InvitationHero

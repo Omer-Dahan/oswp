@@ -1,6 +1,5 @@
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 import { InvitationHero } from '~/components/website/invitation-hero'
-import { PersonalizedWelcome } from '~/components/website/personalized-welcome'
 import { coupleNamesHe } from '~/lib/wedding/couple-name'
 import type { WeddingPageData } from '~/server/domains/website/website.types'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
@@ -29,17 +28,8 @@ export default async function WeddingWebsite({
   const path = `/w/${websiteSubUrl}`
   const template = resolveTemplate(weddingData.website.templateId)
 
-  // The banner only runs on mobile: desktop folds the same greeting into the
-  // hero's own 100svh stage (below the two cards) so the page never scrolls.
-  const welcome = invitedHousehold ? (
-    <div className='md:hidden'>
-      <PersonalizedWelcome invitedHousehold={invitedHousehold} />
-    </div>
-  ) : null
-
   return (
     <TemplateThemeProvider template={template}>
-      {welcome}
       <InvitationHero
         websiteSubUrl={websiteSubUrl}
         rsvpHref={`${path}/rsvp`}

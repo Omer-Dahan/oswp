@@ -99,10 +99,10 @@ describe('WeddingWebsite', () => {
       await WeddingWebsite({ websiteSubUrl: 'shrek-and-fiona', weddingData: createWeddingData() })
     )
 
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+    expect(screen.queryByText('נשמח לדעת אם תגיעו')).not.toBeInTheDocument()
   })
 
-  it('greets a recognized household in the banner and the hero', async () => {
+  it('greets a recognized household in both hero compositions', async () => {
     render(
       await WeddingWebsite({
         websiteSubUrl: 'shrek-and-fiona',
@@ -115,9 +115,7 @@ describe('WeddingWebsite', () => {
       })
     )
 
-    expect(screen.getByRole('complementary', { name: 'ברכת שלום אישית' })).toHaveTextContent(
-      'שלום Donkey'
-    )
-    expect(screen.getAllByText('שלום Donkey, נשמח לדעת אם תגיעו 🤍').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('heading', { name: 'Donkey' })).toHaveLength(2)
+    expect(screen.getAllByText('נשמח לדעת אם תגיעו')).toHaveLength(2)
   })
 })
