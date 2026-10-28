@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 
@@ -37,6 +37,12 @@ jest.mock('next/link', () => {
   return MockLink
 })
 
+const mockRouterPush = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockRouterPush }),
+}))
+
 jest.mock('next/image', () => {
   const MockImage = ({ alt }: { alt: string }) => <img alt={alt} />
   return MockImage
@@ -56,6 +62,28 @@ jest.mock('~/components/contexts/rsvp-form-context', () => ({
 }))
 
 describe('RsvpConfirmation', () => {
+  beforeEach(() => {
+    mockRouterPush.mockClear()
+  })
+
+  it('navigates home from the real confirmation state', () => {
+    mockFormState = {
+      weddingData: {
+        groomFirstName: 'Ron',
+        brideFirstName: 'Hermione',
+        events: [],
+      },
+      rsvpResponses: [],
+      attendingCount: 1,
+    }
+
+    render(<RsvpConfirmation basePath='/site' />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'BACK TO HOMEPAGE' }))
+
+    expect(mockRouterPush).toHaveBeenCalledWith('/site')
+  })
+
   it('offers ONE calendar entry for the whole evening instead of one per event', () => {
     mockFormState = {
       weddingData: {
