@@ -271,6 +271,41 @@ describe('weddingRouter', () => {
     })
   })
 
+  describe('RSVP copy', () => {
+    it('returns normalized overrides to a wedding member', async () => {
+      mockGetByIdFn.mockResolvedValue({
+        ...mockWedding,
+        rsvpCopy: { whoIsComingTitle: 'מי חוגג איתנו?', unknown: 'ignored' },
+      })
+
+      await expect(makeAuthCaller().getRsvpCopy()).resolves.toEqual({
+        whoIsComingTitle: 'מי חוגג איתנו?',
+      })
+    })
+
+    it('rejects a non-settings user', async () => {
+      const caller = makeAuthCaller('user-123', 'wedding-123', 'viewer')
+
+      await expect(
+        caller.updateRsvpCopy({ rsvpCopy: { whoIsComingTitle: 'מי חוגג איתנו?' } })
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+      expect(mockUpdateWeddingFn).not.toHaveBeenCalled()
+    })
+
+    it('clears a field when reset to blank', async () => {
+      mockUpdateWeddingFn.mockResolvedValue({ ...mockWedding, rsvpCopy: {} })
+
+      await expect(
+        makeAuthCaller().updateRsvpCopy({ rsvpCopy: { whoIsComingTitle: '' } })
+      ).resolves.toEqual({})
+      expect(mockUpdateWeddingFn).toHaveBeenCalledWith({
+        ctx: expect.objectContaining({ userId: 'user-123' }),
+        weddingId: 'wedding-123',
+        data: { rsvpCopy: {} },
+      })
+    })
+  })
+
   describe('getByUserId', () => {
     it('should throw FORBIDDEN for viewer role', async () => {
       const caller = makeAuthCaller('user-123', 'wedding-123', 'viewer')
