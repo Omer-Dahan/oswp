@@ -70,6 +70,9 @@ export const env = createEnv({
     // AES-256-GCM key (base64, 32 bytes) for encrypting messaging provider
     // secrets at rest (e.g. WhatsApp Cloud API access tokens).
     MESSAGING_SECRET: z.string().min(1).optional(),
+    SMSGATE_URL: z.string().url().optional(),
+    SMSGATE_USER: z.string().min(1).optional(),
+    SMSGATE_PASS: z.string().min(1).optional(),
   },
 
   /**
@@ -151,6 +154,9 @@ export const env = createEnv({
     POSTHOG_HOST: process.env.POSTHOG_HOST,
     EXTRA_TRUSTED_ORIGINS: process.env.EXTRA_TRUSTED_ORIGINS,
     MESSAGING_SECRET: process.env.MESSAGING_SECRET,
+    SMSGATE_URL: process.env.SMSGATE_URL,
+    SMSGATE_USER: process.env.SMSGATE_USER,
+    SMSGATE_PASS: process.env.SMSGATE_PASS,
     NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_OTEL_SAMPLE_RATE: process.env.NEXT_PUBLIC_OTEL_SAMPLE_RATE,
