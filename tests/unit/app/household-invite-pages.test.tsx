@@ -229,9 +229,7 @@ describe('household invite pages', () => {
       })
     )
 
-    // Ada Lovelace is the household's only (primary) guest, so the greeting
-    // uses her last name as the family name.
-    expect(screen.getByText('Hello, the Lovelace family')).toBeInTheDocument()
+    expect(screen.getByText('Hello, Ada Lovelace')).toBeInTheDocument()
     expect(screen.getByText("We'd love to know if you're coming")).toBeInTheDocument()
     const weddingButton = screen.getByRole('button', { name: 'אישור הגעה לחתונה' })
     expect(weddingButton.closest('form')).toHaveAttribute(
@@ -253,7 +251,7 @@ describe('household invite pages', () => {
       })
     )
 
-    expect(screen.getByText('Hello, the Lovelace family')).toBeInTheDocument()
+    expect(screen.getByText('Hello, Ada Lovelace')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'אישור הגעה לחתונה' })).not.toBeInTheDocument()
   })
 
