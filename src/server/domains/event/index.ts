@@ -23,6 +23,7 @@ export type {
   DeleteEventInput,
   UpdateCollectRsvpInput,
   UpdateEventInput,
+  UpdateEventRsvpStepsInput,
 } from '~/server/domains/event/event.validator'
 // Export validators (schemas only, types already exported above)
 export {
@@ -30,5 +31,6 @@ export {
   deleteEventSchema,
   eventIdSchema,
   updateCollectRsvpSchema,
+  updateEventRsvpStepsSchema,
   updateEventSchema,
 } from '~/server/domains/event/event.validator'

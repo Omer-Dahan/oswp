@@ -240,6 +240,11 @@ export class EventService {
     return this.eventRepository.updateCollectRsvp(eventId, collectRsvp)
   }
 
+  async updateRsvpSteps(weddingId: string, eventId: string, rsvpSteps: string[]): Promise<Event> {
+    await this.assertEventInWedding(eventId, weddingId)
+    return this.eventRepository.updateRsvpSteps(eventId, rsvpSteps)
+  }
+
   /**
    * Delete an event
    *

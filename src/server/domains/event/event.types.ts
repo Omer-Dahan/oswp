@@ -35,6 +35,9 @@ export type Event = {
   hebrewDateOverride?: string | null
   weddingId: string
   collectRsvp: boolean
+  // Optional on thinned/dashboard event projections; full Event rows always
+  // include the Prisma column.
+  rsvpSteps?: string[]
   allowTagAlongs: boolean
   // Optional so existing public/thinned Event shapes (e.g. the guest-facing
   // RSVP form) that predate this flag don't all need updating to supply it.

@@ -8,15 +8,20 @@ const mockMutate = jest.fn()
 let capturedOnError: ((error: unknown) => void) | undefined
 let capturedOnSuccess: (() => void) | undefined
 let capturedSetCurrentStep: Dispatch<SetStateAction<number>> | undefined
+let mockPreselectedEventId: string | undefined
 
 jest.mock('~/components/contexts/rsvp-form-context', () => ({
   useRsvpForm: () => ({
-    selectedHousehold: { id: 'household-1', guests: [] },
+    selectedHousehold: {
+      id: 'household-1',
+      guests: [{ invitations: [{ eventId: 'event-1', rsvp: 'Invited' }] }],
+    },
     rsvpResponses: [],
     answersToQuestions: [],
     childrenCount: 2,
     dietaryNotes: 'Previously saved allergy',
     wishesMessage: 'Congratulations',
+    preselectedEventId: mockPreselectedEventId,
   }),
   useUpdateRsvpForm: () => jest.fn(),
 }))
@@ -132,6 +137,7 @@ describe('Main RSVP layout', () => {
     capturedOnError = undefined
     capturedOnSuccess = undefined
     capturedSetCurrentStep = undefined
+    mockPreselectedEventId = undefined
   })
 
   it('uses a mobile-first responsive width contract for the main form', () => {
@@ -199,7 +205,20 @@ describe('Main RSVP layout', () => {
   ])('renders configured RSVP steps in order for %j', (rsvpSteps, expectedOrder) => {
     render(
       <MainRsvpForm
-        weddingData={{ rsvpSteps, events: [], website: { generalQuestions: [] } } as never}
+        weddingData={
+          {
+            rsvpSteps,
+            events: [
+              {
+                id: 'event-1',
+                collectRsvp: true,
+                rsvpSteps,
+                questions: [],
+              },
+            ],
+            website: { generalQuestions: [] },
+          } as never
+        }
         basePath='/wedding'
       />
     )
@@ -211,6 +230,39 @@ describe('Main RSVP layout', () => {
           Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy()
     }
+  })
+
+  it.each([
+    [['children-count', 'dietary-notes'], false],
+    [['children-count', 'dietary-notes', 'wishes-message'], true],
+  ])('keeps meal pages out of a chuppah-only flow for %j', (eventSteps, showsWishes) => {
+    mockPreselectedEventId = 'chuppah-1'
+    render(
+      <MainRsvpForm
+        weddingData={
+          {
+            rsvpSteps: ['children-count', 'dietary-notes', 'wishes-message'],
+            events: [
+              {
+                id: 'chuppah-1',
+                name: 'החופה',
+                collectRsvp: true,
+                rsvpSteps: eventSteps,
+                questions: [],
+              },
+            ],
+            website: { generalQuestions: [] },
+          } as never
+        }
+        basePath='/wedding'
+      />
+    )
+
+    expect(screen.queryByText('Children count')).not.toBeInTheDocument()
+    expect(screen.queryByText('Dietary notes')).not.toBeInTheDocument()
+    expect(screen.queryByText('Wishes message') !== null).toBe(showsWishes)
+    expect(screen.getByText('Who is coming')).toBeInTheDocument()
+    expect(screen.getByText('Send RSVP')).toBeInTheDocument()
   })
 
   it.each([
@@ -244,7 +296,14 @@ describe('Main RSVP layout', () => {
         weddingData={
           {
             rsvpSteps,
-            events: [],
+            events: [
+              {
+                id: 'event-1',
+                collectRsvp: true,
+                rsvpSteps,
+                questions: [],
+              },
+            ],
             website: { subUrl: 'our-wedding', generalQuestions: [] },
           } as never
         }
@@ -314,8 +373,8 @@ describe('Main RSVP layout', () => {
     const form = container.querySelector('form')
     expect(form).not.toBeNull()
     act(() => {
-      // Step 6 is the send step when there are no dynamic event/question steps.
-      capturedSetCurrentStep?.(6)
+      // With no event-level pages configured, send follows who-is-coming.
+      capturedSetCurrentStep?.(4)
     })
     fireEvent.submit(form as HTMLFormElement)
     expect(mockMutate).toHaveBeenCalledWith(
