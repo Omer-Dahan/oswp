@@ -47,11 +47,16 @@ jest.mock('next/link', () => {
   return MockLink
 })
 
-const mockRouterPush = jest.fn()
-
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockRouterPush }),
-}))
+const mockAssign = jest.fn()
+type LocationImplementation = { assign: (url: string) => void }
+const locationImplementationSymbol = Object.getOwnPropertySymbols(window.location).find(
+  (symbol) => symbol.description === 'impl'
+)
+if (!locationImplementationSymbol) throw new Error('JSDOM location implementation is unavailable')
+const locationImplementation = (
+  window.location as unknown as Record<symbol, LocationImplementation>
+)[locationImplementationSymbol]
+const originalAssign = locationImplementation.assign
 
 jest.mock('next/image', () => {
   const MockImage = ({ alt }: { alt: string }) => <img alt={alt} />
@@ -72,8 +77,22 @@ jest.mock('~/components/contexts/rsvp-form-context', () => ({
 }))
 
 describe('RsvpConfirmation', () => {
+  beforeAll(() => {
+    Object.defineProperty(locationImplementation, 'assign', {
+      configurable: true,
+      value: mockAssign,
+    })
+  })
+
+  afterAll(() => {
+    Object.defineProperty(locationImplementation, 'assign', {
+      configurable: true,
+      value: originalAssign,
+    })
+  })
+
   beforeEach(() => {
-    mockRouterPush.mockClear()
+    mockAssign.mockClear()
   })
 
   it('navigates home from the real confirmation state', () => {
@@ -91,7 +110,7 @@ describe('RsvpConfirmation', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'BACK TO HOMEPAGE' }))
 
-    expect(mockRouterPush).toHaveBeenCalledWith('/site')
+    expect(mockAssign).toHaveBeenCalledWith('/site')
   })
 
   it('renders a single guest heading, singular count, and both resolved event times', () => {

@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import type { Event } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
@@ -30,7 +29,6 @@ function formatGregorianDate(date: Date): string {
 
 export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const t = useTranslations('rsvp')
-  const router = useRouter()
   const rsvpFormData = useRsvpForm()
 
   const household = rsvpFormData.selectedHousehold
@@ -180,7 +178,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
               <button
                 type='button'
                 className={stepPrimaryClassName}
-                onClick={() => router.push(basePath)}
+                onClick={() => window.location.assign(basePath)}
               >
                 {t('backToHomepage')}
               </button>
