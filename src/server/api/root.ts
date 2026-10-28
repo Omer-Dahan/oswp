@@ -20,6 +20,7 @@ import { questionRouter } from '~/server/domains/question/question.router'
 import { reportRouter } from '~/server/domains/report/report.router'
 import { seatingRouter } from '~/server/domains/seating/seating.router'
 import { createSelfFillRouter } from '~/server/domains/self-fill'
+import { smsRouter } from '~/server/domains/sms/sms.router'
 import { taskRouter } from '~/server/domains/task/task.router'
 import { userRouter } from '~/server/domains/user/user.router'
 import { vendorRouter } from '~/server/domains/vendor/vendor.router'
@@ -85,6 +86,7 @@ export const appRouter = createTRPCRouter({
 
   // WhatsApp Cloud API (account setup, connection test)
   whatsapp: whatsappRouter,
+  sms: smsRouter,
 
   // Shareable token-link workspace invites (no email path required)
   workspaceInvite: workspaceInviteRouter,
