@@ -15,6 +15,7 @@ import {
   getDefaultHouseholdFormData,
   type HouseholdFormData,
   HouseholdFormSchema,
+  householdFormResolver,
 } from '~/components/forms/guest-form.schema'
 import { shouldShowUnsavedCloseConfirm } from '~/components/forms/guest-form.utils'
 
@@ -35,6 +36,60 @@ describe('GuestForm - Close Confirmation Rules', () => {
 
   it('does not require confirmation while loading', () => {
     expect(shouldShowUnsavedCloseConfirm(true, true)).toBe(false)
+  })
+})
+
+describe('GuestForm - Validation Failure Handling', () => {
+  it('settles invalid submission and exposes the offending field error', async () => {
+    const onValid = jest.fn()
+    const { result } = renderHook(() => {
+      const form = useForm<HouseholdFormData>({
+        resolver: householdFormResolver,
+        defaultValues: getDefaultHouseholdFormData(mockEvents),
+      })
+      void form.formState.errors
+      void form.formState.isSubmitting
+      return form
+    })
+
+    await act(async () => {
+      await result.current.handleSubmit(onValid)()
+    })
+
+    expect(onValid).not.toHaveBeenCalled()
+    expect(result.current.formState.isSubmitting).toBe(false)
+    expect(result.current.formState.errors.guestParty?.[0]?.firstName?.message).toBe('שם פרטי נדרש')
+  })
+
+  it('submits a valid household with its event invitation matrix', async () => {
+    const onValid = jest.fn()
+    const values = getDefaultHouseholdFormData(mockEvents)
+    values.guestParty[0] = {
+      ...values.guestParty[0],
+      firstName: 'יעל',
+      lastName: 'ישראלי',
+      invites: { 'event-1': 'Invited', 'event-2': 'Not Invited' },
+    }
+
+    const { result } = renderHook(() =>
+      useForm<HouseholdFormData>({ resolver: householdFormResolver, defaultValues: values })
+    )
+
+    await act(async () => {
+      await result.current.handleSubmit(onValid)()
+    })
+
+    expect(onValid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        guestParty: [
+          expect.objectContaining({
+            firstName: 'יעל',
+            invites: { 'event-1': 'Invited', 'event-2': 'Not Invited' },
+          }),
+        ],
+      }),
+      undefined
+    )
   })
 })
 

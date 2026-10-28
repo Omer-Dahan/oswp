@@ -1,10 +1,9 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { type Resolver, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form'
+import { type SubmitHandler, useFieldArray, useForm } from 'react-hook-form'
 import { IoMdClose } from 'react-icons/io'
 import { toast } from 'sonner'
 import { getDirtyValues } from '~/app/utils/form-helpers'
@@ -19,7 +18,7 @@ import SideGroupForm from '~/components/forms/guest/side-group-form'
 import {
   getDefaultHouseholdFormData,
   type HouseholdFormData,
-  HouseholdFormSchema,
+  householdFormResolver,
 } from '~/components/forms/guest-form.schema'
 import { shouldShowUnsavedCloseConfirm } from '~/components/forms/guest-form.utils'
 import SidePaneWrapper from '~/components/forms/wrapper'
@@ -48,6 +47,27 @@ type GuestFormProps = {
   prefillFormData: HouseholdFormData | undefined
 }
 
+const collectValidationMessages = (
+  fieldErrors: unknown,
+  visited = new WeakSet<object>()
+): string[] => {
+  const messages: string[] = []
+
+  if (!fieldErrors || typeof fieldErrors !== 'object') return messages
+  if (visited.has(fieldErrors)) return messages
+  visited.add(fieldErrors)
+  if ('message' in fieldErrors && typeof fieldErrors.message === 'string') {
+    messages.push(fieldErrors.message)
+  }
+  for (const [key, error] of Object.entries(fieldErrors)) {
+    if (!['message', 'ref', 'types'].includes(key)) {
+      messages.push(...collectValidationMessages(error, visited))
+    }
+  }
+
+  return [...new Set(messages)]
+}
+
 export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
   const isEditMode = !!prefillFormData
   const router = useRouter()
@@ -56,11 +76,8 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
   const [showCloseConfirmation, setShowCloseConfirmation] = useState<boolean>(false)
   const [shouldCloseAfterSave, setShouldCloseAfterSave] = useState<boolean>(true)
 
-  // Initialize react-hook-form
-  // Use zodResolver with explicit Resolver type for schemas with .refine()
-  // This ensures type compatibility between input and output types
   const form = useForm<HouseholdFormData>({
-    resolver: zodResolver(HouseholdFormSchema) as Resolver<HouseholdFormData>,
+    resolver: householdFormResolver,
     defaultValues: prefillFormData ?? getDefaultHouseholdFormData(events),
     mode: 'onChange', // Real-time validation for better UX
   })
@@ -216,16 +233,24 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
       delete changedData.gifts
 
       // Server expects these fields for update
-      updateMutation.mutate({
-        householdId: data.householdId, // Required
-        guestParty: data.guestParty, // Always send full array
-        gifts: data.gifts, // Always send full array
-        ...changedData, // Add any other changed fields (address, notes, etc.)
-        deletedGuests: deletedGuests.length > 0 ? deletedGuests : undefined,
-      } as Parameters<typeof updateMutation.mutate>[0])
+      try {
+        await updateMutation.mutateAsync({
+          householdId: data.householdId, // Required
+          guestParty: data.guestParty, // Always send full array
+          gifts: data.gifts, // Always send full array
+          ...changedData, // Add any other changed fields (address, notes, etc.)
+          deletedGuests: deletedGuests.length > 0 ? deletedGuests : undefined,
+        } as Parameters<typeof updateMutation.mutate>[0])
+      } catch {
+        // The mutation's onError callback presents the actionable Hebrew message.
+      }
     } else {
       // Send all data for create
-      createMutation.mutate(data)
+      try {
+        await createMutation.mutateAsync(data)
+      } catch {
+        // The mutation's onError callback presents the actionable Hebrew message.
+      }
     }
   }
 
@@ -234,6 +259,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
 
   // Combined loading state from mutations
   const isLoading = isSubmitting || createMutation.isPending || updateMutation.isPending
+  const validationMessages = collectValidationMessages(errors)
   const handleRequestClose = () => {
     if (shouldShowUnsavedCloseConfirm(isDirty, isLoading)) {
       setShowCloseConfirmation(true)
@@ -270,10 +296,20 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
 
         {/* Scrollable Content */}
         <div className='flex-1 overflow-y-auto pb-32'>
-          {/* Display validation error for guestParty array */}
-          {errors.guestParty && typeof errors.guestParty.message === 'string' && (
-            <div className='mx-6 mt-4 rounded-lg border border-destructive bg-destructive/10 p-4'>
-              <p className='font-medium text-destructive text-sm'>{errors.guestParty.message}</p>
+          {validationMessages.length > 0 && (
+            <div
+              role='alert'
+              aria-labelledby='guest-form-error-summary-title'
+              className='mx-6 mt-4 rounded-md border border-destructive bg-destructive/10 p-4 text-destructive'
+            >
+              <p id='guest-form-error-summary-title' className='font-medium text-sm'>
+                לא ניתן לשמור. יש לתקן את השדות הבאים:
+              </p>
+              <ul className='mt-2 list-inside list-disc space-y-1 text-sm'>
+                {validationMessages.map((message) => (
+                  <li key={message}>{message}</li>
+                ))}
+              </ul>
             </div>
           )}
 
@@ -415,9 +451,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>לבטל שינויים שלא נשמרו?</AlertDialogTitle>
-            <AlertDialogDescription>
-              יש שינויים שלא נשמרו. סגירה תמחק אותם.
-            </AlertDialogDescription>
+            <AlertDialogDescription>יש שינויים שלא נשמרו. סגירה תמחק אותם.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isLoading}>המשך עריכה</AlertDialogCancel>
