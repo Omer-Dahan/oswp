@@ -5,6 +5,7 @@
  * Represents the public wedding website configuration.
  */
 
+import type { RsvpCopyOverrides } from '~/lib/rsvp/copy'
 import type { Question, QuestionWithOptions } from '~/server/domains/question'
 import type {
   InvitationSectionContent,
@@ -122,6 +123,7 @@ export type WeddingPageData = {
   date: WeddingDate
   websiteBuilderEnabled: boolean
   rsvpSteps: string[]
+  rsvpCopy: RsvpCopyOverrides
   website: PublicWebsiteWithQuestions & {
     introText: string
     /** Optional hero headline + emphasised tail (HOME section, hero templates). */

@@ -21,7 +21,7 @@ export const stepHeadingFont = 'font-[family-name:var(--tpl-heading-font)]'
 const stepBodyFont = 'font-[family-name:var(--tpl-body-font)]'
 
 export function StepShell({ children }: { children: ReactNode }) {
-  return <div className={`${stepBodyFont} flex flex-col gap-6`}>{children}</div>
+  return <div className={`${stepBodyFont} flex flex-col gap-6 whitespace-pre-line`}>{children}</div>
 }
 
 export function StepHeading({ children }: { children: ReactNode }) {
@@ -75,8 +75,7 @@ export function StepActions({ children }: { children: ReactNode }) {
 // under the system `.dark` class — --card is only pinned by some templates and
 // otherwise falls back to a stylesheet dark variant that can land on an
 // equally dark paper, making typed text disappear.
-const fieldClassName =
-  `${stepBodyFont} w-full rounded-[16px] border border-input bg-background px-4 text-base text-foreground caret-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+const fieldClassName = `${stepBodyFont} w-full rounded-[16px] border border-input bg-background px-4 text-base text-foreground caret-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
 
 export function StepTextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`h-12 ${fieldClassName} ${className}`} />
@@ -92,11 +91,9 @@ export function StepTextArea({
 // Exported as plain strings (not just the <button> components below) so the
 // confirmation/password/not-accepting screens can apply the identical primary
 // button language to a Next <Link> or a plain <a>.
-export const stepPrimaryClassName =
-  `${stepBodyFont} inline-flex h-12 w-full items-center justify-center rounded-full bg-primary px-8 text-base text-primary-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:hover:bg-muted`
+export const stepPrimaryClassName = `${stepBodyFont} inline-flex h-12 w-full items-center justify-center rounded-full bg-primary px-8 text-base text-primary-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:hover:bg-muted`
 
-export const stepSecondaryClassName =
-  `${stepBodyFont} inline-flex h-11 w-full items-center justify-center rounded-full px-6 text-base text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+export const stepSecondaryClassName = `${stepBodyFont} inline-flex h-11 w-full items-center justify-center rounded-full px-6 text-base text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
 
 export function StepPrimaryButton({
   className = '',

@@ -128,7 +128,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
           className='w-full rounded-[18px] border border-foreground/10 bg-[#FBF7F1] p-6 sm:max-w-[min(680px,calc(100vw-32px))] sm:p-8'
           style={{ boxShadow: '0 12px 32px rgba(46,38,32,.10)' }}
         >
-          <div className='flex flex-col gap-6'>
+          <div className='flex flex-col gap-6 whitespace-pre-line'>
             <div className='rsvp-confirmation-block flex flex-col gap-2 text-center'>
               <h2 className={`${stepHeadingFont} text-2xl text-foreground sm:text-3xl`}>
                 {heading}
