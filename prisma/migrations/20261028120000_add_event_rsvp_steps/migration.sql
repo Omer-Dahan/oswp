@@ -5,4 +5,5 @@ UPDATE "Event" AS event
 SET "rsvpSteps" = wedding."rsvpSteps"
 FROM "Wedding" AS wedding
 WHERE event."weddingId" = wedding."id"
-  AND event."is_primary" = TRUE;
+  AND event."collectRsvp" = TRUE
+  AND event."name" !~* '(חופה|ceremony)';
