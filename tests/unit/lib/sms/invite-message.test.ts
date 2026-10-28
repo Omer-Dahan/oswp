@@ -46,7 +46,7 @@ describe('SMS wedding invite template', () => {
     expect(
       buildWeddingInviteSms({ firstName: 'דוד יעקב', lastName: 'כהן', inviteCode: 'ab-123' })
     ).toBe(`יעקב כהן, שלום רב.
-אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה:
+אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
 https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123
 
 בברכה - יהודה ותמר מנחם`)
