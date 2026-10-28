@@ -2,12 +2,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import type { InvitedHousehold } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
-import { CopyHouseholdInviteLinkButton } from '~/components/website/copy-household-invite-link-button'
 import { HeroCard, HeroCardsGroup } from '~/components/website/hero-card'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 
 type InvitationHeroProps = {
-  websiteSubUrl: string
   /** Same RSVP link the rest of the site uses, so the household token survives. */
   rsvpHref: string
   isRsvpEnabled: boolean
@@ -17,8 +15,6 @@ type InvitationHeroProps = {
   invitedHousehold: InvitedHousehold | null
   /** The wedding's events, used to resolve the per-event RSVP pills. */
   events: Array<{ id: string; name: string; isPrimary: boolean; collectRsvp: boolean }>
-  /** The household's own save-the-date invite code, when recognised. */
-  householdInviteCode: string | null
 }
 
 type RsvpPillSize = 'mobile' | 'desktop'
@@ -41,9 +37,6 @@ const RSVP_PILL_OUTLINE_CLASSES: Record<RsvpPillSize, string> = {
   desktop:
     'inline-flex h-12 items-center justify-center rounded-full border border-foreground/30 bg-background/70 px-8 font-sans font-semibold text-base text-foreground/90 leading-none tracking-normal backdrop-blur-[2px] transition-colors duration-200 hover:border-foreground/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]',
 }
-
-const SECONDARY_LINK_CLASSES =
-  'font-sans text-foreground/70 text-xs underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]'
 
 /** The two per-event RSVP pills, side by side (stacked below 375px). */
 function RsvpPills({
@@ -89,27 +82,19 @@ function RsvpPills({
   )
 }
 
-/** Quiet secondary actions beneath the primary RSVP pills: a decline action. */
+/** Secondary decline action beneath the primary RSVP pills. */
 function SecondaryActions({
-  websiteSubUrl,
   rsvpHref,
-  householdInviteCode,
+  size,
 }: {
-  websiteSubUrl: string
   rsvpHref: string
-  householdInviteCode: string | null
+  size: RsvpPillSize
 }) {
   return (
-    <div className='flex items-center gap-4'>
-      <Link href={`${rsvpHref}?decline=1`} className={SECONDARY_LINK_CLASSES}>
+    <div className='flex w-full items-center justify-center'>
+      <Link href={`${rsvpHref}?decline=1`} className={RSVP_PILL_OUTLINE_CLASSES[size]}>
         לצערינו לא מתאפשר
       </Link>
-      {householdInviteCode ? (
-        <CopyHouseholdInviteLinkButton
-          websiteSubUrl={websiteSubUrl}
-          inviteCode={householdInviteCode}
-        />
-      ) : null}
     </div>
   )
 }
@@ -179,13 +164,11 @@ function GreetingFrame({ name }: Readonly<{ name: string }>) {
  * hover/focus/click.
  */
 export function InvitationHero({
-  websiteSubUrl,
   rsvpHref,
   isRsvpEnabled,
   coupleNames,
   invitedHousehold,
   events,
-  householdInviteCode,
 }: Readonly<InvitationHeroProps>) {
   const invitationAlt = coupleNames ? `הזמנת החתונה של ${coupleNames}` : 'הזמנת החתונה'
   const topGreeting = topGreetingText(invitedHousehold)
@@ -245,11 +228,7 @@ export function InvitationHero({
               hasMultipleRsvpableEvents={hasMultipleRsvpableEvents}
               size='mobile'
             />
-            <SecondaryActions
-              websiteSubUrl={websiteSubUrl}
-              rsvpHref={rsvpHref}
-              householdInviteCode={invitedHousehold ? householdInviteCode : null}
-            />
+            <SecondaryActions rsvpHref={rsvpHref} size='mobile' />
           </div>
         </div>
       </div>
@@ -299,11 +278,7 @@ export function InvitationHero({
             hasMultipleRsvpableEvents={hasMultipleRsvpableEvents}
             size='desktop'
           />
-          <SecondaryActions
-            websiteSubUrl={websiteSubUrl}
-            rsvpHref={rsvpHref}
-            householdInviteCode={invitedHousehold ? householdInviteCode : null}
-          />
+          <SecondaryActions rsvpHref={rsvpHref} size='desktop' />
         </div>
       </div>
     </div>
