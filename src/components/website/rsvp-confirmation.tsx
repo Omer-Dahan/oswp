@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { FaCircleCheck } from 'react-icons/fa6'
 import { RxCrossCircled } from 'react-icons/rx'
@@ -41,6 +41,7 @@ function downloadIcs(ics: string, fileName: string) {
 export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
+  const router = useRouter()
   const rsvpFormData = useRsvpForm()
 
   const household = rsvpFormData.selectedHousehold
@@ -145,9 +146,13 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
             </div>
 
             <div className='rsvp-confirmation-block flex flex-col items-center gap-4'>
-              <Link className={stepPrimaryClassName} href={basePath}>
+              <button
+                type='button'
+                className={stepPrimaryClassName}
+                onClick={() => router.push(basePath)}
+              >
                 {t('backToHomepage')}
-              </Link>
+              </button>
 
               {eveningCalendar && (
                 <div className='rsvp-confirmation-block flex w-full flex-col items-center gap-3 rounded-[14px] border border-foreground/10 bg-white/50 p-4'>
