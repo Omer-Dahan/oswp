@@ -118,7 +118,7 @@ function SecondaryActions({
 function topGreetingText(invitedHousehold: InvitedHousehold | null): string | null {
   const contact = invitedHousehold?.primaryContactGreeting
   if (!contact) return null
-  return contact.kind === 'family' ? `משפחת ${contact.name}` : contact.name
+  return `שלום ${contact.name}`
 }
 
 function GreetingFrame({ name }: Readonly<{ name: string }>) {

@@ -33,20 +33,21 @@ function buildInvitedHousehold(
 }
 
 describe('PersonalizedWelcome', () => {
-  it('greets a household by family name without throwing', async () => {
+  it('greets a contact by full name without throwing', async () => {
     const invitedHousehold = buildInvitedHousehold({
-      primaryContactGreeting: { name: 'כהן', kind: 'family' },
+      primaryContactGreeting: { name: 'עומר דהן', kind: 'fullName' },
     })
 
     render(await PersonalizedWelcome({ invitedHousehold }))
 
-    expect(screen.getByText('שלום משפחת כהן')).toBeInTheDocument()
+    expect(screen.getByText('שלום עומר דהן')).toBeInTheDocument()
+    expect(screen.queryByText(/משפחת/)).not.toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'ברכת שלום אישית' })).toBeInTheDocument()
   })
 
   it('greets a single guest by first name without throwing', async () => {
     const invitedHousehold = buildInvitedHousehold({
-      primaryContactGreeting: { name: 'אלון', kind: 'firstName' },
+      primaryContactGreeting: { name: 'אלון', kind: 'fullName' },
     })
 
     render(await PersonalizedWelcome({ invitedHousehold }))
