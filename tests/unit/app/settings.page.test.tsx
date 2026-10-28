@@ -21,9 +21,6 @@ const mockOrganizationOutstandingInvitesCard = jest.fn(() => (
 const mockPluginsSettingsCard = jest.fn((_props: { enabledAddOns: string[] }) => (
   <div data-testid='plugins-settings-card'>Plugins card</div>
 ))
-const mockRsvpStepsSettingsCard = jest.fn((_props: { rsvpSteps: string[] }) => (
-  <div data-testid='rsvp-steps-settings-card'>RSVP steps card</div>
-))
 const mockTelegramConnectCard = jest.fn(() => (
   <div data-testid='telegram-connect-card'>Telegram card</div>
 ))
@@ -106,11 +103,6 @@ jest.mock('~/app/_components/settings/plugins-settings-card', () => ({
   PluginsSettingsCard: (props: { enabledAddOns: string[] }) => mockPluginsSettingsCard(props),
 }))
 
-jest.mock('~/app/_components/settings/rsvp-steps-settings-card', () => ({
-  __esModule: true,
-  RsvpStepsSettingsCard: (props: { rsvpSteps: string[] }) => mockRsvpStepsSettingsCard(props),
-}))
-
 jest.mock('~/components/settings/telegram-connect-card', () => ({
   __esModule: true,
   TelegramConnectCard: () => mockTelegramConnectCard(),
@@ -130,7 +122,6 @@ describe('SettingsPage', () => {
     mockOrganizationMembersSettingsCard.mockClear()
     mockOrganizationOutstandingInvitesCard.mockClear()
     mockPluginsSettingsCard.mockClear()
-    mockRsvpStepsSettingsCard.mockClear()
     mockTelegramConnectCard.mockClear()
     mockWorkspaceInviteLinksCard.mockClear()
     mockWhatsappConnectionCard.mockClear()
@@ -158,10 +149,7 @@ describe('SettingsPage', () => {
     expect(screen.getByText('תוספים')).toBeInTheDocument()
     expect(screen.getByTestId('wedding-settings-form')).toBeInTheDocument()
     expect(screen.getByTestId('plugins-settings-card')).toBeInTheDocument()
-    expect(screen.getByTestId('rsvp-steps-settings-card')).toBeInTheDocument()
-    expect(mockRsvpStepsSettingsCard).toHaveBeenCalledWith({
-      rsvpSteps: ['children-count', 'dietary-notes'],
-    })
+    expect(screen.queryByTestId('rsvp-steps-settings-card')).not.toBeInTheDocument()
     expect(screen.getByTestId('organization-members-settings-card')).toBeInTheDocument()
     expect(screen.getByTestId('organization-outstanding-invites-card')).toBeInTheDocument()
     expect(screen.getByTestId('telegram-connect-card')).toBeInTheDocument()

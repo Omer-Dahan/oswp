@@ -14,6 +14,7 @@ import { EventCard } from '~/app/(authenicated)/events/_components/event-card'
 import { ManageEventGuestsDialog } from '~/app/(authenicated)/events/_components/manage-event-guests-dialog'
 import { ManageEventQuestionsDialog } from '~/app/(authenicated)/events/_components/manage-event-questions-dialog'
 import { ManageGeneralQuestionsDialog } from '~/app/(authenicated)/events/_components/manage-general-questions-dialog'
+import { ManageRsvpPagesDialog } from '~/app/(authenicated)/events/_components/manage-rsvp-pages-dialog'
 import {
   type EventFormData,
   transformToServerInput,
@@ -30,15 +31,21 @@ import {
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog'
 import { Button } from '~/components/ui/button'
+import { DEFAULT_RSVP_STEPS } from '~/lib/rsvp/steps'
 import type { Event, EventWithStats } from '~/server/domains/event/event.types'
 import { api } from '~/trpc/react'
 
 type EventsPageClientProps = Readonly<{
   initialEvents: EventWithStats[]
   initialRsvpEventId?: string
+  initialWeddingRsvpSteps?: string[]
 }>
 
-export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPageClientProps) {
+export function EventsPageClient({
+  initialEvents,
+  initialRsvpEventId,
+  initialWeddingRsvpSteps = [...DEFAULT_RSVP_STEPS],
+}: EventsPageClientProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<EventWithStats | undefined>(undefined)
   const [deletingEvent, setDeletingEvent] = useState<EventWithStats | undefined>(undefined)
@@ -47,6 +54,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
   )
   const [managingQuestionsEventId, setManagingQuestionsEventId] = useState<string | null>(null)
   const [managingGeneralQuestions, setManagingGeneralQuestions] = useState(false)
+  const [managingRsvpPages, setManagingRsvpPages] = useState(false)
   const [togglingRsvpEventId, setTogglingRsvpEventId] = useState<string | null>(null)
   const utils = api.useUtils()
 
@@ -253,7 +261,7 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
             </span>
           </div>
           <div className='max-w-sm'>
-            <p className='font-serif text-xl text-foreground'>אין אירועים עדיין</p>
+            <p className='font-serif text-foreground text-xl'>אין אירועים עדיין</p>
             <p className='mt-2 font-mono text-[0.65rem] text-foreground/55 leading-relaxed tracking-wider'>
               התחילו ביצירת אירוע החתונה הראשון שלכם. הוסיפו טקסים, קבלות פנים, ארוחות חזרה ועוד.
             </p>
@@ -267,6 +275,14 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
               צרו את האירוע הראשון שלכם
             </Button>
             {generalQuestionsButton}
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={() => setManagingRsvpPages(true)}
+            >
+              תצוגת דפים
+            </Button>
           </div>
         </div>
 
@@ -281,6 +297,14 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
         ) : null}
 
         {generalQuestionsDialog}
+        {managingRsvpPages ? (
+          <ManageRsvpPagesDialog
+            events={events}
+            weddingRsvpSteps={initialWeddingRsvpSteps}
+            open
+            onOpenChange={(open) => !open && setManagingRsvpPages(false)}
+          />
+        ) : null}
       </>
     )
   }
@@ -311,6 +335,14 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
           {events.length} {events.length === 1 ? 'אירוע' : 'אירועים'}
         </p>
         <div className='flex items-center gap-2'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            onClick={() => setManagingRsvpPages(true)}
+          >
+            תצוגת דפים
+          </Button>
           {generalQuestionsButton}
           <Button onClick={() => setIsCreateDialogOpen(true)} size='sm'>
             <Plus className='me-2 h-4 w-4' />
@@ -403,6 +435,14 @@ export function EventsPageClient({ initialEvents, initialRsvpEventId }: EventsPa
       ) : null}
 
       {generalQuestionsDialog}
+      {managingRsvpPages ? (
+        <ManageRsvpPagesDialog
+          events={events}
+          weddingRsvpSteps={initialWeddingRsvpSteps}
+          open
+          onOpenChange={(open) => !open && setManagingRsvpPages(false)}
+        />
+      ) : null}
     </>
   )
 }

@@ -4,9 +4,11 @@ import EventsPage from '~/app/(authenicated)/events/page'
 
 const mockGetRequiredWedding = jest.fn()
 const mockGetEventsWithStats = jest.fn()
-const mockEventsPageClient = jest.fn(({ initialEvents }: { initialEvents: unknown[] }) => (
-  <div data-testid='events-page-client'>{initialEvents.length}</div>
-))
+const mockEventsPageClient = jest.fn(
+  ({ initialEvents }: { initialEvents: unknown[]; initialWeddingRsvpSteps: string[] }) => (
+    <div data-testid='events-page-client'>{initialEvents.length}</div>
+  )
+)
 const mockDashboardTopbar = jest.fn(
   (_props: { title?: string; showManagementActions?: boolean }) => (
     <header data-testid='dashboard-topbar'>Topbar</header>
@@ -26,8 +28,13 @@ jest.mock('~/trpc/server', () => ({
 }))
 
 jest.mock('~/app/(authenicated)/events/_components/events-page-client', () => ({
-  EventsPageClient: ({ initialEvents }: { initialEvents: unknown[] }) =>
-    mockEventsPageClient({ initialEvents }),
+  EventsPageClient: ({
+    initialEvents,
+    initialWeddingRsvpSteps,
+  }: {
+    initialEvents: unknown[]
+    initialWeddingRsvpSteps: string[]
+  }) => mockEventsPageClient({ initialEvents, initialWeddingRsvpSteps }),
 }))
 
 jest.mock('~/components/dashboard/dashboard-topbar', () => ({
@@ -45,7 +52,7 @@ describe('EventsPage', () => {
   })
 
   it('fetches events on server and passes initialEvents to client', async () => {
-    mockGetRequiredWedding.mockResolvedValue(undefined)
+    mockGetRequiredWedding.mockResolvedValue({ rsvpSteps: ['children-count'] })
     mockGetEventsWithStats.mockResolvedValue([{ id: 'evt-1' }])
 
     const page = await EventsPage({})
@@ -55,12 +62,13 @@ describe('EventsPage', () => {
     expect(mockGetEventsWithStats).toHaveBeenCalledTimes(1)
     expect(mockEventsPageClient).toHaveBeenCalledWith({
       initialEvents: [{ id: 'evt-1' }],
+      initialWeddingRsvpSteps: ['children-count'],
     })
     expect(screen.getByTestId('events-page-client')).toBeInTheDocument()
   })
 
   it('passes an empty array when server query returns undefined', async () => {
-    mockGetRequiredWedding.mockResolvedValue(undefined)
+    mockGetRequiredWedding.mockResolvedValue({ rsvpSteps: ['children-count'] })
     mockGetEventsWithStats.mockResolvedValue(undefined)
 
     const page = await EventsPage({})
@@ -68,11 +76,12 @@ describe('EventsPage', () => {
 
     expect(mockEventsPageClient).toHaveBeenCalledWith({
       initialEvents: [],
+      initialWeddingRsvpSteps: ['children-count'],
     })
   })
 
   it('renders dashboard topbar and authenticated page shell', async () => {
-    mockGetRequiredWedding.mockResolvedValue(undefined)
+    mockGetRequiredWedding.mockResolvedValue({ rsvpSteps: ['children-count'] })
     mockGetEventsWithStats.mockResolvedValue([])
 
     const page = await EventsPage({})
