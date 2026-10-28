@@ -21,7 +21,7 @@ import WishesMessageForm from '~/components/website/forms/steps/wishes-message'
 import RsvpConfirmation from '~/components/website/rsvp-confirmation'
 import { ANALYTICS_ACTIONS, ANALYTICS_SCOPES, buildEventName } from '~/lib/analytics/events'
 import { track } from '~/lib/analytics/track'
-import { normalizeRsvpSteps, type RsvpStepKey } from '~/lib/rsvp/steps'
+import { getScopedRsvpSteps, type RsvpStepKey } from '~/lib/rsvp/steps'
 import { isChuppahOnlySelection } from '~/lib/wedding/rsvp-events'
 import { api } from '~/trpc/react'
 
@@ -191,11 +191,29 @@ export default function MainRsvpForm({
     [weddingData?.events, rsvpFormData.preselectedEventId]
   )
   const configuredRsvpSteps = useMemo(() => {
-    const normalized = normalizeRsvpSteps(weddingData.rsvpSteps)
+    const invitedEventIds = new Set(
+      rsvpFormData.selectedHousehold?.guests.flatMap((guest) =>
+        (guest.invitations ?? [])
+          .filter((invite) => ['Invited', 'Attending', 'Declined'].includes(invite.rsvp ?? ''))
+          .map((invite) => invite.eventId)
+      ) ?? []
+    )
+    const scoped = getScopedRsvpSteps({
+      weddingSteps: weddingData.rsvpSteps,
+      events: weddingData.events ?? [],
+      preselectedEventId: rsvpFormData.preselectedEventId,
+      invitedEventIds,
+    })
     return isChuppahOnlyFlow
-      ? normalized.filter((step) => step !== 'children-count' && step !== 'dietary-notes')
-      : normalized
-  }, [isChuppahOnlyFlow, weddingData.rsvpSteps])
+      ? scoped.filter((step) => step !== 'children-count' && step !== 'dietary-notes')
+      : scoped
+  }, [
+    isChuppahOnlyFlow,
+    rsvpFormData.preselectedEventId,
+    rsvpFormData.selectedHousehold,
+    weddingData.events,
+    weddingData.rsvpSteps,
+  ])
   const configuredRsvpStepSet = useMemo(
     () => new Set<RsvpStepKey>(configuredRsvpSteps),
     [configuredRsvpSteps]

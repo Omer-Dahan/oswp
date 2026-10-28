@@ -248,6 +248,13 @@ export class EventRepository {
     })
   }
 
+  async updateRsvpSteps(id: string, rsvpSteps: string[]): Promise<Event> {
+    return this.db.event.update({
+      where: { id },
+      data: { rsvpSteps },
+    })
+  }
+
   /**
    * Delete an event
    */

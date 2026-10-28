@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-
+import { RSVP_STEP_KEYS } from '~/lib/rsvp/steps'
 import { isValidStoredWazeUrl } from '~/lib/website/maps'
 
 const venueWazeUrlSchema = z
@@ -92,6 +92,16 @@ export const updateCollectRsvpSchema = z.object({
   collectRsvp: z.boolean(),
 })
 
+export const updateEventRsvpStepsSchema = z.object({
+  eventId: z.string().min(1, 'Event ID is required'),
+  rsvpSteps: z
+    .array(z.enum(RSVP_STEP_KEYS))
+    .max(RSVP_STEP_KEYS.length)
+    .refine((steps) => new Set(steps).size === steps.length, {
+      message: 'RSVP steps must be unique',
+    }),
+})
+
 /**
  * Schema for deleting an event
  */
@@ -110,4 +120,5 @@ export const eventIdSchema = z.object({
 export type CreateEventInput = z.infer<typeof createEventSchema>
 export type UpdateEventInput = z.infer<typeof updateEventSchema>
 export type UpdateCollectRsvpInput = z.infer<typeof updateCollectRsvpSchema>
+export type UpdateEventRsvpStepsInput = z.infer<typeof updateEventRsvpStepsSchema>
 export type DeleteEventInput = z.infer<typeof deleteEventSchema>

@@ -5,15 +5,18 @@
  * This is a thin layer that handles input validation and delegates to the service.
  */
 
+import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { eventInsightsService } from '~/server/application/event-insights'
 import { eventManagementService } from '~/server/application/event-management'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
+import { readWorkspaceCapabilities } from '~/server/authz/workspace-capabilities'
 import { eventService } from '~/server/domains/event'
 import {
   createEventSchema,
   deleteEventSchema,
   updateCollectRsvpSchema,
+  updateEventRsvpStepsSchema,
   updateEventSchema,
 } from '~/server/domains/event/event.validator'
 
@@ -59,6 +62,17 @@ export const eventRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
       return eventService.updateCollectRsvp(ctx.authz, weddingId, input.eventId, input.collectRsvp)
+    }),
+
+  updateRsvpSteps: protectedProcedure
+    .input(updateEventRsvpStepsSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!readWorkspaceCapabilities(ctx.auth.activeOrganization?.role).canAccessSettings) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return eventService.updateRsvpSteps(weddingId, input.eventId, input.rsvpSteps)
     }),
 
   /**

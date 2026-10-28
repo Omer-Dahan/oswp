@@ -25,6 +25,7 @@ jest.mock('server/application/event-management', () => ({
 
 import { eventInsightsService } from 'server/application/event-insights'
 import { eventManagementService } from 'server/application/event-management'
+import { eventService } from 'server/domains/event'
 import { eventRouter } from 'server/domains/event/event.router'
 
 const mockCreateEvent = eventManagementService.createEvent as jest.Mock
@@ -159,5 +160,37 @@ describe('eventRouter authz context plumbing', () => {
     await expect(viewerCaller.getAllByUserId()).rejects.toMatchObject({
       code: 'FORBIDDEN',
     })
+  })
+
+  it('rejects RSVP step updates without settings access', async () => {
+    const viewerCaller = eventRouter.createCaller({
+      auth: {
+        session: { user: { id: 'user-123' } },
+        activeOrganization: { organizationId: 'org-123', role: 'viewer' },
+        activeWeddingId: 'wedding-123',
+        userId: 'user-123',
+      },
+      authz: {
+        userId: 'user-123',
+        activeOrganization: { organizationId: 'org-123', role: 'viewer' },
+      },
+      db: {} as never,
+      headers: new Headers(),
+    })
+    const updateSpy = jest.spyOn(eventService, 'updateRsvpSteps')
+
+    await expect(
+      viewerCaller.updateRsvpSteps({ eventId: 'event-1', rsvpSteps: ['children-count'] })
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+    expect(updateSpy).not.toHaveBeenCalled()
+  })
+
+  it('rejects unknown RSVP step keys', async () => {
+    await expect(
+      caller.updateRsvpSteps({
+        eventId: 'event-1',
+        rsvpSteps: ['unknown-step' as 'children-count'],
+      })
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
   })
 })

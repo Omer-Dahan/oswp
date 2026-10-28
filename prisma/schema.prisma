@@ -455,6 +455,7 @@ model Event {
   attire         String?
   description    String?
   collectRsvp    Boolean   @default(false)
+  rsvpSteps      String[]  @default([])
   allowTagAlongs Boolean   @default(false)
   // Manual correction for computeHebrewDate()'s output (src/lib/hebrew-date.ts).
   // The computed value is never stored; this column only holds the override.

@@ -148,6 +148,7 @@ export type WeddingPageData = {
     description: string | null
     weddingId: string
     collectRsvp: boolean
+    rsvpSteps: string[]
     isPrimary: boolean
     questions: Question[]
   }>
