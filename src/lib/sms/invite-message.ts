@@ -60,7 +60,7 @@ export function buildWeddingInviteSms({
   const who = formatSmsRecipientName(firstName, lastName)
 
   return `${who}, שלום רב.
-אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה:
+אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
 ${INVITE_BASE_URL}/${inviteCode}
 
 בברכה - יהודה ותמר מנחם`
