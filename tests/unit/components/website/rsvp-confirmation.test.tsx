@@ -105,7 +105,7 @@ describe('RsvpConfirmation', () => {
             id: 'wedding',
             name: 'החתונה',
             date: new Date('2026-11-24T00:00:00.000Z'),
-            hebrewDateOverride: 'י״ד כסלו',
+            hebrewDateOverride: 'י״ד כסלו תשפ״ז',
             startTime: '18:30',
             endTime: '00:30',
             venue: 'אגדתא',
@@ -114,7 +114,7 @@ describe('RsvpConfirmation', () => {
             id: 'chuppah',
             name: 'החופה',
             date: new Date('2026-11-24T00:00:00.000Z'),
-            hebrewDateOverride: 'י״ד כסלו',
+            hebrewDateOverride: 'י״ד כסלו תשפ״ז',
             startTime: '19:30',
             endTime: '20:30',
             venue: 'אגדתא',
@@ -133,12 +133,13 @@ describe('RsvpConfirmation', () => {
 
     expect(screen.getByRole('heading', { name: 'תודה עומר' })).toBeInTheDocument()
     expect(screen.getByText('אישרנו הגעה לאורח אחד')).toBeInTheDocument()
-    expect(
-      screen.getByText((_, element) => element?.textContent === 'קבלת פנים · י״ד כסלו · 18:30')
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText((_, element) => element?.textContent === 'חופה וקידושין · י״ד כסלו · 19:30')
-    ).toBeInTheDocument()
+    const dateLine = screen.getByText(
+      (_, element) => element?.textContent === 'י״ד כסלו תשפ״ז | 24.11.2026'
+    )
+    expect(dateLine.parentElement?.children).toHaveLength(3)
+    expect(Array.from(dateLine.parentElement?.children ?? []).map((line) => line.textContent)).toEqual(
+      ['י״ד כסלו תשפ״ז | 24.11.2026', 'קבלת פנים 18:30', 'חופה וקידושין 19:30']
+    )
     expect(screen.queryByText(/00:30|20:30/)).toBeNull()
   })
 
