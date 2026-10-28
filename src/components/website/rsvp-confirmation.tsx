@@ -138,7 +138,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
               )}
             </div>
 
-            {confirmationTimes.length > 0 && (
+            {hasAttending && confirmationTimes.length > 0 && (
               <div className='rsvp-confirmation-block flex flex-col gap-2' dir='rtl'>
                 {confirmationTimes.map(({ event, label }) => {
                   const hebrewDate = hebrewDateFor({
@@ -170,7 +170,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
                 {t('backToHomepage')}
               </button>
 
-              {eveningCalendar && (
+              {hasAttending && eveningCalendar && (
                 <div className='rsvp-confirmation-block flex w-full flex-col items-center gap-3 rounded-[14px] border border-foreground/10 bg-white/50 p-4'>
                   <div className='flex w-full flex-col gap-2 sm:flex-row'>
                     <a
@@ -211,7 +211,7 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
               )}
             </div>
 
-            {dietaryNotes && (
+            {hasAttending && dietaryNotes && (
               <div className='rsvp-confirmation-block rounded-[12px] bg-muted/40 p-4 text-start'>
                 <p className={`${bodyFont} mb-1 text-foreground/70 text-sm`}>
                   {t('dietaryNotesTitle')}

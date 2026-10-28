@@ -82,7 +82,7 @@
     "confirmationThanksFamily": "תודה משפחת {lastName}",
     "confirmationThanksName": "תודה {firstName}",
     "confirmationThanksFallback": "תודה!",
-    "confirmationDeclinedThanks": "תודה שעדכנתם אותנו 🤍",
+    "confirmationDeclinedThanks": "קלטנו את הבחירה, תודה והמשך יום מקסים",
     "confirmationCount": "{count, plural, one {אישרנו הגעה לאורח אחד} other {אישרנו הגעה ל-{count} אורחים}}",
     "confirmationCountWithChildren": "{count, plural, one {אישרנו הגעה לאורח אחד} other {אישרנו הגעה ל-{count} אורחים}} · {children, plural, one {ילד אחד} other {{children} ילדים}}",
     "confirmationReception": "קבלת פנים",

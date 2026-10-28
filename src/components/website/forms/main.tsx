@@ -50,9 +50,8 @@ type MainRsvpFormProps = {
 // dietary-notes, wishes-message, final step, and confirmation
 
 // The short decline-intent flow (`?decline=1`): find invitation, confirm
-// household, a single decline confirmation, wishes-message, final step, and
-// confirmation — it skips who-is-coming/children/dietary/per-event steps
-// entirely.
+// household, a single decline confirmation that submits immediately, and the
+// confirmation screen. It skips all attendance-detail and send steps.
 
 const HEBREW_CHARACTERS = /[֐-׿]/
 
@@ -224,7 +223,7 @@ export default function MainRsvpForm({
   // steps, so a fixed number drifts out of sync with the progress bar.
   const identitySteps = skipIdentitySteps ? 0 : 2 // find, confirm
   const numSteps = isDeclineFlow
-    ? identitySteps + 3 // decline confirmation, send, confirmation
+    ? identitySteps + 2 // decline confirmation, confirmation
     : identitySteps +
       1 + // who is coming
       configuredRsvpSteps.length +
@@ -248,18 +247,17 @@ export default function MainRsvpForm({
         identityStepCount={identitySteps}
         basePath={basePath}
         embedded={embedded}
+        isDeclineFlow={isDeclineFlow}
       />
       <form
         className='m-auto w-full max-w-[450px] px-5 py-8 md:px-0'
         onSubmit={(e) => {
           e.preventDefault()
 
-          // Only the send-rsvp step's button is type='submit'; every other step
-          // uses type='button' and calls goNext() directly. But a lone text
-          // input still triggers the browser's implicit form submission on
-          // Enter/Go, which would otherwise reach this handler mid-flow with
-          // stale or incomplete form state. Guard so submission only proceeds
-          // from that final step.
+          // The attending flow submits from its send step; the decline flow
+          // submits from its sole question. A lone text input can still trigger
+          // implicit submission on Enter/Go, so only the penultimate rendered
+          // step may reach the mutation.
           if (currentStep !== numSteps - 1) return
 
           setSubmitError(null)
@@ -345,7 +343,7 @@ export default function MainRsvpForm({
               ...dynamicStepForms,
             ]
           )}
-          <SendRsvp isFetching={submitRsvpForm.isPending} />
+          {!isDeclineFlow && <SendRsvp isFetching={submitRsvpForm.isPending} />}
           <RsvpConfirmation basePath={basePath} />
         </MultistepRsvpForm>
       </form>
@@ -360,6 +358,7 @@ const ProgressBar = ({
   identityStepCount,
   basePath,
   embedded,
+  isDeclineFlow,
 }: {
   currentStep: number
   progress: number
@@ -367,6 +366,7 @@ const ProgressBar = ({
   identityStepCount: number
   basePath: string
   embedded: boolean
+  isDeclineFlow: boolean
 }) => {
   const tCommon = useTranslations('common')
   return (
@@ -398,9 +398,11 @@ const ProgressBar = ({
             width:
               currentStep <= identityStepCount
                 ? '3%'
-                : currentStep === numSteps - 1
-                  ? '99%'
-                  : `${progress}%`,
+                : currentStep === numSteps
+                  ? '100%'
+                  : currentStep === numSteps - 1 && !isDeclineFlow
+                    ? '99%'
+                    : `${progress}%`,
           }}
         ></div>
       </div>
