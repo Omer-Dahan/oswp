@@ -8,6 +8,8 @@ const mockCreateMutateAsync = jest.fn()
 const mockUpdateMutateAsync = jest.fn()
 const mockDeleteMutate = jest.fn()
 const mockUpdateCollectRsvpMutate = jest.fn()
+const mockUpdateEventRsvpStepsMutate = jest.fn()
+const mockUpdateWeddingRsvpStepsMutate = jest.fn()
 const mockQuestionDeleteMutate = jest.fn()
 const mockQuestionUpsertMutate = jest.fn()
 const mockInvalidate = jest.fn()
@@ -72,6 +74,20 @@ jest.mock('~/trpc/react', () => ({
       updateCollectRsvp: {
         useMutation: () => ({
           mutate: (...args: unknown[]) => mockUpdateCollectRsvpMutate(...args),
+          isPending: false,
+        }),
+      },
+      updateRsvpSteps: {
+        useMutation: () => ({
+          mutate: (...args: unknown[]) => mockUpdateEventRsvpStepsMutate(...args),
+          isPending: false,
+        }),
+      },
+    },
+    wedding: {
+      updateRsvpSteps: {
+        useMutation: () => ({
+          mutate: (...args: unknown[]) => mockUpdateWeddingRsvpStepsMutate(...args),
           isPending: false,
         }),
       },
@@ -144,6 +160,8 @@ describe('EventsPageClient', () => {
     mockUpdateMutateAsync.mockReset()
     mockDeleteMutate.mockReset()
     mockUpdateCollectRsvpMutate.mockReset()
+    mockUpdateEventRsvpStepsMutate.mockReset()
+    mockUpdateWeddingRsvpStepsMutate.mockReset()
     mockQuestionDeleteMutate.mockReset()
     mockQuestionUpsertMutate.mockReset()
     mockInvalidate.mockReset()
@@ -229,6 +247,29 @@ describe('EventsPageClient', () => {
     expect(mockUpdateCollectRsvpMutate).toHaveBeenCalledWith({
       eventId: 'evt-1',
       collectRsvp: false,
+    })
+  })
+
+  it('saves per-event inclusion separately from the global order', () => {
+    render(
+      <EventsPageClient
+        initialEvents={[baseEvent]}
+        initialWeddingRsvpSteps={['children-count', 'dietary-notes']}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'תצוגת דפים' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'מספר ילדים עבור Ceremony' }))
+
+    expect(mockUpdateEventRsvpStepsMutate).toHaveBeenCalledWith({
+      eventId: 'evt-1',
+      rsvpSteps: ['children-count'],
+    })
+    expect(mockUpdateWeddingRsvpStepsMutate).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת סדר הדפים' }))
+    expect(mockUpdateWeddingRsvpStepsMutate).toHaveBeenCalledWith({
+      rsvpSteps: ['children-count', 'dietary-notes', 'wishes-message'],
     })
   })
 })

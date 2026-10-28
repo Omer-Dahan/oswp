@@ -27,7 +27,7 @@ export default async function EventsPage(props: {
   searchParams?: Promise<EventsPageSearchParams>
 }) {
   const searchParams = (await props.searchParams) ?? {}
-  await getRequiredWedding()
+  const wedding = await getRequiredWedding()
   const initialEvents = (await api.event.getAllByUserIdWithStats()) ?? []
 
   return (
@@ -36,6 +36,7 @@ export default async function EventsPage(props: {
       <main className='min-h-0 flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6'>
         <EventsPageClient
           initialEvents={initialEvents}
+          initialWeddingRsvpSteps={wedding.rsvpSteps}
           initialRsvpEventId={searchParams.tab === 'rsvps' ? searchParams.eventId : undefined}
         />
       </main>
