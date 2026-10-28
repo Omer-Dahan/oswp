@@ -22,6 +22,12 @@ const calendarPillSecondary = `${bodyFont} inline-flex h-12 items-center justify
 
 const directionsLinkClassName = `${bodyFont} inline-flex min-h-14 w-full items-center justify-center rounded-full border border-foreground/30 bg-white/70 px-6 text-foreground text-lg transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-foreground/50 hover:bg-white active:translate-y-0 active:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
 
+function formatGregorianDate(date: Date): string {
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  return `${day}.${month}.${date.getUTCFullYear()}`
+}
+
 export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const t = useTranslations('rsvp')
   const router = useRouter()
@@ -75,6 +81,16 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
       ? { event: chuppah, label: t('confirmationChuppah') }
       : null,
   ].filter((item): item is { event: Event; label: string } => item !== null)
+  const confirmationDateEvent = confirmationTimes.find(({ event }) => event.date)?.event
+  const confirmationHebrewDate = confirmationDateEvent
+    ? hebrewDateFor({
+        date: confirmationDateEvent.date,
+        hebrewDateOverride: confirmationDateEvent.hebrewDateOverride ?? null,
+      })
+    : null
+  const confirmationGregorianDate = confirmationDateEvent?.date
+    ? formatGregorianDate(confirmationDateEvent.date)
+    : null
 
   // One calendar entry for the whole evening: the chuppah is part of the same
   // night, not a second appointment, so the guest saves one block that names
@@ -140,24 +156,23 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
 
             {hasAttending && confirmationTimes.length > 0 && (
               <div className='rsvp-confirmation-block flex flex-col gap-2' dir='rtl'>
-                {confirmationTimes.map(({ event, label }) => {
-                  const hebrewDate = hebrewDateFor({
-                    date: event.date,
-                    hebrewDateOverride: event.hebrewDateOverride ?? null,
-                  })
-
-                  return (
-                    <p
-                      key={event.id}
-                      className={`${bodyFont} text-right text-foreground/85 text-lg tabular-nums`}
-                    >
-                      {label}
-                      {hebrewDate ? ` · ${hebrewDate}` : ''}
-                      {' · '}
-                      <time dateTime={event.startTime ?? undefined}>{event.startTime}</time>
-                    </p>
-                  )
-                })}
+                {confirmationHebrewDate && confirmationGregorianDate && (
+                  <p className={`${bodyFont} text-right text-foreground/85 text-lg tabular-nums`}>
+                    {confirmationHebrewDate}
+                    {' | '}
+                    <time dir='ltr' dateTime={confirmationDateEvent?.date?.toISOString()}>
+                      {confirmationGregorianDate}
+                    </time>
+                  </p>
+                )}
+                {confirmationTimes.map(({ event, label }) => (
+                  <p
+                    key={event.id}
+                    className={`${bodyFont} text-right text-foreground/85 text-lg tabular-nums`}
+                  >
+                    {label} <time dateTime={event.startTime ?? undefined}>{event.startTime}</time>
+                  </p>
+                ))}
               </div>
             )}
 
