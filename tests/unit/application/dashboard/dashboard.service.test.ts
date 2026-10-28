@@ -556,6 +556,7 @@ describe('DashboardService', () => {
       expect(result?.milestones).toHaveLength(1)
       expect(result?.households).toHaveLength(2)
       expect(result?.events).toHaveLength(2)
+      expect(result?.rsvpSummary).toEqual({ attending: 2, pending: 0, declined: 1 })
     })
 
     it('should include wedding data with names', async () => {
@@ -622,6 +623,39 @@ describe('DashboardService', () => {
       const rehearsalEvent = result?.events.find((e) => e.id === 'event-rehearsal')
       expect(rehearsalEvent?.guestResponses.invited).toBe(1)
       expect(rehearsalEvent?.guestResponses.notInvited).toBe(1)
+    })
+
+    it('counts a guest attending two events once', async () => {
+      mockInvitationFindByWeddingIdFn.mockResolvedValue([
+        { ...mockInvitations[0], eventId: 'event-wedding', rsvp: 'Attending' },
+        { ...mockInvitations[0], id: 'inv-second', eventId: 'event-rehearsal', rsvp: 'Attending' },
+      ])
+
+      const result = await getOverview()
+
+      expect(result?.rsvpSummary).toEqual({ attending: 1, pending: 0, declined: 0 })
+    })
+
+    it('prefers attending over an unanswered invitation for the same guest', async () => {
+      mockInvitationFindByWeddingIdFn.mockResolvedValue([
+        { ...mockInvitations[0], eventId: 'event-wedding', rsvp: 'Attending' },
+        { ...mockInvitations[0], id: 'inv-second', eventId: 'event-rehearsal', rsvp: 'Invited' },
+      ])
+
+      const result = await getOverview()
+
+      expect(result?.rsvpSummary).toEqual({ attending: 1, pending: 0, declined: 0 })
+    })
+
+    it('counts a guest whose invitations are all declined once', async () => {
+      mockInvitationFindByWeddingIdFn.mockResolvedValue([
+        { ...mockInvitations[2], eventId: 'event-wedding', rsvp: 'Declined' },
+        { ...mockInvitations[2], id: 'inv-second', eventId: 'event-rehearsal', rsvp: 'Declined' },
+      ])
+
+      const result = await getOverview()
+
+      expect(result?.rsvpSummary).toEqual({ attending: 0, pending: 0, declined: 1 })
     })
 
     it('should include event questions with recent answers', async () => {
