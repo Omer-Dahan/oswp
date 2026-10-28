@@ -74,6 +74,7 @@ model Wedding {
   whatsAppTemplates WhatsAppTemplate[]
   whatsAppOutbound  WhatsAppOutbound[]
   whatsAppInbound   WhatsAppInbound[]
+  smsOutbound       SmsOutbound[]
 
   @@index([selfFillToken, selfFillTokenGeneratedAt])
 }
@@ -371,6 +372,7 @@ model Household {
   householdNotes   HouseholdNote[]
   whatsAppOutbound WhatsAppOutbound[] @relation(name: "Household_WhatsAppOutbound")
   whatsAppInbound  WhatsAppInbound[]  @relation(name: "Household_WhatsAppInbound")
+  smsOutbound      SmsOutbound[]      @relation(name: "Household_SmsOutbound")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -427,6 +429,7 @@ model Guest {
   seatAssignments  SeatAssignment[]
   whatsAppOutbound WhatsAppOutbound[] @relation(name: "Guest_WhatsAppOutbound")
   whatsAppInbound  WhatsAppInbound[]  @relation(name: "Guest_WhatsAppInbound")
+  smsOutbound      SmsOutbound[]      @relation(name: "Guest_SmsOutbound")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -474,6 +477,7 @@ model Event {
   seatingTables    SeatingTable[]
   seatAssignments  SeatAssignment[]
   whatsAppOutbound WhatsAppOutbound[] @relation(name: "Event_WhatsAppOutbound")
+  smsOutbound      SmsOutbound[]      @relation(name: "Event_SmsOutbound")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1266,6 +1270,18 @@ enum WhatsAppOutboundStatus {
   FAILED
 }
 
+enum SmsOutboundKind {
+  INVITE
+  REMINDER
+  THANK_YOU
+}
+
+enum SmsOutboundStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
 // One WhatsApp/SMS sender configuration per wedding. accessTokenEnc is
 // AES-256-GCM encrypted at rest and never returned to the client.
 model WhatsAppAccount {
@@ -1351,6 +1367,33 @@ model WhatsAppOutbound {
   @@index([guestId])
   @@index([eventId])
   @@map("whatsapp_outbound")
+}
+
+model SmsOutbound {
+  id                String            @id @default(uuid())
+  weddingId         String            @map("wedding_id")
+  wedding           Wedding           @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  householdId       String?           @map("household_id")
+  household         Household?        @relation(name: "Household_SmsOutbound", fields: [householdId], references: [id], onDelete: SetNull)
+  guestId           Int?              @map("guest_id")
+  guest             Guest?            @relation(name: "Guest_SmsOutbound", fields: [guestId], references: [id], onDelete: SetNull)
+  eventId           String?           @map("event_id")
+  event             Event?            @relation(name: "Event_SmsOutbound", fields: [eventId], references: [id], onDelete: SetNull)
+  kind              SmsOutboundKind
+  toPhone           String            @map("to_phone")
+  body              String
+  status            SmsOutboundStatus @default(QUEUED)
+  providerMessageId String?           @map("provider_message_id")
+  error             String?
+  queuedAt          DateTime          @default(now()) @map("queued_at")
+  sentAt            DateTime?         @map("sent_at")
+
+  @@unique([weddingId, householdId, kind], map: "sms_outbound_wedding_household_kind_key")
+  @@index([weddingId, status])
+  @@index([householdId])
+  @@index([guestId])
+  @@index([eventId])
+  @@map("sms_outbound")
 }
 
 model WhatsAppInbound {
