@@ -85,6 +85,8 @@
     "confirmationDeclinedThanks": "Thanks for letting us know 🤍",
     "confirmationCount": "We confirmed {count} guests",
     "confirmationCountWithChildren": "We confirmed {count} guests · {children} children",
+    "confirmationReception": "Reception",
+    "confirmationChuppah": "Chuppah and kiddushin",
     "backToHomepage": "BACK TO HOMEPAGE",
     "yourRsvpResponse": "Your RSVP Response",
     "updateResponse": "Update Response",

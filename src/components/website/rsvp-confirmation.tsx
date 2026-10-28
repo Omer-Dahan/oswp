@@ -3,44 +3,27 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { FaCircleCheck } from 'react-icons/fa6'
-import { RxCrossCircled } from 'react-icons/rx'
-import { formatDateStandard } from '~/app/utils/helpers'
-import type { Event, RsvpFormResponse } from '~/app/utils/shared-types'
+import type { Event } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
 import { stepHeadingFont, stepPrimaryClassName } from '~/components/website/forms/steps/step-ui'
+import { hebrewDateFor } from '~/lib/hebrew-date'
 import { buildEveningCalendarLinks } from '~/lib/website/calendar'
 import { resolveWazeUrl } from '~/lib/website/maps'
 import { coupleNamesHe } from '~/lib/wedding/couple-name'
+import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 
 type RsvpConfirmationProps = {
   basePath: string
 }
 
 const bodyFont = 'font-[family-name:var(--tpl-body-font)]'
-const calendarPillPrimary =
-  `${bodyFont} inline-flex h-12 items-center justify-center rounded-full bg-primary px-5 text-base text-primary-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
-const calendarPillSecondary =
-  `${bodyFont} inline-flex h-12 items-center justify-center rounded-full border border-foreground/30 bg-white/70 px-5 text-base text-foreground/90 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+const calendarPillPrimary = `${bodyFont} inline-flex h-12 items-center justify-center rounded-full bg-primary px-5 text-base text-primary-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+const calendarPillSecondary = `${bodyFont} inline-flex h-12 items-center justify-center rounded-full border border-foreground/30 bg-white/70 px-5 text-base text-foreground/90 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
 
-const quietLinkClassName =
-  `${bodyFont} text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline`
-
-function downloadIcs(ics: string, fileName: string) {
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
-}
+const directionsLinkClassName = `${bodyFont} inline-flex min-h-14 w-full items-center justify-center rounded-full border border-foreground/30 bg-white/70 px-6 text-foreground text-lg transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-foreground/50 hover:bg-white active:translate-y-0 active:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
 
 export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const t = useTranslations('rsvp')
-  const tCommon = useTranslations('common')
   const router = useRouter()
   const rsvpFormData = useRsvpForm()
 
@@ -76,9 +59,22 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
 
   const dietaryNotes = rsvpFormData.dietaryNotes?.trim()
 
-  const events = (rsvpFormData.weddingData.events ?? []).filter((event: Event) =>
+  const allEvents = (rsvpFormData.weddingData.events ?? []) as Event[]
+  const events = allEvents.filter((event) =>
     rsvpFormData.rsvpResponses.some((response) => event.id === response.eventId)
   )
+  const scopedEventIds = new Set(events.map((event) => event.id))
+  const { weddingEvent, chuppahEvent } = resolveRsvpEvents(allEvents)
+  const reception = weddingEvent ? allEvents.find((event) => event.id === weddingEvent.id) : null
+  const chuppah = chuppahEvent ? allEvents.find((event) => event.id === chuppahEvent.id) : null
+  const confirmationTimes = [
+    reception && scopedEventIds.has(reception.id) && reception.startTime
+      ? { event: reception, label: t('confirmationReception') }
+      : null,
+    chuppah && scopedEventIds.has(chuppah.id) && chuppah.startTime
+      ? { event: chuppah, label: t('confirmationChuppah') }
+      : null,
+  ].filter((item): item is { event: Event; label: string } => item !== null)
 
   // One calendar entry for the whole evening: the chuppah is part of the same
   // night, not a second appointment, so the guest saves one block that names
@@ -86,7 +82,8 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
   const eveningTitle = coupleNamesHe(rsvpFormData.weddingData as never)
     ? `החתונה של ${coupleNamesHe(rsvpFormData.weddingData as never)}`
     : 'החתונה שלנו'
-  const websiteSubUrl = (rsvpFormData.weddingData as { website?: { subUrl?: string } }).website?.subUrl
+  const websiteSubUrl = (rsvpFormData.weddingData as { website?: { subUrl?: string } }).website
+    ?.subUrl
   const calendarEventQuery = events
     .map((event) => `event=${encodeURIComponent(event.id)}`)
     .join('&')
@@ -136,14 +133,33 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
               <h2 className={`${stepHeadingFont} text-2xl text-foreground sm:text-3xl`}>
                 {heading}
               </h2>
-              {countLine && <p className={`${bodyFont} text-base text-foreground/80`}>{countLine}</p>}
+              {countLine && (
+                <p className={`${bodyFont} text-base text-foreground/80`}>{countLine}</p>
+              )}
             </div>
 
-            <div className='rsvp-confirmation-block flex flex-col divide-y divide-border'>
-              {events.map((event: Event) => (
-                <EventRow key={event.id} event={event} rsvpResponses={rsvpFormData.rsvpResponses} />
-              ))}
-            </div>
+            {confirmationTimes.length > 0 && (
+              <div className='rsvp-confirmation-block flex flex-col gap-2' dir='rtl'>
+                {confirmationTimes.map(({ event, label }) => {
+                  const hebrewDate = hebrewDateFor({
+                    date: event.date,
+                    hebrewDateOverride: event.hebrewDateOverride ?? null,
+                  })
+
+                  return (
+                    <p
+                      key={event.id}
+                      className={`${bodyFont} text-right text-foreground/85 text-lg tabular-nums`}
+                    >
+                      {label}
+                      {hebrewDate ? ` · ${hebrewDate}` : ''}
+                      {' · '}
+                      <time dateTime={event.startTime ?? undefined}>{event.startTime}</time>
+                    </p>
+                  )
+                })}
+              </div>
+            )}
 
             <div className='rsvp-confirmation-block flex flex-col items-center gap-4'>
               <button
@@ -156,9 +172,6 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
 
               {eveningCalendar && (
                 <div className='rsvp-confirmation-block flex w-full flex-col items-center gap-3 rounded-[14px] border border-foreground/10 bg-white/50 p-4'>
-                  <p className={`${bodyFont} text-center text-foreground/80 text-sm`}>
-                    {eveningCalendar.timeLine}
-                  </p>
                   <div className='flex w-full flex-col gap-2 sm:flex-row'>
                     <a
                       className={`${calendarPillPrimary} sm:flex-1`}
@@ -185,10 +198,11 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
                   </div>
                   {wazeHref && (
                     <a
-                      className={quietLinkClassName}
+                      className={directionsLinkClassName}
                       href={wazeHref}
                       target='_blank'
                       rel='noopener noreferrer'
+                      aria-label={t('navigateToVenue')}
                     >
                       {t('navigateToVenue')}
                     </a>
@@ -209,57 +223,6 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
             )}
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-const EventRow = ({
-  event,
-  rsvpResponses,
-}: {
-  event: Event
-  rsvpResponses: RsvpFormResponse[]
-}) => {
-  const t = useTranslations('rsvp')
-
-  return (
-    <div className='flex flex-col gap-3 py-4 first:pt-0 last:pb-0'>
-      <div className='flex flex-wrap items-baseline justify-between gap-2'>
-        <h3 className={`${stepHeadingFont} text-foreground text-lg`}>{event.name}</h3>
-        {!!event.date && (
-          <span className={`${bodyFont} text-muted-foreground text-sm`}>
-            {formatDateStandard(event.date, 'he')}
-            {event.startTime && ` · ${event.startTime}`}
-          </span>
-        )}
-      </div>
-      <div className='flex flex-col gap-1.5'>
-        {rsvpResponses.map((response) => {
-          if (response.eventId !== event.id) return null
-          const isAttending = response.rsvp === 'Attending'
-          return (
-            <div
-              key={`${event.id}_${response.guestId}`}
-              className={`${bodyFont} flex items-center gap-2 text-foreground text-sm`}
-            >
-              {isAttending ? (
-                <FaCircleCheck
-                  size={16}
-                  className='shrink-0 text-primary'
-                  aria-label={t('accepted')}
-                />
-              ) : (
-                <RxCrossCircled
-                  size={16}
-                  className='shrink-0 text-muted-foreground'
-                  aria-label={t('declined')}
-                />
-              )}
-              {response.guestName}
-            </div>
-          )
-        })}
       </div>
     </div>
   )
