@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
+import { upsertRsvpResponses } from '~/components/website/forms/rsvp-state'
 import {
   StepActions,
   StepBody,
@@ -11,7 +12,6 @@ import {
   StepSecondaryButton,
   StepShell,
 } from '~/components/website/forms/steps/step-ui'
-import { upsertRsvpResponses } from '~/components/website/forms/rsvp-state'
 
 /**
  * The short decline flow's only question step: a single, respectful
@@ -19,7 +19,7 @@ import { upsertRsvpResponses } from '~/components/website/forms/rsvp-state'
  * per-event sequence. Confirming marks every guest in the household as
  * Declined for every event they're invited to.
  */
-export default function DeclineConfirmForm({ goNext, goBack }: StepFormProps) {
+export default function DeclineConfirmForm({ goBack }: StepFormProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
   const rsvpFormData = useRsvpForm()
@@ -45,7 +45,6 @@ export default function DeclineConfirmForm({ goNext, goBack }: StepFormProps) {
         dietaryNotes: '',
       })
     }
-    goNext?.()
   }
 
   return (
@@ -53,7 +52,7 @@ export default function DeclineConfirmForm({ goNext, goBack }: StepFormProps) {
       <StepHeading>{t('declineConfirmTitle')}</StepHeading>
       <StepBody>{t('declineConfirmBody')}</StepBody>
       <StepActions>
-        <StepPrimaryButton onClick={onConfirmDecline}>
+        <StepPrimaryButton type='submit' onClick={onConfirmDecline}>
           {t('declineConfirmButton')}
         </StepPrimaryButton>
         <StepSecondaryButton onClick={() => goBack?.()}>{tCommon('back')}</StepSecondaryButton>

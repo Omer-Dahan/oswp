@@ -8,7 +8,7 @@ const translations: Record<string, string> = {
   'rsvp.confirmationThanksFamily': 'תודה משפחת {lastName}',
   'rsvp.confirmationThanksName': 'תודה {firstName}',
   'rsvp.confirmationThanksFallback': 'תודה!',
-  'rsvp.confirmationDeclinedThanks': 'תודה שעדכנתם אותנו 🤍',
+  'rsvp.confirmationDeclinedThanks': 'קלטנו את הבחירה, תודה והמשך יום מקסים',
   'rsvp.confirmationReception': 'קבלת פנים',
   'rsvp.confirmationChuppah': 'חופה וקידושין',
   'rsvp.backToHomepage': 'BACK TO HOMEPAGE',
@@ -275,19 +275,35 @@ describe('RsvpConfirmation', () => {
     expect(screen.queryByText(/20:30/)).toBeNull()
   })
 
-  it('keeps the decline copy without an attendance count', () => {
+  it('keeps the decline confirmation free of attendance details and links', () => {
     mockFormState = {
-      weddingData: { events: [] },
+      weddingData: {
+        events: [
+          {
+            id: 'wedding',
+            startTime: '18:30',
+            venueWazeUrl: 'https://waze.com/ul/example',
+          },
+        ],
+      },
       rsvpResponses: [
         { eventId: 'wedding', guestId: 'g1', guestName: 'עומר דהן', rsvp: 'Declined' },
       ],
       attendingCount: 0,
+      childrenCount: 2,
+      dietaryNotes: 'No nuts',
     }
 
     render(<RsvpConfirmation basePath='/site' />)
 
-    expect(screen.getByRole('heading', { name: 'תודה שעדכנתם אותנו 🤍' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: 'קלטנו את הבחירה, תודה והמשך יום מקסים',
+      })
+    ).toBeInTheDocument()
     expect(screen.queryByText(/אישרנו הגעה/)).toBeNull()
+    expect(screen.queryByText(/18:30|No nuts/)).toBeNull()
+    expect(screen.queryByRole('link')).toBeNull()
   })
 
   it('renders the resolved Waze URL as a large accessible link', () => {

@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl'
 import type { StepFormProps } from '~/app/utils/shared-types'
 import { useRsvpForm } from '~/components/contexts/rsvp-form-context'
-import { isChuppahOnlySelection } from '~/lib/wedding/rsvp-events'
 import {
   StepActions,
   StepHeading,
@@ -11,6 +10,7 @@ import {
   StepSecondaryButton,
   StepShell,
 } from '~/components/website/forms/steps/step-ui'
+import { isChuppahOnlySelection } from '~/lib/wedding/rsvp-events'
 
 interface SendRsvpProps extends StepFormProps {
   isFetching: boolean
@@ -19,9 +19,8 @@ interface SendRsvpProps extends StepFormProps {
 export default function SendRsvp({ goBack, isFetching }: SendRsvpProps) {
   const t = useTranslations('rsvp')
   const tCommon = useTranslations('common')
-  const { weddingData, declineIntent, attendingCount, childrenCount, dietaryNotes, preselectedEventId } =
+  const { weddingData, attendingCount, childrenCount, dietaryNotes, preselectedEventId } =
     useRsvpForm()
-  const isDeclineFlow = declineIntent === true
   // Confirming the chuppah alone is a narrower answer than RSVPing the wedding:
   // say so on the summary line instead of leaving the guest to infer it.
   const isChuppahOnly = isChuppahOnlySelection(weddingData.events ?? [], preselectedEventId)
@@ -30,26 +29,17 @@ export default function SendRsvp({ goBack, isFetching }: SendRsvpProps) {
     return isChuppahOnly ? `${line} · ${t('summaryChuppahOnly')}` : line
   }
 
-  const summaryRows = isDeclineFlow
-    ? []
-    : [
-        attendingCount != null ? attendingRow(attendingCount) : null,
-        childrenCount != null && childrenCount > 0
-          ? t('summaryChildren', { count: childrenCount })
-          : null,
-        dietaryNotes ? t('summaryDietary', { notes: dietaryNotes }) : null,
-      ].filter((row): row is string => row != null)
+  const summaryRows = [
+    attendingCount != null ? attendingRow(attendingCount) : null,
+    childrenCount != null && childrenCount > 0
+      ? t('summaryChildren', { count: childrenCount })
+      : null,
+    dietaryNotes ? t('summaryDietary', { notes: dietaryNotes }) : null,
+  ].filter((row): row is string => row != null)
 
   return (
     <StepShell>
-      <StepHeading>
-        {isDeclineFlow
-          ? t('sendRsvpTitle', {
-              groomFirstName: weddingData.groomFirstName ?? '',
-              brideFirstName: weddingData.brideFirstName ?? '',
-            })
-          : t('summaryTitle')}
-      </StepHeading>
+      <StepHeading>{t('summaryTitle')}</StepHeading>
       {summaryRows.length > 0 && (
         <ul className='flex flex-col gap-3'>
           {summaryRows.map((row) => (
@@ -71,7 +61,7 @@ export default function SendRsvp({ goBack, isFetching }: SendRsvpProps) {
       )}
       <StepActions>
         <StepPrimaryButton disabled={isFetching} type='submit'>
-          {isFetching ? t('sendingRsvp') : isDeclineFlow ? t('sendRsvpDecline') : t('sendRsvp')}
+          {isFetching ? t('sendingRsvp') : t('sendRsvp')}
         </StepPrimaryButton>
         <StepSecondaryButton onClick={() => goBack?.()}>{tCommon('back')}</StepSecondaryButton>
       </StepActions>
