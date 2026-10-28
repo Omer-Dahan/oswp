@@ -5,6 +5,8 @@
  * Extends baseHouseholdFields with form-specific additions for unified create/edit mode.
  */
 
+import { toNestErrors } from '@hookform/resolvers'
+import type { FieldError, Resolver } from 'react-hook-form'
 import { z } from 'zod'
 
 import {
@@ -49,6 +51,27 @@ export const HouseholdFormSchema = baseHouseholdFormSchema.refine(
 export type HouseholdFormData = z.output<typeof HouseholdFormSchema>
 export type GuestFormData = z.infer<typeof guestPartyInputSchema>
 export type GiftFormData = z.infer<typeof giftInputSchema>
+
+export const householdFormResolver: Resolver<HouseholdFormData> = async (values, _, options) => {
+  const result = await HouseholdFormSchema.safeParseAsync(values)
+
+  if (result.success) {
+    return { errors: {}, values: result.data }
+  }
+
+  const flatErrors: Record<string, FieldError> = {}
+  for (const issue of result.error.issues) {
+    const path = issue.path.map(String).join('.')
+    if (path && !flatErrors[path]) {
+      flatErrors[path] = { message: issue.message, type: issue.code }
+    }
+  }
+
+  return {
+    errors: toNestErrors(flatErrors, options),
+    values: {},
+  }
+}
 
 /**
  * Helper to get default form values for creating a new household
