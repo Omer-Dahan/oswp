@@ -107,6 +107,11 @@ const mockDashboardData = {
   },
   totalGuests: 127,
   totalEvents: 1,
+  rsvpSummary: {
+    attending: 89,
+    pending: 23,
+    declined: 8,
+  },
   tasksDueThisMonth: 3,
   taskPriorityQueue: {
     totalActive: 7,
@@ -462,7 +467,11 @@ describe('PlanningOverview', () => {
   })
 
   it('shows RSVP empty state when no RSVP data exists', () => {
-    const noEventsData = { ...mockDashboardData, events: [] } as unknown as DashboardData
+    const noEventsData = {
+      ...mockDashboardData,
+      events: [],
+      rsvpSummary: { attending: 0, pending: 0, declined: 0 },
+    } as unknown as DashboardData
     render(<PlanningOverview dashboardData={noEventsData} />)
     // Empty state should render instead of the zero-count bar
     expect(screen.getByText('לא נאספו אישורי הגעה עדיין')).toBeInTheDocument()

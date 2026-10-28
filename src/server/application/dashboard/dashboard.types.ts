@@ -93,6 +93,10 @@ export type GuestResponses = {
   notInvited: number
 }
 
+export type RsvpSummary = Pick<GuestResponses, 'attending' | 'declined'> & {
+  pending: number
+}
+
 /**
  * Event with questions and RSVP statistics
  */
@@ -127,4 +131,5 @@ export type DashboardData = {
   milestones: MilestoneWithEffectiveStatus[]
   households: HouseholdWithGuests[]
   events: EventWithStats[]
+  rsvpSummary: RsvpSummary
 }

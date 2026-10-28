@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
-import type { DashboardData, EventWithResponses } from '~/app/utils/shared-types'
+import type { DashboardData } from '~/app/utils/shared-types'
 import { formatCurrency } from '~/components/budget/format'
 import { TaskDialog } from '~/components/checklist/task-dialog'
 import { TaskListItem } from '~/components/dashboard/planning-overview/task-list-item'
@@ -223,17 +223,7 @@ function ComingUpCard({
 }
 
 function RsvpCard({ dashboardData }: { dashboardData: DashboardData | null }) {
-  const rsvpSummary = (dashboardData?.events ?? []).reduce(
-    (acc, event) => {
-      const eventWithResponses = event as EventWithResponses
-      if (!eventWithResponses.collectRsvp) return acc
-      acc.attending += eventWithResponses.guestResponses?.attending ?? 0
-      acc.pending += eventWithResponses.guestResponses?.invited ?? 0
-      acc.declined += eventWithResponses.guestResponses?.declined ?? 0
-      return acc
-    },
-    { attending: 0, pending: 0, declined: 0 }
-  )
+  const rsvpSummary = dashboardData?.rsvpSummary ?? { attending: 0, pending: 0, declined: 0 }
   const attending = rsvpSummary.attending
   const pending = rsvpSummary.pending
   const declined = rsvpSummary.declined

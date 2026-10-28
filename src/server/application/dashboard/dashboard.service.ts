@@ -23,6 +23,7 @@ import type {
   GuestResponses,
   HouseholdWithGuests,
   QuestionWithRecentAnswer,
+  RsvpSummary,
   WebsiteWithQuestions,
   WeddingData,
 } from '~/server/application/dashboard/dashboard.types'
@@ -125,6 +126,7 @@ export class DashboardService {
 
     // Build events with RSVP statistics
     const eventsWithStats = await this.buildEventsWithStats(events, invitations)
+    const rsvpSummary = this.calculateRsvpSummary(events, invitations)
     const taskPriorityQueue = buildTaskPriorityQueue(taskCandidates)
     const tasksDueThisMonth = countTasksDueThisMonth(taskCandidates)
 
@@ -142,6 +144,7 @@ export class DashboardService {
       milestones,
       households: householdsWithInvitations,
       events: eventsWithStats,
+      rsvpSummary,
     }
   }
 
@@ -351,5 +354,35 @@ export class DashboardService {
     })
 
     return responses
+  }
+
+  private calculateRsvpSummary(
+    events: Awaited<ReturnType<typeof this.fetchEvents>>,
+    invitations: Array<Invitation & { guest: { isTagAlong: boolean } }>
+  ): RsvpSummary {
+    const rsvpEvents = new Map(
+      events.filter((event) => event.collectRsvp).map((event) => [event.id, event.allowTagAlongs])
+    )
+    const responsesByGuest = new Map<number, Set<string>>()
+
+    for (const invitation of invitations) {
+      const allowTagAlongs = rsvpEvents.get(invitation.eventId)
+      if (allowTagAlongs === undefined) continue
+      if (!allowTagAlongs && invitation.guest.isTagAlong) continue
+      if (invitation.rsvp === 'Not Invited') continue
+
+      const responses = responsesByGuest.get(invitation.guestId) ?? new Set<string>()
+      responses.add(invitation.rsvp)
+      responsesByGuest.set(invitation.guestId, responses)
+    }
+
+    const summary: RsvpSummary = { attending: 0, pending: 0, declined: 0 }
+    for (const responses of responsesByGuest.values()) {
+      if (responses.has('Attending')) summary.attending += 1
+      else if (responses.has('Declined')) summary.declined += 1
+      else if (responses.has('Invited')) summary.pending += 1
+    }
+
+    return summary
   }
 }
