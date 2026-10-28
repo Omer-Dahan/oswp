@@ -15,6 +15,7 @@ export const mockWedding: Wedding = {
   brideLastName: 'Smith',
   enabledAddOns: [],
   rsvpSteps: ['children-count', 'dietary-notes'],
+  rsvpCopy: null,
   selfFillToken: null,
   selfFillTokenGeneratedAt: null,
   createdAt: new Date('2024-01-01'),

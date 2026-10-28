@@ -7,6 +7,7 @@
 
 import type { Prisma, PrismaClient } from '@prisma/client'
 
+import type { RsvpCopyOverrides } from '~/lib/rsvp/copy'
 import type { Wedding } from '~/server/domains/wedding/wedding.types'
 
 export class WeddingRepository {
@@ -87,6 +88,7 @@ export class WeddingRepository {
       brideLastName?: string
       enabledAddOns?: string[]
       rsvpSteps?: string[]
+      rsvpCopy?: RsvpCopyOverrides
     }
   ): Promise<Wedding> {
     return this.db.wedding.update({
@@ -98,6 +100,7 @@ export class WeddingRepository {
         brideLastName: data.brideLastName,
         enabledAddOns: data.enabledAddOns,
         rsvpSteps: data.rsvpSteps,
+        rsvpCopy: data.rsvpCopy,
       },
     })
   }
