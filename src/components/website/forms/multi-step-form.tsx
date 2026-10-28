@@ -1,4 +1,3 @@
-import { useRouter } from 'next/navigation'
 import React, { type Dispatch, type SetStateAction, useEffect, useRef } from 'react'
 
 type MultistepRsvpFormProps = {
@@ -14,14 +13,13 @@ export default function MultistepRsvpForm({
   setCurrentStep,
   basePath,
 }: MultistepRsvpFormProps) {
-  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const goNext = () => {
     setCurrentStep((prev) => prev + 1)
   }
   const goBack = () => {
     if (currentStep === 1) {
-      router.push(basePath)
+      window.location.assign(basePath)
       return
     }
     setCurrentStep((prev) => prev - 1)

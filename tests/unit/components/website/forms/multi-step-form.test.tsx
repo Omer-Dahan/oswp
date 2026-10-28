@@ -2,11 +2,16 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import MultistepRsvpForm from '~/components/website/forms/multi-step-form'
 
-const mockPush = jest.fn()
-
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
-}))
+const mockAssign = jest.fn()
+type LocationImplementation = { assign: (url: string) => void }
+const locationImplementationSymbol = Object.getOwnPropertySymbols(window.location).find(
+  (symbol) => symbol.description === 'impl'
+)
+if (!locationImplementationSymbol) throw new Error('JSDOM location implementation is unavailable')
+const locationImplementation = (
+  window.location as unknown as Record<symbol, LocationImplementation>
+)[locationImplementationSymbol]
+const originalAssign = locationImplementation.assign
 
 type StepProps = {
   goBack?: () => void
@@ -37,8 +42,22 @@ function TestFlow({ initialStep }: { initialStep: number }) {
 }
 
 describe('MultistepRsvpForm back navigation', () => {
+  beforeAll(() => {
+    Object.defineProperty(locationImplementation, 'assign', {
+      configurable: true,
+      value: mockAssign,
+    })
+  })
+
+  afterAll(() => {
+    Object.defineProperty(locationImplementation, 'assign', {
+      configurable: true,
+      value: originalAssign,
+    })
+  })
+
   beforeEach(() => {
-    mockPush.mockReset()
+    mockAssign.mockReset()
     window.scrollTo = jest.fn()
   })
 
@@ -47,7 +66,7 @@ describe('MultistepRsvpForm back navigation', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'חזרה ראשונה' }))
 
-    expect(mockPush).toHaveBeenCalledWith('/w/guests')
+    expect(mockAssign).toHaveBeenCalledWith('/w/guests')
   })
 
   it('returns to the previous form step after the first step', () => {
@@ -56,6 +75,6 @@ describe('MultistepRsvpForm back navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'חזרה שנייה' }))
 
     expect(screen.getByRole('button', { name: 'חזרה ראשונה' })).toBeInTheDocument()
-    expect(mockPush).not.toHaveBeenCalled()
+    expect(mockAssign).not.toHaveBeenCalled()
   })
 })
