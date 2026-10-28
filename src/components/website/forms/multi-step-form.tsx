@@ -1,21 +1,29 @@
+import { useRouter } from 'next/navigation'
 import React, { type Dispatch, type SetStateAction, useEffect, useRef } from 'react'
 
 type MultistepRsvpFormProps = {
   children: React.ReactNode
   currentStep: number
   setCurrentStep: Dispatch<SetStateAction<number>>
+  basePath: string
 }
 
 export default function MultistepRsvpForm({
   children,
   currentStep,
   setCurrentStep,
+  basePath,
 }: MultistepRsvpFormProps) {
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const goNext = () => {
     setCurrentStep((prev) => prev + 1)
   }
   const goBack = () => {
+    if (currentStep === 1) {
+      router.push(basePath)
+      return
+    }
     setCurrentStep((prev) => prev - 1)
   }
 
@@ -34,9 +42,7 @@ export default function MultistepRsvpForm({
     }
   }, [currentStep])
 
-  const content = React.isValidElement<{ goNext: () => void; goBack: () => void }>(
-    currentStepForm
-  )
+  const content = React.isValidElement<{ goNext: () => void; goBack: () => void }>(currentStepForm)
     ? React.cloneElement(currentStepForm, { goNext, goBack })
     : currentStepForm
 

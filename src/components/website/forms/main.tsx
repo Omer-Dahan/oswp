@@ -328,7 +328,11 @@ export default function MainRsvpForm({
         }}
       >
         <AsyncState error={submitError} className='mb-4 text-center' />
-        <MultistepRsvpForm currentStep={currentStep} setCurrentStep={setCurrentStep}>
+        <MultistepRsvpForm
+          currentStep={currentStep}
+          setCurrentStep={setCurrentStep}
+          basePath={basePath}
+        >
           {!skipIdentitySteps && <FindYourInvitationForm accessToken={accessToken} />}
           {!skipIdentitySteps && <ConfirmNameForm accessToken={accessToken} />}
           {isDeclineFlow ? (
