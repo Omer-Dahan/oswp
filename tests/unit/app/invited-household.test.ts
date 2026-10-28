@@ -8,6 +8,7 @@ jest.mock('~/server/application/household-invite', () => ({
 
 import {
   formatHouseholdGreeting,
+  resolvePrimaryContactGreeting,
   resolveInvitedHousehold,
 } from '~/app/w/[websiteSubUrl]/_lib/invited-household'
 
@@ -55,7 +56,7 @@ describe('resolveInvitedHousehold', () => {
     await expect(resolveInvitedHousehold('johnandjane', 'good-token')).resolves.toEqual({
       guestFirstNames: ['Alice', 'Bob'],
       greeting: 'Alice & Bob',
-      primaryContactGreeting: { kind: 'family', name: 'Stone' },
+      primaryContactGreeting: { kind: 'fullName', name: 'Alice Stone' },
     })
     expect(mockGetInviteData).toHaveBeenCalledWith('johnandjane', 'good-token')
   })
@@ -66,5 +67,26 @@ describe('resolveInvitedHousehold', () => {
     })
 
     await expect(resolveInvitedHousehold('johnandjane', 'good-token')).resolves.toBeNull()
+  })
+})
+
+describe('resolvePrimaryContactGreeting', () => {
+  it('uses the primary contact full name', () => {
+    expect(resolvePrimaryContactGreeting([{ firstName: ' עומר ', lastName: ' דהן ' }])).toEqual({
+      name: 'עומר דהן',
+      kind: 'fullName',
+    })
+  })
+
+  it('falls back to the first name', () => {
+    expect(resolvePrimaryContactGreeting([{ firstName: 'עומר', lastName: ' ' }])).toEqual({
+      name: 'עומר',
+      kind: 'fullName',
+    })
+  })
+
+  it('returns null when there is no contact name', () => {
+    expect(resolvePrimaryContactGreeting([])).toBeNull()
+    expect(resolvePrimaryContactGreeting([{ firstName: ' ', lastName: 'דהן' }])).toBeNull()
   })
 })

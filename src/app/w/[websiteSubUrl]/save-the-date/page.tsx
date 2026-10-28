@@ -211,9 +211,7 @@ export default async function SaveTheDatePage({ params, searchParams }: SaveTheD
                 {primaryContactGreeting ? (
                   <div className='mt-8 text-center sm:text-start'>
                     <p className={`text-2xl ${headingFont}`}>
-                      {primaryContactGreeting.kind === 'family'
-                        ? t('householdGreetingFamily', { name: primaryContactGreeting.name })
-                        : t('householdGreetingFirstName', { name: primaryContactGreeting.name })}
+                      {t('householdGreetingFirstName', { name: primaryContactGreeting.name })}
                     </p>
                     <p className={`mt-1 text-muted-foreground ${labelFont}`}>{t('rsvpHelper')}</p>
                     {inviteData.isRsvpEnabled ? (

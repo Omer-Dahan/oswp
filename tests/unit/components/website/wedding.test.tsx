@@ -110,12 +110,12 @@ describe('WeddingWebsite', () => {
         invitedHousehold: {
           guestFirstNames: ['Donkey', 'Dragon'],
           greeting: 'Donkey & Dragon',
-          primaryContactGreeting: { name: 'Donkey', kind: 'firstName' },
+          primaryContactGreeting: { name: 'Donkey', kind: 'fullName' },
         },
       })
     )
 
-    expect(screen.getAllByRole('heading', { name: 'Donkey' })).toHaveLength(2)
+    expect(screen.getAllByRole('heading', { name: 'שלום Donkey' })).toHaveLength(2)
     expect(screen.getAllByText('נשמח לדעת אם תגיעו')).toHaveLength(2)
   })
 })

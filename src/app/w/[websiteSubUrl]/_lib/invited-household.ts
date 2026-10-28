@@ -6,7 +6,7 @@ export type InvitedHousehold = {
   guestFirstNames: string[]
   /** Ready-to-render greeting, e.g. "Alice & Bob" or "Alice, Bob & Carol". */
   greeting: string
-  /** Greeting built from the household's primary contact only (family name when set). */
+  /** Greeting built from the household's primary contact full name. */
   primaryContactGreeting: PrimaryContactGreeting | null
 }
 
@@ -23,16 +23,15 @@ export const formatHouseholdGreeting = (firstNames: string[]): string => {
   return `${head.join(', ')} & ${tail}`
 }
 
-/** The name to greet a household by, and whether it's a family name or a first name. */
+/** The primary contact's full name, ready to use in a greeting. */
 export type PrimaryContactGreeting = {
   name: string
-  kind: 'family' | 'firstName'
+  kind: 'fullName'
 }
 
 /**
  * Build a greeting name from a household's primary contact (its first listed
- * guest): their last name when they have one ("family" — e.g. render as
- * "Cohen family"), otherwise their first name.
+ * guest), falling back to their first name when no last name is set.
  */
 export function resolvePrimaryContactGreeting(
   guests: Array<{ firstName: string; lastName: string }>
@@ -40,11 +39,12 @@ export function resolvePrimaryContactGreeting(
   const primaryContact = guests[0]
   if (!primaryContact) return null
 
-  const lastName = primaryContact.lastName.trim()
-  if (lastName) return { name: lastName, kind: 'family' }
-
   const firstName = primaryContact.firstName.trim()
-  return firstName ? { name: firstName, kind: 'firstName' } : null
+  if (!firstName) return null
+
+  const lastName = primaryContact.lastName.trim()
+  const name = lastName ? `${firstName} ${lastName}` : firstName
+  return { name, kind: 'fullName' }
 }
 
 /**

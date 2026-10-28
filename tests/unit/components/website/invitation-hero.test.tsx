@@ -26,21 +26,22 @@ const baseProps = {
 }
 
 describe('InvitationHero', () => {
-  it('renders the family contact and invitation subtitle in both compositions', () => {
+  it('renders the full contact name and invitation subtitle in both compositions', () => {
     render(
       <InvitationHero
         {...baseProps}
         invitedHousehold={{
           guestFirstNames: ['נועה'],
-          greeting: 'משפחת כהן',
-          primaryContactGreeting: { name: 'כהן', kind: 'family' },
+          greeting: 'עומר דהן',
+          primaryContactGreeting: { name: 'עומר דהן', kind: 'fullName' },
         }}
         events={[]}
       />
     )
 
-    expect(screen.getAllByRole('heading', { name: 'משפחת כהן' })).toHaveLength(2)
+    expect(screen.getAllByRole('heading', { name: 'שלום עומר דהן' })).toHaveLength(2)
     expect(screen.getAllByText('נשמח לדעת אם תגיעו')).toHaveLength(2)
+    expect(screen.queryByText(/משפחת/)).not.toBeInTheDocument()
   })
 
   it('renders a single contact without a family prefix', () => {
@@ -50,14 +51,14 @@ describe('InvitationHero', () => {
         invitedHousehold={{
           guestFirstNames: ['נועה'],
           greeting: 'נועה',
-          primaryContactGreeting: { name: 'נועה', kind: 'firstName' },
+          primaryContactGreeting: { name: 'עומר', kind: 'fullName' },
         }}
         events={[]}
       />
     )
 
-    expect(screen.getAllByRole('heading', { name: 'נועה' })).toHaveLength(2)
-    expect(screen.queryByText('משפחת נועה')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'שלום עומר' })).toHaveLength(2)
+    expect(screen.queryByText(/משפחת/)).not.toBeInTheDocument()
   })
 
   it('does not render the greeting without a primary contact', () => {
@@ -157,7 +158,7 @@ describe('InvitationHero', () => {
         invitedHousehold={{
           guestFirstNames: ['דוד'],
           greeting: 'דוד',
-          primaryContactGreeting: { name: 'דוד', kind: 'firstName' },
+          primaryContactGreeting: { name: 'דוד', kind: 'fullName' },
         }}
         events={[{ id: 'only-event', name: 'Wedding', isPrimary: true }]}
       />

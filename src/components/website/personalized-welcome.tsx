@@ -20,10 +20,7 @@ export async function PersonalizedWelcome({
 
   if (!contact) return null
 
-  const greeting =
-    contact.kind === 'family'
-      ? t('householdGreetingFamily', { name: contact.name })
-      : t('householdGreetingFirstName', { name: contact.name })
+  const greeting = t('householdGreetingFirstName', { name: contact.name })
 
   return (
     <aside
