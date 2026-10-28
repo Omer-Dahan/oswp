@@ -121,7 +121,6 @@ describe('website suburl metadata + page wiring', () => {
       websiteSubUrl: 'john-and-jane',
       weddingData,
       invitedHousehold: null,
-      householdInviteCode: null,
     })
   })
 })

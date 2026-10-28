@@ -17,12 +17,10 @@ jest.mock('next/image', () => {
 })
 
 const baseProps = {
-  websiteSubUrl: 'the-wedding',
   rsvpHref: '/w/the-wedding/rsvp',
   isRsvpEnabled: true,
   coupleNames: 'דוד ומורן',
   invitedHousehold: null,
-  householdInviteCode: null,
 }
 
 describe('InvitationHero', () => {
@@ -139,48 +137,42 @@ describe('InvitationHero', () => {
     expect(screen.queryByRole('link', { name: 'רק לחופה' })).not.toBeInTheDocument()
   })
 
-  it('does not render the copy-link action when no household is resolved', () => {
+  it('does not render the copy-link action', () => {
     render(
       <InvitationHero
         {...baseProps}
-        events={[{ id: 'only-event', name: 'Wedding', isPrimary: true }]}
-      />
-    )
-
-    expect(screen.queryByText('העתקת קישור')).not.toBeInTheDocument()
-  })
-
-  it('renders the copy-link action when a household is resolved', () => {
-    render(
-      <InvitationHero
-        {...baseProps}
-        householdInviteCode='hh-abc123'
         invitedHousehold={{
           guestFirstNames: ['דוד'],
           greeting: 'דוד',
           primaryContactGreeting: { name: 'דוד', kind: 'fullName' },
         }}
-        events={[{ id: 'only-event', name: 'Wedding', isPrimary: true }]}
+        events={[{ id: 'only-event', name: 'Wedding', isPrimary: true, collectRsvp: true }]}
       />
     )
 
-    expect(screen.getAllByText('העתקת קישור').length).toBeGreaterThan(0)
+    expect(screen.queryByText('העתקת קישור')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /העתקת קישור/ })).not.toBeInTheDocument()
   })
 
-  it('links the decline action to the RSVP form when no household is resolved', () => {
+  it('styles the decline action like the chuppah pill and keeps its RSVP link', () => {
     render(
       <InvitationHero
         {...baseProps}
-        events={[{ id: 'only-event', name: 'Wedding', isPrimary: true }]}
+        events={[
+          { id: 'wedding-event', name: 'Wedding', isPrimary: true, collectRsvp: true },
+          { id: 'chuppah-event', name: 'חופה', isPrimary: false, collectRsvp: true },
+        ]}
       />
     )
 
-    const links = screen.getAllByRole('link', { name: 'לצערינו לא מתאפשר' })
-    expect(links.length).toBeGreaterThan(0)
+    const declineLinks = screen.getAllByRole('link', { name: 'לצערינו לא מתאפשר' })
+    const chuppahLinks = screen.getAllByRole('link', { name: 'רק לחופה' })
+    expect(declineLinks).toHaveLength(chuppahLinks.length)
     // Decline is a confirmation flow, not a one-click action (see
     // src/app/w/[websiteSubUrl]/rsvp/page.tsx), so the link carries ?decline=1.
-    for (const link of links) {
+    for (const [index, link] of declineLinks.entries()) {
       expect(link).toHaveAttribute('href', '/w/the-wedding/rsvp?decline=1')
+      expect(link.className).toBe(chuppahLinks[index]?.className)
     }
   })
 })
