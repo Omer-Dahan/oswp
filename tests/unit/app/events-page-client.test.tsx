@@ -38,6 +38,9 @@ jest.mock('~/trpc/react', () => ({
           invalidate: jest.fn(),
         },
       },
+      wedding: {
+        getRsvpCopy: { setData: jest.fn() },
+      },
     }),
     event: {
       getAllByUserIdWithStats: {
@@ -85,6 +88,12 @@ jest.mock('~/trpc/react', () => ({
       },
     },
     wedding: {
+      getRsvpCopy: {
+        useQuery: () => ({ data: {}, isLoading: false, error: null }),
+      },
+      updateRsvpCopy: {
+        useMutation: () => ({ mutate: jest.fn(), isPending: false }),
+      },
       updateRsvpSteps: {
         useMutation: () => ({
           mutate: (...args: unknown[]) => mockUpdateWeddingRsvpStepsMutate(...args),
@@ -271,5 +280,18 @@ describe('EventsPageClient', () => {
     expect(mockUpdateWeddingRsvpStepsMutate).toHaveBeenCalledWith({
       rsvpSteps: ['children-count', 'dietary-notes', 'wishes-message'],
     })
+  })
+
+  it('opens the copy editor as the second RSVP dialog tab', () => {
+    render(<EventsPageClient initialEvents={[baseEvent]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'תצוגת דפים' }))
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'נוסחים' }), {
+      button: 0,
+      ctrlKey: false,
+    })
+
+    expect(screen.getByRole('button', { name: 'שמירת נוסחים' })).toBeInTheDocument()
+    expect(screen.getByLabelText('כותרת מי מגיע')).toHaveValue('מי מגיע?')
   })
 })
