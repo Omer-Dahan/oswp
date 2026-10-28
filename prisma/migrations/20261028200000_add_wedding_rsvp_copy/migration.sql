@@ -1,0 +1,1 @@
+ALTER TABLE "Wedding" ADD COLUMN "rsvpCopy" JSONB;
