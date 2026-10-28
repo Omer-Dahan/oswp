@@ -85,6 +85,8 @@
     "confirmationDeclinedThanks": "Gracias por avisarnos 🤍",
     "confirmationCount": "Confirmamos {count} invitados",
     "confirmationCountWithChildren": "Confirmamos {count} invitados · {children} niños",
+    "confirmationReception": "Recepción",
+    "confirmationChuppah": "Jupá y kidushín",
     "backToHomepage": "REGRESAR AL INICIO",
     "yourRsvpResponse": "Tu confirmación de asistencia",
     "updateResponse": "Actualizar respuesta",
