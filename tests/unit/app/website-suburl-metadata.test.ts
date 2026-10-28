@@ -71,16 +71,20 @@ describe('website suburl metadata + page wiring', () => {
       },
     })
 
-    const metadata = await (
-      generateMetadata as (props: {
-        params: Promise<{ websiteSubUrl: string }>
-      }) => Promise<{ title?: string }>
-    )({
+    const metadata = await generateMetadata({
       params: Promise.resolve({ websiteSubUrl: 'john-and-jane' }),
     })
 
     // The share card is guest-facing, so it reads in Hebrew like the invitation.
     expect(metadata.title).toBe('החתונה של John Doe וJane Smith')
+    expect(metadata.openGraph?.images).toEqual([
+      {
+        url: '/api/og/wedding/john-and-jane?v=3',
+        width: 1200,
+        height: 630,
+        alt: 'החתונה של John Doe וJane Smith',
+      },
+    ])
     expect(mockLoadVisitorWedding).toHaveBeenCalledWith('john-and-jane')
   })
 
