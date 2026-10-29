@@ -18,6 +18,10 @@ const TITLE_PREFIXES = [
 
 const INVITE_BASE_URL = 'https://david-and-morasha.duckdns.org/w/guests/save-the-date'
 
+export function buildWeddingInviteLink(inviteCode: string): string {
+  return `${INVITE_BASE_URL}/${inviteCode}`
+}
+
 function stripNotes(value: string): string {
   return value
     .replace(/\s*\([^)]*\)\s*/g, ' ')
@@ -47,6 +51,19 @@ export function formatSmsRecipientName(firstName: string, lastName: string): str
   return [first, last].filter(Boolean).join(' ').trim() || stripNotes(firstName)
 }
 
+export function renderWeddingInviteSmsTemplate({
+  template,
+  recipientName,
+  inviteLink,
+}: {
+  template: string | null | undefined
+  recipientName: string
+  inviteLink: string
+}): string {
+  const source = template?.trim() ? template : DEFAULT_SMS_INVITE_TEMPLATE
+  return source.replaceAll('{שם}', recipientName).replaceAll('{קישור}', inviteLink)
+}
+
 export function buildWeddingInviteSms({
   firstName,
   lastName,
@@ -58,10 +75,36 @@ export function buildWeddingInviteSms({
 }): string | null {
   if (!inviteCode) return null
   const who = formatSmsRecipientName(firstName, lastName)
-
   return `${who}, שלום רב.
 אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
-${INVITE_BASE_URL}/${inviteCode}
+${buildWeddingInviteLink(inviteCode)}
 
 בברכה - יהודה ותמר מנחם`
+}
+
+export const DEFAULT_SMS_INVITE_TEMPLATE = (
+  buildWeddingInviteSms({
+    firstName: '{שם}',
+    lastName: '',
+    inviteCode: '{קישור}',
+  }) ?? ''
+).replace(buildWeddingInviteLink('{קישור}'), '{קישור}')
+
+export function buildWeddingInviteSmsFromTemplate({
+  firstName,
+  lastName,
+  inviteCode,
+  template,
+}: {
+  firstName: string
+  lastName: string
+  inviteCode: string | null
+  template: string | null | undefined
+}): string | null {
+  if (!inviteCode) return null
+  return renderWeddingInviteSmsTemplate({
+    template,
+    recipientName: formatSmsRecipientName(firstName, lastName),
+    inviteLink: buildWeddingInviteLink(inviteCode),
+  })
 }

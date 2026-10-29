@@ -24,6 +24,7 @@ export type SmsHouseholdRow = {
   smsOutbound: Array<{
     status: 'QUEUED' | 'SENT' | 'FAILED'
     error: string | null
+    sentAt: Date | null
   }>
 }
 
@@ -48,7 +49,7 @@ export class SmsRepository {
         smsOutbound: {
           where: { kind: 'INVITE' },
           take: 1,
-          select: { status: true, error: true },
+          select: { status: true, error: true, sentAt: true },
         },
       },
     })
@@ -71,10 +72,27 @@ export class SmsRepository {
         smsOutbound: {
           where: { kind: 'INVITE' },
           take: 1,
-          select: { status: true, error: true },
+          select: { status: true, error: true, sentAt: true },
         },
       },
     })
+  }
+
+  async getInviteTemplate(weddingId: string): Promise<string | null> {
+    const wedding = await this.db.wedding.findUniqueOrThrow({
+      where: { id: weddingId },
+      select: { smsInviteTemplate: true },
+    })
+    return wedding.smsInviteTemplate
+  }
+
+  async setInviteTemplate(weddingId: string, template: string | null): Promise<string | null> {
+    const wedding = await this.db.wedding.update({
+      where: { id: weddingId },
+      data: { smsInviteTemplate: template },
+      select: { smsInviteTemplate: true },
+    })
+    return wedding.smsInviteTemplate
   }
 
   queueInvite(input: {

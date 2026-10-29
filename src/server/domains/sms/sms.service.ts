@@ -1,5 +1,10 @@
 import { TRPCError } from '@trpc/server'
-import { buildWeddingInviteSms, formatSmsRecipientName } from '~/lib/sms/invite-message'
+import {
+  buildWeddingInviteLink,
+  buildWeddingInviteSmsFromTemplate,
+  DEFAULT_SMS_INVITE_TEMPLATE,
+  formatSmsRecipientName,
+} from '~/lib/sms/invite-message'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import type { SmsHouseholdRow, SmsRepository } from '~/server/domains/sms/sms.repository'
@@ -13,7 +18,7 @@ function toIsraeliE164(phone: string | null): string | null {
   return local.length === 9 ? `+972${local}` : null
 }
 
-function toRecipient(household: SmsHouseholdRow): SmsRecipient {
+function toRecipient(household: SmsHouseholdRow, template: string | null): SmsRecipient {
   const contact = household.guests[0]
   const primaryContact = contact
     ? formatSmsRecipientName(contact.firstName, contact.lastName)
@@ -21,10 +26,11 @@ function toRecipient(household: SmsHouseholdRow): SmsRecipient {
   const phone = toIsraeliE164(contact?.phone ?? null)
   const outbound = household.smsOutbound[0]
   const preview = contact
-    ? buildWeddingInviteSms({
+    ? buildWeddingInviteSmsFromTemplate({
         firstName: contact.firstName,
         lastName: contact.lastName,
         inviteCode: household.inviteCode,
+        template,
       })
     : null
 
@@ -32,10 +38,13 @@ function toRecipient(household: SmsHouseholdRow): SmsRecipient {
     householdId: household.id,
     householdName: household.groupName?.trim() || primaryContact,
     primaryContact,
+    groupName: household.groupName,
     phone,
     inviteCode: household.inviteCode,
+    inviteLink: household.inviteCode ? buildWeddingInviteLink(household.inviteCode) : null,
     status: outbound?.status ?? null,
     error: outbound?.error ?? null,
+    sentAt: outbound?.sentAt ?? null,
     sendable: Boolean(phone && preview && outbound?.status !== 'SENT'),
     preview,
   }
@@ -49,8 +58,28 @@ export class SmsService {
 
   async listRecipients(ctx: AuthzContext, weddingId: string): Promise<SmsRecipient[]> {
     requirePermission(ctx, { guest: ['read'] })
-    const households = await this.repo.listGroomHouseholds(weddingId)
-    return households.filter((household) => household.side === 'חתן').map(toRecipient)
+    const [households, template] = await Promise.all([
+      this.repo.listGroomHouseholds(weddingId),
+      this.repo.getInviteTemplate(weddingId),
+    ])
+    return households
+      .filter((household) => household.side === 'חתן')
+      .map((household) => toRecipient(household, template))
+  }
+
+  async getTemplate(ctx: AuthzContext, weddingId: string): Promise<string> {
+    requirePermission(ctx, { guest: ['read'] })
+    return (await this.repo.getInviteTemplate(weddingId)) ?? DEFAULT_SMS_INVITE_TEMPLATE
+  }
+
+  async setTemplate(
+    ctx: AuthzContext,
+    weddingId: string,
+    template: string | null
+  ): Promise<string> {
+    requirePermission(ctx, { guest_invitation: ['send'] })
+    const normalized = template?.trim() ? template : null
+    return (await this.repo.setInviteTemplate(weddingId, normalized)) ?? DEFAULT_SMS_INVITE_TEMPLATE
   }
 
   async sendInvite(
@@ -74,11 +103,13 @@ export class SmsService {
 
     const contact = household.guests[0]
     const phone = toIsraeliE164(contact?.phone ?? null)
+    const template = await this.repo.getInviteTemplate(weddingId)
     const body = contact
-      ? buildWeddingInviteSms({
+      ? buildWeddingInviteSmsFromTemplate({
           firstName: contact.firstName,
           lastName: contact.lastName,
           inviteCode: household.inviteCode,
+          template,
         })
       : null
     if (!contact || !phone || !body) {
