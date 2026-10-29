@@ -37,7 +37,7 @@ const SIDEBAR_SECTIONS: readonly SidebarSection[] = [
     items: [
       { label: 'רשימת מוזמנים', href: '/guest-list', icon: Users },
       { label: 'סידורי הושבה', href: '/seating', icon: Armchair },
-      { label: 'וואטסאפ', href: '/messaging', icon: MessageCircle },
+      { label: 'תקשורת', href: '/messaging', icon: MessageCircle },
     ],
   },
   {
