@@ -3,6 +3,7 @@
 import { Loader2, MessageSquareText, Search, Send } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { SmsSenderManagement } from '~/components/messaging/sms-sender-management'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,7 @@ const GSM_EXTENDED = new Set('^{}\\[~]|€')
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
 type StatusFilter = 'all' | 'pending' | 'sent' | 'failed' | 'unavailable'
 type SortOption = 'name' | 'status' | 'sentAt'
+type SideFilter = 'חתן' | 'כלה' | 'all'
 
 function statusDetails(status: string | null): { label: string; variant: BadgeVariant } {
   if (status === 'SENT') return { label: 'נשלח', variant: 'default' }
@@ -100,16 +102,24 @@ export function SmsMessagingScreen() {
   const utils = api.useUtils()
   const recipientsQuery = api.sms.listSmsRecipients.useQuery()
   const templateQuery = api.sms.getSmsTemplate.useQuery()
+  const sendersQuery = api.sms.listSmsSenders.useQuery()
   const sendSms = api.sms.sendSms.useMutation()
   const sendSmsAgain = api.sms.sendSmsAgain.useMutation()
   const setSmsTemplate = api.sms.setSmsTemplate.useMutation()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [previewId, setPreviewId] = useState<string | null>(null)
-  const [confirmation, setConfirmation] = useState<{ ids: string[]; resend: boolean } | null>(null)
+  const [confirmation, setConfirmation] = useState<{
+    ids: string[]
+    resend: boolean
+    crossSideMessage?: string
+    confirmCrossSide?: boolean
+  } | null>(null)
   const [progress, setProgress] = useState<{ completed: number; total: number } | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [groupFilter, setGroupFilter] = useState('all')
+  const [sideFilter, setSideFilter] = useState<SideFilter>('חתן')
+  const [senderId, setSenderId] = useState('auto')
   const [sortBy, setSortBy] = useState<SortOption>('name')
   const [template, setTemplate] = useState(DEFAULT_SMS_INVITE_TEMPLATE)
 
@@ -135,6 +145,7 @@ export function SmsMessagingScreen() {
     const query = search.trim().toLocaleLowerCase('he')
     const queryDigits = search.replace(/\D/g, '')
     return recipients.filter((recipient) => {
+      if (sideFilter !== 'all' && recipient.side !== sideFilter) return false
       if (groupFilter !== 'all' && recipient.groupName !== groupFilter) return false
       if (!query && !queryDigits) return true
       const text = [recipient.householdName, recipient.primaryContact, recipient.groupName]
@@ -144,7 +155,7 @@ export function SmsMessagingScreen() {
       const phoneDigits = recipient.phone?.replace(/\D/g, '') ?? ''
       return text.includes(query) || Boolean(queryDigits && phoneDigits.includes(queryDigits))
     })
-  }, [groupFilter, recipients, search])
+  }, [groupFilter, recipients, search, sideFilter])
   const counts = useMemo(
     () => ({
       all: searchableRecipients.length,
@@ -198,6 +209,36 @@ export function SmsMessagingScreen() {
     { value: 'failed', label: 'נכשל' },
     { value: 'unavailable', label: 'לא ניתן לשלוח' },
   ]
+  const activeSenders = (sendersQuery.data ?? []).filter((sender) => sender.isActive)
+  const resolveSender = (side: string) => {
+    if (senderId !== 'auto') return activeSenders.find((sender) => sender.id === senderId) ?? null
+    return (
+      activeSenders.find((sender) => sender.side === side) ??
+      activeSenders.find((sender) => sender.isDefault) ??
+      null
+    )
+  }
+  const displayedSender = sideFilter === 'all' ? null : resolveSender(sideFilter)
+  const inlineCrossSideWarning =
+    displayedSender && displayedSender.side !== sideFilter
+      ? `שים לב: הסינון מציג את צד ${sideFilter}, אך המספר שנבחר שייך לצד ${displayedSender.side}.`
+      : null
+
+  const crossSideWarningFor = (ids: string[]) => {
+    for (const recipient of recipients) {
+      if (!ids.includes(recipient.householdId)) continue
+      const sender = resolveSender(recipient.side)
+      if (sender && sender.side !== recipient.side) {
+        return `שים לב: ההודעה מיועדת לצד ${recipient.side} אך נשלחת ממספר של צד ${sender.side}.`
+      }
+    }
+    return undefined
+  }
+
+  const requestConfirmation = (ids: string[], resend: boolean) => {
+    const crossSideMessage = crossSideWarningFor(ids)
+    setConfirmation({ ids, resend, crossSideMessage, confirmCrossSide: Boolean(crossSideMessage) })
+  }
 
   const toggleRecipient = (householdId: string, checked: boolean) => {
     setSelectedIds((current) => {
@@ -210,16 +251,26 @@ export function SmsMessagingScreen() {
 
   const runSend = async () => {
     if (!confirmation) return
-    const { ids, resend } = confirmation
+    const { ids, resend, confirmCrossSide } = confirmation
     setConfirmation(null)
     setProgress({ completed: 0, total: ids.length })
     let consecutiveFailures = 0
+    let crossSideRetry: { ids: string[]; message: string } | null = null
 
     for (const [index, householdId] of ids.entries()) {
       try {
-        const result = await (resend ? sendSmsAgain : sendSms).mutateAsync({ householdId })
+        const result = await (resend ? sendSmsAgain : sendSms).mutateAsync({
+          householdId,
+          ...(senderId === 'auto' ? {} : { senderId }),
+          confirmCrossSide,
+        })
         consecutiveFailures = result.status === 'FAILED' ? consecutiveFailures + 1 : 0
-      } catch {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message.startsWith('שים לב:')) {
+          crossSideRetry = { ids: ids.slice(index), message }
+          break
+        }
         consecutiveFailures += 1
       }
       setProgress({ completed: index + 1, total: ids.length })
@@ -230,6 +281,15 @@ export function SmsMessagingScreen() {
     }
 
     setProgress(null)
+    if (crossSideRetry) {
+      setConfirmation({
+        ids: crossSideRetry.ids,
+        resend,
+        crossSideMessage: crossSideRetry.message,
+        confirmCrossSide: true,
+      })
+      return
+    }
     setSelectedIds(new Set())
     await utils.sms.listSmsRecipients.invalidate()
     toast.success(ids.length === 1 ? 'השליחה הסתיימה' : 'ריצת השליחה הסתיימה')
@@ -245,7 +305,7 @@ export function SmsMessagingScreen() {
     toast.success(value === null ? 'נוסח ברירת המחדל שוחזר' : 'נוסח ההודעה נשמר')
   }
 
-  if (recipientsQuery.isLoading || templateQuery.isLoading) {
+  if (recipientsQuery.isLoading || templateQuery.isLoading || sendersQuery.isLoading) {
     return (
       <div className='grid min-h-64 place-items-center' role='status' aria-label='טוען נמעני SMS'>
         <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
@@ -253,12 +313,13 @@ export function SmsMessagingScreen() {
     )
   }
 
-  if (recipientsQuery.error || templateQuery.error) {
+  if (recipientsQuery.error || templateQuery.error || sendersQuery.error) {
     return (
       <Card className='border-destructive/35'>
         <CardContent className='py-6 text-destructive text-sm'>
           {recipientsQuery.error?.message ||
             templateQuery.error?.message ||
+            sendersQuery.error?.message ||
             'טעינת מסך ה-SMS נכשלה'}
         </CardContent>
       </Card>
@@ -267,6 +328,7 @@ export function SmsMessagingScreen() {
 
   return (
     <div className='mx-auto grid max-w-7xl gap-4' dir='rtl'>
+      <SmsSenderManagement />
       <Card>
         <CardHeader className='pb-3'>
           <CardTitle className='text-base'>נוסח ההודעה</CardTitle>
@@ -308,7 +370,7 @@ export function SmsMessagingScreen() {
       <Card>
         <CardHeader className='gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
           <div>
-            <CardTitle className='text-xl'>הזמנות SMS — צד החתן</CardTitle>
+            <CardTitle className='text-xl'>הזמנות SMS</CardTitle>
             <p className='mt-1 text-muted-foreground text-sm'>
               מוצגים {filteredRecipients.length} מתוך {recipients.length} · נבחרו{' '}
               {selectedSendableIds.length + selectedResendIds.length}
@@ -317,7 +379,7 @@ export function SmsMessagingScreen() {
           <div className='flex flex-wrap gap-2'>
             <Button
               disabled={selectedSendableIds.length === 0 || isSending}
-              onClick={() => setConfirmation({ ids: selectedSendableIds, resend: false })}
+              onClick={() => requestConfirmation(selectedSendableIds, false)}
             >
               {progress ? (
                 <Loader2 className='me-2 h-4 w-4 animate-spin' />
@@ -330,7 +392,7 @@ export function SmsMessagingScreen() {
               <Button
                 variant='outline'
                 disabled={isSending}
-                onClick={() => setConfirmation({ ids: selectedResendIds, resend: true })}
+                onClick={() => requestConfirmation(selectedResendIds, true)}
               >
                 שלח שוב לנבחרים
               </Button>
@@ -339,6 +401,58 @@ export function SmsMessagingScreen() {
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-col gap-3 rounded-md border bg-muted/15 p-3'>
+            <div className='grid gap-2 sm:grid-cols-2'>
+              <Select
+                value={sideFilter}
+                onValueChange={(value) => setSideFilter(value as SideFilter)}
+              >
+                <SelectTrigger aria-label='סינון לפי צד'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='חתן'>צד חתן</SelectItem>
+                  <SelectItem value='כלה'>צד כלה</SelectItem>
+                  <SelectItem value='all'>כל הצדדים</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={senderId} onValueChange={setSenderId}>
+                <SelectTrigger aria-label='בחירת מספר שולח'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='auto'>בחירה אוטומטית לפי צד</SelectItem>
+                  {activeSenders.map((sender) => (
+                    <SelectItem key={sender.id} value={sender.id}>
+                      {sender.label} · צד {sender.side}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className='text-muted-foreground text-sm'>
+              {senderId !== 'auto' ? (
+                <span>
+                  שולח:{' '}
+                  {resolveSender(sideFilter === 'all' ? 'חתן' : sideFilter)?.label ?? 'לא זמין'}
+                  {resolveSender(sideFilter === 'all' ? 'חתן' : sideFilter)?.side
+                    ? ` · צד ${resolveSender(sideFilter === 'all' ? 'חתן' : sideFilter)?.side}`
+                    : ''}
+                </span>
+              ) : sideFilter === 'all' ? (
+                <span>המספר השולח ייבחר בנפרד לפי הצד של כל משק בית.</span>
+              ) : displayedSender ? (
+                <span>
+                  שולח: {displayedSender.label} · צד {displayedSender.side}
+                </span>
+              ) : (
+                <span>לא הוגדר מספר לצד זה. השליחה תשתמש בחיבור השרת.</span>
+              )}
+            </div>
+            {inlineCrossSideWarning && (
+              <p className='rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive text-sm'>
+                {inlineCrossSideWarning}
+              </p>
+            )}
             <fieldset className='flex flex-wrap gap-1 rounded-md bg-muted/50 p-1'>
               <legend className='sr-only'>סינון לפי סטטוס</legend>
               {statusFilters.map((filter) => (
@@ -478,6 +592,9 @@ export function SmsMessagingScreen() {
                         <div className='text-muted-foreground text-xs'>
                           {recipient.primaryContact}
                         </div>
+                        <Badge variant='outline' className='mt-1'>
+                          צד {recipient.side}
+                        </Badge>
                         {recipient.groupName && recipient.groupName !== recipient.householdName && (
                           <div className='text-muted-foreground text-xs'>{recipient.groupName}</div>
                         )}
@@ -518,10 +635,10 @@ export function SmsMessagingScreen() {
                             isSending
                           }
                           onClick={() =>
-                            setConfirmation({
-                              ids: [recipient.householdId],
-                              resend: recipient.status === 'SENT',
-                            })
+                            requestConfirmation(
+                              [recipient.householdId],
+                              recipient.status === 'SENT'
+                            )
                           }
                         >
                           {recipient.status === 'SENT' ? 'שלח שוב' : 'שלח'}
@@ -581,24 +698,30 @@ export function SmsMessagingScreen() {
               {confirmation?.resend ? 'לאשר שליחה כפולה?' : 'לאשר שליחת SMS?'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmation?.resend
-                ? `${confirmation.ids.length} משקי בית כבר קיבלו את ההודעה${(() => {
-                    const latest = recipients
-                      .filter((recipient) => confirmation.ids.includes(recipient.householdId))
-                      .map((recipient) => recipient.lastReminderAt ?? recipient.lastSentAt)
-                      .filter((value): value is Date => Boolean(value))
-                      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
-                    return latest ? ` (האחרונה ב-${formatSentAt(latest)})` : ''
-                  })()}. לשלוח שוב? זו שליחה כפולה.`
-                : confirmation?.ids.length === 1
-                  ? 'ההודעה תישלח כעת למשק הבית שבחרתם.'
-                  : `${confirmation?.ids.length ?? 0} הודעות יישלחו אחת־אחת. הריצה תיעצר לאחר שלושה כישלונות רצופים.`}
+              {confirmation?.crossSideMessage
+                ? confirmation.crossSideMessage
+                : confirmation?.resend
+                  ? `${confirmation.ids.length} משקי בית כבר קיבלו את ההודעה${(() => {
+                      const latest = recipients
+                        .filter((recipient) => confirmation.ids.includes(recipient.householdId))
+                        .map((recipient) => recipient.lastReminderAt ?? recipient.lastSentAt)
+                        .filter((value): value is Date => Boolean(value))
+                        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
+                      return latest ? ` (האחרונה ב-${formatSentAt(latest)})` : ''
+                    })()}. לשלוח שוב? זו שליחה כפולה.`
+                  : confirmation?.ids.length === 1
+                    ? 'ההודעה תישלח כעת למשק הבית שבחרתם.'
+                    : `${confirmation?.ids.length ?? 0} הודעות יישלחו אחת־אחת. הריצה תיעצר לאחר שלושה כישלונות רצופים.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction onClick={() => void runSend()}>
-              {confirmation?.resend ? 'שלח שוב' : 'אישור ושליחה'}
+              {confirmation?.crossSideMessage
+                ? 'שלח בכל זאת'
+                : confirmation?.resend
+                  ? 'שלח שוב'
+                  : 'אישור ושליחה'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

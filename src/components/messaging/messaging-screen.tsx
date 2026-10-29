@@ -8,7 +8,7 @@ export function MessagingScreen() {
   return (
     <Tabs defaultValue='whatsapp' dir='rtl'>
       <TabsList aria-label='ערוצי הודעות' className='mb-4'>
-        <TabsTrigger value='whatsapp'>תקשורת</TabsTrigger>
+        <TabsTrigger value='whatsapp'>וואטסאפ</TabsTrigger>
         <TabsTrigger value='sms'>SMS</TabsTrigger>
       </TabsList>
       <TabsContent value='whatsapp' className='mt-0'>

@@ -1,4 +1,4 @@
-import type { PrismaClient, SmsOutbound, SmsOutboundKind } from '@prisma/client'
+import type { Prisma, PrismaClient, SmsOutbound, SmsOutboundKind, SmsSender } from '@prisma/client'
 
 const primaryContactSelect = {
   id: true,
@@ -30,12 +30,14 @@ export type SmsHouseholdRow = {
   }>
 }
 
+export type SmsSenderRow = SmsSender
+
 export class SmsRepository {
   constructor(private db: PrismaClient) {}
 
-  listGroomHouseholds(weddingId: string): Promise<SmsHouseholdRow[]> {
+  listHouseholds(weddingId: string): Promise<SmsHouseholdRow[]> {
     return this.db.household.findMany({
-      where: { weddingId, side: 'חתן' },
+      where: { weddingId, side: { in: ['חתן', 'כלה'] } },
       orderBy: [{ groupName: 'asc' }, { createdAt: 'asc' }],
       select: {
         id: true,
@@ -56,9 +58,9 @@ export class SmsRepository {
     })
   }
 
-  findGroomHousehold(weddingId: string, householdId: string): Promise<SmsHouseholdRow | null> {
+  findHousehold(weddingId: string, householdId: string): Promise<SmsHouseholdRow | null> {
     return this.db.household.findFirst({
-      where: { id: householdId, weddingId, side: 'חתן' },
+      where: { id: householdId, weddingId, side: { in: ['חתן', 'כלה'] } },
       select: {
         id: true,
         weddingId: true,
@@ -75,6 +77,56 @@ export class SmsRepository {
           select: { kind: true, status: true, error: true, sentAt: true, reminderCount: true },
         },
       },
+    })
+  }
+
+  listSenders(weddingId: string): Promise<SmsSenderRow[]> {
+    return this.db.smsSender.findMany({
+      where: { weddingId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    })
+  }
+
+  findSender(weddingId: string, senderId: string): Promise<SmsSenderRow | null> {
+    return this.db.smsSender.findFirst({ where: { id: senderId, weddingId } })
+  }
+
+  findActiveSenderForSide(weddingId: string, side: string): Promise<SmsSenderRow | null> {
+    return this.db.smsSender.findFirst({
+      where: { weddingId, side, isActive: true },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    })
+  }
+
+  findDefaultSender(weddingId: string): Promise<SmsSenderRow | null> {
+    return this.db.smsSender.findFirst({
+      where: { weddingId, isDefault: true, isActive: true },
+      orderBy: { createdAt: 'asc' },
+    })
+  }
+
+  createSender(data: Prisma.SmsSenderUncheckedCreateInput): Promise<SmsSenderRow> {
+    return this.db.smsSender.create({ data })
+  }
+
+  updateSender(
+    weddingId: string,
+    senderId: string,
+    data: Prisma.SmsSenderUncheckedUpdateInput
+  ): Promise<SmsSenderRow> {
+    return this.db.smsSender.update({
+      where: { id: senderId, weddingId },
+      data,
+    })
+  }
+
+  async setDefaultSender(weddingId: string, senderId: string): Promise<SmsSenderRow> {
+    return this.db.$transaction(async (tx) => {
+      await tx.smsSender.updateMany({ where: { weddingId }, data: { isDefault: false } })
+      return tx.smsSender.update({
+        where: { id: senderId, weddingId },
+        data: { isDefault: true, isActive: true },
+      })
     })
   }
 
