@@ -252,6 +252,19 @@ describe('guestPartySchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('should normalize an empty guest party email to null', () => {
+    const result = guestPartySchema.safeParse({
+      firstName: 'John',
+      email: '',
+      invites: {},
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.email).toBeNull()
+    }
+  })
+
   it('should allow guestId to be optional (for new guests)', () => {
     const validInput = {
       firstName: 'New',

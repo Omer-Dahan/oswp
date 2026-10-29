@@ -130,6 +130,26 @@ describe('createHouseholdSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('should normalize empty household and guest emails to null', () => {
+    const result = createHouseholdSchema.safeParse({
+      email: '',
+      guestParty: [
+        {
+          firstName: 'John',
+          email: '',
+          isPrimaryContact: true,
+          invites: {},
+        },
+      ],
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.email).toBeNull()
+      expect(result.data.guestParty[0]?.email).toBeNull()
+    }
+  })
+
   it('should require at least one guest in guestParty', () => {
     const validInput = {
       guestParty: [],
