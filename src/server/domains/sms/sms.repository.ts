@@ -1,4 +1,4 @@
-import type { PrismaClient, SmsOutbound } from '@prisma/client'
+import type { PrismaClient, SmsOutbound, SmsOutboundKind } from '@prisma/client'
 
 const primaryContactSelect = {
   id: true,
@@ -22,9 +22,11 @@ export type SmsHouseholdRow = {
     isPrimaryContact: boolean
   }>
   smsOutbound: Array<{
+    kind: SmsOutboundKind
     status: 'QUEUED' | 'SENT' | 'FAILED'
     error: string | null
     sentAt: Date | null
+    reminderCount: number
   }>
 }
 
@@ -47,9 +49,8 @@ export class SmsRepository {
           select: primaryContactSelect,
         },
         smsOutbound: {
-          where: { kind: 'INVITE' },
-          take: 1,
-          select: { status: true, error: true, sentAt: true },
+          where: { kind: { in: ['INVITE', 'REMINDER'] } },
+          select: { kind: true, status: true, error: true, sentAt: true, reminderCount: true },
         },
       },
     })
@@ -70,9 +71,8 @@ export class SmsRepository {
           select: primaryContactSelect,
         },
         smsOutbound: {
-          where: { kind: 'INVITE' },
-          take: 1,
-          select: { status: true, error: true, sentAt: true },
+          where: { kind: { in: ['INVITE', 'REMINDER'] } },
+          select: { kind: true, status: true, error: true, sentAt: true, reminderCount: true },
         },
       },
     })
@@ -125,6 +125,58 @@ export class SmsRepository {
         queuedAt: new Date(),
         sentAt: null,
       },
+    })
+  }
+
+  queueReminder(input: {
+    weddingId: string
+    householdId: string
+    guestId: number
+    toPhone: string
+    body: string
+  }): Promise<SmsOutbound> {
+    return this.db.smsOutbound.upsert({
+      where: {
+        weddingId_householdId_kind: {
+          weddingId: input.weddingId,
+          householdId: input.householdId,
+          kind: 'REMINDER',
+        },
+      },
+      create: {
+        ...input,
+        kind: 'REMINDER',
+        status: 'QUEUED',
+      },
+      update: {
+        guestId: input.guestId,
+        toPhone: input.toPhone,
+        body: input.body,
+        status: 'QUEUED',
+        providerMessageId: null,
+        error: null,
+        queuedAt: new Date(),
+      },
+    })
+  }
+
+  markReminderSent(id: string, providerMessageId?: string): Promise<SmsOutbound> {
+    return this.db.smsOutbound.update({
+      where: { id },
+      data: {
+        status: 'SENT',
+        providerMessageId,
+        error: null,
+        reminderCount: { increment: 1 },
+        sentAt: new Date(),
+      },
+    })
+  }
+
+  markReminderFailed(id: string, error: string): Promise<SmsOutbound> {
+    return this.db.smsOutbound.update({
+      where: { id },
+      data: { status: 'FAILED', error },
     })
   }
 

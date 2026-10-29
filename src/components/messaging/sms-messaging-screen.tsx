@@ -101,10 +101,11 @@ export function SmsMessagingScreen() {
   const recipientsQuery = api.sms.listSmsRecipients.useQuery()
   const templateQuery = api.sms.getSmsTemplate.useQuery()
   const sendSms = api.sms.sendSms.useMutation()
+  const sendSmsAgain = api.sms.sendSmsAgain.useMutation()
   const setSmsTemplate = api.sms.setSmsTemplate.useMutation()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [previewId, setPreviewId] = useState<string | null>(null)
-  const [confirmationIds, setConfirmationIds] = useState<string[]>([])
+  const [confirmation, setConfirmation] = useState<{ ids: string[]; resend: boolean } | null>(null)
   const [progress, setProgress] = useState<{ completed: number; total: number } | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -165,18 +166,23 @@ export function SmsMessagingScreen() {
       }
       if (sortBy === 'sentAt') {
         return (
-          (b.sentAt ? new Date(b.sentAt).getTime() : 0) -
-          (a.sentAt ? new Date(a.sentAt).getTime() : 0)
+          (b.lastSentAt ? new Date(b.lastSentAt).getTime() : 0) -
+          (a.lastSentAt ? new Date(a.lastSentAt).getTime() : 0)
         )
       }
       return a.householdName.localeCompare(b.householdName, 'he')
     })
   }, [searchableRecipients, sortBy, statusFilter])
-  const selectable = filteredRecipients.filter((recipient) => recipient.sendable)
+  const selectable = filteredRecipients.filter((recipient) =>
+    Boolean(recipient.phone && recipient.inviteCode)
+  )
   const selectedSendableIds = selectable
-    .filter((recipient) => selectedIds.has(recipient.householdId))
+    .filter((recipient) => recipient.sendable && selectedIds.has(recipient.householdId))
     .map((recipient) => recipient.householdId)
-  const isSending = progress !== null || sendSms.isPending
+  const selectedResendIds = selectable
+    .filter((recipient) => recipient.status === 'SENT' && selectedIds.has(recipient.householdId))
+    .map((recipient) => recipient.householdId)
+  const isSending = progress !== null || sendSms.isPending || sendSmsAgain.isPending
   const preview = selectedRecipient?.inviteCode
     ? renderWeddingInviteSmsTemplate({
         template,
@@ -203,14 +209,15 @@ export function SmsMessagingScreen() {
   }
 
   const runSend = async () => {
-    const ids = confirmationIds
-    setConfirmationIds([])
+    if (!confirmation) return
+    const { ids, resend } = confirmation
+    setConfirmation(null)
     setProgress({ completed: 0, total: ids.length })
     let consecutiveFailures = 0
 
     for (const [index, householdId] of ids.entries()) {
       try {
-        const result = await sendSms.mutateAsync({ householdId })
+        const result = await (resend ? sendSmsAgain : sendSms).mutateAsync({ householdId })
         consecutiveFailures = result.status === 'FAILED' ? consecutiveFailures + 1 : 0
       } catch {
         consecutiveFailures += 1
@@ -304,20 +311,31 @@ export function SmsMessagingScreen() {
             <CardTitle className='text-xl'>הזמנות SMS — צד החתן</CardTitle>
             <p className='mt-1 text-muted-foreground text-sm'>
               מוצגים {filteredRecipients.length} מתוך {recipients.length} · נבחרו{' '}
-              {selectedSendableIds.length}
+              {selectedSendableIds.length + selectedResendIds.length}
             </p>
           </div>
-          <Button
-            disabled={selectedSendableIds.length === 0 || isSending}
-            onClick={() => setConfirmationIds(selectedSendableIds)}
-          >
-            {progress ? (
-              <Loader2 className='me-2 h-4 w-4 animate-spin' />
-            ) : (
-              <Send className='me-2 h-4 w-4' />
+          <div className='flex flex-wrap gap-2'>
+            <Button
+              disabled={selectedSendableIds.length === 0 || isSending}
+              onClick={() => setConfirmation({ ids: selectedSendableIds, resend: false })}
+            >
+              {progress ? (
+                <Loader2 className='me-2 h-4 w-4 animate-spin' />
+              ) : (
+                <Send className='me-2 h-4 w-4' />
+              )}
+              שלח לנבחרים המוצגים
+            </Button>
+            {selectedResendIds.length > 0 && (
+              <Button
+                variant='outline'
+                disabled={isSending}
+                onClick={() => setConfirmation({ ids: selectedResendIds, resend: true })}
+              >
+                שלח שוב לנבחרים
+              </Button>
             )}
-            שלח לנבחרים המוצגים
-          </Button>
+          </div>
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-col gap-3 rounded-md border bg-muted/15 p-3'>
@@ -443,7 +461,7 @@ export function SmsMessagingScreen() {
                         <Checkbox
                           aria-label={`בחר ${recipient.householdName}`}
                           checked={selectedIds.has(recipient.householdId)}
-                          disabled={!recipient.sendable || isSending}
+                          disabled={!recipient.phone || !recipient.inviteCode || isSending}
                           onCheckedChange={(checked) =>
                             toggleRecipient(recipient.householdId, checked === true)
                           }
@@ -469,9 +487,15 @@ export function SmsMessagingScreen() {
                       </td>
                       <td className='px-3 py-3'>
                         <Badge variant={status.variant}>{status.label}</Badge>
-                        {recipient.status === 'SENT' && recipient.sentAt && (
+                        {recipient.status === 'SENT' && recipient.lastSentAt && (
                           <div className='mt-1 font-mono text-muted-foreground text-xs'>
-                            {formatSentAt(recipient.sentAt)}
+                            נשלח לאחרונה{' '}
+                            {formatSentAt(recipient.lastReminderAt ?? recipient.lastSentAt)}
+                          </div>
+                        )}
+                        {recipient.reminderCount > 0 && (
+                          <div className='font-mono text-muted-foreground text-xs'>
+                            נשלח שוב {recipient.reminderCount} פעמים
                           </div>
                         )}
                         {reason && (
@@ -487,10 +511,20 @@ export function SmsMessagingScreen() {
                         <Button
                           size='sm'
                           variant='outline'
-                          disabled={!recipient.sendable || isSending}
-                          onClick={() => setConfirmationIds([recipient.householdId])}
+                          disabled={
+                            !recipient.phone ||
+                            !recipient.inviteCode ||
+                            (!recipient.sendable && recipient.status !== 'SENT') ||
+                            isSending
+                          }
+                          onClick={() =>
+                            setConfirmation({
+                              ids: [recipient.householdId],
+                              resend: recipient.status === 'SENT',
+                            })
+                          }
                         >
-                          שלח
+                          {recipient.status === 'SENT' ? 'שלח שוב' : 'שלח'}
                         </Button>
                       </td>
                     </tr>
@@ -538,21 +572,34 @@ export function SmsMessagingScreen() {
       </Card>
 
       <AlertDialog
-        open={confirmationIds.length > 0}
-        onOpenChange={(open) => !open && setConfirmationIds([])}
+        open={confirmation !== null}
+        onOpenChange={(open) => !open && setConfirmation(null)}
       >
         <AlertDialogContent dir='rtl'>
           <AlertDialogHeader>
-            <AlertDialogTitle>לאשר שליחת SMS?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {confirmation?.resend ? 'לאשר שליחה כפולה?' : 'לאשר שליחת SMS?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmationIds.length === 1
-                ? 'ההודעה תישלח כעת למשק הבית שבחרתם.'
-                : `${confirmationIds.length} הודעות יישלחו אחת־אחת. הריצה תיעצר לאחר שלושה כישלונות רצופים.`}
+              {confirmation?.resend
+                ? `${confirmation.ids.length} משקי בית כבר קיבלו את ההודעה${(() => {
+                    const latest = recipients
+                      .filter((recipient) => confirmation.ids.includes(recipient.householdId))
+                      .map((recipient) => recipient.lastReminderAt ?? recipient.lastSentAt)
+                      .filter((value): value is Date => Boolean(value))
+                      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
+                    return latest ? ` (האחרונה ב-${formatSentAt(latest)})` : ''
+                  })()}. לשלוח שוב? זו שליחה כפולה.`
+                : confirmation?.ids.length === 1
+                  ? 'ההודעה תישלח כעת למשק הבית שבחרתם.'
+                  : `${confirmation?.ids.length ?? 0} הודעות יישלחו אחת־אחת. הריצה תיעצר לאחר שלושה כישלונות רצופים.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void runSend()}>אישור ושליחה</AlertDialogAction>
+            <AlertDialogAction onClick={() => void runSend()}>
+              {confirmation?.resend ? 'שלח שוב' : 'אישור ושליחה'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

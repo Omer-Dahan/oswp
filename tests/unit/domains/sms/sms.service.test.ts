@@ -34,8 +34,11 @@ function setup() {
     listGroomHouseholds: jest.fn(),
     findGroomHousehold: jest.fn(),
     queueInvite: jest.fn(),
+    queueReminder: jest.fn(),
     markSent: jest.fn(),
+    markReminderSent: jest.fn(),
     markFailed: jest.fn(),
+    markReminderFailed: jest.fn(),
     getInviteTemplate: jest.fn().mockResolvedValue(null),
     setInviteTemplate: jest.fn(),
   }
@@ -85,11 +88,50 @@ describe('SmsService', () => {
   it('refuses a duplicate send after SENT', async () => {
     const { service, repo, gateway } = setup()
     repo.findGroomHousehold.mockResolvedValue(
-      household({ smsOutbound: [{ status: 'SENT', error: null, sentAt: new Date() }] })
+      household({
+        smsOutbound: [
+          { kind: 'INVITE', status: 'SENT', error: null, sentAt: new Date(), reminderCount: 0 },
+        ],
+      })
     )
 
     await expect(service.sendInvite(authz, 'wedding-1', 'household-1')).rejects.toMatchObject({
       code: 'CONFLICT',
+    })
+    expect(gateway.send).not.toHaveBeenCalled()
+  })
+
+  it('sends a REMINDER after the original invite was sent', async () => {
+    const { service, repo, gateway } = setup()
+    repo.findGroomHousehold.mockResolvedValue(
+      household({
+        smsOutbound: [
+          { kind: 'INVITE', status: 'SENT', error: null, sentAt: new Date(), reminderCount: 0 },
+        ],
+      })
+    )
+    repo.queueReminder.mockResolvedValue({ id: 'reminder-1' })
+    repo.markReminderSent.mockResolvedValue({ sentAt: new Date('2026-10-29T14:39:00Z') })
+    gateway.send.mockResolvedValue({ ok: true, providerMessageId: 'provider-2' })
+
+    await expect(service.sendAgain(authz, 'wedding-1', 'household-1')).resolves.toMatchObject({
+      householdId: 'household-1',
+      status: 'SENT',
+    })
+    expect(repo.queueReminder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        weddingId: 'wedding-1',
+        householdId: 'household-1',
+      })
+    )
+  })
+
+  it('rejects a bride-side re-send', async () => {
+    const { service, repo, gateway } = setup()
+    repo.findGroomHousehold.mockResolvedValue(household({ side: 'כלה' }))
+
+    await expect(service.sendAgain(authz, 'wedding-1', 'household-1')).rejects.toMatchObject({
+      code: 'FORBIDDEN',
     })
     expect(gateway.send).not.toHaveBeenCalled()
   })

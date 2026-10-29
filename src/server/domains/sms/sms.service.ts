@@ -24,7 +24,8 @@ function toRecipient(household: SmsHouseholdRow, template: string | null): SmsRe
     ? formatSmsRecipientName(contact.firstName, contact.lastName)
     : 'לא הוגדר איש קשר'
   const phone = toIsraeliE164(contact?.phone ?? null)
-  const outbound = household.smsOutbound[0]
+  const outbound = household.smsOutbound.find((message) => message.kind === 'INVITE')
+  const reminder = household.smsOutbound.find((message) => message.kind === 'REMINDER')
   const preview = contact
     ? buildWeddingInviteSmsFromTemplate({
         firstName: contact.firstName,
@@ -44,7 +45,9 @@ function toRecipient(household: SmsHouseholdRow, template: string | null): SmsRe
     inviteLink: household.inviteCode ? buildWeddingInviteLink(household.inviteCode) : null,
     status: outbound?.status ?? null,
     error: outbound?.error ?? null,
-    sentAt: outbound?.sentAt ?? null,
+    lastSentAt: outbound?.sentAt ?? null,
+    reminderCount: reminder?.reminderCount ?? 0,
+    lastReminderAt: reminder?.sentAt ?? null,
     sendable: Boolean(phone && preview && outbound?.status !== 'SENT'),
     preview,
   }
@@ -135,5 +138,63 @@ export class SmsService {
 
     await this.repo.markSent(outbound.id, result.providerMessageId)
     return { householdId, status: 'SENT' }
+  }
+
+  async sendAgain(
+    ctx: AuthzContext,
+    weddingId: string,
+    householdId: string
+  ): Promise<SmsSendOutcome> {
+    requirePermission(ctx, { guest_invitation: ['send'] })
+    const household = await this.repo.findGroomHousehold(weddingId, householdId)
+    if (household?.side !== 'חתן') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'ניתן לשלוח SMS רק למשקי בית מצד החתן.',
+      })
+    }
+
+    const invite = household.smsOutbound.find((message) => message.kind === 'INVITE')
+    if (invite?.status !== 'SENT') {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'ניתן לשלוח שוב רק לאחר שההזמנה המקורית נשלחה.',
+      })
+    }
+
+    const contact = household.guests[0]
+    const phone = toIsraeliE164(contact?.phone ?? null)
+    const template = await this.repo.getInviteTemplate(weddingId)
+    const body = contact
+      ? buildWeddingInviteSmsFromTemplate({
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          inviteCode: household.inviteCode,
+          template,
+        })
+      : null
+    if (!contact || !phone || !body) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'למשק הבית חסרים איש קשר ראשי, מספר טלפון תקין או קוד הזמנה.',
+      })
+    }
+
+    const outbound = await this.repo.queueReminder({
+      weddingId,
+      householdId,
+      guestId: contact.id,
+      toPhone: phone,
+      body,
+    })
+    const result = await this.gateway.send(phone, body)
+    if (!result.ok) {
+      const error = result.error ?? 'שליחת ה-SMS נכשלה'
+      await this.repo.markReminderFailed(outbound.id, error)
+      return { householdId, status: 'FAILED', error, sentAt: null }
+    }
+
+    const sent = await this.repo.markReminderSent(outbound.id, result.providerMessageId)
+    return { householdId, status: 'SENT', sentAt: sent.sentAt }
   }
 }

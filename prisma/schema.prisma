@@ -1387,6 +1387,7 @@ model SmsOutbound {
   status            SmsOutboundStatus @default(QUEUED)
   providerMessageId String?           @map("provider_message_id")
   error             String?
+  reminderCount     Int               @default(0) @map("reminder_count")
   queuedAt          DateTime          @default(now()) @map("queued_at")
   sentAt            DateTime?         @map("sent_at")
 
