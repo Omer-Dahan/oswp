@@ -71,7 +71,12 @@ export const guestPartySchema = z.object({
   guestId: z.number().optional(),
   firstName: z.string().min(1, { message: 'שם פרטי נדרש' }).max(NAME_MAX, nameTooLong),
   lastName: z.string().max(NAME_MAX, nameTooLong).optional().default(''),
-  email: z.string().email('כתובת מייל לא תקינה').optional().nullable(),
+  email: z
+    .string()
+    .email('כתובת מייל לא תקינה')
+    .optional()
+    .nullable()
+    .or(z.literal('').transform(() => null)),
   phone: optionalPhoneSchema,
   isPrimaryContact: z.boolean().default(false),
   ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).default('ADULT'),

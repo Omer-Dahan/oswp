@@ -36,7 +36,12 @@ export const baseHouseholdFields = z.object({
   country: z.string().nullish().optional(),
   zipCode: z.string().nullish().optional(),
   phone: optionalPhoneSchema,
-  email: z.string().email({ message: 'כתובת מייל לא תקינה' }).nullish().optional(),
+  email: z
+    .string()
+    .email({ message: 'כתובת מייל לא תקינה' })
+    .nullish()
+    .optional()
+    .or(z.literal('').transform(() => null)),
   notes: z.string().max(1000, 'הערות חייבות להיות עד 1000 תווים').nullish().optional(),
   likelihoodOfAttending: z.number().int().min(1).max(5).nullish().optional(),
   invitedCount: z
