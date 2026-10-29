@@ -10,7 +10,9 @@ export type SmsRecipient = {
   inviteLink: string | null
   status: SmsOutboundStatus | null
   error: string | null
-  sentAt: Date | null
+  lastSentAt: Date | null
+  reminderCount: number
+  lastReminderAt: Date | null
   sendable: boolean
   preview: string | null
 }
@@ -19,4 +21,5 @@ export type SmsSendOutcome = {
   householdId: string
   status: 'SENT' | 'FAILED'
   error?: string
+  sentAt?: Date | null
 }

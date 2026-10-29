@@ -25,4 +25,9 @@ export const smsRouter = createTRPCRouter({
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return smsService.sendInvite(ctx.authz, weddingId, input.householdId)
   }),
+
+  sendSmsAgain: protectedProcedure.input(sendSmsSchema).mutation(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return smsService.sendAgain(ctx.authz, weddingId, input.householdId)
+  }),
 })
