@@ -36,6 +36,8 @@ function setup() {
     queueInvite: jest.fn(),
     markSent: jest.fn(),
     markFailed: jest.fn(),
+    getInviteTemplate: jest.fn().mockResolvedValue(null),
+    setInviteTemplate: jest.fn(),
   }
   const gateway = { send: jest.fn() }
   return { service: new SmsService(repo as never, gateway), repo, gateway }
@@ -49,9 +51,11 @@ describe('SmsService', () => {
       activeOrganization: { organizationId: 'org-1', role: 'viewer' },
     }
 
-    await expect(service.sendInvite(viewerAuthz, 'wedding-1', 'household-1')).rejects.toMatchObject({
-      code: 'FORBIDDEN',
-    })
+    await expect(service.sendInvite(viewerAuthz, 'wedding-1', 'household-1')).rejects.toMatchObject(
+      {
+        code: 'FORBIDDEN',
+      }
+    )
     expect(repo.findGroomHousehold).not.toHaveBeenCalled()
   })
 
@@ -81,7 +85,7 @@ describe('SmsService', () => {
   it('refuses a duplicate send after SENT', async () => {
     const { service, repo, gateway } = setup()
     repo.findGroomHousehold.mockResolvedValue(
-      household({ smsOutbound: [{ status: 'SENT', error: null }] })
+      household({ smsOutbound: [{ status: 'SENT', error: null, sentAt: new Date() }] })
     )
 
     await expect(service.sendInvite(authz, 'wedding-1', 'household-1')).rejects.toMatchObject({
@@ -115,5 +119,25 @@ describe('SmsService', () => {
       status: 'SENT',
     })
     expect(repo.markSent).toHaveBeenCalledWith('sms-1', 'provider-1')
+  })
+
+  it('renders the stored wedding template before sending', async () => {
+    const { service, repo, gateway } = setup()
+    repo.findGroomHousehold.mockResolvedValue(household())
+    repo.getInviteTemplate.mockResolvedValue('שלום {שם}: {קישור}')
+    repo.queueInvite.mockResolvedValue({ id: 'sms-1' })
+    gateway.send.mockResolvedValue({ ok: true })
+
+    await service.sendInvite(authz, 'wedding-1', 'household-1')
+
+    expect(gateway.send).toHaveBeenCalledWith(
+      '+972541234567',
+      'שלום יעקב כהן: https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123'
+    )
+    expect(repo.queueInvite).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: 'שלום יעקב כהן: https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123',
+      })
+    )
   })
 })

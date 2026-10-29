@@ -1,4 +1,8 @@
-import { buildWeddingInviteSms, formatSmsRecipientName } from '~/lib/sms/invite-message'
+import {
+  buildWeddingInviteSms,
+  formatSmsRecipientName,
+  renderWeddingInviteSmsTemplate,
+} from '~/lib/sms/invite-message'
 
 describe('SMS wedding invite template', () => {
   it.each([
@@ -56,5 +60,45 @@ https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123
     expect(
       buildWeddingInviteSms({ firstName: 'יעקב', lastName: 'כהן', inviteCode: null })
     ).toBeNull()
+  })
+
+  it('substitutes the recipient name and invite link', () => {
+    expect(
+      renderWeddingInviteSmsTemplate({
+        template: 'שלום {שם}\nהזמנה: {קישור}',
+        recipientName: 'יעקב כהן',
+        inviteLink: 'https://example.com/invite',
+      })
+    ).toBe('שלום יעקב כהן\nהזמנה: https://example.com/invite')
+  })
+
+  it('keeps templates without placeholders verbatim', () => {
+    expect(
+      renderWeddingInviteSmsTemplate({
+        template: 'הודעה קבועה ללא שדות',
+        recipientName: 'יעקב כהן',
+        inviteLink: 'https://example.com/invite',
+      })
+    ).toBe('הודעה קבועה ללא שדות')
+  })
+
+  it.each([null, '', '   '])('falls back to the default for %p', (template) => {
+    expect(
+      renderWeddingInviteSmsTemplate({
+        template,
+        recipientName: 'יעקב כהן',
+        inviteLink: 'https://example.com/invite',
+      })
+    ).toContain('יעקב כהן, שלום רב.')
+  })
+
+  it('preserves Hebrew and Unicode text', () => {
+    expect(
+      renderWeddingInviteSmsTemplate({
+        template: 'משפחת {שם} 💛\n{קישור}',
+        recipientName: 'לוי',
+        inviteLink: 'קישור-אישי',
+      })
+    ).toBe('משפחת לוי 💛\nקישור-אישי')
   })
 })
