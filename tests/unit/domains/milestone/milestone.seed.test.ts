@@ -7,69 +7,69 @@ import {
 } from '~/server/domains/milestone/milestone.seed'
 
 const EXPECTED_MILESTONES: ReadonlyArray<CanonicalMilestoneSeed> = [
-  { key: 'date_set', title: 'Date set', category: MilestoneCategory.SETUP, position: 0 },
+  { key: 'date_set', title: 'תאריך נקבע', category: MilestoneCategory.SETUP, position: 0 },
   {
     key: 'guest_list_drafted',
-    title: 'Guest list drafted',
+    title: 'רשימת מוזמנים נוסחה',
     category: MilestoneCategory.SETUP,
     position: 1,
   },
-  { key: 'venue_booked', title: 'Venue booked', category: MilestoneCategory.VENDORS, position: 2 },
+  { key: 'venue_booked', title: 'אולם הוזמן', category: MilestoneCategory.VENDORS, position: 2 },
   {
     key: 'photographer_booked',
-    title: 'Photographer booked',
+    title: 'צלם/ת הוזמן/ה',
     category: MilestoneCategory.VENDORS,
     position: 3,
   },
   {
     key: 'caterer_booked',
-    title: 'Caterer booked',
+    title: 'קייטרינג הוזמן',
     category: MilestoneCategory.VENDORS,
     position: 4,
   },
   {
     key: 'florist_booked',
-    title: 'Florist booked',
+    title: 'מעצב/ת פרחים הוזמן/ה',
     category: MilestoneCategory.VENDORS,
     position: 5,
   },
   {
     key: 'save_the_dates_sent',
-    title: 'Save-the-dates sent',
+    title: '"שמרו את התאריך" נשלחו',
     category: MilestoneCategory.INVITATIONS,
     position: 6,
   },
   {
     key: 'invitations_sent',
-    title: 'Invitations sent',
+    title: 'הזמנות נשלחו',
     category: MilestoneCategory.INVITATIONS,
     position: 7,
   },
   {
     key: 'rsvps_collected',
-    title: 'RSVPs collected',
+    title: 'אישורי הגעה נאספו',
     category: MilestoneCategory.INVITATIONS,
     position: 8,
   },
   {
     key: 'officiant_chosen',
-    title: 'Officiant chosen',
+    title: 'מסדר/ת הטקס נבחר/ה',
     category: MilestoneCategory.LEGAL,
     position: 9,
   },
   {
     key: 'marriage_license_obtained',
-    title: 'Marriage license obtained',
+    title: 'רישיון נישואין התקבל',
     category: MilestoneCategory.LEGAL,
     position: 10,
   },
   {
     key: 'final_headcount_sent',
-    title: 'Final headcount sent to caterer',
+    title: 'כמות סופית נשלחה לקייטרינג',
     category: MilestoneCategory.FINALE,
     position: 11,
   },
-  { key: 'wedding_day', title: 'Wedding day', category: MilestoneCategory.FINALE, position: 12 },
+  { key: 'wedding_day', title: 'יום החתונה', category: MilestoneCategory.FINALE, position: 12 },
 ] as const
 
 describe('milestone seed', () => {
@@ -93,7 +93,7 @@ describe('milestone seed', () => {
     expect(copiedMilestone).not.toBe(canonicalMilestone)
     copiedMilestone.title = 'Changed copy only'
 
-    expect(getCanonicalMilestoneSeed()[0]?.title).toBe('Date set')
-    expect(MILESTONE_SEED[0]?.title).toBe('Date set')
+    expect(getCanonicalMilestoneSeed()[0]?.title).toBe('תאריך נקבע')
+    expect(MILESTONE_SEED[0]?.title).toBe('תאריך נקבע')
   })
 })
