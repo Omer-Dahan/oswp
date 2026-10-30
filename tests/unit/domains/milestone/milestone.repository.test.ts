@@ -161,7 +161,7 @@ describe('MilestoneRepository', () => {
         },
         events: {
           orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
-          select: { date: true },
+          select: { date: true, isPrimary: true },
         },
         guests: {
           select: { id: true },

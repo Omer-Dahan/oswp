@@ -41,7 +41,7 @@ describe('uploadFiles', () => {
     expect(results[1]).toMatchObject({ name: 'file2.pdf' })
   })
 
-  it('should clean up uploaded files when one upload fails', async () => {
+  it('should leave successfully uploaded files in place when one upload fails', async () => {
     fetchMock
       .mockResolvedValueOnce(
         jsonResponse(true, {
@@ -52,33 +52,15 @@ describe('uploadFiles', () => {
         })
       )
       .mockResolvedValueOnce(jsonResponse(false, { error: 'Upload failed' }))
-      .mockResolvedValueOnce(jsonResponse(true, { ok: true }))
 
     const files = [createMockFile('file1.pdf'), createMockFile('file2.pdf')]
 
     await expect(uploadFiles(files)).rejects.toThrow('Failed to upload: file2.pdf')
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).not.toHaveBeenCalledWith(
       '/api/uploads',
       expect.objectContaining({ method: 'DELETE' })
     )
-  })
-
-  it('should not crash when cleanup fails', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse(true, {
-          url: '/api/uploads/file1.pdf',
-          pathname: 'file1.pdf',
-          size: 1024,
-          contentType: 'application/pdf',
-        })
-      )
-      .mockResolvedValueOnce(jsonResponse(false, { error: 'Upload failed' }))
-      .mockRejectedValueOnce(new Error('Cleanup failed'))
-
-    const files = [createMockFile('file1.pdf'), createMockFile('file2.pdf')]
-
-    await expect(uploadFiles(files)).rejects.toThrow('Failed to upload: file2.pdf')
   })
 
   it('should POST the file as form data to /api/uploads', async () => {
