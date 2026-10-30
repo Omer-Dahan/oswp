@@ -38,9 +38,8 @@ describe('EnvelopeReveal', () => {
 
     // The real card is always present (progressive enhancement)…
     expect(screen.getByText('Invite card body')).toBeInTheDocument()
-    // …and the one-time intro overlay shows the couple's letter.
-    expect(screen.getByText("You're Invited")).toBeInTheDocument()
-    expect(screen.getByText('Diego & Laura')).toBeInTheDocument()
+    // …and the one-time intro overlay shows the couple's invitation image.
+    expect(screen.getByAltText('הזמנת החתונה של Diego & Laura')).toBeInTheDocument()
     // The intro is recorded so it doesn't replay on the next render this session.
     expect(window.sessionStorage.getItem('household_invite_envelope_diego-and-laura')).toBe('1')
   })
@@ -52,7 +51,7 @@ describe('EnvelopeReveal', () => {
     renderReveal()
 
     expect(screen.getByText('Invite card body')).toBeInTheDocument()
-    expect(screen.queryByText("You're Invited")).not.toBeInTheDocument()
+    expect(screen.queryByAltText('הזמנת החתונה של Diego & Laura')).not.toBeInTheDocument()
   })
 
   it('skips the intro when the guest prefers reduced motion', () => {
@@ -61,7 +60,7 @@ describe('EnvelopeReveal', () => {
     renderReveal()
 
     expect(screen.getByText('Invite card body')).toBeInTheDocument()
-    expect(screen.queryByText("You're Invited")).not.toBeInTheDocument()
+    expect(screen.queryByAltText('הזמנת החתונה של Diego & Laura')).not.toBeInTheDocument()
     // A skipped intro must not consume the once-per-session flag.
     expect(window.sessionStorage.getItem('household_invite_envelope_diego-and-laura')).toBeNull()
   })

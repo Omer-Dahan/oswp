@@ -178,11 +178,11 @@ describe('Main RSVP layout', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: 'סגרו טופס RSVP' })).toHaveClass('end-20')
+    expect(screen.getByRole('button', { name: 'סגרו טופס RSVP' })).toHaveClass('end-[4.25rem]')
     renderedForm.unmount()
 
     const { container } = render(<RsvpPageSkeleton />)
-    expect(container.querySelector('svg')).toHaveClass('end-20')
+    expect(container.querySelector('svg')).toHaveClass('end-[4.25rem]')
   })
 
   it('uses responsive side pane footer widths for mobile screens', () => {
@@ -327,7 +327,7 @@ describe('Main RSVP layout', () => {
         embedded
       />
     )
-    const progress = screen.getByText('RSVP', { selector: 'p' }).parentElement
+    const progress = screen.getByText('rsvpFormTitle', { selector: 'p' }).parentElement
     expect(progress).not.toHaveClass('fixed')
     expect(progress).toHaveClass('relative')
   })
@@ -349,7 +349,9 @@ describe('Main RSVP layout', () => {
       capturedOnError?.({ message: 'RSVP service unavailable' })
     })
 
-    expect(screen.getByRole('alert')).toHaveTextContent('RSVP service unavailable')
+    // A plain English backend message isn't guest-facing copy, so the component
+    // falls back to the translated generic error instead of leaking it.
+    expect(screen.getByRole('alert')).toHaveTextContent('submitError')
     expect(alertSpy).not.toHaveBeenCalled()
 
     alertSpy.mockRestore()

@@ -41,7 +41,7 @@ export function resolveRsvpEvents(events: RsvpEventInput[]): {
   const chuppahEvent = rsvpable.find((event) => CHUPPAH_NAME_PATTERN.test(event.name)) ?? null
   const weddingEvent =
     chuppahEvent !== null
-      ? rsvpable.find((event) => event.id !== chuppahEvent.id) ?? null
+      ? rsvpable.find((event) => event !== chuppahEvent) ?? null
       : rsvpable.find((event) => event.isPrimary) ?? rsvpable[0] ?? null
 
   return { weddingEvent, chuppahEvent }
