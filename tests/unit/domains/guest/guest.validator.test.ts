@@ -323,9 +323,7 @@ describe('phone validation in guest schemas', () => {
     })
     expect(createResult.success).toBe(false)
     expect(
-      createResult.error?.issues.some(
-        (issue) => issue.message === 'Please enter a valid phone number'
-      )
+      createResult.error?.issues.some((issue) => issue.message === 'הזינו מספר טלפון תקין')
     ).toBe(true)
   })
 

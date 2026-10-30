@@ -198,7 +198,7 @@ describe('selfFillGuestSchema', () => {
     const result = selfFillGuestSchema.safeParse({ ...validInput, phone: '2025550123' })
     expect(result.success).toBe(false)
     expect(
-      result.error?.issues.some((issue) => issue.message === 'Please enter a valid phone number')
+      result.error?.issues.some((issue) => issue.message === 'הזינו מספר טלפון תקין')
     ).toBe(true)
   })
 

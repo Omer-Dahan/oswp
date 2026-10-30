@@ -711,7 +711,7 @@ describe('phone validation in vendor schemas', () => {
     })
     expect(result.success).toBe(false)
     expect(
-      result.error?.issues.some((issue) => issue.message === 'Please enter a valid phone number')
+      result.error?.issues.some((issue) => issue.message === 'הזינו מספר טלפון תקין')
     ).toBe(true)
   })
 
