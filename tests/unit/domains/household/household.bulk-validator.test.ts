@@ -167,7 +167,7 @@ describe('bulkCreateHouseholdsSchema', () => {
 
       expect(result.success).toBe(false)
       const messages = result.error?.issues.map((i) => i.message) ?? []
-      expect(messages.some((m) => /primary contact/i.test(m))).toBe(true)
+      expect(messages.some((m) => m === 'יש לסמן איש קשר ראשי אחד בדיוק')).toBe(true)
     })
 
     it('should reject when more than one guest is marked as primary contact', () => {
@@ -184,7 +184,7 @@ describe('bulkCreateHouseholdsSchema', () => {
 
       expect(result.success).toBe(false)
       const messages = result.error?.issues.map((i) => i.message) ?? []
-      expect(messages.some((m) => /primary contact/i.test(m))).toBe(true)
+      expect(messages.some((m) => m === 'יש לסמן איש קשר ראשי אחד בדיוק')).toBe(true)
     })
 
     it('should reject a guest with an empty firstName inside a household', () => {

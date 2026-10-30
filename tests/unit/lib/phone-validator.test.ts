@@ -41,7 +41,7 @@ describe('optionalPhoneSchema', () => {
   it('rejects non-empty invalid strings', () => {
     const result = optionalPhoneSchema.safeParse('2025550123')
     expect(result.success).toBe(false)
-    expect(result.error?.issues[0]?.message).toBe('Please enter a valid phone number')
+    expect(result.error?.issues[0]?.message).toBe('הזינו מספר טלפון תקין')
   })
 })
 
@@ -62,7 +62,7 @@ describe('optionalPhoneSchemaNotNull', () => {
 
     const invalidResult = optionalPhoneSchemaNotNull.safeParse('2025550123')
     expect(invalidResult.success).toBe(false)
-    expect(invalidResult.error?.issues[0]?.message).toBe('Please enter a valid phone number')
+    expect(invalidResult.error?.issues[0]?.message).toBe('הזינו מספר טלפון תקין')
   })
 })
 
