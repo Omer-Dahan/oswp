@@ -20,7 +20,7 @@ export default function RsvpPageSkeleton() {
 const StaticProgressBar = () => {
   return (
     <div className='fixed top-0 z-10 w-full bg-background px-10 py-3 text-center'>
-      <IoMdClose size={22} className='absolute top-3 end-20 z-20 text-foreground/40' />
+      <IoMdClose size={22} className='absolute top-3 end-[4.25rem] z-20 text-foreground/40' />
       <p className='font-[family-name:var(--tpl-body-font)] py-2 text-foreground text-lg tracking-wide'>
         RSVP
       </p>

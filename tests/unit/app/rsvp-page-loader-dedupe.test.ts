@@ -81,6 +81,7 @@ describe('rsvp page loader', () => {
       website: {
         isRsvpEnabled: true,
       },
+      events: [],
     })
 
     const params = Promise.resolve({ websiteSubUrl: 'john-and-jane' })

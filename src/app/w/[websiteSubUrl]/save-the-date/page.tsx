@@ -14,7 +14,7 @@ import { InvalidHouseholdInvite } from '~/components/website/household-invite/in
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
 import { householdInviteCookieName } from '~/lib/website/cookies'
 import { departByLabel, resolveWazeUrl, venueQuery } from '~/lib/website/maps'
-import { coupleNames, coupleNamesHe } from '~/lib/wedding/couple-name'
+import { coupleNames } from '~/lib/wedding/couple-name'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import { householdInviteService } from '~/server/application/household-invite'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
@@ -61,9 +61,9 @@ const buildSaveTheDateDescription = (
   dateLabel: string | undefined,
   venue: string | null
 ) => {
-  const when = dateLabel ? ` בתאריך ${dateLabel}` : ''
-  const where = venue ? ` ב${venue}` : ''
-  return `${coupleNamesText} מתחתנים${when}${where}. פתחו את שמרו את התאריך של המשפחה שלכם לאישור הפרטים.`
+  const when = dateLabel ? ` on ${dateLabel}` : ''
+  const where = venue ? ` at ${venue}` : ''
+  return `${coupleNamesText} are getting married${when}${where}. Open your household save the date to confirm your details.`
 }
 
 export async function generateMetadata({ params }: SaveTheDatePageProps): Promise<Metadata> {
@@ -85,11 +85,11 @@ export async function generateMetadata({ params }: SaveTheDatePageProps): Promis
   const summary = await householdInviteService.getPublicWeddingSummary(websiteSubUrl)
   if (!summary) return baseMetadata
 
-  const coupleNamesText = coupleNamesHe(summary) ?? ''
-  const title = `שמרו את התאריך · החתונה של ${coupleNamesText}`
+  const coupleNamesText = coupleNames(summary) ?? ''
+  const title = `Save the Date — ${coupleNamesText}'s Wedding`
   const description = buildSaveTheDateDescription(
     coupleNamesText,
-    formatDateStandard(summary.date, 'he'),
+    formatDateStandard(summary.date, 'en'),
     summary.venue
   )
 

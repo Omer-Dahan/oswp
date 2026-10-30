@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: HouseholdInviteCodeRout
   const inviteData = await householdInviteService.getInviteData(websiteSubUrl, code)
 
   const path = inviteData
-    ? `/w/${websiteSubUrl}`
+    ? `/w/${websiteSubUrl}/save-the-date`
     : `/w/${websiteSubUrl}/save-the-date?invalid=1`
 
   const response = new NextResponse(null, {
