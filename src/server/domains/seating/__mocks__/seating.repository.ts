@@ -50,6 +50,7 @@ export const buildSeatableGuest = (
 })
 
 export const mockEventBelongsToWedding = jest.fn()
+export const mockFindWeddingEvents = jest.fn()
 export const mockFindTablesByEventId = jest.fn()
 export const mockFindSeatableGuests = jest.fn()
 export const mockFindTableById = jest.fn()
@@ -58,6 +59,8 @@ export const mockDeleteTable = jest.fn()
 export const mockFindSeatableGuestIds = jest.fn()
 export const mockFindSeatWeights = jest.fn()
 export const mockDeleteAssignments = jest.fn()
+export const mockFindAutoSeatGuests = jest.fn()
+export const mockCreateAutoSeating = jest.fn()
 
 // Locked-table transaction: the callback runs against these lock helpers
 export const mockLockedSeatedGuestIds = jest.fn()
@@ -78,6 +81,7 @@ const runWithLock = async (_table: unknown, work: (lock: unknown) => Promise<unk
 
 export const SeatingRepository = jest.fn().mockImplementation(() => ({
   eventBelongsToWedding: mockEventBelongsToWedding,
+  findWeddingEvents: mockFindWeddingEvents,
   findTablesByEventId: mockFindTablesByEventId,
   findSeatableGuests: mockFindSeatableGuests,
   findTableById: mockFindTableById,
@@ -86,11 +90,19 @@ export const SeatingRepository = jest.fn().mockImplementation(() => ({
   findSeatableGuestIds: mockFindSeatableGuestIds,
   findSeatWeights: mockFindSeatWeights,
   deleteAssignments: mockDeleteAssignments,
+  findAutoSeatGuests: mockFindAutoSeatGuests,
+  createAutoSeating: mockCreateAutoSeating,
   withLockedTable: mockWithLockedTable,
 }))
 
 export const resetMocks = (): void => {
   mockEventBelongsToWedding.mockReset()
+  mockFindWeddingEvents.mockReset()
+  // Default wiring: a single RSVP-able event, always the wedding — matches
+  // the 'event-1' id most tests pass as the (now mandatory) wedding event.
+  mockFindWeddingEvents.mockResolvedValue([
+    { id: 'event-1', name: 'חתונה', isPrimary: true, collectRsvp: true },
+  ])
   mockFindTablesByEventId.mockReset()
   mockFindSeatableGuests.mockReset()
   mockFindTableById.mockReset()
@@ -100,6 +112,8 @@ export const resetMocks = (): void => {
   mockFindSeatWeights.mockReset()
   mockFindSeatWeights.mockResolvedValue(new Map())
   mockDeleteAssignments.mockReset()
+  mockFindAutoSeatGuests.mockReset()
+  mockCreateAutoSeating.mockReset()
   mockLockedSeatedGuestIds.mockReset()
   mockLockedReplaceAssignments.mockReset()
   mockLockedUpdateTable.mockReset()

@@ -2,9 +2,8 @@
 
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { keepPreviousData } from '@tanstack/react-query'
-import { ChefHat, Download, Plus, Wand2 } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { Download, Plus, Wand2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -52,13 +51,6 @@ import {
 } from '~/components/ui/alert-dialog'
 import { AsyncState } from '~/components/ui/async-state'
 import { Button } from '~/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
 import { TooltipProvider } from '~/components/ui/tooltip'
 import { buildSeatingCsv } from '~/lib/seating/seating-csv'
 import {
@@ -79,8 +71,7 @@ import type {
 import { api } from '~/trpc/react'
 
 type SeatingChartBuilderProps = {
-  events: Array<{ id: string; name: string }>
-  initialEventId: string | null
+  weddingEventId: string
 }
 
 const DEFAULT_CAPACITY = 8
@@ -139,19 +130,11 @@ export const downloadCsv = (fileName: string, csv: string) => {
   URL.revokeObjectURL(url)
 }
 
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'event'
-
 export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
-  const { events, initialEventId } = props
+  const { weddingEventId } = props
   const router = useRouter()
-  const pathname = usePathname()
   const utils = api.useUtils()
 
-  const [eventId, setEventId] = useState(initialEventId ?? events[0]?.id ?? null)
   const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null)
   // What opened the guest drawer, so focus can land somewhere sensible on close
   const drawerOpener = useRef<{ key: string; sidebarKeys: string[]; guestId: number } | null>(null)
@@ -175,10 +158,9 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     if (key) setPendingFocus({ key, chartAtDrop: chart })
   }
 
-  const chartEventId = eventId ?? ''
   const chartQuery = api.seating.getChart.useQuery(
-    { eventId: chartEventId },
-    { enabled: eventId !== null, placeholderData: keepPreviousData }
+    { eventId: weddingEventId },
+    { placeholderData: keepPreviousData }
   )
   // Server data plus still-pending changes; everything below reads this chart
   const refetchChart = useCallback(
@@ -187,7 +169,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   )
   const optimistic = useOptimisticChart({
     serverChart: chartQuery.data,
-    eventId,
+    eventId: weddingEventId,
     refetch: refetchChart,
   })
   const chart = optimistic.chart
@@ -247,7 +229,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
 
   const assignGuests = api.seating.assignGuests.useMutation({
     onMutate: ({ tableId, guestIds }) =>
-      optimistic.begin(chartEventId, (current) => seatGuests(current, tableId, guestIds)),
+      optimistic.begin(weddingEventId, (current) => seatGuests(current, tableId, guestIds)),
     ...optimisticHandlers,
   })
   const unassignGuests = api.seating.unassignGuests.useMutation({
@@ -257,7 +239,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   })
   const updateTable = api.seating.updateTable.useMutation({
     onMutate: ({ id, data }: { id: string; data: UpdateSeatingTableInput }) =>
-      optimistic.begin(chartEventId, (current) => ({
+      optimistic.begin(weddingEventId, (current) => ({
         ...current,
         tables: current.tables.map((table) => (table.id === id ? { ...table, ...data } : table)),
       })),
@@ -280,7 +262,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   })
   const deleteTable = api.seating.deleteTable.useMutation({
     onMutate: ({ id }) =>
-      optimistic.begin(chartEventId, (current) => {
+      optimistic.begin(weddingEventId, (current) => {
         const removed = current.tables.find((table) => table.id === id)
         const unseated = seatGuests(current, null, removed?.guestIds ?? [])
         return { ...unseated, tables: unseated.tables.filter((table) => table.id !== id) }
@@ -358,12 +340,6 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     focusFirstPresent([tableDialogReturnKey.current, ADD_TABLE_FOCUS_KEY])
   }
 
-  const handleEventChange = (nextEventId: string) => {
-    setEventId(nextEventId)
-    setSelectedGuestId(null)
-    router.replace(`${pathname}?eventId=${nextEventId}`, { scroll: false })
-  }
-
   // Shared by drag drops and the drawer: explains a full table instead of seating
   const canSeat = (table: SeatingTableView, guestIds: number[]) => {
     if (tableHasRoom(table, guestIds, seatWeights)) return true
@@ -389,7 +365,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveDrag(null)
-    if (!chart || !eventId) return
+    if (!chart) return
     const data = event.active.data.current as DragData | undefined
     if (!data) return
 
@@ -414,7 +390,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
       if (seated.length === 0) return
       // Keyboard users follow the guest back to the sidebar
       if (isKeyboard) focusAfterDrop(`sidebar-guest:${seated[0]}`)
-      unassignGuests.mutate({ eventId, guestIds: seated })
+      unassignGuests.mutate({ eventId: weddingEventId, guestIds: seated })
       return
     }
 
@@ -454,7 +430,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     values: SeatingTableFormValues,
     changed: Partial<SeatingTableFormValues>
   ) => {
-    if (!eventId || !chart || !tableDialog) return
+    if (!chart || !tableDialog) return
     const { openId } = tableDialog
     const closeIfStillOpen = () => setTableDialog((current) => dialogAfterSave(current, openId))
     // An edit of a table someone else deleted must never turn into a create
@@ -491,7 +467,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
       return
     }
     createTable.mutate(
-      { eventId, ...values, positionX: position.x, positionY: position.y },
+      { eventId: weddingEventId, ...values, positionX: position.x, positionY: position.y },
       { onSuccess: closeIfStillOpen }
     )
   }
@@ -510,29 +486,12 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
 
   const handleExport = () => {
     if (!chart) return
-    const eventName = events.find((event) => event.id === eventId)?.name ?? 'event'
-    downloadCsv(`seating-${slugify(eventName)}.csv`, buildSeatingCsv(chart.tables, allGuests))
-  }
-
-  if (events.length === 0) {
-    return <AsyncState isEmpty emptyText='צרו קודם אירוע, ואז חזרו לכאן כדי להושיב אורחים.' />
+    downloadCsv('seating-wedding.csv', buildSeatingCsv(chart.tables, allGuests))
   }
 
   return (
     <div className='flex min-h-0 flex-1 flex-col gap-4'>
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-        <Select value={eventId ?? undefined} onValueChange={handleEventChange}>
-          <SelectTrigger className='sm:w-64' aria-label='אירוע'>
-            <SelectValue placeholder='בחירת אירוע' />
-          </SelectTrigger>
-          <SelectContent>
-            {events.map((event) => (
-              <SelectItem key={event.id} value={event.id}>
-                {event.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end'>
         <div className='flex gap-2'>
           <Button variant='outline' onClick={handleExport} disabled={!chart}>
             <Download className='me-2 h-4 w-4' aria-hidden='true' />
@@ -657,7 +616,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         isSubmitting={autoSeat.isPending}
         onOpenChange={setAutoSeatOpen}
         onSubmit={(tableCapacity) => {
-          if (eventId) autoSeat.mutate({ eventId, tableCapacity, fillFreeSeatsOnly: true })
+          autoSeat.mutate({ eventId: weddingEventId, tableCapacity, fillFreeSeatsOnly: true })
         }}
       />
 
@@ -696,7 +655,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         onSelectGuest={switchDrawerGuest}
         onCloseAutoFocus={handleDrawerCloseAutoFocus}
         onUnseat={(guestId) => {
-          if (eventId) unassignGuests.mutate({ eventId, guestIds: [guestId] })
+          unassignGuests.mutate({ eventId: weddingEventId, guestIds: [guestId] })
         }}
         onSeat={handleSeatGuest}
       />

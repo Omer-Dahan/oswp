@@ -1,5 +1,6 @@
 import { Prisma, type PrismaClient } from '@prisma/client'
 
+import type { RsvpEventInput } from '~/lib/wedding/rsvp-events'
 import {
   SeatAlreadyTakenError,
   SeatingTableNotFoundError,
@@ -35,6 +36,14 @@ export class SeatingRepository {
       select: { id: true },
     })
     return event !== null
+  }
+
+  /** The wedding's events, with what `resolveRsvpEvents` needs to tell the wedding apart from the chuppah. */
+  async findWeddingEvents(weddingId: string): Promise<RsvpEventInput[]> {
+    return this.db.event.findMany({
+      where: { weddingId },
+      select: { id: true, name: true, isPrimary: true, collectRsvp: true },
+    })
   }
 
   async findTablesByEventId(eventId: string): Promise<SeatingTableRecord[]> {

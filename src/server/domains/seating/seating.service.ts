@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server'
 
 import { planAutoSeating } from '~/lib/seating/auto-seat'
+import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import { getNextTablePosition } from '~/components/seating-chart/seating-layout'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
@@ -90,7 +91,7 @@ export class SeatingService {
 
   async getChart(ctx: AuthzContext, weddingId: string, eventId: string): Promise<SeatingChart> {
     requirePermission(ctx, { event: ['read'], guest: ['read'] })
-    await this.assertEventInWedding(eventId, weddingId)
+    await this.assertWeddingEvent(eventId, weddingId)
 
     const [tables, guests] = await Promise.all([
       this.repo.findTablesByEventId(eventId),
@@ -117,7 +118,7 @@ export class SeatingService {
     input: CreateSeatingTableInput
   ): Promise<SeatingTable> {
     requirePermission(ctx, { event: ['update'] })
-    await this.assertEventInWedding(input.eventId, weddingId)
+    await this.assertWeddingEvent(input.eventId, weddingId)
     return this.repo.createTable({ ...input, weddingId })
   }
 
@@ -195,7 +196,7 @@ export class SeatingService {
     input: UnassignGuestsInput
   ): Promise<void> {
     requirePermission(ctx, { event: ['update'] })
-    await this.assertEventInWedding(input.eventId, weddingId)
+    await this.assertWeddingEvent(input.eventId, weddingId)
     await this.repo.deleteAssignments(input.eventId, input.guestIds)
   }
 
@@ -210,7 +211,7 @@ export class SeatingService {
     input: AutoSeatInput
   ): Promise<AutoSeatResult> {
     requirePermission(ctx, { event: ['update'] })
-    await this.assertEventInWedding(input.eventId, weddingId)
+    await this.assertWeddingEvent(input.eventId, weddingId)
 
     const [tables, invitations] = await Promise.all([
       this.repo.findTablesByEventId(input.eventId),
@@ -315,6 +316,31 @@ export class SeatingService {
         message: 'You do not have permission to access this event',
       })
     }
+  }
+
+  /**
+   * Seating only ever belongs to the wedding event, never the chuppah: every
+   * mutation that takes a client-supplied eventId must resolve to this before
+   * touching the table/assignment, so a request aimed at the chuppah is refused.
+   */
+  private async assertWeddingEvent(eventId: string, weddingId: string): Promise<void> {
+    await this.assertEventInWedding(eventId, weddingId)
+    const weddingEventId = await this.resolveWeddingEventId(weddingId)
+    if (eventId !== weddingEventId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'הושבה אפשרית רק עבור אירוע החתונה',
+      })
+    }
+  }
+
+  private async resolveWeddingEventId(weddingId: string): Promise<string> {
+    const events = await this.repo.findWeddingEvents(weddingId)
+    const { weddingEvent } = resolveRsvpEvents(events)
+    if (!weddingEvent) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'לא נמצא אירוע חתונה' })
+    }
+    return weddingEvent.id
   }
 
   private async getTableInWedding(id: string, weddingId: string): Promise<SeatingTable> {

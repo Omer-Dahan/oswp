@@ -15,14 +15,17 @@ import {
 // @ts-expect-error - Importing mock functions from mocked module
 import {
   buildSeatableGuest,
+  mockCreateAutoSeating,
   mockCreateTable,
   mockDeleteAssignments,
   mockDeleteTable,
   mockEventBelongsToWedding,
+  mockFindAutoSeatGuests,
   mockFindSeatableGuestIds,
   mockFindSeatableGuests,
   mockFindTableById,
   mockFindTablesByEventId,
+  mockFindWeddingEvents,
   mockLockedReplaceAssignments,
   mockLockedSeatedGuestIds,
   mockLockedTableRow,
@@ -184,6 +187,25 @@ describe('SeatingService', () => {
           positionY: 0,
         })
       ).rejects.toBeInstanceOf(TRPCError)
+      expect(mockCreateTable).not.toHaveBeenCalled()
+    })
+
+    it('rejects a table created with a non-wedding eventId', async () => {
+      mockFindWeddingEvents.mockResolvedValue([
+        { id: 'event-1', name: 'חתונה', isPrimary: false, collectRsvp: true },
+        { id: 'event-chuppah', name: 'חופה', isPrimary: true, collectRsvp: true },
+      ])
+
+      await expect(
+        service.createTable(ctx, WEDDING_ID, {
+          eventId: 'event-chuppah',
+          name: 'T',
+          shape: 'ROUND',
+          capacity: 8,
+          positionX: 0,
+          positionY: 0,
+        })
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' })
       expect(mockCreateTable).not.toHaveBeenCalled()
     })
   })
@@ -392,6 +414,67 @@ describe('SeatingService', () => {
       await expect(
         service.unassignGuests(ctx, WEDDING_ID, { eventId: 'event-x', guestIds: [1] })
       ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+    })
+  })
+
+  describe('autoSeat', () => {
+    beforeEach(() => {
+      mockFindWeddingEvents.mockResolvedValue([
+        { id: 'event-1', name: 'חתונה', isPrimary: false, collectRsvp: true },
+        { id: 'event-chuppah', name: 'חופה', isPrimary: true, collectRsvp: true },
+      ])
+      ;(mockFindTablesByEventId as jest.Mock).mockResolvedValue([])
+    })
+
+    it('rejects a non-wedding eventId', async () => {
+      await expect(
+        service.autoSeat(ctx, WEDDING_ID, {
+          eventId: 'event-chuppah',
+          tableCapacity: 8,
+          fillFreeSeatsOnly: true,
+        })
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+      expect(mockFindAutoSeatGuests).not.toHaveBeenCalled()
+    })
+
+    it('skips guests who did not confirm the wedding event', async () => {
+      // Guest 1 has an invitation to the wedding event (seatable). Guest 2 only
+      // ever confirmed the chuppah, so a query scoped to the wedding event never
+      // returns an invitation row for them at all - this is what the repository
+      // enforces for real; here the mock stands in for that per-event scoping.
+      mockFindAutoSeatGuests.mockImplementation((eventId: string) =>
+        Promise.resolve(
+          eventId === 'event-1'
+            ? [
+                {
+                  rsvp: 'Attending',
+                  guest: {
+                    id: 1,
+                    isPrimaryContact: true,
+                    householdId: 'household-1',
+                    household: { id: 'household-1', side: null, groupName: null, invitedCount: 1 },
+                    seatAssignments: [],
+                  },
+                },
+              ]
+            : []
+        )
+      )
+
+      const result = await service.autoSeat(ctx, WEDDING_ID, {
+        eventId: 'event-1',
+        tableCapacity: 8,
+        fillFreeSeatsOnly: true,
+      })
+
+      expect(mockFindAutoSeatGuests).toHaveBeenCalledWith('event-1')
+      expect(result).toEqual({ seated: 1, createdTables: 1, unseated: 0 })
+      expect(mockCreateAutoSeating).toHaveBeenCalledWith(
+        WEDDING_ID,
+        'event-1',
+        expect.any(Array),
+        expect.arrayContaining([expect.objectContaining({ guestId: 1 })])
+      )
     })
   })
 })
