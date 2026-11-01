@@ -1,5 +1,5 @@
 /** Minimal event shape needed to tell the wedding and chuppah apart. */
-type RsvpEventInput = {
+export type RsvpEventInput = {
   id: string
   name: string
   isPrimary?: boolean
@@ -61,4 +61,41 @@ export function isChuppahOnlySelection(
     (event) => event.collectRsvp !== false && (!preselectedEventId || event.id === preselectedEventId)
   )
   return relevant.length === 1 && isChuppahEventName(relevant[0]?.name)
+}
+
+/** Minimal guest shape needed to tally RSVP responses per event. */
+type RsvpCountGuest = {
+  invitations: Array<{ eventId: string; rsvp: string }>
+}
+
+export type HouseholdWeddingRsvpCounts = {
+  attending: number
+  invited: number
+  declined: number
+}
+
+/**
+ * Tallies a household's guests by their RSVP to the wedding event only, once
+ * per guest - the chuppah (or any other secondary event) contributes nothing.
+ * A guest without an invitation to `weddingEventId` is skipped, and an
+ * unresolved `weddingEventId` (e.g. no RSVP-able events configured) yields
+ * all zeros rather than guessing from other events.
+ */
+export function getHouseholdWeddingRsvpCounts(
+  guests: RsvpCountGuest[],
+  weddingEventId: string | null
+): HouseholdWeddingRsvpCounts {
+  const counts: HouseholdWeddingRsvpCounts = { attending: 0, invited: 0, declined: 0 }
+  if (weddingEventId === null) return counts
+
+  for (const guest of guests) {
+    const invitation = guest.invitations.find((invitation) => invitation.eventId === weddingEventId)
+    if (!invitation) continue
+
+    if (invitation.rsvp === 'Attending') counts.attending += 1
+    else if (invitation.rsvp === 'Invited') counts.invited += 1
+    else if (invitation.rsvp === 'Declined') counts.declined += 1
+  }
+
+  return counts
 }

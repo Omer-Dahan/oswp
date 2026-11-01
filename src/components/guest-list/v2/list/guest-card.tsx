@@ -3,6 +3,11 @@ import { memo, useCallback, useState } from 'react'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
 import { getHouseholdPartySize } from '~/lib/household-party-size'
+import {
+  getHouseholdWeddingRsvpCounts,
+  resolveRsvpEvents,
+  type RsvpEventInput,
+} from '~/lib/wedding/rsvp-events'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
@@ -10,12 +15,8 @@ type GuestCardProps = {
   household: HouseholdWithGuests
   onSelectHousehold: (household: HouseholdWithGuests) => void
   isSelected?: boolean
-}
-
-type RsvpSummary = {
-  attending: number
-  invited: number
-  declined: number
+  /** The wedding's events, used to tell the wedding apart from the chuppah. */
+  events?: RsvpEventInput[]
 }
 
 const getInitials = (name: string): string => {
@@ -34,42 +35,37 @@ const getPrimaryGuestPhone = (household: HouseholdWithGuests): string | null => 
   return primaryGuest?.phone ?? null
 }
 
-const getRsvpSummary = (household: HouseholdWithGuests): RsvpSummary => {
-  // Include all guests — tag-alongs now have invitations for events that allow them
-  return household.guests.reduce<RsvpSummary>(
-    (summary, guest) => {
-      for (const invitation of guest.invitations) {
-        if (invitation.rsvp === 'Attending') {
-          summary.attending += 1
-          continue
-        }
+/**
+ * The wedding event's id, used to scope the RSVP summary to the wedding -
+ * the chuppah must never add to these counts. When no `events` list is
+ * given (callers that don't yet thread it through), falls back to the one
+ * event id actually referenced by this household's invitations; if more
+ * than one is referenced without `events` to tell them apart, the wedding
+ * can't be resolved and counting is skipped rather than guessed at.
+ */
+const resolveHouseholdWeddingEventId = (
+  household: HouseholdWithGuests,
+  events: RsvpEventInput[]
+): string | null => {
+  if (events.length > 0) {
+    return resolveRsvpEvents(events).weddingEvent?.id ?? null
+  }
 
-        if (invitation.rsvp === 'Invited') {
-          summary.invited += 1
-          continue
-        }
-
-        if (invitation.rsvp === 'Declined') {
-          summary.declined += 1
-        }
-      }
-
-      return summary
-    },
-    {
-      attending: 0,
-      invited: 0,
-      declined: 0,
-    }
+  const eventIds = new Set(
+    household.guests.flatMap((guest) => guest.invitations.map((invitation) => invitation.eventId))
   )
+  return eventIds.size === 1 ? [...eventIds][0] ?? null : null
 }
 
-/** Compact "מגיעים 4 · 2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
-const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests): string | null => {
+/** Compact "1 לפי דיווח האורח · 2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
+const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests, namedAttending: number): string | null => {
   const parts: string[] = []
 
-  if (household.attendingCount != null) {
-    parts.push(`מגיעים ${household.attendingCount}`)
+  // Only surfaced when it adds information beyond the "X מגיעים" badge above
+  // (e.g. unnamed extra guests) - otherwise the same headcount printed twice
+  // reads as a mismatch rather than a confirmation.
+  if (household.attendingCount != null && household.attendingCount !== namedAttending) {
+    parts.push(`${household.attendingCount} לפי דיווח האורח`)
   }
   if (household.childrenCount != null && household.childrenCount > 0) {
     parts.push(`${household.childrenCount} ילדים`)
@@ -121,6 +117,7 @@ function GuestCardComponent({
   household,
   onSelectHousehold,
   isSelected = false,
+  events = [],
 }: Readonly<GuestCardProps>) {
   const primaryGuestName = getPrimaryGuestName(household)
   const invitedGuests = household.guests.filter((guest) => !guest.isTagAlong)
@@ -130,8 +127,9 @@ function GuestCardComponent({
     extraGuestsCount > 0 ? `${primaryGuestName} +${extraGuestsCount}` : primaryGuestName
   const guestCount = getHouseholdPartySize(household)
 
-  const rsvpSummary = getRsvpSummary(household)
-  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household)
+  const weddingEventId = resolveHouseholdWeddingEventId(household, events)
+  const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
+  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household, rsvpSummary.attending)
   const initials = getInitials(primaryGuestName)
   const phone = getPrimaryGuestPhone(household)
   const handleSelect = useCallback(() => {

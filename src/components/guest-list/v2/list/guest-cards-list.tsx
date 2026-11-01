@@ -2,6 +2,7 @@ import { memo } from 'react'
 
 import { GuestCard } from '~/components/guest-list/v2/list/guest-card'
 import { Card, CardContent } from '~/components/ui/card'
+import type { RsvpEventInput } from '~/lib/wedding/rsvp-events'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 type GuestCardsListProps = {
@@ -9,6 +10,8 @@ type GuestCardsListProps = {
   onSelectHousehold: (household: HouseholdWithGuests) => void
   selectedHouseholdId?: string
   emptyMessage?: string
+  /** The wedding's events, used to tell the wedding apart from the chuppah. */
+  events?: RsvpEventInput[]
 }
 
 function GuestCardsListComponent({
@@ -16,6 +19,7 @@ function GuestCardsListComponent({
   onSelectHousehold,
   selectedHouseholdId,
   emptyMessage = 'אין משקי בית עדיין',
+  events = [],
 }: Readonly<GuestCardsListProps>) {
   if (households.length === 0) {
     return (
@@ -35,6 +39,7 @@ function GuestCardsListComponent({
           household={household}
           onSelectHousehold={onSelectHousehold}
           isSelected={selectedHouseholdId === household.id}
+          events={events}
         />
       ))}
     </div>

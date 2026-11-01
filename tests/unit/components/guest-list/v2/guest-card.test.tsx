@@ -180,4 +180,50 @@ describe('GuestCard', () => {
     // Only the regular guest has invitations
     expect(screen.getByText('מגיעים')).toBeInTheDocument()
   })
+
+  it('should not double-count a guest attending both the wedding and the chuppah', () => {
+    const weddingEvent = { id: 'event-1', name: 'החתונה', isPrimary: true, collectRsvp: true }
+    const chuppahEvent = { id: 'event-2', name: 'החופה', collectRsvp: true }
+    const householdWithChuppah: HouseholdWithGuests = {
+      ...mockHousehold,
+      attendingCount: 1,
+      guests: [
+        {
+          ...mockGuest0,
+          invitations: [
+            ...mockGuest0.invitations,
+            {
+              id: 'inv-1-chuppah',
+              weddingId: 'wedding-1',
+              guestId: 1,
+              eventId: 'event-2',
+              rsvp: 'Attending',
+              dietaryRestrictions: null,
+              submittedBy: null,
+              submittedAt: null,
+              invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ],
+        },
+      ],
+    }
+
+    render(
+      <GuestCard
+        household={householdWithChuppah}
+        onSelectHousehold={jest.fn()}
+        events={[weddingEvent, chuppahEvent]}
+      />
+    )
+
+    // Only one guest RSVPed Attending to the wedding; the chuppah invitation
+    // must not add a second count.
+    expect(screen.getByText('מגיעים')).toBeInTheDocument()
+    expect(screen.queryByText('2 מגיעים')).not.toBeInTheDocument()
+    // attendingCount (1) matches the named wedding count (1), so it must not
+    // be printed a second time as a confusing extra figure.
+    expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
+  })
 })

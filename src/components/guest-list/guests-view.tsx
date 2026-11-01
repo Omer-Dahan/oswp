@@ -761,6 +761,7 @@ export default function GuestsView({
             households={sortedHouseholds}
             selectedHouseholdId={selectedHouseholdId}
             onSelectHousehold={handleSelectHousehold}
+            events={events}
           />
         )}
       </div>
