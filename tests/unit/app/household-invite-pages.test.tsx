@@ -170,7 +170,7 @@ describe('household invite pages', () => {
 
     expect(mockGetInviteData).toHaveBeenCalledWith('harry-and-hermione', 'ab-4f9k2c')
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe('/w/harry-and-hermione/save-the-date')
+    expect(response.headers.get('location')).toBe('/w/harry-and-hermione')
     expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow')
     expect(response.headers.get('set-cookie')).toEqual(
       expect.stringContaining('household_invite_harry-and-hermione=ab-4f9k2c')
@@ -314,11 +314,11 @@ describe('household invite pages', () => {
     })
 
     expect(mockGetPublicWeddingSummary).toHaveBeenCalledWith('ronald-and-ginny')
-    const expectedTitle = "Save the Date — Ronald & Ginny's Wedding"
+    const expectedTitle = 'שמרו את התאריך · החתונה של Ronald וGinny'
     expect(metadata.title).toBe(expectedTitle)
     expect(metadata.openGraph?.title).toBe(expectedTitle)
     expect(metadata.twitter?.title).toBe(expectedTitle)
-    expect(metadata.openGraph?.description).toContain('May 30, 2027')
+    expect(metadata.openGraph?.description).toContain('30 במאי 2027')
     expect(metadata.openGraph?.description).toContain('Hogsmeade, Scotland')
     expect(metadata.robots).toEqual({ index: false, follow: false })
   })
@@ -336,9 +336,9 @@ describe('household invite pages', () => {
       params: Promise.resolve({ websiteSubUrl: 'ronald-and-ginny' }),
     })
 
-    expect(metadata.title).toBe("Save the Date — Ronald & Ginny's Wedding")
+    expect(metadata.title).toBe('שמרו את התאריך · החתונה של Ronald וGinny')
     expect(metadata.openGraph?.description).toBe(
-      'Ronald & Ginny are getting married. Open your household save the date to confirm your details.'
+      'Ronald & Ginny מתחתנים. פתחו את שמרו את התאריך של המשפחה שלכם לאישור הפרטים.'
     )
   })
 

@@ -61,9 +61,9 @@ const buildSaveTheDateDescription = (
   dateLabel: string | undefined,
   venue: string | null
 ) => {
-  const when = dateLabel ? ` on ${dateLabel}` : ''
-  const where = venue ? ` at ${venue}` : ''
-  return `${coupleNamesText} are getting married${when}${where}. Open your household save the date to confirm your details.`
+  const when = dateLabel ? ` בתאריך ${dateLabel}` : ''
+  const where = venue ? ` ב${venue}` : ''
+  return `${coupleNamesText} מתחתנים${when}${where}. פתחו את שמרו את התאריך של המשפחה שלכם לאישור הפרטים.`
 }
 
 export async function generateMetadata({ params }: SaveTheDatePageProps): Promise<Metadata> {
@@ -89,7 +89,7 @@ export async function generateMetadata({ params }: SaveTheDatePageProps): Promis
   const title = `שמרו את התאריך · החתונה של ${coupleNamesHe(summary) ?? coupleNamesText}`
   const description = buildSaveTheDateDescription(
     coupleNamesText,
-    formatDateStandard(summary.date, 'en'),
+    formatDateStandard(summary.date, 'he'),
     summary.venue
   )
 
