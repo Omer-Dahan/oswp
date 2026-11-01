@@ -223,7 +223,7 @@ export function InvitationHero({
             </div>
           </HeroCardsGroup>
 
-          <div className='sticky bottom-0 flex w-full flex-col items-center gap-2 bg-background/85 pt-4 pb-6 text-center backdrop-blur-md'>
+          <div className='sticky bottom-0 flex w-full flex-col items-center gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center'>
             <RsvpPills
               rsvpHref={rsvpHref}
               isRsvpEnabled={isRsvpEnabled}
