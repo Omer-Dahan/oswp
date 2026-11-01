@@ -348,25 +348,21 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
               </AccordionContent>
             </AccordionItem>
 
+            <div className='border-b px-6 py-4'>
+              <h3 className='mb-4 font-semibold text-lg'>שיוך / קבוצה</h3>
+              <SideGroupForm
+                watch={watch}
+                setValue={setValue}
+                households={dashboardData?.households ?? []}
+              />
+            </div>
+
             <AccordionItem value='contact' className='border-b-0'>
               <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
                 כתובת למשלוח
               </AccordionTrigger>
               <AccordionContent className='px-6 pb-6'>
                 <ContactForm register={register} errors={errors} />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value='sideGroup' className='border-b-0'>
-              <AccordionTrigger className='px-6 py-4 font-semibold text-lg hover:no-underline'>
-                שיוך / קבוצה
-              </AccordionTrigger>
-              <AccordionContent className='px-6 pb-6'>
-                <SideGroupForm
-                  watch={watch}
-                  setValue={setValue}
-                  households={dashboardData?.households ?? []}
-                />
               </AccordionContent>
             </AccordionItem>
 
