@@ -130,7 +130,7 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
         })
         toast.error('אנא תקנו את שגיאות הטופס')
       } else {
-        toast.error('יצירת המשפחה נכשלה. אנא נסו שוב.')
+        toast.error(err.message || 'יצירת המשפחה נכשלה. אנא נסו שוב.')
       }
     },
   })

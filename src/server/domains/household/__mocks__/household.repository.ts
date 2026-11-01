@@ -128,6 +128,7 @@ export const mockBelongsToWedding = jest.fn()
 export const mockCountByIdsInWedding = jest.fn()
 export const mockFindImportKeys = jest.fn().mockResolvedValue({ phones: [], names: [], emails: [] })
 export const mockUpdateRsvpPartyDetails = jest.fn()
+export const mockFindDuplicatePrimaryContact = jest.fn().mockResolvedValue(null)
 
 export const HouseholdRepository = jest.fn().mockImplementation(() => ({
   findById: mockFindById,
@@ -145,6 +146,7 @@ export const HouseholdRepository = jest.fn().mockImplementation(() => ({
   countByIdsInWedding: mockCountByIdsInWedding,
   findImportKeys: mockFindImportKeys,
   updateRsvpPartyDetails: mockUpdateRsvpPartyDetails,
+  findDuplicatePrimaryContact: mockFindDuplicatePrimaryContact,
 }))
 
 // Helper to reset all mocks
@@ -164,5 +166,6 @@ export const resetMocks = (): void => {
   mockCountByIdsInWedding.mockReset()
   mockFindImportKeys.mockReset().mockResolvedValue({ phones: [], names: [], emails: [] })
   mockUpdateRsvpPartyDetails.mockReset()
+  mockFindDuplicatePrimaryContact.mockReset().mockResolvedValue(null)
   HouseholdRepository.mockClear()
 }

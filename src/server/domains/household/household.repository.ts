@@ -15,6 +15,7 @@ import type {
   PublicHouseholdSearchResult,
 } from '~/server/domains/household/household.types'
 import {
+  isPrimaryContactMatch,
   normalizeImportEmail,
   normalizeImportName,
   normalizeImportPhone,
@@ -617,6 +618,26 @@ export class HouseholdRepository {
       if (email) emails.push(email)
     }
     return { phones, names, emails }
+  }
+
+  /**
+   * Find an existing household in the wedding whose primary contact matches
+   * the given candidate by name or phone (see `isPrimaryContactMatch`), so a
+   * new household can be rejected as a duplicate instead of created
+   * silently. Returns the matching primary contact's name for the error
+   * message, or null when there is no match.
+   */
+  async findDuplicatePrimaryContact(
+    weddingId: string,
+    candidate: { firstName: string; lastName: string; phone?: string | null }
+  ): Promise<{ firstName: string; lastName: string } | null> {
+    const primaryContacts = await this.db.guest.findMany({
+      where: { weddingId, isPrimaryContact: true },
+      select: { firstName: true, lastName: true, phone: true },
+    })
+
+    const match = primaryContacts.find((contact) => isPrimaryContactMatch(candidate, contact))
+    return match ? { firstName: match.firstName, lastName: match.lastName } : null
   }
 
   /**

@@ -74,6 +74,21 @@ export class HouseholdManagementService {
       weddingId
     )
 
+    const primaryContact =
+      data.guestParty.find((guest) => guest.isPrimaryContact) ?? data.guestParty[0]
+    if (primaryContact) {
+      const duplicate = await this.householdRepo.findDuplicatePrimaryContact(
+        weddingId,
+        primaryContact
+      )
+      if (duplicate) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `משק הבית "${duplicate.firstName} ${duplicate.lastName}" כבר קיים ברשימה`,
+        })
+      }
+    }
+
     return this.db.$transaction(async (tx) => {
       const txHouseholdRepo = new HouseholdRepository(tx)
       const txGuestRepo = new GuestRepository(tx)

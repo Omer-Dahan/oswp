@@ -39,3 +39,24 @@ export function isDuplicateHousehold(
   if (phone) return existing.phones.has(phone)
   return existing.names.has(normalizeImportName(primaryContact.firstName, primaryContact.lastName))
 }
+
+/**
+ * Whether two primary contacts identify the same household: a match on
+ * normalized (trimmed, case- and space-insensitive) first+last name, OR a
+ * match on E.164-normalized phone — either is sufficient on its own, unlike
+ * `isDuplicateHousehold` above (which only falls back to name when the
+ * incoming row has no phone at all). Used by the single-household create
+ * flow, where a guest adding the same household twice must be rejected
+ * outright rather than silently skipped or merged.
+ */
+export function isPrimaryContactMatch(
+  a: { firstName: string; lastName: string; phone?: string | null },
+  b: { firstName: string; lastName: string; phone?: string | null }
+): boolean {
+  const phoneA = normalizeImportPhone(a.phone)
+  const phoneB = normalizeImportPhone(b.phone)
+  if (phoneA && phoneB && phoneA === phoneB) return true
+  return (
+    normalizeImportName(a.firstName, a.lastName) === normalizeImportName(b.firstName, b.lastName)
+  )
+}
