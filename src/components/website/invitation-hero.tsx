@@ -17,6 +17,9 @@ type InvitationHeroProps = {
   events: Array<{ id: string; name: string; isPrimary: boolean; collectRsvp: boolean }>
 }
 
+/** Mobile hero cards share this width so Jerusalem and invitation always render the same size. */
+const MOBILE_HERO_CARD_WIDTH_CLASS = 'aspect-square w-[min(88vw,340px)]'
+
 type RsvpPillSize = 'mobile' | 'desktop'
 
 const RSVP_PILL_CLASSES: Record<RsvpPillSize, string> = {
@@ -203,7 +206,7 @@ export function InvitationHero({
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
-                className='aspect-square w-[min(62vw,300px)]'
+                className={MOBILE_HERO_CARD_WIDTH_CLASS}
                 mobile
                 priority
               />
@@ -214,7 +217,7 @@ export function InvitationHero({
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,460px)]'
+                className={MOBILE_HERO_CARD_WIDTH_CLASS}
                 mobile
               />
             </div>
