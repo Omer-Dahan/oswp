@@ -9,9 +9,11 @@ type HouseholdSideGroup = Pick<HouseholdWithGuests, 'side' | 'groupName'>
  * Distinct, trimmed side/group values across households, keyed by lowercase
  * so "Groom" and "groom" collapse to one option (mirrors guest-search-filter.tsx).
  */
+const CANONICAL_SIDES = ['חתן', 'כלה']
+
 export function useHouseholdSideGroupOptions(households: HouseholdSideGroup[]) {
   return useMemo(() => {
-    const sides = new Map<string, string>()
+    const sides = new Map<string, string>(CANONICAL_SIDES.map((side) => [side.toLowerCase(), side]))
     const groupsBySide = new Map<string, Map<string, string>>()
     const allGroups = new Map<string, string>()
 
@@ -33,11 +35,15 @@ export function useHouseholdSideGroupOptions(households: HouseholdSideGroup[]) {
     return {
       sides: Array.from(sides.values()).sort(),
       allGroups: Array.from(allGroups.values()).sort(),
+      // Falls back to every known group when the selected side has none of its
+      // own yet, so the dropdown is never empty just because no household on
+      // that side has been assigned a group.
       groupsForSide: (side: string | null | undefined) => {
         const trimmed = side?.trim()
         if (!trimmed) return Array.from(allGroups.values()).sort()
         const matched = groupsBySide.get(trimmed.toLowerCase())
-        return matched ? Array.from(matched.values()).sort() : []
+        if (!matched || matched.size === 0) return Array.from(allGroups.values()).sort()
+        return Array.from(matched.values()).sort()
       },
     }
   }, [households])
@@ -63,23 +69,39 @@ type SideGroupComboboxProps = {
 export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
   const { id, value, onChange, options, placeholder, className } = props
   const [isOpen, setIsOpen] = useState(false)
+  // null means "no active search" so opening via click/focus always shows the
+  // full list instead of being pre-filtered by whatever value is already set.
+  const [query, setQuery] = useState<string | null>(null)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const filteredOptions = useMemo(() => {
-    const normalized = value.trim().toLowerCase()
+    const normalized = query?.trim().toLowerCase()
     if (!normalized) return options
     return options.filter((option) => option.toLowerCase().includes(normalized))
-  }, [options, value])
+  }, [options, query])
 
   const openList = useCallback((element: HTMLElement | null) => {
     if (!element) return
     const rect = element.getBoundingClientRect()
     setAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
     setIsOpen(true)
+    setQuery(null)
+    setActiveIndex(-1)
   }, [])
+
+  const selectOption = useCallback(
+    (option: string) => {
+      onChange(option)
+      setIsOpen(false)
+      setQuery(null)
+      setActiveIndex(-1)
+    },
+    [onChange]
+  )
 
   // Keep the fixed list glued to its input instead of closing it: scrolling the
   // list itself must not dismiss it (the drawer scrolls too), so only scrolls
@@ -125,33 +147,55 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
           id={id}
           type='text'
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => {
+            onChange(event.target.value)
+            setQuery(event.target.value)
+            setActiveIndex(-1)
+            if (!isOpen) openList(event.currentTarget)
+          }}
           onFocus={(event) => openList(event.currentTarget)}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowDown') {
+              event.preventDefault()
+              if (!isOpen) {
+                openList(event.currentTarget)
+                return
+              }
+              setActiveIndex((index) => Math.min(index + 1, filteredOptions.length - 1))
+            } else if (event.key === 'ArrowUp') {
+              event.preventDefault()
+              setActiveIndex((index) => Math.max(index - 1, 0))
+            } else if (event.key === 'Enter') {
+              const active = isOpen ? filteredOptions[activeIndex] : undefined
+              if (active !== undefined) {
+                event.preventDefault()
+                selectOption(active)
+              }
+            } else if (event.key === 'Escape') {
+              setIsOpen(false)
+            }
+          }}
           placeholder={placeholder}
           className={className}
           autoComplete='off'
         />
-        {options.length > 0 && (
-          <button
-            type='button'
-            onClick={(event) => {
-              if (isOpen) {
-                setIsOpen(false)
-                return
-              }
-              const input = event.currentTarget.parentElement?.querySelector('input') ?? null
-              openList(input ?? event.currentTarget)
-            }}
-            aria-label='הצגת אפשרויות'
-            className='absolute end-0 flex h-11 w-11 items-center justify-center text-foreground/50 hover:text-foreground'
-          >
-            <IoIosArrowDown size={14} />
-          </button>
-        )}
+        <button
+          type='button'
+          onClick={() => {
+            if (isOpen) {
+              setIsOpen(false)
+              return
+            }
+            openList(inputRef.current)
+          }}
+          aria-label='הצגת אפשרויות'
+          className='absolute end-0 flex h-11 w-11 items-center justify-center text-foreground/50 hover:text-foreground'
+        >
+          <IoIosArrowDown size={14} />
+        </button>
       </div>
       {isOpen &&
         anchor &&
-        filteredOptions.length > 0 &&
         createPortal(
           <div
             ref={listRef}
@@ -159,19 +203,22 @@ export function SideGroupCombobox(props: Readonly<SideGroupComboboxProps>) {
             style={{ position: 'fixed', top: anchor.top, left: anchor.left, width: anchor.width }}
             className='z-[96] max-h-48 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
           >
-            {filteredOptions.map((option) => (
-              <button
-                key={option}
-                type='button'
-                className='flex min-h-11 w-full cursor-pointer items-center rounded-sm px-2 py-2 text-start text-sm transition-colors hover:bg-accent'
-                onClick={() => {
-                  onChange(option)
-                  setIsOpen(false)
-                }}
-              >
-                {option}
-              </button>
-            ))}
+            {filteredOptions.length === 0 ? (
+              <div className='px-2 py-2 text-center text-foreground/50 text-sm'>אין תוצאות</div>
+            ) : (
+              filteredOptions.map((option, index) => (
+                <button
+                  key={option}
+                  type='button'
+                  className={`flex min-h-11 w-full cursor-pointer items-center rounded-sm px-2 py-2 text-start text-sm transition-colors hover:bg-accent ${
+                    index === activeIndex ? 'bg-accent' : ''
+                  }`}
+                  onClick={() => selectOption(option)}
+                >
+                  {option}
+                </button>
+              ))
+            )}
           </div>,
           document.body
         )}

@@ -40,16 +40,38 @@ describe('SideGroupCombobox', () => {
     expect(screen.getByRole('button', { name: 'חתן - משפחה' })).toHaveClass('min-h-11')
   })
 
-  it('filters as the guest types and still allows a brand-new value', () => {
+  it('opens the full list on focus even when a value is already set, then filters as the guest types', () => {
     const onChange = jest.fn()
     render(<SideGroupCombobox id='side' value='כלה' onChange={onChange} options={options} />)
 
     fireEvent.focus(screen.getByRole('textbox'))
 
+    // Opening must show every option, not just ones matching the current
+    // value - otherwise picking a different side requires clearing the field first.
+    expect(screen.getByText('כלה - חברות')).toBeInTheDocument()
+    expect(screen.getByText('חתן - משפחה')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'כלה - חב' } })
+
     expect(screen.getByText('כלה - חברות')).toBeInTheDocument()
     expect(screen.queryByText('חתן - משפחה')).toBeNull()
     // Free text: the input is a plain textbox, not a readonly combobox.
     expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly')
+  })
+
+  it('shows a "no results" message instead of an empty list when nothing matches', () => {
+    render(<SideGroupCombobox id='side' value='' onChange={jest.fn()} options={options} />)
+
+    fireEvent.focus(screen.getByRole('textbox'))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'זזזזז' } })
+
+    expect(screen.getByText('אין תוצאות')).toBeInTheDocument()
+  })
+
+  it('always shows the dropdown chevron, even with no options yet', () => {
+    render(<SideGroupCombobox id='side' value='' onChange={jest.fn()} options={[]} />)
+
+    expect(screen.getByRole('button', { name: 'הצגת אפשרויות' })).toBeInTheDocument()
   })
 })
 
