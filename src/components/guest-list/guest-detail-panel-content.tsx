@@ -29,6 +29,7 @@ import {
 import { Slider } from '~/components/ui/slider'
 import { AGE_GROUP_OPTIONS, LIKELIHOOD_LABELS } from '~/lib/constants'
 import { RSVP_STATUS, RSVP_STATUS_LABELS, RSVP_STATUS_VALUES, type RsvpStatus } from '~/lib/constants/rsvp'
+import { buildInviteShareMessage } from '~/lib/sms/invite-message'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import type { CommunicationLogEntry } from '~/server/domains/communication-log/communication-log.types'
 import { api } from '~/trpc/react'
@@ -183,17 +184,25 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
       const result = await generateHouseholdInviteLink.mutateAsync({
         householdId: selectedHousehold.id,
       })
-      const copied = await copyToClipboard(result.url)
+      const inviteCode = result.url.split('/').pop() ?? null
+      const message =
+        buildInviteShareMessage({
+          firstName: primaryContact?.firstName ?? '',
+          lastName: primaryContact?.lastName ?? '',
+          inviteCode,
+          side: selectedHousehold.side,
+        }) ?? result.url
+      const copied = await copyToClipboard(message)
       setCopiedInviteLink(true)
       setTimeout(() => setCopiedInviteLink(false), 2000)
-      toast.success(copied ? 'קישור ׳שמרו את התאריך׳ הועתק' : 'קישור ׳שמרו את התאריך׳ מוכן להעתקה', {
-        description: copied ? undefined : result.url,
+      toast.success(copied ? 'הודעת ההזמנה הועתקה' : 'הודעת ההזמנה מוכנה להעתקה', {
+        description: copied ? undefined : message,
       })
     } catch (error) {
       const message =
         error instanceof Error && error.message
           ? error.message
-          : 'העתקת קישור ׳שמרו את התאריך׳ נכשלה'
+          : 'העתקת הודעת ההזמנה נכשלה'
       toast.error(message)
     }
   }
@@ -294,7 +303,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
               ) : (
                 <Copy className='h-3.5 w-3.5' aria-hidden='true' />
               )}
-              העתקת קישור
+              העתקת הודעה
             </button>
           }
         >

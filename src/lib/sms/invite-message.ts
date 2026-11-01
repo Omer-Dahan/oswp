@@ -64,6 +64,25 @@ export function renderWeddingInviteSmsTemplate({
   return source.replaceAll('{שם}', recipientName).replaceAll('{קישור}', inviteLink)
 }
 
+const HATAN_SIDE_SIGNATURE = 'יהודה ותמר מנחם'
+const KALA_SIDE_SIGNATURE = 'משה ומירב בן הרוש'
+
+function buildInviteMessageBody({
+  recipientName,
+  inviteLink,
+  signature,
+}: {
+  recipientName: string
+  inviteLink: string
+  signature: string
+}): string {
+  return `${recipientName}, שלום רב.
+אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
+${inviteLink}
+
+בברכה - ${signature}`
+}
+
 export function buildWeddingInviteSms({
   firstName,
   lastName,
@@ -74,12 +93,31 @@ export function buildWeddingInviteSms({
   inviteCode: string | null
 }): string | null {
   if (!inviteCode) return null
-  const who = formatSmsRecipientName(firstName, lastName)
-  return `${who}, שלום רב.
-אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
-${buildWeddingInviteLink(inviteCode)}
+  return buildInviteMessageBody({
+    recipientName: formatSmsRecipientName(firstName, lastName),
+    inviteLink: buildWeddingInviteLink(inviteCode),
+    signature: HATAN_SIDE_SIGNATURE,
+  })
+}
 
-בברכה - יהודה ותמר מנחם`
+/** Ready-to-send WhatsApp message for a household, matching the frozen SMS wording but signed by the inviting side's parents. */
+export function buildInviteShareMessage({
+  firstName,
+  lastName,
+  inviteCode,
+  side,
+}: {
+  firstName: string
+  lastName: string
+  inviteCode: string | null
+  side: string | null | undefined
+}): string | null {
+  if (!inviteCode) return null
+  return buildInviteMessageBody({
+    recipientName: formatSmsRecipientName(firstName, lastName),
+    inviteLink: buildWeddingInviteLink(inviteCode),
+    signature: side === 'כלה' ? KALA_SIDE_SIGNATURE : HATAN_SIDE_SIGNATURE,
+  })
 }
 
 export const DEFAULT_SMS_INVITE_TEMPLATE = (

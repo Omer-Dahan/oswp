@@ -3,6 +3,7 @@ import { memo, useCallback, useState } from 'react'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
 import { getHouseholdPartySize } from '~/lib/household-party-size'
+import { buildInviteShareMessage } from '~/lib/sms/invite-message'
 import {
   getHouseholdWeddingRsvpCounts,
   resolveRsvpEvents,
@@ -28,11 +29,11 @@ const getInitials = (name: string): string => {
     .join('')
 }
 
-const getPrimaryGuestPhone = (household: HouseholdWithGuests): string | null => {
-  const primaryGuest =
-    household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
+const getPrimaryGuest = (household: HouseholdWithGuests) =>
+  household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
 
-  return primaryGuest?.phone ?? null
+const getPrimaryGuestPhone = (household: HouseholdWithGuests): string | null => {
+  return getPrimaryGuest(household)?.phone ?? null
 }
 
 /**
@@ -78,8 +79,7 @@ const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests, namedAttending
 }
 
 const getPrimaryGuestName = (household: HouseholdWithGuests): string => {
-  const primaryGuest =
-    household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
+  const primaryGuest = getPrimaryGuest(household)
 
   if (primaryGuest === undefined) return 'משק בית ללא שם'
 
@@ -141,13 +141,22 @@ function GuestCardComponent({
   const handleCopyInviteLink = useCallback(async () => {
     try {
       const result = await generateInviteLink.mutateAsync({ householdId: household.id })
-      await copyToClipboard(result.url)
+      const primaryGuest = getPrimaryGuest(household)
+      const inviteCode = result.url.split('/').pop() ?? null
+      const message =
+        buildInviteShareMessage({
+          firstName: primaryGuest?.firstName ?? '',
+          lastName: primaryGuest?.lastName ?? '',
+          inviteCode,
+          side: household.side,
+        }) ?? result.url
+      await copyToClipboard(message)
       setCopiedInviteLink(true)
       window.setTimeout(() => setCopiedInviteLink(false), 2000)
     } catch {
       setCopiedInviteLink(false)
     }
-  }, [generateInviteLink, household.id])
+  }, [generateInviteLink, household])
 
   return (
     <button
@@ -229,7 +238,7 @@ function GuestCardComponent({
             <span
               role='button'
               tabIndex={0}
-              aria-label='העתקת קישור אישי למשק הבית'
+              aria-label='העתקת הודעת הזמנה אישית למשק הבית'
               onClick={(event) => {
                 event.stopPropagation()
                 void handleCopyInviteLink()
@@ -243,7 +252,7 @@ function GuestCardComponent({
               }}
               className='ms-auto inline-flex cursor-pointer items-center gap-1 rounded-full border border-border/70 bg-transparent px-2.5 py-1 text-xs text-foreground/70 transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
             >
-              {copiedInviteLink ? 'הועתק' : 'העתקת קישור'}
+              {copiedInviteLink ? 'הועתק' : 'העתקת הודעה'}
             </span>
           </div>
 
