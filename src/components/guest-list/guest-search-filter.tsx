@@ -15,6 +15,8 @@ type TSelectedRsvpFilter = {
   rsvpValue: string
 }
 
+const NO_SIDE_FILTER_KEY = '__no_side__'
+
 type GuestSearchFilterProps = {
   households: HouseholdWithGuests[]
   setFilteredHouseholds: Dispatch<SetStateAction<HouseholdWithGuests[]>>
@@ -76,10 +78,14 @@ export default function GuestSearchFilter({
       .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
   }
 
-  const availableSides = useMemo(
-    () => countByNormalizedValue(households.map((h) => h.side)),
-    [households]
-  )
+  const availableSides = useMemo(() => {
+    const sides = countByNormalizedValue(households.map((h) => h.side))
+    const noSideCount = households.filter((h) => !h.side?.trim()).length
+    if (noSideCount > 0) {
+      sides.push({ key: NO_SIDE_FILTER_KEY, label: 'ללא צד', count: noSideCount })
+    }
+    return sides
+  }, [households])
 
   const availableGroups = useMemo(
     () => countByNormalizedValue(households.map((h) => h.groupName)),
@@ -142,7 +148,13 @@ export default function GuestSearchFilter({
       households.filter((household) => {
         if (countryFilter && household.country !== countryFilter) return false
 
-        if (sideFilter && household.side?.trim().toLowerCase() !== sideFilter) return false
+        if (sideFilter) {
+          if (sideFilter === NO_SIDE_FILTER_KEY) {
+            if (household.side?.trim()) return false
+          } else if (household.side?.trim().toLowerCase() !== sideFilter) {
+            return false
+          }
+        }
 
         if (groupFilter && household.groupName?.trim().toLowerCase() !== groupFilter) return false
 
