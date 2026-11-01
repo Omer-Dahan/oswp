@@ -21,7 +21,7 @@ type RsvpPillSize = 'mobile' | 'desktop'
 
 const RSVP_PILL_CLASSES: Record<RsvpPillSize, string> = {
   mobile:
-    'inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 font-sans font-semibold text-foreground text-sm leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
+    'inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 font-sans font-semibold text-foreground text-[13px] leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
   desktop:
     'inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 font-sans font-semibold text-base text-foreground leading-none tracking-normal shadow-sm ring-1 ring-black/10 transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.97]',
 }
@@ -33,7 +33,7 @@ const RSVP_PILL_CLASSES: Record<RsvpPillSize, string> = {
  */
 const RSVP_PILL_OUTLINE_CLASSES: Record<RsvpPillSize, string> = {
   mobile:
-    'inline-flex h-11 items-center justify-center rounded-full border border-foreground/30 bg-background/70 px-6 font-sans font-semibold text-foreground/90 text-sm leading-none tracking-normal backdrop-blur-[2px] transition-colors duration-200 hover:border-foreground/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]',
+    'inline-flex h-10 items-center justify-center rounded-full border border-foreground/30 bg-background/70 px-5 font-sans font-semibold text-foreground/90 text-[13px] leading-none tracking-normal backdrop-blur-[2px] transition-colors duration-200 hover:border-foreground/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]',
   desktop:
     'inline-flex h-12 items-center justify-center rounded-full border border-foreground/30 bg-background/70 px-8 font-sans font-semibold text-base text-foreground/90 leading-none tracking-normal backdrop-blur-[2px] transition-colors duration-200 hover:border-foreground/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97]',
 }
@@ -158,9 +158,10 @@ function GreetingFrame({ name }: Readonly<{ name: string }>) {
  * itself. Replaces the template's text-heavy home on the guest site root.
  *
  * Mobile and desktop get different compositions (not just a resized version
- * of the same one): on narrow (< md) screens the two cards stack vertically
- * over the linen backdrop, sized to stay fully on-screen with no scroll; on
- * wide (md+) screens there's room for them side by side, each enlargeable on
+ * of the same one): on narrow (< md) screens the invitation card is the
+ * dominant, legible element and the page scrolls naturally to it, with RSVP
+ * pinned to the bottom of the screen the whole time; on wide (md+) screens
+ * there's room for both cards side by side, each enlargeable on
  * hover/focus/click.
  */
 export function InvitationHero({
@@ -192,7 +193,7 @@ export function InvitationHero({
         </div>
         <div className='absolute inset-0 bg-background/35' />
 
-        <div className='relative z-10 flex min-h-[100svh] w-full flex-col items-center justify-center gap-3 px-6'>
+        <div className='relative z-10 flex w-full flex-col items-center gap-3 px-6'>
           {topGreeting ? <GreetingFrame name={topGreeting} /> : null}
 
           <HeroCardsGroup className='hero-cards flex flex-col items-center gap-0'>
@@ -202,7 +203,7 @@ export function InvitationHero({
                 label='שמרו את התאריך'
                 expandedAlt='שמרו את התאריך'
                 fit='contain'
-                className='aspect-square w-[min(92vw,calc((100svh-300px)/2))]'
+                className='aspect-square w-[min(62vw,300px)]'
                 mobile
                 priority
               />
@@ -213,13 +214,13 @@ export function InvitationHero({
                 label='הזמנת החתונה'
                 expandedAlt={invitationAlt}
                 fit='contain'
-                className='aspect-square w-[min(92vw,calc((100svh-300px)/2))]'
+                className='aspect-square w-[min(92vw,460px)]'
                 mobile
               />
             </div>
           </HeroCardsGroup>
 
-          <div className='relative z-10 flex flex-col items-center gap-2 text-center'>
+          <div className='sticky bottom-0 flex w-full flex-col items-center gap-2 bg-background/85 pt-4 pb-6 text-center backdrop-blur-md'>
             <RsvpPills
               rsvpHref={rsvpHref}
               isRsvpEnabled={isRsvpEnabled}
