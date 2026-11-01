@@ -14,7 +14,7 @@ import { InvalidHouseholdInvite } from '~/components/website/household-invite/in
 import { buildSaveTheDateCalendarLinks } from '~/lib/website/calendar'
 import { householdInviteCookieName } from '~/lib/website/cookies'
 import { departByLabel, resolveWazeUrl, venueQuery } from '~/lib/website/maps'
-import { coupleNames } from '~/lib/wedding/couple-name'
+import { coupleNames, coupleNamesHe } from '~/lib/wedding/couple-name'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import { householdInviteService } from '~/server/application/household-invite'
 import { resolveTemplate, TemplateThemeProvider } from '~/templates'
@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: SaveTheDatePageProps): Promis
   if (!summary) return baseMetadata
 
   const coupleNamesText = coupleNames(summary) ?? ''
-  const title = `Save the Date — ${coupleNamesText}'s Wedding`
+  const title = `שמרו את התאריך · החתונה של ${coupleNamesHe(summary) ?? coupleNamesText}`
   const description = buildSaveTheDateDescription(
     coupleNamesText,
     formatDateStandard(summary.date, 'en'),

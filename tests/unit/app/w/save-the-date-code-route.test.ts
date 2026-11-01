@@ -31,7 +31,7 @@ describe('GET /w/[websiteSubUrl]/save-the-date/[code]', () => {
 
     expect(res.status).toBe(307)
     const location = res.headers.get('location')
-    expect(location).toBe('/w/guests/save-the-date')
+    expect(location).toBe('/w/guests')
     expect(location).not.toContain('localhost')
 
     const cookie = res.cookies.get(householdInviteCookieName('guests'))
