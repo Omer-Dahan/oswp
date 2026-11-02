@@ -113,6 +113,26 @@ describe('RsvpConfirmation', () => {
     expect(mockAssign).toHaveBeenCalledWith('/site')
   })
 
+  it('thanks a single guest by full name when the given name holds two words', () => {
+    // Live report 2026-11-02: firstName "משה בן" + lastName "זוהר" rendered as
+    // "תודה משה בן" - the surname was missing from the confirmation screen.
+    const primaryGuest = { id: 'g-zo', firstName: 'משה בן', lastName: 'זוהר' }
+    mockFormState = {
+      weddingData: { groomFirstName: 'רון', brideFirstName: 'הרמיוני', events: [] },
+      selectedHousehold: {
+        id: 'h-zo', primaryContact: primaryGuest, guests: [primaryGuest],
+      },
+      rsvpResponses: [
+        { eventId: 'wedding', guestId: 'g-zo', guestName: 'משה בן זוהר', rsvp: 'Attending' },
+      ],
+      attendingCount: 2,
+    }
+
+    render(<RsvpConfirmation basePath='/site' />)
+
+    expect(screen.getByRole('heading', { name: 'תודה משה בן זוהר' })).toBeInTheDocument()
+  })
+
   it('renders a single guest heading, singular count, and both resolved event times', () => {
     const primaryGuest = { id: 'g1', firstName: 'עומר', lastName: 'דהן' }
     mockFormState = {
@@ -150,7 +170,10 @@ describe('RsvpConfirmation', () => {
 
     render(<RsvpConfirmation basePath='/site' />)
 
-    expect(screen.getByRole('heading', { name: 'תודה עומר' })).toBeInTheDocument()
+    // Full name, not the given name alone - the given-name field can hold two
+    // words ("משה בן" + surname "זוהר"), and showing firstName only cut the
+    // name in half on the real screen (owner report, 2026-11-02).
+    expect(screen.getByRole('heading', { name: 'תודה עומר דהן' })).toBeInTheDocument()
     expect(screen.getByText('אישרנו הגעה לאורח אחד')).toBeInTheDocument()
     const dateLine = screen.getByText(
       (_, element) => element?.textContent === 'י״ד כסלו תשפ״ז | 24.11.2026'

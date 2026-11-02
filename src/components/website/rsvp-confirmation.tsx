@@ -45,11 +45,20 @@ export default function RsvpConfirmation({ basePath }: RsvpConfirmationProps) {
     namedAttendingGuestIds.size > 0 ||
     (rsvpFormData.attendingCount ?? 0) > namedAttendingGuestIds.size
 
+  // A single guest is thanked by their FULL name: the given-name field can
+  // itself hold two words ("משה בן" + surname "זוהר"), and rendering only
+  // firstName cut the name in half on the confirmation screen (owner report,
+  // 2026-11-02).
+  const primaryFullName = [primaryGuest?.firstName, primaryGuest?.lastName]
+    .map((part) => (part ?? '').trim())
+    .filter(Boolean)
+    .join(' ')
+
   const heading = hasAttending
     ? isFamily && primaryGuest?.lastName
       ? t('confirmationThanksFamily', { lastName: primaryGuest.lastName })
-      : primaryGuest?.firstName
-        ? t('confirmationThanksName', { firstName: primaryGuest.firstName })
+      : primaryFullName
+        ? t('confirmationThanksName', { firstName: primaryFullName })
         : t('confirmationThanksFallback')
     : t('confirmationDeclinedThanks')
 
