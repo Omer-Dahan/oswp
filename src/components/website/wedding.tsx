@@ -9,6 +9,9 @@ type WeddingWebsiteProps = {
   weddingData: WeddingPageData
   /** Set when the visitor is a guest we recognised from their invite link. */
   invitedHousehold?: InvitedHousehold | null
+  /** The invite code from the URL, forwarded to the RSVP flow so it can
+   * recognise the household without reading any cookie. */
+  inviteCode?: string
 }
 
 /**
@@ -21,6 +24,7 @@ export default async function WeddingWebsite({
   websiteSubUrl,
   weddingData,
   invitedHousehold,
+  inviteCode,
 }: Readonly<WeddingWebsiteProps>) {
   const path = `/w/${websiteSubUrl}`
   const template = resolveTemplate(weddingData.website.templateId)
@@ -28,7 +32,7 @@ export default async function WeddingWebsite({
   return (
     <TemplateThemeProvider template={template}>
       <InvitationHero
-        rsvpHref={`${path}/rsvp`}
+        rsvpHref={inviteCode ? `${path}/rsvp?invite=${encodeURIComponent(inviteCode)}` : `${path}/rsvp`}
         isRsvpEnabled={weddingData.website.isRsvpEnabled}
         coupleNames={coupleNamesHe(weddingData)}
         invitedHousehold={invitedHousehold ?? null}

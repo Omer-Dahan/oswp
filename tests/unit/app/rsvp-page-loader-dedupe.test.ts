@@ -2,8 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
 
 import RsvpPage, { generateMetadata } from '~/app/w/[websiteSubUrl]/rsvp/page'
+import { householdInviteService } from '~/server/application/household-invite'
 
 const mockFetchWeddingData = jest.fn()
+const mockGetRecognizedRsvpHousehold = householdInviteService.getRecognizedRsvpHousehold as jest.Mock
 const mockCookiesGet = jest.fn()
 const mockNotFound = jest.fn()
 
@@ -70,6 +72,8 @@ describe('rsvp page loader', () => {
     mockCookiesGet.mockReset()
     mockCookiesGet.mockReturnValue(undefined)
     mockNotFound.mockReset()
+    mockGetRecognizedRsvpHousehold.mockReset()
+    mockGetRecognizedRsvpHousehold.mockResolvedValue(null)
   })
 
   it('loads the same suburl for metadata and page rendering', async () => {
@@ -140,5 +144,56 @@ describe('rsvp page loader', () => {
     render(page)
 
     expect(screen.getByText('Password')).toBeInTheDocument()
+  })
+
+  it('recognises the household from the invite parameter in the URL', async () => {
+    mockFetchWeddingData.mockResolvedValue({
+      groomFirstName: 'John',
+      groomLastName: 'Doe',
+      brideFirstName: 'Jane',
+      brideLastName: 'Smith',
+      website: { isRsvpEnabled: true },
+      events: [],
+    })
+
+    await (
+      RsvpPage as (props: {
+        params: Promise<{ websiteSubUrl: string }>
+        searchParams: Promise<{ invite?: string }>
+      }) => Promise<ReactNode>
+    )({
+      params: Promise.resolve({ websiteSubUrl: 'john-and-jane' }),
+      searchParams: Promise.resolve({ invite: 'ab-4f9k2c' }),
+    })
+
+    expect(mockGetRecognizedRsvpHousehold).toHaveBeenCalledWith('john-and-jane', 'ab-4f9k2c')
+  })
+
+  it('never recognises a household from the cookie alone', async () => {
+    // Owner report 2026-11-02: from the general link the RSVP screen still said
+    // "שלום עומר" because the invite cookie was read here. Only the URL counts.
+    mockCookiesGet.mockReturnValue({ value: 'ab-4f9k2c' })
+    mockFetchWeddingData.mockResolvedValue({
+      groomFirstName: 'John',
+      groomLastName: 'Doe',
+      brideFirstName: 'Jane',
+      brideLastName: 'Smith',
+      website: { isRsvpEnabled: true },
+      events: [],
+    })
+
+    await (
+      RsvpPage as (props: {
+        params: Promise<{ websiteSubUrl: string }>
+        searchParams: Promise<Record<string, string>>
+      }) => Promise<ReactNode>
+    )({
+      params: Promise.resolve({ websiteSubUrl: 'john-and-jane' }),
+      searchParams: Promise.resolve({}),
+    })
+
+    // No URL code ⇒ the service is never even asked, so the cookie cannot leak
+    // into the form and the guest gets the name search.
+    expect(mockGetRecognizedRsvpHousehold).not.toHaveBeenCalled()
   })
 })

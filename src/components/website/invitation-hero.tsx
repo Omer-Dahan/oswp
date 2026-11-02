@@ -66,7 +66,7 @@ function RsvpPills({
   // multi-event household itself. This must key off the actual count of
   // RSVP-able events, not chuppah detection — two non-chuppah events (e.g.
   // "חינה" and "חתונה") are still multiple events.
-  const weddingHref = hasMultipleRsvpableEvents ? rsvpHref : `${rsvpHref}?event=${weddingEvent.id}`
+  const weddingHref = hasMultipleRsvpableEvents ? rsvpHref : withQuery(rsvpHref, `event=${weddingEvent.id}`)
   return (
     <div className='flex flex-col items-center gap-2 min-[376px]:flex-row'>
       <Link href={weddingHref} aria-label='אישור הגעה לחתונה' className={RSVP_PILL_CLASSES[size]}>
@@ -74,7 +74,7 @@ function RsvpPills({
       </Link>
       {chuppahEvent ? (
         <Link
-          href={`${rsvpHref}?event=${chuppahEvent.id}`}
+          href={withQuery(rsvpHref, `event=${chuppahEvent.id}`)}
           aria-label='רק לחופה'
           className={RSVP_PILL_OUTLINE_CLASSES[size]}
         >
@@ -95,7 +95,7 @@ function SecondaryActions({
 }) {
   return (
     <div className='flex w-full items-center justify-center'>
-      <Link href={`${rsvpHref}?decline=1`} className={RSVP_PILL_OUTLINE_CLASSES[size]}>
+      <Link href={withQuery(rsvpHref, 'decline=1')} className={RSVP_PILL_OUTLINE_CLASSES[size]}>
         לצערינו לא מתאפשר
       </Link>
     </div>
@@ -103,6 +103,12 @@ function SecondaryActions({
 }
 
 /** The household name used by the greeting; null for an unrecognised visitor. */
+// The RSVP href can already carry the invite parameter, so appending a second
+// query string must use '&' rather than a second '?'.
+function withQuery(href: string, query: string): string {
+  return `${href}${href.includes('?') ? '&' : '?'}${query}`
+}
+
 function topGreetingText(invitedHousehold: InvitedHousehold | null): string | null {
   const contact = invitedHousehold?.primaryContactGreeting
   if (!contact) return null

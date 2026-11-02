@@ -19,6 +19,7 @@ type RsvpPageProps = {
   searchParams?: Promise<{
     event?: string
     decline?: string
+    invite?: string
   }>
 }
 
@@ -52,7 +53,7 @@ export async function generateMetadata({ params }: RsvpPageProps): Promise<Metad
 export default async function RsvpPage({ params, searchParams }: RsvpPageProps) {
   const { websiteSubUrl } = await params
   const resolvedSearchParams = await searchParams
-  const { loadResult, inviteToken, accessToken } = await loadVisitorWedding(websiteSubUrl)
+  const { loadResult, accessToken } = await loadVisitorWedding(websiteSubUrl)
 
   const verifyWebsitePassword = async (passwordInput: string) => {
     'use server'
@@ -74,9 +75,16 @@ export default async function RsvpPage({ params, searchParams }: RsvpPageProps) 
     )
   }
 
-  // The guest cleared the gate — if we recognize their save-the-date invite,
-  // skip the name search and drop them straight onto the confirm step.
-  const recognizedHousehold = await resolveRecognizedRsvpHousehold(websiteSubUrl, inviteToken)
+  // The guest cleared the gate — if the URL carries their invite code, skip the
+  // name search and drop them straight onto the confirm step. The code comes
+  // from the link, never from the cookie: the general link is shared with many
+  // guests, and a lingering cookie recognised the wrong person here (owner
+  // report, 2026-11-02: "רשום שלום עומר" on the general link's RSVP screen).
+  const inviteCodeFromUrl =
+    typeof resolvedSearchParams?.invite === 'string' && resolvedSearchParams.invite.trim()
+      ? resolvedSearchParams.invite.trim()
+      : undefined
+  const recognizedHousehold = await resolveRecognizedRsvpHousehold(websiteSubUrl, inviteCodeFromUrl)
 
   // An unrecognized eventId (stale link, tampering) must not silently narrow
   // the form to zero events — fall back to the full, all-events flow instead.

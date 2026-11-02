@@ -120,6 +120,7 @@ export default async function RootRouteHandler({ params, searchParams }: RootRou
         websiteSubUrl={websiteSubUrl}
         weddingData={loadResult.weddingData}
         invitedHousehold={invitedHousehold}
+        inviteCode={inviteCode}
       />
     </main>
   )
