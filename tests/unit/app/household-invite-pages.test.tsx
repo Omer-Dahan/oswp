@@ -170,12 +170,15 @@ describe('household invite pages', () => {
 
     expect(mockGetInviteData).toHaveBeenCalledWith('harry-and-hermione', 'ab-4f9k2c')
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe('/w/harry-and-hermione')
+    // The code is forwarded in the URL so the root page can personalise
+    // without ever reading the cookie (owner decision, 2026-11-02).
+    expect(response.headers.get('location')).toBe('/w/harry-and-hermione?invite=ab-4f9k2c')
     expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow')
     expect(response.headers.get('set-cookie')).toEqual(
       expect.stringContaining('household_invite_harry-and-hermione=ab-4f9k2c')
     )
-    expect(response.headers.get('set-cookie')).toEqual(expect.stringContaining('Max-Age=31536000'))
+    // Session cookie: no Max-Age, so recognition ends with the browser session.
+    expect(response.headers.get('set-cookie')).not.toEqual(expect.stringContaining('Max-Age='))
     // Scoped to `/w/<slug>` so the same cookie is sent on the website routes,
     // letting recognised guests skip the password prompt.
     expect(response.headers.get('set-cookie')).toEqual(

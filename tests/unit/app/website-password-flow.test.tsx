@@ -79,6 +79,30 @@ describe('Website password flow', () => {
     expect(mockPasswordPage.mock.calls[0]?.[0]).not.toHaveProperty('password')
   })
 
+  it('does not personalise the general link from a lingering invite cookie', async () => {
+    // Owner report 2026-11-02: after opening a personal link, /w/guests kept
+    // showing that guest's data on the same device. The root page must resolve
+    // the household ONLY from the invite parameter in the URL.
+    mockFetchWeddingData.mockResolvedValue({
+      groomFirstName: 'John',
+      groomLastName: 'Doe',
+      brideFirstName: 'Jane',
+      brideLastName: 'Smith',
+    })
+    mockCookieGet.mockImplementation((name: string) =>
+      name === 'household_invite_johnandjane' ? { value: 'invite-token-123' } : undefined
+    )
+
+    const page = await RootRouteHandler({
+      params: Promise.resolve({ websiteSubUrl: 'johnandjane' }),
+      searchParams: Promise.resolve({}),
+    })
+    render(page)
+
+    expect(screen.getByTestId('wedding-website')).toBeInTheDocument()
+    expect(mockResolveInvitedHousehold).toHaveBeenCalledWith('johnandjane', undefined)
+  })
+
   it('skips the password page and forwards the invite token for a recognized guest', async () => {
     mockFetchWeddingData.mockResolvedValue({
       groomFirstName: 'John',
@@ -92,6 +116,7 @@ describe('Website password flow', () => {
 
     const page = await RootRouteHandler({
       params: Promise.resolve({ websiteSubUrl: 'johnandjane' }),
+      searchParams: Promise.resolve({ invite: 'invite-token-123' }),
     })
     render(page)
 

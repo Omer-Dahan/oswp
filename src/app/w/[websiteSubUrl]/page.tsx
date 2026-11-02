@@ -11,6 +11,9 @@ type RootRouteHandlerProps = {
   params: Promise<{
     websiteSubUrl: string
   }>
+  searchParams?: Promise<{
+    invite?: string
+  }>
 }
 
 const OG_IMAGE_VERSION = '3'
@@ -78,9 +81,20 @@ export async function generateMetadata({ params }: RootRouteHandlerProps): Promi
   }
 }
 
-export default async function RootRouteHandler({ params }: RootRouteHandlerProps) {
+export default async function RootRouteHandler({ params, searchParams }: RootRouteHandlerProps) {
   const { websiteSubUrl } = await params
-  const { loadResult, inviteToken } = await loadVisitorWedding(websiteSubUrl)
+  const { loadResult } = await loadVisitorWedding(websiteSubUrl)
+
+  // The household is recognised ONLY from the explicit invite parameter that
+  // the personal link forwards here. Never from the cookie: the general link
+  // (/w/guests) is shared with many guests, and reading the cookie made it
+  // greet whoever opened a personal link last on that device (owner report,
+  // 2026-11-02).
+  const resolvedSearchParams = (await searchParams) ?? {}
+  const inviteCode =
+    typeof resolvedSearchParams.invite === 'string' && resolvedSearchParams.invite.trim()
+      ? resolvedSearchParams.invite.trim()
+      : undefined
 
   const verifyWebsitePassword = async (passwordInput: string) => {
     'use server'
@@ -98,7 +112,7 @@ export default async function RootRouteHandler({ params }: RootRouteHandlerProps
   }
 
   // The guest cleared the gate — greet them by name if we recognise their invite.
-  const invitedHousehold = await resolveInvitedHousehold(websiteSubUrl, inviteToken)
+  const invitedHousehold = await resolveInvitedHousehold(websiteSubUrl, inviteCode)
 
   return (
     <main>

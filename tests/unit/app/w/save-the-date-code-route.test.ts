@@ -31,11 +31,16 @@ describe('GET /w/[websiteSubUrl]/save-the-date/[code]', () => {
 
     expect(res.status).toBe(307)
     const location = res.headers.get('location')
-    expect(location).toBe('/w/guests')
+    // The code is forwarded in the URL: the root page no longer personalises
+    // from the cookie, so the general link cannot inherit a previous guest.
+    expect(location).toBe('/w/guests?invite=hh-3brqmw')
     expect(location).not.toContain('localhost')
 
     const cookie = res.cookies.get(householdInviteCookieName('guests'))
     expect(cookie?.value).toBe('hh-3brqmw')
+    // Session cookie: no maxAge/expires, so recognition dies with the browser.
+    expect(cookie?.maxAge).toBeUndefined()
+    expect(cookie?.expires).toBeUndefined()
   })
 
   it('redirects to a relative invalid path when the invite is not found', async () => {

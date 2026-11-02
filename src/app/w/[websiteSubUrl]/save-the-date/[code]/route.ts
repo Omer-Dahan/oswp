@@ -10,15 +10,16 @@ type HouseholdInviteCodeRouteProps = {
   }>
 }
 
-const getInviteCookieMaxAge = (expiresAt: Date) =>
-  Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000))
 
 export async function GET(_request: Request, { params }: HouseholdInviteCodeRouteProps) {
   const { websiteSubUrl, code } = await params
   const inviteData = await householdInviteService.getInviteData(websiteSubUrl, code)
 
+  // The code travels in the URL, not in the cookie: the root page resolves the
+  // household from this parameter only, so the general link (/w/guests) can
+  // never inherit whoever opened a personal link last on the device.
   const path = inviteData
-    ? `/w/${websiteSubUrl}`
+    ? `/w/${websiteSubUrl}?invite=${encodeURIComponent(code)}`
     : `/w/${websiteSubUrl}/save-the-date?invalid=1`
 
   const response = new NextResponse(null, {
@@ -30,12 +31,15 @@ export async function GET(_request: Request, { params }: HouseholdInviteCodeRout
     return response
   }
 
+  // Session cookie on purpose (owner decision, 2026-11-02): no maxAge, so the
+  // recognition dies with the browser session instead of lingering until the
+  // invitation expires. It still backs the one-click RSVP POST, which has no
+  // code in its form.
   response.cookies.set(householdInviteCookieName(websiteSubUrl), code, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: householdInviteCookiePath(websiteSubUrl),
-    maxAge: getInviteCookieMaxAge(inviteData.expiresAt),
   })
 
   return response
