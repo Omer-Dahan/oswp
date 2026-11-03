@@ -293,11 +293,12 @@ export default function GuestsView({
       groupName: drawerDraft.groupName,
     }
 
+    // This handler only ever edits household-level fields, never RSVPs, so
+    // every guest here already has a guestId - sending an empty `invites`
+    // tells the service to leave their invitations untouched instead of
+    // rewriting them from this stale canonical snapshot.
     const guestParty = selectedCanonicalHousehold.guests.map((guest) => {
       const invites: FormInvites = {}
-      guest.invitations.forEach((invitation) => {
-        invites[invitation.eventId] = invitation.rsvp ?? 'Not Invited'
-      })
 
       return {
         guestId: guest.id,
@@ -392,12 +393,11 @@ export default function GuestsView({
       const guestParty = nextMembers.map((member) => {
         const canonicalGuest =
           member.id !== undefined ? canonicalGuestsById.get(member.id) : undefined
+        // An existing member (has a canonical guest) keeps an empty `invites`
+        // so this edit to names/tags/age-group never rewrites their RSVPs.
+        // Only a brand-new member needs the default "Not Invited" rows.
         const invites: FormInvites = {}
-        if (canonicalGuest) {
-          canonicalGuest.invitations.forEach((invitation) => {
-            invites[invitation.eventId] = invitation.rsvp ?? 'Not Invited'
-          })
-        } else {
+        if (!canonicalGuest) {
           events.forEach((event) => {
             invites[event.id] = 'Not Invited'
           })
@@ -425,10 +425,8 @@ export default function GuestsView({
       const hiddenCanonicalGuestParty = selectedCanonicalHousehold.guests
         .filter((guest) => !editableGuestIds.has(guest.id))
         .map((guest) => {
+          // Not edited in this view either - same empty-invites rule as above.
           const invites: FormInvites = {}
-          guest.invitations.forEach((invitation) => {
-            invites[invitation.eventId] = invitation.rsvp ?? 'Not Invited'
-          })
 
           return {
             guestId: guest.id,

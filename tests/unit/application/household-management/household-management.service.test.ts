@@ -363,7 +363,7 @@ describe('HouseholdManagementService', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' })
   })
 
-  it('removes all invitations when tag-along has no allowed events', async () => {
+  it("leaves an existing tag-along's invitations untouched when invites is empty", async () => {
     await service.updateHouseholdWithGuests(actorContext, 'wedding-123', {
       householdId: 'household-123',
       guestParty: [
@@ -378,6 +378,8 @@ describe('HouseholdManagementService', () => {
       gifts: [],
     })
 
-    expect(mockDeleteByGuest).toHaveBeenCalledWith(1)
+    expect(mockDeleteByGuest).not.toHaveBeenCalled()
+    expect(mockDeleteByGuestExcludingEvents).not.toHaveBeenCalled()
+    expect(mockInvitationUpdate).not.toHaveBeenCalled()
   })
 })

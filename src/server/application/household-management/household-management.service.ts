@@ -286,22 +286,25 @@ export class HouseholdManagementService {
           invitations
         )
 
-        if (isTagAlong && guest.guestId) {
+        // An existing guest with no invites in this request isn't having their
+        // RSVPs touched at all (e.g. a household-details-only edit) - leave
+        // their invitations alone. In particular, don't fall through to
+        // deleteByGuestExcludingEvents/deleteByGuest with an empty allow-list,
+        // which would wipe every invitation this guest has.
+        const hasInviteData = inviteEntries.length > 0
+
+        if (isTagAlong && guest.guestId && hasInviteData) {
           const allowedEventIds = Object.keys(guest.invites)
-          if (allowedEventIds.length > 0) {
-            await txInvitationRepo.deleteByGuestExcludingEvents(guest.guestId, allowedEventIds)
-          } else {
-            await txInvitationRepo.deleteByGuest(guest.guestId)
-          }
+          await txInvitationRepo.deleteByGuestExcludingEvents(guest.guestId, allowedEventIds)
         }
 
         if (guest.tagIds !== undefined) {
           await txGuestRepo.updateTags(updatedGuest.id, guest.tagIds)
         }
 
-        if (guest.guestId) {
+        if (guest.guestId && hasInviteData) {
           for (const [inviteEventId, inputRsvp] of Object.entries(guest.invites)) {
-            await txInvitationRepo.update(guest.guestId ?? updatedGuest.id, inviteEventId, {
+            await txInvitationRepo.update(guest.guestId, inviteEventId, {
               rsvp: inputRsvp,
             })
           }
