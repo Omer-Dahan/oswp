@@ -59,8 +59,11 @@ export default function GuestList({ dashboardData }: { dashboardData: DashboardD
 
   // When an event tab is active, households whose guests were all filtered out are
   // excluded so GuestsView never receives empty-shell household objects.
-  const householdsForView = filteredHouseholdsByEvent.filter(
-    (household) => household.guests.length > 0
+  // Memoized so unrelated re-renders of this component (prefill state, dialog
+  // toggles) don't hand GuestsView a new array identity and reset its filters.
+  const householdsForView = useMemo(
+    () => filteredHouseholdsByEvent.filter((household) => household.guests.length > 0),
+    [filteredHouseholdsByEvent]
   )
 
   if (dashboardData === null) {

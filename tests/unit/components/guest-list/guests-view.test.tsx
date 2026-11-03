@@ -945,6 +945,44 @@ describe('GuestsView', () => {
     expect(screen.queryByRole('button', { name: 'שמירת שינויים' })).not.toBeInTheDocument()
   })
 
+  it('should keep a saved side visible on the card and a reopened drawer after a filter/search rebuild', async () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'עריכת שיוך וקבוצה' }))
+
+    const sideInput = document.querySelector('input#side') as HTMLInputElement
+    fireEvent.change(sideInput, { target: { value: 'חתן' } })
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת שינויים' }))
+
+    await waitFor(() => {
+      expect(mockHouseholdUpdateMutate).toHaveBeenCalled()
+    })
+
+    expect(screen.getByText('צד חתן')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'סגירת פרטי אורח' }))
+
+    // Simulates a search/filter action rebuilding the list before the server
+    // refresh triggered by the save has landed - the saved side must survive it.
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Alex' } })
+
+    expect(screen.getByText('צד חתן')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
+
+    expect(screen.getByText('חתן')).toBeInTheDocument()
+  })
+
   it('should discard dirty changes and restore baseline values', () => {
     render(
       <GuestsView

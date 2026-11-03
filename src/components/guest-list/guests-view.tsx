@@ -75,6 +75,10 @@ export default function GuestsView({
   const { workspace } = useWorkspace()
   const { data: allTags = [] } = api.guestTag.getAll.useQuery()
   const toggleGuestForm = useToggleGuestForm()
+  // The source GuestSearchFilter rebuilds from. Kept in sync with the `households`
+  // prop, but also patched optimistically on save so a filter/search action run
+  // before the server refresh lands doesn't rebuild from stale, pre-save data.
+  const [baseHouseholds, setBaseHouseholds] = useState(households)
   const [filteredHouseholds, setFilteredHouseholds] = useState(households)
   const [nameSort, setNameSort] = useState<'none' | 'ascending' | 'descending'>('none')
   const [partySort, setPartySort] = useState<'none' | 'ascending' | 'descending'>('none')
@@ -132,11 +136,12 @@ export default function GuestsView({
   }, [filteredHouseholds])
 
   const totalUnfilteredGuests = useMemo(
-    () => households.reduce((sum, household) => sum + (partySize(household) ?? 0), 0),
-    [households]
+    () => baseHouseholds.reduce((sum, household) => sum + (partySize(household) ?? 0), 0),
+    [baseHouseholds]
   )
 
   useEffect(() => {
+    setBaseHouseholds(households)
     setFilteredHouseholds(households)
   }, [households])
 
@@ -338,7 +343,7 @@ export default function GuestsView({
       },
       {
         onSuccess: () => {
-          setFilteredHouseholds((previous) =>
+          const applyPatch = (previous: HouseholdWithGuests[]) =>
             previous.map((household) => {
               if (household.id !== activeHouseholdId) return household
 
@@ -365,20 +370,29 @@ export default function GuestsView({
                 }),
               }
             })
-          )
+          setFilteredHouseholds(applyPatch)
+          setBaseHouseholds(applyPatch)
           if (selectedHouseholdId === activeHouseholdId) {
             setDrawerBaseline(draftSnapshot)
             setEditingSections(new Set())
           }
           toast.success('פרטי האורח נשמרו')
           void utils.dashboard.getForActiveWorkspace.invalidate()
+          router.refresh()
         },
         onError: () => {
           toast.error('שמירת פרטי האורח נכשלה')
         },
       }
     )
-  }, [drawerDraft, selectedCanonicalHousehold, selectedHouseholdId, updateHouseholdMutation, utils])
+  }, [
+    drawerDraft,
+    router,
+    selectedCanonicalHousehold,
+    selectedHouseholdId,
+    updateHouseholdMutation,
+    utils,
+  ])
 
   const saveMembersChanges = useCallback(
     async (nextMembers: HouseholdMemberDraft[]) => {
@@ -467,7 +481,7 @@ export default function GuestsView({
           },
           {
             onSuccess: () => {
-              setFilteredHouseholds((previous) =>
+              const applyPatch = (previous: HouseholdWithGuests[]) =>
                 previous.map((household) => {
                   if (household.id !== activeHouseholdId) return household
 
@@ -509,9 +523,11 @@ export default function GuestsView({
                     }),
                   }
                 })
-              )
+              setFilteredHouseholds(applyPatch)
+              setBaseHouseholds(applyPatch)
               toast.success('בני הבית נשמרו')
               void utils.dashboard.getForActiveWorkspace.invalidate()
+              router.refresh()
               resolve(true)
             },
             onError: () => {
@@ -522,7 +538,7 @@ export default function GuestsView({
         )
       })
     },
-    [events, selectedCanonicalHousehold, selectedHousehold, updateHouseholdMutation, utils]
+    [events, router, selectedCanonicalHousehold, selectedHousehold, updateHouseholdMutation, utils]
   )
 
   const selectedEvent = useMemo(
@@ -701,7 +717,7 @@ export default function GuestsView({
       <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
         <GuestSearchFilter
           setFilteredHouseholds={setFilteredHouseholds}
-          households={households}
+          households={baseHouseholds}
           events={events}
           selectedEventId={selectedEventId}
         />
@@ -733,7 +749,7 @@ export default function GuestsView({
       <div className='space-y-4'>
         <ListToolbar
           totalHouseholds={sortedHouseholds.length}
-          totalUnfilteredHouseholds={households.length}
+          totalUnfilteredHouseholds={baseHouseholds.length}
           totalGuests={totalGuests}
           totalUnfilteredGuests={totalUnfilteredGuests}
           onSortByName={sortByName}
