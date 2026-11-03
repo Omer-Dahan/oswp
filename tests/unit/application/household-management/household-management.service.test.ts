@@ -222,6 +222,48 @@ describe('HouseholdManagementService', () => {
     )
   })
 
+  it('persists side, group, party size and alt phone when editing an existing household', async () => {
+    // Owner report 2026-11-03: assigning a side to an already-added household
+    // showed a success toast and changed nothing after a refresh, because these
+    // fields never left the update path.
+    await service.updateHouseholdWithGuests(actorContext, 'wedding-123', {
+      householdId: 'household-123',
+      side: 'כלה',
+      groupName: 'משפחה מירב',
+      invitedCount: 3,
+      phoneAlt: '050-000-0000',
+      expectedCheck: 500,
+      guestParty: [{ guestId: 1, firstName: 'John', lastName: 'Doe', invites: {} }],
+      gifts: [],
+    })
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({
+        side: 'כלה',
+        groupName: 'משפחה מירב',
+        invitedCount: 3,
+        phoneAlt: '050-000-0000',
+        expectedCheck: 500,
+      })
+    )
+  })
+
+  it('clears a side when the edit sends null instead of dropping the field', async () => {
+    await service.updateHouseholdWithGuests(actorContext, 'wedding-123', {
+      householdId: 'household-123',
+      side: null,
+      groupName: null,
+      guestParty: [{ guestId: 1, firstName: 'John', lastName: 'Doe', invites: {} }],
+      gifts: [],
+    })
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({ side: null, groupName: null })
+    )
+  })
+
   it('updates household, guests, invitations, and gifts via repositories', async () => {
     await service.updateHouseholdWithGuests(actorContext, 'wedding-123', {
       householdId: 'household-123',

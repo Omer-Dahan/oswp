@@ -237,6 +237,11 @@ export class HouseholdManagementService {
         zipCode: data.zipCode ?? undefined,
         likelihoodOfAttending: data.likelihoodOfAttending ?? undefined,
         notes: data.notes ?? undefined,
+        side: data.side === undefined ? undefined : data.side,
+        groupName: data.groupName === undefined ? undefined : data.groupName,
+        phoneAlt: data.phoneAlt === undefined ? undefined : data.phoneAlt,
+        invitedCount: data.invitedCount === undefined ? undefined : data.invitedCount,
+        expectedCheck: data.expectedCheck === undefined ? undefined : data.expectedCheck,
       })
 
       if (data.deletedGuests && data.deletedGuests.length > 0) {

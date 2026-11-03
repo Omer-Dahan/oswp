@@ -56,6 +56,15 @@ export type UpdateHouseholdWithGuestsInput = {
   zipCode?: string | null
   likelihoodOfAttending?: number | null
   notes?: string | null
+  // The guest-list drawer sends these on every edit, but they were missing from
+  // this input type, so a household's side/group/party size could be set at
+  // creation time and never changed afterwards - the UI showed a success
+  // message and the database kept the old value (owner report, 2026-11-03).
+  invitedCount?: number | null
+  side?: string | null
+  groupName?: string | null
+  phoneAlt?: string | null
+  expectedCheck?: number | null
   guestParty: GuestPartyInput[]
   deletedGuests?: number[]
   gifts: Array<{

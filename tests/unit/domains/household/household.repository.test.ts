@@ -1,6 +1,40 @@
 import { Prisma } from '@prisma/client'
 import { HouseholdRepository } from '~/server/domains/household/household.repository'
 
+describe('HouseholdRepository.update', () => {
+  const mockHouseholdUpdate = jest.fn()
+
+  const repository = new HouseholdRepository({
+    household: { update: mockHouseholdUpdate },
+  } as never)
+
+  beforeEach(() => {
+    mockHouseholdUpdate.mockReset()
+    mockHouseholdUpdate.mockResolvedValue({})
+  })
+
+  it('writes side and group instead of silently dropping them', async () => {
+    // Root cause of the owner's 2026-11-03 report: the update data literal was
+    // missing every field except address/notes, so a saved side never reached
+    // the database.
+    await repository.update('household-1', { side: 'כלה', groupName: 'משפחה מירב', invitedCount: 3 })
+
+    expect(mockHouseholdUpdate).toHaveBeenCalledWith({
+      where: { id: 'household-1' },
+      data: expect.objectContaining({ side: 'כלה', groupName: 'משפחה מירב', invitedCount: 3 }),
+    })
+  })
+
+  it('clears a side when null is passed, and leaves untouched fields alone', async () => {
+    await repository.update('household-1', { side: null })
+
+    const data = mockHouseholdUpdate.mock.calls[0]?.[0]?.data
+    expect(data.side).toBeNull()
+    expect(data.groupName).toBeUndefined()
+    expect(data.notes).toBeUndefined()
+  })
+})
+
 describe('HouseholdRepository.search', () => {
   const mockHouseholdFindMany = jest.fn()
 

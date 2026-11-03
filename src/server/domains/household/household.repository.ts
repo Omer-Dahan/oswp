@@ -323,6 +323,14 @@ export class HouseholdRepository {
       zipCode?: string | null
       likelihoodOfAttending?: number | null
       notes?: string | null
+      // These were accepted by the validator and sent by the guest-list drawer
+      // but never reached the database, so editing an existing household's
+      // side/group silently changed nothing (owner report, 2026-11-03).
+      side?: string | null
+      groupName?: string | null
+      phoneAlt?: string | null
+      invitedCount?: number | null
+      expectedCheck?: number | null
     }
   ): Promise<Household> {
     return this.db.household.update({
@@ -336,6 +344,13 @@ export class HouseholdRepository {
         zipCode: data.zipCode ?? undefined,
         likelihoodOfAttending: data.likelihoodOfAttending ?? undefined,
         notes: data.notes ?? undefined,
+        // `undefined` skips the column, `null` clears it - ?? undefined would
+        // have made it impossible to remove a side once one was set.
+        side: data.side === undefined ? undefined : data.side,
+        groupName: data.groupName === undefined ? undefined : data.groupName,
+        phoneAlt: data.phoneAlt === undefined ? undefined : data.phoneAlt,
+        invitedCount: data.invitedCount === undefined ? undefined : data.invitedCount,
+        expectedCheck: data.expectedCheck === undefined ? undefined : data.expectedCheck,
       },
     })
   }
