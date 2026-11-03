@@ -25,6 +25,18 @@ export const giftInputSchema = z.object({
 })
 
 /**
+ * Trims a free-text field and folds an empty/whitespace-only result to
+ * `null` (clear the field) rather than writing `''` to the database.
+ * Passes `undefined`/`null` through unchanged so "not provided" and
+ * "explicitly cleared" stay distinguishable downstream.
+ */
+function trimToNull(value: string | null | undefined): string | null | undefined {
+  if (value == null) return value
+  const trimmed = value.trim()
+  return trimmed.length === 0 ? null : trimmed
+}
+
+/**
  * Base household fields (address, contact info, notes)
  * Shared across create, update, and form schemas
  */
@@ -52,8 +64,8 @@ export const baseHouseholdFields = z.object({
     .nullish()
     .transform((v) => (v === 0 ? null : v))
     .optional(),
-  side: z.string().max(40).nullish().optional(),
-  groupName: z.string().max(60).nullish().optional(),
+  side: z.string().max(40).nullish().transform(trimToNull).optional(),
+  groupName: z.string().max(60).nullish().transform(trimToNull).optional(),
   phoneAlt: z.string().max(40).nullish().optional(),
   expectedCheck: z.number().min(0).nullish().optional(),
 })

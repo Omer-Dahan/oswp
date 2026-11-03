@@ -435,3 +435,64 @@ describe('phone validation in household schemas', () => {
     }
   })
 })
+
+describe('side and groupName in baseHouseholdFields', () => {
+  const baseGuestParty = [
+    { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+  ]
+
+  it('trims surrounding whitespace', () => {
+    const result = updateHouseholdSchema.safeParse({
+      householdId: 'household-123',
+      guestParty: baseGuestParty,
+      gifts: [],
+      side: '  כלה  ',
+      groupName: '  משפחה מירב  ',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.side).toBe('כלה')
+      expect(result.data.groupName).toBe('משפחה מירב')
+    }
+  })
+
+  it('folds an empty or whitespace-only value to null instead of writing blank text', () => {
+    const result = updateHouseholdSchema.safeParse({
+      householdId: 'household-123',
+      guestParty: baseGuestParty,
+      gifts: [],
+      side: '',
+      groupName: '   ',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.side).toBeNull()
+      expect(result.data.groupName).toBeNull()
+    }
+  })
+
+  it('passes an explicit null straight through', () => {
+    const result = updateHouseholdSchema.safeParse({
+      householdId: 'household-123',
+      guestParty: baseGuestParty,
+      gifts: [],
+      side: null,
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.side).toBeNull()
+    }
+  })
+
+  it('leaves an omitted field undefined', () => {
+    const result = updateHouseholdSchema.safeParse({
+      householdId: 'household-123',
+      guestParty: baseGuestParty,
+      gifts: [],
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.side).toBeUndefined()
+    }
+  })
+})

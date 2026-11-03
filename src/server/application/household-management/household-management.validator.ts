@@ -55,27 +55,6 @@ export const createHouseholdWithGuestsSchema = z.object({
 export type CreateHouseholdWithGuestsSchemaInput = z.infer<typeof createHouseholdWithGuestsSchema>
 
 /**
- * Update household with guests schema
- */
-export const updateHouseholdWithGuestsSchema = z.object({
-  householdId: z.string(),
-  address1: z.string().nullish(),
-  address2: z.string().nullish(),
-  city: z.string().nullish(),
-  state: z.string().nullish(),
-  country: z.string().nullish(),
-  zipCode: z.string().nullish(),
-  phone: optionalPhoneSchema,
-  email: z.string().email().nullish().or(z.literal('')),
-  notes: z.string().nullish(),
-  guestParty: z.array(guestPartyInputSchema).min(1, 'At least one guest is required'),
-  deletedGuests: z.array(z.number()).optional(),
-  gifts: z.array(giftInputSchema),
-})
-
-export type UpdateHouseholdWithGuestsSchemaInput = z.infer<typeof updateHouseholdWithGuestsSchema>
-
-/**
  * Delete household schema
  */
 export const deleteHouseholdSchema = z.object({

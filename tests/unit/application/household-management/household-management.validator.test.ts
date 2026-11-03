@@ -7,7 +7,6 @@ import {
   deleteHouseholdSchema,
   giftInputSchema,
   guestPartyInputSchema,
-  updateHouseholdWithGuestsSchema,
 } from '~/server/application/household-management/household-management.validator'
 
 describe('guestPartyInputSchema', () => {
@@ -248,96 +247,6 @@ describe('createHouseholdWithGuestsSchema', () => {
   })
 })
 
-describe('updateHouseholdWithGuestsSchema', () => {
-  it('should validate a valid household update input', () => {
-    const validInput = {
-      householdId: 'household-123',
-      address1: '456 Updated St',
-      guestParty: [
-        {
-          guestId: 1,
-          firstName: 'John',
-          lastName: 'Doe',
-          invites: { 'event-123': 'Attending' },
-        },
-      ],
-      gifts: [
-        {
-          eventId: 'event-123',
-          description: 'Kitchen set',
-          thankyou: true,
-        },
-      ],
-    }
-
-    const result = updateHouseholdWithGuestsSchema.safeParse(validInput)
-    expect(result.success).toBe(true)
-  })
-
-  it('should require householdId', () => {
-    const invalidInput = {
-      guestParty: [
-        {
-          firstName: 'John',
-          lastName: 'Doe',
-          invites: {},
-        },
-      ],
-      gifts: [],
-    }
-
-    const result = updateHouseholdWithGuestsSchema.safeParse(invalidInput)
-    expect(result.success).toBe(false)
-  })
-
-  it('should require gifts array', () => {
-    const invalidInput = {
-      householdId: 'household-123',
-      guestParty: [
-        {
-          firstName: 'John',
-          lastName: 'Doe',
-          invites: {},
-        },
-      ],
-    }
-
-    const result = updateHouseholdWithGuestsSchema.safeParse(invalidInput)
-    expect(result.success).toBe(false)
-  })
-
-  it('should allow deletedGuests array', () => {
-    const validInput = {
-      householdId: 'household-123',
-      guestParty: [
-        {
-          firstName: 'John',
-          lastName: 'Doe',
-          invites: {},
-        },
-      ],
-      deletedGuests: [1, 2, 3],
-      gifts: [],
-    }
-
-    const result = updateHouseholdWithGuestsSchema.safeParse(validInput)
-    expect(result.success).toBe(true)
-    expect(result.data?.deletedGuests).toEqual([1, 2, 3])
-  })
-
-  it('should require at least one guest in guestParty', () => {
-    const invalidInput = {
-      householdId: 'household-123',
-      guestParty: [],
-      gifts: [],
-    }
-
-    const result = updateHouseholdWithGuestsSchema.safeParse(invalidInput)
-    expect(result.success).toBe(false)
-    expect(result.error?.issues[0]?.message).toBe('At least one guest is required')
-  })
-})
-
 describe('deleteHouseholdSchema', () => {
   it('should validate valid householdId', () => {
     const validInput = { householdId: 'household-123' }
@@ -379,15 +288,6 @@ describe('phone validation in household-management schemas', () => {
         phone: '+447911123456',
       }).success
     ).toBe(true)
-
-    expect(
-      updateHouseholdWithGuestsSchema.safeParse({
-        householdId: 'household-123',
-        guestParty: [{ ...baseGuestParty[0], phone: '+5511987654321' }],
-        gifts: [],
-        phone: '+12025550123',
-      }).success
-    ).toBe(true)
   })
 
   it('rejects invalid phone values with a clear message', () => {
@@ -409,10 +309,8 @@ describe('phone validation in household-management schemas', () => {
       }).success
     ).toBe(true)
 
-    const result = updateHouseholdWithGuestsSchema.safeParse({
-      householdId: 'household-123',
+    const result = createHouseholdWithGuestsSchema.safeParse({
       guestParty: [{ ...baseGuestParty[0], phone: '' }],
-      gifts: [],
       phone: '',
     })
     expect(result.success).toBe(true)

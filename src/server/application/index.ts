@@ -38,8 +38,6 @@ export {
   householdManagementService,
   type UpdateHouseholdResult,
   type UpdateHouseholdWithGuestsInput,
-  type UpdateHouseholdWithGuestsSchemaInput,
-  updateHouseholdWithGuestsSchema,
 } from '~/server/application/household-management'
 
 // RSVP Submission Application Service

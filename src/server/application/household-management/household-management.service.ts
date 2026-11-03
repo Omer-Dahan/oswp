@@ -228,20 +228,24 @@ export class HouseholdManagementService {
         return defaultEventIds
       }
 
+      // Each field is passed through as-is: `undefined` means "not provided"
+      // (skip the column) and `null` means "clear it" - HouseholdRepository.update
+      // is the single place that enforces this via its keepNullable helper, so
+      // this layer must not re-collapse null to undefined with `?? undefined`.
       const updatedHousehold = await txHouseholdRepo.update(data.householdId, {
-        address1: data.address1 ?? undefined,
-        address2: data.address2 ?? undefined,
-        city: data.city ?? undefined,
-        state: data.state ?? undefined,
-        country: data.country ?? undefined,
-        zipCode: data.zipCode ?? undefined,
-        likelihoodOfAttending: data.likelihoodOfAttending ?? undefined,
-        notes: data.notes ?? undefined,
-        side: data.side === undefined ? undefined : data.side,
-        groupName: data.groupName === undefined ? undefined : data.groupName,
-        phoneAlt: data.phoneAlt === undefined ? undefined : data.phoneAlt,
-        invitedCount: data.invitedCount === undefined ? undefined : data.invitedCount,
-        expectedCheck: data.expectedCheck === undefined ? undefined : data.expectedCheck,
+        address1: data.address1,
+        address2: data.address2,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        zipCode: data.zipCode,
+        likelihoodOfAttending: data.likelihoodOfAttending,
+        notes: data.notes,
+        side: data.side,
+        groupName: data.groupName,
+        phoneAlt: data.phoneAlt,
+        invitedCount: data.invitedCount,
+        expectedCheck: data.expectedCheck,
       })
 
       if (data.deletedGuests && data.deletedGuests.length > 0) {

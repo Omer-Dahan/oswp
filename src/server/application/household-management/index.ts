@@ -48,6 +48,4 @@ export {
   type GuestPartyInputSchemaInput,
   giftInputSchema,
   guestPartyInputSchema,
-  type UpdateHouseholdWithGuestsSchemaInput,
-  updateHouseholdWithGuestsSchema,
 } from '~/server/application/household-management/household-management.validator'
