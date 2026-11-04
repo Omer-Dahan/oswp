@@ -24,6 +24,7 @@ type FindYourInvitationFormProps = StepFormProps & {
 }
 
 type SelfAddFieldErrors = Partial<Record<'fullName' | 'phone' | 'attendingCount', string>>
+type SearchFeedback = 'idle' | 'invalid' | 'no-match' | 'error'
 
 const MIN_SELF_ADD_ATTENDING = 1
 const MAX_SELF_ADD_ATTENDING = 8
@@ -37,14 +38,12 @@ export default function FindYourInvitationForm({
   const { weddingData, declineIntent } = useRsvpForm()
   const updateRsvpForm = useUpdateRsvpForm()
   const [name, setName] = useState<string>('')
-  const [showError, setShowError] = useState<boolean>(false)
+  const [searchFeedback, setSearchFeedback] = useState<SearchFeedback>('idle')
   const [showSelfAddCta, setShowSelfAddCta] = useState<boolean>(false)
   const [showSelfAddForm, setShowSelfAddForm] = useState<boolean>(false)
   const [selfAddFullName, setSelfAddFullName] = useState<string>('')
   const [selfAddPhone, setSelfAddPhone] = useState<string>('')
-  const [selfAddAttendingCount, setSelfAddAttendingCount] = useState<number>(
-    MIN_SELF_ADD_ATTENDING
-  )
+  const [selfAddAttendingCount, setSelfAddAttendingCount] = useState<number>(MIN_SELF_ADD_ATTENDING)
   const [selfAddFieldErrors, setSelfAddFieldErrors] = useState<SelfAddFieldErrors>({})
   const [selfAddGeneralError, setSelfAddGeneralError] = useState<string | null>(null)
   const [selfAddAlreadyListedNote, setSelfAddAlreadyListedNote] = useState<string | null>(null)
@@ -93,6 +92,14 @@ export default function FindYourInvitationForm({
   })
 
   const handleOnSearch = () => {
+    const nameParts = name.trim().split(/\s+/).filter(Boolean)
+    if (nameParts.length < 2) {
+      setSearchFeedback('invalid')
+      setShowSelfAddCta(false)
+      setShowSelfAddForm(false)
+      return
+    }
+
     // the method to conditionally execute client db queries?
     void refetch().then((res) => {
       // Only advance when the search actually returned households. Guarding on
@@ -100,13 +107,13 @@ export default function FindYourInvitationForm({
       // step showing the retry hint, instead of dropping the guest onto a blank
       // confirm screen with no names to pick.
       if (res.error) {
-        setShowError(true)
+        setSearchFeedback('error')
         setShowSelfAddCta(false)
       } else if (!res.data || res.data.length === 0) {
-        setShowError(true)
+        setSearchFeedback('no-match')
         setShowSelfAddCta(true)
       } else {
-        setShowError(false)
+        setSearchFeedback('idle')
         setShowSelfAddCta(false)
         updateRsvpForm({ matchedHouseholds: res.data, searchText: name })
         goNext?.()
@@ -137,7 +144,7 @@ export default function FindYourInvitationForm({
           id='rsvp-guest-name'
           placeholder={t('fullNamePlaceholder')}
           onChange={(e) => {
-            setShowError(false)
+            setSearchFeedback('idle')
             setShowSelfAddCta(false)
             setShowSelfAddForm(false)
             setName(e.target.value)
@@ -145,15 +152,17 @@ export default function FindYourInvitationForm({
           onKeyDown={(e) => {
             if (e.key !== 'Enter') return
             e.preventDefault()
-            if (name.length > 0 && !isFetching) handleOnSearch()
+            if (!isFetching) handleOnSearch()
           }}
           value={name}
           enterKeyHint='search'
         />
+        {searchFeedback === 'invalid' && <StepErrorText>{t('invalidSearchName')}</StepErrorText>}
       </StepField>
-      {showError && <StepErrorText>{t('notFound')}</StepErrorText>}
+      {searchFeedback === 'no-match' && !showSelfAddForm && <StepBody>{t('notFound')}</StepBody>}
+      {searchFeedback === 'error' && <StepErrorText>{t('searchError')}</StepErrorText>}
       <StepActions>
-        <StepPrimaryButton disabled={name.length === 0 || isFetching} onClick={handleOnSearch}>
+        <StepPrimaryButton disabled={isFetching} onClick={handleOnSearch}>
           {isFetching ? tCommon('searching') : t('findInvitation')}
         </StepPrimaryButton>
       </StepActions>
@@ -161,7 +170,10 @@ export default function FindYourInvitationForm({
       {showSelfAddCta && !showSelfAddForm && (
         <StepSecondaryButton
           className='w-auto justify-start ps-0'
-          onClick={() => setShowSelfAddForm(true)}
+          onClick={() => {
+            setSearchFeedback('idle')
+            setShowSelfAddForm(true)
+          }}
         >
           {t('selfAddCta')}
         </StepSecondaryButton>
@@ -198,9 +210,7 @@ export default function FindYourInvitationForm({
                 aria-label='הפחתת מספר המגיעים'
                 disabled={selfAddAttendingCount <= MIN_SELF_ADD_ATTENDING}
                 onClick={() =>
-                  setSelfAddAttendingCount((value) =>
-                    Math.max(MIN_SELF_ADD_ATTENDING, value - 1)
-                  )
+                  setSelfAddAttendingCount((value) => Math.max(MIN_SELF_ADD_ATTENDING, value - 1))
                 }
               >
                 −
@@ -215,9 +225,7 @@ export default function FindYourInvitationForm({
                 aria-label='הוספת מגיע'
                 disabled={selfAddAttendingCount >= MAX_SELF_ADD_ATTENDING}
                 onClick={() =>
-                  setSelfAddAttendingCount((value) =>
-                    Math.min(MAX_SELF_ADD_ATTENDING, value + 1)
-                  )
+                  setSelfAddAttendingCount((value) => Math.min(MAX_SELF_ADD_ATTENDING, value + 1))
                 }
               >
                 +

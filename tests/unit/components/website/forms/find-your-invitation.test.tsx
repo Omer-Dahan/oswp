@@ -8,7 +8,9 @@ const translations: Record<string, string> = {
   'rsvp.weddingTitle': 'WEDDING TITLE',
   'rsvp.groupNote': 'GROUP NOTE',
   'rsvp.fullNamePlaceholder': 'Full name',
-  'rsvp.notFound': 'NOT FOUND',
+  'rsvp.notFound': 'NO MATCH',
+  'rsvp.invalidSearchName': 'ENTER A FULL NAME',
+  'rsvp.searchError': 'SEARCH ERROR',
   'rsvp.findInvitation': 'FIND INVITATION',
   'rsvp.selfAddCta': 'SELF ADD CTA',
   'rsvp.selfAddFullNameLabel': 'Self add full name',
@@ -105,7 +107,7 @@ describe('FindYourInvitationForm self-add', () => {
     expect(screen.queryByText('SELF ADD CTA')).not.toBeInTheDocument()
   })
 
-  it('shows the self-add CTA only after a search returns zero results', async () => {
+  it('shows a neutral message and the self-add CTA when a search returns zero results', async () => {
     mockRefetch.mockResolvedValue({ data: [] })
     render(<FindYourInvitationForm goNext={jest.fn()} />)
 
@@ -115,10 +117,12 @@ describe('FindYourInvitationForm self-add', () => {
     fireEvent.click(screen.getByRole('button', { name: 'FIND INVITATION' }))
 
     await waitFor(() => expect(mockRefetch).toHaveBeenCalledTimes(1))
-    expect(await screen.findByText('SELF ADD CTA')).toBeInTheDocument()
+    expect(await screen.findByText('NO MATCH')).toBeInTheDocument()
+    expect(screen.getByText('SELF ADD CTA')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('does not show the CTA when the search errors out', async () => {
+  it('shows a red system error and no self-add CTA when the search fails', async () => {
     mockRefetch.mockResolvedValue({ error: new Error('network error') })
     render(<FindYourInvitationForm goNext={jest.fn()} />)
 
@@ -128,8 +132,18 @@ describe('FindYourInvitationForm self-add', () => {
     fireEvent.click(screen.getByRole('button', { name: 'FIND INVITATION' }))
 
     await waitFor(() => expect(mockRefetch).toHaveBeenCalledTimes(1))
-    expect(await screen.findByText('NOT FOUND')).toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toHaveTextContent('SEARCH ERROR')
     expect(screen.queryByText('SELF ADD CTA')).not.toBeInTheDocument()
+  })
+
+  it('shows a field error for an empty search instead of the no-match message', () => {
+    render(<FindYourInvitationForm goNext={jest.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'FIND INVITATION' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('ENTER A FULL NAME')
+    expect(screen.queryByText('NO MATCH')).not.toBeInTheDocument()
+    expect(mockRefetch).not.toHaveBeenCalled()
   })
 
   const openSelfAddForm = async () => {
@@ -142,6 +156,13 @@ describe('FindYourInvitationForm self-add', () => {
     fireEvent.click(screen.getByRole('button', { name: 'FIND INVITATION' }))
     fireEvent.click(await screen.findByText('SELF ADD CTA'))
   }
+
+  it('removes the no-match message when the self-add form opens', async () => {
+    await openSelfAddForm()
+
+    expect(screen.queryByText('NO MATCH')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Self add full name')).toBeInTheDocument()
+  })
 
   it('submits the trimmed values and hard-navigates to the invite link on success', async () => {
     await openSelfAddForm()
@@ -163,9 +184,7 @@ describe('FindYourInvitationForm self-add', () => {
 
     act(() => capturedOnSuccess?.({ kind: 'created', inviteCode: 'abc123' }))
 
-    expect(mockAssign).toHaveBeenCalledWith(
-      '/w/the-wedding/save-the-date/abc123'
-    )
+    expect(mockAssign).toHaveBeenCalledWith('/w/the-wedding/save-the-date/abc123')
   })
 
   it('navigates to the existing invite code and notes the guest is already listed', async () => {
@@ -181,9 +200,7 @@ describe('FindYourInvitationForm self-add', () => {
 
     act(() => capturedOnSuccess?.({ kind: 'already_listed', inviteCode: 'existing-code' }))
 
-    expect(mockAssign).toHaveBeenCalledWith(
-      '/w/the-wedding/save-the-date/existing-code'
-    )
+    expect(mockAssign).toHaveBeenCalledWith('/w/the-wedding/save-the-date/existing-code')
     expect(screen.getByText('ALREADY LISTED')).toBeInTheDocument()
   })
 
@@ -210,9 +227,7 @@ describe('FindYourInvitationForm self-add', () => {
       })
     )
 
-    expect(
-      await screen.findByText('הזינו מספר טלפון נייד ישראלי תקין')
-    ).toBeInTheDocument()
+    expect(await screen.findByText('הזינו מספר טלפון נייד ישראלי תקין')).toBeInTheDocument()
     expect(mockAssign).not.toHaveBeenCalled()
     // A network/validation failure must not lose what the guest already typed.
     expect(screen.getByPlaceholderText('Self add full name')).toHaveValue('Dana Levi')
