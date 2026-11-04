@@ -179,6 +179,16 @@ export class HouseholdRepository {
             },
           },
         },
+        rsvpSubmissions: {
+          orderBy: { submittedAt: 'desc' },
+          take: 1,
+          select: {
+            submittedAt: true,
+            source: true,
+            attendingCount: true,
+            childrenCount: true,
+          },
+        },
       },
     })
   }
@@ -216,6 +226,16 @@ export class HouseholdRepository {
             event: {
               select: { name: true },
             },
+          },
+        },
+        rsvpSubmissions: {
+          orderBy: { submittedAt: 'desc' },
+          take: 1,
+          select: {
+            submittedAt: true,
+            source: true,
+            attendingCount: true,
+            childrenCount: true,
           },
         },
       },

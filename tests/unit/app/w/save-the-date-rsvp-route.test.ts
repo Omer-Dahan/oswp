@@ -97,13 +97,22 @@ describe('POST /w/[websiteSubUrl]/save-the-date/rsvp', () => {
     expect(res.headers.get('location')).toBe(
       '/w/guests/save-the-date?rsvp=attending&event=wedding-event'
     )
-    expect(mockSubmitRsvp).toHaveBeenCalledWith({
-      rsvpResponses: [
-        { eventId: 'wedding-event', guestId: 1, rsvp: 'Attending' },
-        { eventId: 'wedding-event', guestId: 2, rsvp: 'Attending' },
-      ],
-      answersToQuestions: [],
-    })
+    const rsvpResponses = [
+      { eventId: 'wedding-event', guestId: 1, rsvp: 'Attending' },
+      { eventId: 'wedding-event', guestId: 2, rsvp: 'Attending' },
+    ]
+    expect(mockSubmitRsvp).toHaveBeenCalledWith(
+      {
+        rsvpResponses,
+        answersToQuestions: [],
+      },
+      undefined,
+      {
+        source: 'site',
+        householdId: 'household-1',
+        rawPayload: { rsvpResponses, answersToQuestions: [] },
+      }
+    )
   })
 
   it('is idempotent: submitting the same attend action twice sends the same update both times', async () => {
@@ -125,14 +134,23 @@ describe('POST /w/[websiteSubUrl]/save-the-date/rsvp', () => {
 
     expect(res.status).toBe(303)
     expect(res.headers.get('location')).toBe('/w/guests/save-the-date?rsvp=declined')
-    expect(mockSubmitRsvp).toHaveBeenCalledWith({
-      rsvpResponses: [
-        { eventId: 'wedding-event', guestId: 1, rsvp: 'Declined' },
-        { eventId: 'chuppah-event', guestId: 1, rsvp: 'Declined' },
-        { eventId: 'wedding-event', guestId: 2, rsvp: 'Declined' },
-      ],
-      answersToQuestions: [],
-    })
+    const rsvpResponses = [
+      { eventId: 'wedding-event', guestId: 1, rsvp: 'Declined' },
+      { eventId: 'chuppah-event', guestId: 1, rsvp: 'Declined' },
+      { eventId: 'wedding-event', guestId: 2, rsvp: 'Declined' },
+    ]
+    expect(mockSubmitRsvp).toHaveBeenCalledWith(
+      {
+        rsvpResponses,
+        answersToQuestions: [],
+      },
+      undefined,
+      {
+        source: 'site',
+        householdId: 'household-1',
+        rawPayload: { rsvpResponses, answersToQuestions: [] },
+      }
+    )
   })
 
   it('redirects to the invalid invite state without writing when the household cannot be resolved', async () => {

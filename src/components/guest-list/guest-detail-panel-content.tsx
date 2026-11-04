@@ -855,24 +855,47 @@ function RsvpPartyDetailsSection({
   selectedHousehold,
 }: Readonly<{ selectedHousehold: HouseholdWithGuests }>) {
   const { attendingCount, childrenCount, dietaryNotes, wishesMessage } = selectedHousehold
+  const latestSubmission = selectedHousehold.rsvpSubmissions?.[0]
+  const declaredAttendingCount = latestSubmission?.attendingCount ?? attendingCount
+  const declaredChildrenCount = latestSubmission?.childrenCount ?? childrenCount
 
-  if (attendingCount == null && childrenCount == null && !dietaryNotes && !wishesMessage) {
+  if (
+    attendingCount == null &&
+    childrenCount == null &&
+    !dietaryNotes &&
+    !wishesMessage &&
+    !latestSubmission
+  ) {
     return null
   }
 
   return (
     <GuestDetailSection title='מה האורח דיווח באישור ההגעה'>
       <dl className='flex flex-col gap-2 text-sm'>
-        {attendingCount != null && (
+        {latestSubmission && (
           <div className='flex justify-between gap-4'>
-            <dt className='text-foreground/60'>סה"כ מגיעים</dt>
-            <dd className='text-foreground/85'>{attendingCount}</dd>
+            <dt className='text-foreground/60'>דיווח אחרון</dt>
+            <dd className='text-end font-mono text-[0.68rem] text-foreground/85'>
+              {new Intl.DateTimeFormat('he-IL', {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              }).format(latestSubmission.submittedAt)}
+              <span className='ms-1 text-foreground/55'>
+                ({latestSubmission.source === 'site' ? 'אתר' : 'ניהול'})
+              </span>
+            </dd>
           </div>
         )}
-        {childrenCount != null && (
+        {declaredAttendingCount != null && (
+          <div className='flex justify-between gap-4'>
+            <dt className='text-foreground/60'>סה"כ מגיעים</dt>
+            <dd className='text-foreground/85'>{declaredAttendingCount}</dd>
+          </div>
+        )}
+        {declaredChildrenCount != null && (
           <div className='flex justify-between gap-4'>
             <dt className='text-foreground/60'>ילדים</dt>
-            <dd className='text-foreground/85'>{childrenCount}</dd>
+            <dd className='text-foreground/85'>{declaredChildrenCount}</dd>
           </div>
         )}
         {dietaryNotes && (

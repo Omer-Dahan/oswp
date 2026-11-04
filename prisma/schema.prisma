@@ -36,6 +36,7 @@ model Wedding {
   households  Household[]
   invitations Invitation[]
   guestTags   GuestTag[]
+  rsvpSubmissions RsvpSubmission[]
 
   // Seating chart
   seatingTables SeatingTable[]
@@ -378,11 +379,35 @@ model Household {
   whatsAppOutbound WhatsAppOutbound[] @relation(name: "Household_WhatsAppOutbound")
   whatsAppInbound  WhatsAppInbound[]  @relation(name: "Household_WhatsAppInbound")
   smsOutbound      SmsOutbound[]      @relation(name: "Household_SmsOutbound")
+  rsvpSubmissions  RsvpSubmission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([weddingId])
+}
+
+enum RsvpSubmissionSource {
+  site
+  admin
+}
+
+model RsvpSubmission {
+  id                 String               @id @default(uuid())
+  weddingId          String
+  wedding            Wedding              @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  householdId        String
+  household          Household            @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  submittedAt        DateTime             @default(now())
+  source             RsvpSubmissionSource
+  attendingCount     Int?                 @map("attending_count")
+  childrenCount      Int?                 @map("children_count")
+  namedAttendeeNames String[]             @default([]) @map("named_attendee_names")
+  rawPayload         Json?                @map("raw_payload")
+
+  @@index([weddingId, submittedAt])
+  @@index([householdId, submittedAt])
+  @@map("rsvp_submission")
 }
 
 // NOTE: Contact info (email, phone) lives on Guest, not Household

@@ -50,7 +50,11 @@ export async function POST(request: Request, { params }: HouseholdRsvpRouteProps
     )
 
     if (rsvpResponses.length > 0) {
-      await rsvpSubmissionService.submitRsvp({ rsvpResponses, answersToQuestions: [] })
+      await rsvpSubmissionService.submitRsvp({ rsvpResponses, answersToQuestions: [] }, undefined, {
+        source: 'site',
+        householdId: household.id,
+        rawPayload: { rsvpResponses, answersToQuestions: [] },
+      })
     }
 
     return redirectTo(`/w/${websiteSubUrl}/save-the-date?rsvp=declined`)
@@ -68,7 +72,11 @@ export async function POST(request: Request, { params }: HouseholdRsvpRouteProps
     )
 
     if (rsvpResponses.length > 0) {
-      await rsvpSubmissionService.submitRsvp({ rsvpResponses, answersToQuestions: [] })
+      await rsvpSubmissionService.submitRsvp({ rsvpResponses, answersToQuestions: [] }, undefined, {
+        source: 'site',
+        householdId: household.id,
+        rawPayload: { rsvpResponses, answersToQuestions: [] },
+      })
     }
 
     return redirectTo(`/w/${websiteSubUrl}/save-the-date?rsvp=attending&event=${eventId}`)

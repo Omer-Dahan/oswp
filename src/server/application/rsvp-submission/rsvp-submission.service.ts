@@ -12,6 +12,7 @@
 import type { PrismaClient } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { logger } from '~/lib/observability/logger'
+import { deriveRsvpCounts } from '~/server/application/rsvp-submission/rsvp-counts'
 import type {
   SubmitPublicRsvpSchemaInput,
   SubmitRsvpSchemaInput,
@@ -29,6 +30,21 @@ import { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 type RsvpResponse = SubmitRsvpSchemaInput['rsvpResponses'][number]
 type AnswerToQuestion = SubmitRsvpSchemaInput['answersToQuestions'][number]
 type PublicRsvpResponse = SubmitPublicRsvpSchemaInput['rsvpResponses'][number]
+type SubmissionSource = 'site' | 'admin'
+
+type SubmissionRecord = {
+  source: SubmissionSource
+  householdId?: string
+  weddingId?: string
+  rawPayload: Record<string, unknown>
+}
+
+type SubmissionResult = {
+  success: boolean
+  attendingCount: number | null
+  childrenCount: number | null
+  submittedAt: Date
+}
 
 /** Extract the caller's IP from standard proxy headers, for rate limiting only. */
 export function getClientIp(headers: Headers): string {
@@ -76,13 +92,20 @@ export class RsvpSubmissionService {
   ): Promise<{ success: boolean }> {
     requirePermission(ctx, { rsvp: ['edit_response'] })
     await this.ensureSubmissionBelongsToWedding(weddingId, data)
-    return this.submitRsvp(data)
+    return this.submitRsvp(data, undefined, {
+      source: 'admin',
+      weddingId,
+      rawPayload: {
+        rsvpResponses: data.rsvpResponses,
+        answersToQuestions: data.answersToQuestions,
+      },
+    })
   }
 
   async submitPublicRsvp(
     data: SubmitPublicRsvpSchemaInput,
     clientIp: string
-  ): Promise<{ success: boolean; partialHouseholdCoverage?: boolean }> {
+  ): Promise<SubmissionResult & { partialHouseholdCoverage?: boolean }> {
     const allowed = await this.rateLimiter.check(`rsvp:${clientIp}:${data.subUrl}`)
     if (!allowed) {
       throw new TRPCError({
@@ -135,6 +158,20 @@ export class RsvpSubmissionService {
         wishesMessage: data.wishesMessage,
         weddingId,
         extraGuestNames: data.extraGuestNames,
+      },
+      {
+        source: 'site',
+        householdId: data.householdId,
+        weddingId,
+        rawPayload: {
+          rsvpResponses: allowedRsvpResponses,
+          answersToQuestions: data.answersToQuestions,
+          attendingCount: data.attendingCount ?? null,
+          childrenCount: data.childrenCount ?? null,
+          dietaryNotes: data.dietaryNotes ?? null,
+          wishesMessage: data.wishesMessage ?? null,
+          extraGuestNames: data.extraGuestNames ?? [],
+        },
       }
     )
 
@@ -212,18 +249,27 @@ export class RsvpSubmissionService {
       wishesMessage?: string | null
       weddingId?: string
       extraGuestNames?: string[]
-    }
-  ): Promise<{ success: boolean }> {
-    await this.db.$transaction(async (tx) => {
+    },
+    submission?: SubmissionRecord
+  ): Promise<SubmissionResult> {
+    return this.db.$transaction(async (tx) => {
       const txInvitationRepo = new InvitationRepository(tx)
       const txQuestionRepo = new QuestionRepository(tx)
       const txHouseholdRepo = new HouseholdRepository(tx)
       const txGuestRepo = new GuestRepository(tx)
+      const submittedAt = new Date()
+
+      const attendeeCounts = deriveRsvpCounts({
+        responses: data.rsvpResponses,
+        attendingCount: householdPartyDetails?.attendingCount,
+        childrenCount: householdPartyDetails?.childrenCount,
+        extraGuestNames: householdPartyDetails?.extraGuestNames,
+      })
 
       for (const response of data.rsvpResponses as RsvpResponse[]) {
         await txInvitationRepo.update(response.guestId, response.eventId, {
           rsvp: response.rsvp,
-          submittedAt: new Date(),
+          submittedAt,
         })
       }
 
@@ -237,8 +283,8 @@ export class RsvpSubmissionService {
 
       if (householdPartyDetails) {
         await txHouseholdRepo.updateRsvpPartyDetails(householdPartyDetails.householdId, {
-          attendingCount: householdPartyDetails.attendingCount,
-          childrenCount: householdPartyDetails.childrenCount,
+          attendingCount: attendeeCounts.attendingCount,
+          childrenCount: attendeeCounts.childrenCount,
           dietaryNotes: preserveExistingWhenBlank(householdPartyDetails.dietaryNotes),
           wishesMessage: preserveExistingWhenBlank(householdPartyDetails.wishesMessage),
         })
@@ -292,9 +338,67 @@ export class RsvpSubmissionService {
           )
         }
       }
-    })
 
-    return { success: true }
+      if (submission) {
+        const submittedGuests = await tx.guest.findMany({
+          where: {
+            id: { in: Array.from(new Set(data.rsvpResponses.map(({ guestId }) => guestId))) },
+          },
+          select: { id: true, weddingId: true, householdId: true, firstName: true, lastName: true },
+        })
+        const householdIds = new Set([
+          ...submittedGuests.map(({ householdId }) => householdId),
+          ...data.answersToQuestions.flatMap((answer) =>
+            answer.householdId && answer.householdId !== '-1' ? [answer.householdId] : []
+          ),
+        ])
+        const weddingIds = new Set(submittedGuests.map(({ weddingId }) => weddingId))
+        const householdId = submission.householdId ?? Array.from(householdIds)[0]
+        const weddingId = submission.weddingId ?? Array.from(weddingIds)[0]
+
+        if (!householdId || !weddingId || householdIds.size > 1 || weddingIds.size > 1) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'An RSVP submission must belong to exactly one household and wedding',
+          })
+        }
+
+        if (!householdPartyDetails && data.rsvpResponses.length > 0) {
+          await txHouseholdRepo.updateRsvpPartyDetails(householdId, {
+            attendingCount: attendeeCounts.attendingCount,
+            childrenCount: attendeeCounts.childrenCount,
+            dietaryNotes: undefined,
+            wishesMessage: undefined,
+          })
+        }
+
+        const attendeeIdSet = new Set(attendeeCounts.namedAttendeeIds)
+        const namedAttendeeNames = submittedGuests
+          .filter(({ id }) => attendeeIdSet.has(id))
+          .map(({ firstName, lastName }) => `${firstName} ${lastName}`.trim())
+          .concat(householdPartyDetails?.extraGuestNames ?? [])
+
+        await tx.rsvpSubmission.create({
+          data: {
+            weddingId,
+            householdId,
+            submittedAt,
+            source: submission.source,
+            attendingCount: attendeeCounts.attendingCount,
+            childrenCount: attendeeCounts.childrenCount,
+            namedAttendeeNames,
+            rawPayload: JSON.parse(JSON.stringify(submission.rawPayload)),
+          },
+        })
+      }
+
+      return {
+        success: true,
+        attendingCount: attendeeCounts.attendingCount,
+        childrenCount: attendeeCounts.childrenCount,
+        submittedAt,
+      }
+    })
   }
 
   private async processOptionAnswer(

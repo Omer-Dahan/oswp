@@ -54,22 +54,38 @@ import {
 
 const mockRequirePermission = requirePermission as jest.Mock
 
-const createMockDb = () => ({
-  $transaction: jest.fn().mockImplementation(async (fn: (tx: unknown) => unknown) => {
-    return fn({ __tx: true })
-  }),
-  website: {
-    findFirst: jest.fn().mockResolvedValue({ weddingId: 'wedding-123', isRsvpEnabled: true }),
-  },
-  invitation: {
-    findMany: jest.fn().mockResolvedValue([]),
-  },
-  rateLimitBucket: {
-    findUnique: jest.fn().mockResolvedValue(null),
-    upsert: jest.fn().mockResolvedValue({ count: 1 }),
-    update: jest.fn().mockResolvedValue({ count: 1 }),
-  },
-})
+const createMockDb = () => {
+  const db = {
+    $transaction: jest.fn(),
+    website: {
+      findFirst: jest.fn().mockResolvedValue({ weddingId: 'wedding-123', isRsvpEnabled: true }),
+    },
+    invitation: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    guest: {
+      findMany: jest.fn().mockResolvedValue([
+        {
+          id: 1,
+          weddingId: 'wedding-123',
+          householdId: 'household-123',
+          firstName: 'Ari',
+          lastName: 'Cohen',
+        },
+      ]),
+    },
+    rsvpSubmission: {
+      create: jest.fn().mockResolvedValue({ id: 'submission-123' }),
+    },
+    rateLimitBucket: {
+      findUnique: jest.fn().mockResolvedValue(null),
+      upsert: jest.fn().mockResolvedValue({ count: 1 }),
+      update: jest.fn().mockResolvedValue({ count: 1 }),
+    },
+  }
+  db.$transaction.mockImplementation(async (fn: (tx: typeof db) => unknown) => fn(db))
+  return db
+}
 
 describe('RsvpSubmissionService', () => {
   let service: RsvpSubmissionService
@@ -163,7 +179,12 @@ describe('RsvpSubmissionService', () => {
       ],
     })
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual({
+      success: true,
+      attendingCount: 1,
+      childrenCount: 0,
+      submittedAt: expect.any(Date),
+    })
     expect(mockDb.$transaction).toHaveBeenCalledTimes(1)
     expect(mockUpdate).toHaveBeenCalledWith(1, 'event-123', {
       rsvp: 'Attending',
@@ -315,7 +336,12 @@ describe('RsvpSubmissionService', () => {
       }
     )
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual({
+      success: true,
+      attendingCount: 4,
+      childrenCount: 2,
+      submittedAt: expect.any(Date),
+    })
     expect(mockUpdate).toHaveBeenCalledWith(1, 'event-123', {
       rsvp: 'Attending',
       submittedAt: expect.any(Date),
@@ -328,6 +354,7 @@ describe('RsvpSubmissionService', () => {
       attendingCount: 4,
       childrenCount: 2,
       dietaryNotes: 'No nuts for guest 1',
+      wishesMessage: undefined,
     })
   })
 
@@ -349,14 +376,14 @@ describe('RsvpSubmissionService', () => {
     // stored value; only an explicit `null` clears it. See
     // preserveExistingWhenBlank in rsvp-submission.service.ts.
     expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
-      attendingCount: undefined,
-      childrenCount: undefined,
+      attendingCount: 1,
+      childrenCount: 0,
       dietaryNotes: undefined,
       wishesMessage: null,
     })
   })
 
-  it('preserves meal counts when a chuppah-only submission omits them', async () => {
+  it('derives safe counts when an attending submission omits them', async () => {
     await service.submitPublicRsvp(
       {
         subUrl: 'ash-and-jamie',
@@ -369,10 +396,115 @@ describe('RsvpSubmissionService', () => {
     )
 
     expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
-      attendingCount: undefined,
-      childrenCount: undefined,
+      attendingCount: 1,
+      childrenCount: 0,
       dietaryNotes: undefined,
       wishesMessage: 'See you there',
+    })
+  })
+
+  it('writes one site submission record with the persisted counts and source', async () => {
+    const result = await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+      },
+      '127.0.0.1'
+    )
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        attendingCount: 1,
+        childrenCount: 0,
+        submittedAt: expect.any(Date),
+      })
+    )
+    expect(mockDb.rsvpSubmission.create).toHaveBeenCalledTimes(1)
+    expect(mockDb.rsvpSubmission.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        weddingId: 'wedding-123',
+        householdId: 'household-123',
+        source: 'site',
+        attendingCount: 1,
+        childrenCount: 0,
+        namedAttendeeNames: ['Ari Cohen'],
+      }),
+    })
+  })
+
+  it('persists two when two named guests are attending', async () => {
+    mockCountByIdsInHousehold.mockResolvedValue(2)
+    mockCountByWeddingAndGuestEventPairs.mockResolvedValue(2)
+    mockDb.guest.findMany.mockResolvedValue([
+      {
+        id: 1,
+        weddingId: 'wedding-123',
+        householdId: 'household-123',
+        firstName: 'Ari',
+        lastName: 'Cohen',
+      },
+      {
+        id: 2,
+        weddingId: 'wedding-123',
+        householdId: 'household-123',
+        firstName: 'Noa',
+        lastName: 'Cohen',
+      },
+    ])
+
+    const result = await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [
+          { eventId: 'event-123', guestId: 1, rsvp: 'Attending' },
+          { eventId: 'event-123', guestId: 2, rsvp: 'Attending' },
+        ],
+        answersToQuestions: [],
+      },
+      '127.0.0.1'
+    )
+
+    expect(result).toEqual(expect.objectContaining({ attendingCount: 2, childrenCount: 0 }))
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({ attendingCount: 2, childrenCount: 0 })
+    )
+  })
+
+  it('stores no counts for a declined household or its submission record', async () => {
+    await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Declined' }],
+        answersToQuestions: [],
+        attendingCount: 0,
+        childrenCount: 0,
+      },
+      '127.0.0.1'
+    )
+
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({ attendingCount: null, childrenCount: null })
+    )
+    expect(mockDb.rsvpSubmission.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ attendingCount: null, childrenCount: null, source: 'site' }),
+    })
+  })
+
+  it('records the admin source for managed submissions', async () => {
+    await service.submitManagedRsvp(actorContext, 'wedding-123', {
+      rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
+      answersToQuestions: [],
+    })
+
+    expect(mockDb.rsvpSubmission.create).toHaveBeenCalledTimes(1)
+    expect(mockDb.rsvpSubmission.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ source: 'admin' }),
     })
   })
 
@@ -392,7 +524,7 @@ describe('RsvpSubmissionService', () => {
       answersToQuestions: [],
     })
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual(expect.objectContaining({ success: true }))
     expect(mockDb.website.findFirst).toHaveBeenCalledWith({
       where: { subUrl: 'ash-and-jamie' },
       select: { weddingId: true, isRsvpEnabled: true },
@@ -411,7 +543,7 @@ describe('RsvpSubmissionService', () => {
       answersToQuestions: [],
     })
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual(expect.objectContaining({ success: true }))
     expect(mockFindWeddingIdByValidTokenAndSubUrl).toHaveBeenCalledWith(
       'ash-and-jamie',
       'a'.repeat(32)
@@ -443,7 +575,9 @@ describe('RsvpSubmissionService', () => {
       '127.0.0.1'
     )
 
-    expect(result).toEqual({ success: true, partialHouseholdCoverage: true })
+    expect(result).toEqual(
+      expect.objectContaining({ success: true, partialHouseholdCoverage: true })
+    )
     expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith('household-123', {
       attendingCount: 2,
       childrenCount: 1,
@@ -470,7 +604,7 @@ describe('RsvpSubmissionService', () => {
       '127.0.0.1'
     )
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual(expect.objectContaining({ success: true }))
     expect(mockReplaceTagAlongs).toHaveBeenCalledWith(
       'household-123',
       'wedding-123',
@@ -493,7 +627,7 @@ describe('RsvpSubmissionService', () => {
       '127.0.0.1'
     )
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual(expect.objectContaining({ success: true }))
     expect(mockReplaceTagAlongs).toHaveBeenCalledWith(
       'household-123',
       'wedding-123',

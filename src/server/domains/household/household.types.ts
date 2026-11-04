@@ -59,6 +59,12 @@ export type HouseholdWithGuests = Household & {
 export type HouseholdWithGuestsAndGifts = Household & {
   guests: GuestWithInvitations[]
   gifts: Array<Gift & { event: { name: string } }>
+  rsvpSubmissions?: Array<{
+    submittedAt: Date
+    source: 'site' | 'admin'
+    attendingCount: number | null
+    childrenCount: number | null
+  }>
 }
 
 /**

@@ -107,8 +107,12 @@ export default function MainRsvpForm({
   }, [updateRsvpForm, weddingData])
 
   const submitRsvpForm = api.website.submitPublicRsvpForm.useMutation({
-    onSuccess: () => {
+    onSuccess: (submission) => {
       setSubmitError(null)
+      updateRsvpForm({
+        attendingCount: submission.attendingCount ?? undefined,
+        childrenCount: submission.childrenCount ?? undefined,
+      })
       setCurrentStep((prev) => prev + 1)
     },
     onError: (err) => {
