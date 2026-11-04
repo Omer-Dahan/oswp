@@ -128,7 +128,7 @@ function GuestCardComponent({
       ? `${household.attendingCount} מגיעים בפועל`
       : household.invitedCount != null
         ? `${household.invitedCount} מוזמנים`
-        : `${guestCount ?? 0} רשומים`
+        : `${guestCount ?? 0} ${(guestCount ?? 0) === 1 ? 'רשום' : 'רשומים'}`
 
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)

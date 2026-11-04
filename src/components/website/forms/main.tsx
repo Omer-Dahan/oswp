@@ -104,7 +104,6 @@ export default function MainRsvpForm({
   const [submitError, setSubmitError] = useState<string | null>(null)
   useEffect(() => {
     updateRsvpForm({ weddingData })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateRsvpForm, weddingData])
 
   const submitRsvpForm = api.website.submitPublicRsvpForm.useMutation({

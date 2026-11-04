@@ -64,7 +64,21 @@ describe('GuestCard party count', () => {
       />
     )
 
-    expect(screen.getByText('1 רשומים')).toBeInTheDocument()
+    expect(screen.getByText('1 רשום')).toBeInTheDocument()
+  })
+
+  it('uses the plural label for multiple named rows', () => {
+    render(
+      <GuestCard
+        household={{
+          ...baseHousehold,
+          guests: [baseHousehold.guests[0]!, { ...baseHousehold.guests[0]!, id: 2 }],
+        }}
+        onSelectHousehold={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('2 רשומים')).toBeInTheDocument()
   })
 
   it('renders the imported invitedCount when it is a positive number', () => {

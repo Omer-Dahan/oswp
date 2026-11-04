@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, type ReactNode, useContext, useState } from 'react'
+import { createContext, type ReactNode, useCallback, useContext, useState } from 'react'
 
 import type {
   Guest,
@@ -132,11 +132,17 @@ export const RsvpFormProvider = ({
     ...(declineIntent ? { declineIntent } : null),
   }))
 
-  const updateFields = (fields: Partial<RsvpFormState>) => {
+  const updateFields = useCallback((fields: Partial<RsvpFormState>) => {
     setRsvpFormData((prev) => {
+      const hasChanges = (Object.keys(fields) as Array<keyof RsvpFormState>).some(
+        (key) => !Object.is(prev[key], fields[key])
+      )
+
+      if (!hasChanges) return prev
+
       return { ...prev, ...fields }
     })
-  }
+  }, [])
 
   return (
     <RsvpFormContext.Provider value={rsvpFormData}>
