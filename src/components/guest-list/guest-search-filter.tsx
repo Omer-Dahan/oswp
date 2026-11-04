@@ -17,6 +17,9 @@ type TSelectedRsvpFilter = {
 
 const NO_SIDE_FILTER_KEY = '__no_side__'
 
+const householdsCountLabel = (count: number) =>
+  `סה״כ ${count} ${count === 1 ? 'משק בית' : 'משקי בית'}`
+
 type GuestSearchFilterProps = {
   households: HouseholdWithGuests[]
   setFilteredHouseholds: Dispatch<SetStateAction<HouseholdWithGuests[]>>
@@ -383,7 +386,7 @@ export default function GuestSearchFilter({
                       onClick={() => filterHouseholdsByTag(tag.id)}
                     >
                       <span>
-                        {tag.name} ({availableTagCounts.get(tag.id) ?? 0})
+                        {tag.name} ({householdsCountLabel(availableTagCounts.get(tag.id) ?? 0)})
                       </span>
                       {selectedTagFilter === tag.id && (
                         <IoMdCheckmark size={16} className='text-primary' />
@@ -421,7 +424,7 @@ export default function GuestSearchFilter({
                       onClick={() => filterHouseholdsBySide(side.key)}
                     >
                       <span>
-                        {side.label} ({side.count})
+                        {side.label} ({householdsCountLabel(side.count)})
                       </span>
                       {selectedSideFilter === side.key && (
                         <IoMdCheckmark size={16} className='text-primary' />
@@ -459,7 +462,7 @@ export default function GuestSearchFilter({
                       onClick={() => filterHouseholdsByGroup(group.key)}
                     >
                       <span>
-                        {group.label} ({group.count})
+                        {group.label} ({householdsCountLabel(group.count)})
                       </span>
                       {selectedGroupFilter === group.key && (
                         <IoMdCheckmark size={16} className='text-primary' />

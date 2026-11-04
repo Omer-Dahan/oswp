@@ -45,6 +45,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useWorkspace } from '~/hooks/use-workspace'
+import { deriveGuestListCounts } from '~/lib/guest-list-counts'
 import { getHouseholdPartySize } from '~/lib/household-party-size'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
@@ -123,22 +124,23 @@ export default function GuestsView({
   })
   const initializedDrawerHouseholdIdRef = useRef<string | undefined>(undefined)
 
-  const { totalGuests, totalTagAlongs } = useMemo(() => {
-    let guests = 0
+  const { filteredCounts, totalTagAlongs } = useMemo(() => {
     let tagAlongs = 0
     for (const household of filteredHouseholds ?? []) {
-      guests += partySize(household) ?? 0
       for (const guest of household.guests) {
         if (guest.isTagAlong) tagAlongs += 1
       }
     }
-    return { totalGuests: guests, totalTagAlongs: tagAlongs }
-  }, [filteredHouseholds])
+    return {
+      filteredCounts: deriveGuestListCounts(
+        filteredHouseholds,
+        selectedEventId === 'all' ? undefined : selectedEventId
+      ),
+      totalTagAlongs: tagAlongs,
+    }
+  }, [filteredHouseholds, selectedEventId])
 
-  const totalUnfilteredGuests = useMemo(
-    () => baseHouseholds.reduce((sum, household) => sum + (partySize(household) ?? 0), 0),
-    [baseHouseholds]
-  )
+  const unfilteredCounts = useMemo(() => deriveGuestListCounts(baseHouseholds), [baseHouseholds])
 
   useEffect(() => {
     setBaseHouseholds(households)
@@ -704,14 +706,13 @@ export default function GuestsView({
       {selectedEventId === 'all' ? (
         <DefaultTableHeader
           households={filteredHouseholds}
-          totalGuests={totalGuests}
+          totalGuests={filteredCounts.guests}
           totalTagAlongs={totalTagAlongs}
           numEvents={events.length}
         />
       ) : (
         <SelectedEventTableHeader
-          totalGuests={totalGuests}
-          households={filteredHouseholds}
+          counts={filteredCounts}
           selectedEvent={selectedEvent}
           setPrefillEvent={setPrefillEvent}
         />
@@ -752,8 +753,8 @@ export default function GuestsView({
         <ListToolbar
           totalHouseholds={sortedHouseholds.length}
           totalUnfilteredHouseholds={baseHouseholds.length}
-          totalGuests={totalGuests}
-          totalUnfilteredGuests={totalUnfilteredGuests}
+          totalGuests={filteredCounts.guests}
+          totalUnfilteredGuests={unfilteredCounts.guests}
           onSortByName={sortByName}
           onSortByPartySize={sortByParty}
           viewMode={viewMode}
@@ -1024,50 +1025,17 @@ const DefaultTableHeader = ({
 }
 
 type SelectedEventTableHeaderProps = {
-  totalGuests: number
-  households: HouseholdWithGuests[]
+  counts: ReturnType<typeof deriveGuestListCounts>
   selectedEvent: Event | undefined
   setPrefillEvent: Dispatch<SetStateAction<EventFormData | undefined>>
 }
 
 const SelectedEventTableHeader = ({
-  totalGuests,
-  households,
+  counts,
   selectedEvent,
   setPrefillEvent,
 }: SelectedEventTableHeaderProps) => {
   const toggleEventForm = useToggleEventForm()
-  const guestResponses = useMemo(() => {
-    const guestResponses = {
-      attending: 0,
-      declined: 0,
-      noResponse: 0,
-    }
-
-    households.forEach((household) => {
-      household.guests.forEach((guest) => {
-        if (!guest.invitations) return
-        const matchingInvitation = guest.invitations.find(
-          (inv) => inv.eventId === selectedEvent?.id
-        )
-        if (!matchingInvitation) return
-        switch (matchingInvitation.rsvp) {
-          case 'Attending':
-            guestResponses.attending += 1
-            break
-          case 'Declined':
-            guestResponses.declined += 1
-            break
-          default:
-            guestResponses.noResponse += 1
-            break
-        }
-      })
-    })
-
-    return guestResponses
-  }, [households, selectedEvent])
-
   if (selectedEvent === undefined) return null
 
   const handleEditEvent = (event: Event) => {
@@ -1101,26 +1069,26 @@ const SelectedEventTableHeader = ({
         </button>
       </div>
       <div className='flex flex-wrap items-center gap-4 md:gap-6'>
-        <span className='font-semibold text-foreground'>{totalGuests} אורחים הוזמנו:</span>
+        <span className='font-semibold text-foreground'>{counts.guests} אורחים הוזמנו:</span>
         <div className='flex items-center gap-1.5'>
           <span className='h-1.5 w-1.5 rounded-full bg-success' />
-          <span className='font-medium'>{guestResponses.attending}</span>
+          <span className='font-medium'>{counts.attending}</span>
           <span className='font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-            מגיעים
+            אורחים מגיעים
           </span>
         </div>
         <div className='flex items-center gap-1.5'>
           <span className='h-1.5 w-1.5 rounded-full bg-destructive' />
-          <span className='font-medium'>{guestResponses.declined}</span>
+          <span className='font-medium'>{counts.declined}</span>
           <span className='font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-            לא מגיעים
+            אורחים לא מגיעים
           </span>
         </div>
         <div className='flex items-center gap-1.5'>
           <span className='h-1.5 w-1.5 rounded-full bg-muted-foreground' />
-          <span className='font-medium'>{guestResponses.noResponse}</span>
+          <span className='font-medium'>{counts.noResponse}</span>
           <span className='font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-            אין תגובה
+            אורחים ללא מענה
           </span>
         </div>
       </div>

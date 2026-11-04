@@ -565,6 +565,42 @@ describe('GuestsView', () => {
     ).toBeInTheDocument()
   })
 
+  it('keeps filtered event statuses in the same guest population as the headline', () => {
+    const filteredCountHouseholds: HouseholdWithGuests[] = [
+      {
+        ...households[0],
+        side: 'חתן',
+        invitedCount: 2,
+        attendingCount: 1,
+      },
+      {
+        ...householdsWithSecondFamily[1],
+        side: 'כלה',
+        invitedCount: 4,
+        attendingCount: 3,
+      },
+    ]
+
+    render(
+      <GuestsView
+        events={events}
+        households={filteredCountHouseholds}
+        selectedEventId='event-1'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    fireEvent.click(screen.getByText('כלה (סה״כ 1 משק בית)'))
+
+    const eventCounts = screen.getByText('4 אורחים הוזמנו:').parentElement
+    expect(eventCounts).toHaveTextContent('3אורחים מגיעים')
+    expect(eventCounts).toHaveTextContent('0אורחים לא מגיעים')
+    expect(eventCounts).toHaveTextContent('1אורחים ללא מענה')
+  })
+
   it('should switch to person audit mode and show table headings', () => {
     render(
       <GuestsView

@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { useState } from 'react'
 
 import GuestSearchFilter from '~/components/guest-list/guest-search-filter'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
@@ -95,7 +95,7 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    const option = screen.getByText('ללא צד (3)')
+    const option = screen.getByText('ללא צד (סה״כ 3 משקי בית)')
     fireEvent.click(option)
 
     const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
@@ -110,7 +110,7 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('חתן (1)'))
+    fireEvent.click(screen.getByText('חתן (סה״כ 1 משק בית)'))
 
     const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
     expect(listItems.map((li) => li.textContent)).toEqual(['side-groom'])
@@ -120,7 +120,7 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('ללא צד (3)'))
+    fireEvent.click(screen.getByText('ללא צד (סה״כ 3 משקי בית)'))
 
     fireEvent.click(screen.getByText(/^צד: ללא צד/))
 
