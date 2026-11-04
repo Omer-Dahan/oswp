@@ -6,8 +6,16 @@ export const sendSmsSchema = z.object({
   confirmCrossSide: z.boolean().optional(),
 })
 
+const templateSideSchema = z.enum(['חתן', 'כלה']).nullable()
+
+export const getSmsTemplateSchema = z.object({
+  side: templateSideSchema,
+})
+
 export const setSmsTemplateSchema = z.object({
+  side: templateSideSchema,
   template: z.string().max(5000, 'נוסח ההודעה ארוך מדי').nullable(),
+  signature: z.string().trim().max(200, 'החתימה ארוכה מדי').nullable(),
 })
 
 export const getInviteMessageSchema = z.object({

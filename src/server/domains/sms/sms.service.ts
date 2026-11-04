@@ -197,19 +197,45 @@ export class SmsService {
     )
   }
 
-  async getTemplate(ctx: AuthzContext, weddingId: string): Promise<string> {
+  async getTemplate(
+    ctx: AuthzContext,
+    weddingId: string,
+    side: string | null
+  ): Promise<{ body: string; signature: string }> {
     requirePermission(ctx, { guest: ['read'] })
-    return (await this.repo.getInviteTemplate(weddingId)) ?? DEFAULT_SMS_INVITE_TEMPLATE
+    return this.resolveTemplate(weddingId, side)
   }
 
   async setTemplate(
     ctx: AuthzContext,
     weddingId: string,
-    template: string | null
-  ): Promise<string> {
+    side: string | null,
+    template: string | null,
+    signature: string | null
+  ): Promise<{ body: string; signature: string }> {
     requirePermission(ctx, { guest_invitation: ['send'] })
-    const normalized = template?.trim() ? template : null
-    return (await this.repo.setInviteTemplate(weddingId, normalized)) ?? DEFAULT_SMS_INVITE_TEMPLATE
+    const normalizedBody = template?.trim() ? template : null
+    const normalizedSignature = signature?.trim() ? signature.trim() : null
+    if (normalizedBody === null) {
+      await this.repo.deleteInviteMessageTemplate(weddingId, side)
+    } else {
+      await this.repo.upsertInviteMessageTemplate(weddingId, side, normalizedBody, normalizedSignature)
+    }
+    return this.resolveTemplate(weddingId, side)
+  }
+
+  private async resolveTemplate(
+    weddingId: string,
+    side: string | null
+  ): Promise<{ body: string; signature: string }> {
+    const row = await this.repo.getInviteMessageTemplateForSide(weddingId, side)
+    if (row) return { body: row.body, signature: row.signature ?? '' }
+    if (side !== null) {
+      const defaultRow = await this.repo.getInviteMessageTemplateForSide(weddingId, null)
+      if (defaultRow) return { body: defaultRow.body, signature: defaultRow.signature ?? '' }
+    }
+    const legacy = await this.repo.getInviteTemplate(weddingId)
+    return { body: legacy ?? DEFAULT_SMS_INVITE_TEMPLATE, signature: '' }
   }
 
   async sendInvite(

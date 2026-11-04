@@ -4,6 +4,7 @@ import { smsService } from '~/server/domains/sms'
 import {
   createSmsSenderSchema,
   getInviteMessageSchema,
+  getSmsTemplateSchema,
   sendSmsSchema,
   setSmsSenderActiveSchema,
   setSmsTemplateSchema,
@@ -22,10 +23,12 @@ export const smsRouter = createTRPCRouter({
     return smsService.getInviteMessage(ctx.authz, weddingId, input.householdId)
   }),
 
-  getSmsTemplate: protectedProcedure.query(async ({ ctx }) => {
-    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
-    return smsService.getTemplate(ctx.authz, weddingId)
-  }),
+  getSmsTemplate: protectedProcedure
+    .input(getSmsTemplateSchema)
+    .query(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return smsService.getTemplate(ctx.authz, weddingId, input.side)
+    }),
 
   listSmsSenders: protectedProcedure.query(async ({ ctx }) => {
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
@@ -64,7 +67,7 @@ export const smsRouter = createTRPCRouter({
     .input(setSmsTemplateSchema)
     .mutation(async ({ ctx, input }) => {
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
-      return smsService.setTemplate(ctx.authz, weddingId, input.template)
+      return smsService.setTemplate(ctx.authz, weddingId, input.side, input.template, input.signature)
     }),
 
   sendSms: protectedProcedure.input(sendSmsSchema).mutation(async ({ ctx, input }) => {

@@ -147,6 +147,43 @@ export class SmsRepository {
     return wedding.smsInviteTemplate
   }
 
+  getInviteMessageTemplateForSide(
+    weddingId: string,
+    side: string | null
+  ): Promise<{ body: string; signature: string | null } | null> {
+    return this.db.inviteMessageTemplate.findFirst({
+      where: { weddingId, side },
+      select: { body: true, signature: true },
+    })
+  }
+
+  async upsertInviteMessageTemplate(
+    weddingId: string,
+    side: string | null,
+    body: string,
+    signature: string | null
+  ): Promise<{ body: string; signature: string | null }> {
+    const existing = await this.db.inviteMessageTemplate.findFirst({
+      where: { weddingId, side },
+      select: { id: true },
+    })
+    if (existing) {
+      return this.db.inviteMessageTemplate.update({
+        where: { id: existing.id },
+        data: { body, signature },
+        select: { body: true, signature: true },
+      })
+    }
+    return this.db.inviteMessageTemplate.create({
+      data: { weddingId, side, body, signature },
+      select: { body: true, signature: true },
+    })
+  }
+
+  deleteInviteMessageTemplate(weddingId: string, side: string | null): Promise<unknown> {
+    return this.db.inviteMessageTemplate.deleteMany({ where: { weddingId, side } })
+  }
+
   queueInvite(input: {
     weddingId: string
     householdId: string

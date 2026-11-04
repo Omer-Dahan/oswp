@@ -43,6 +43,20 @@ type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
 type StatusFilter = 'all' | 'pending' | 'sent' | 'failed' | 'unavailable'
 type SortOption = 'name' | 'status' | 'sentAt'
 type SideFilter = 'חתן' | 'כלה' | 'all'
+type TemplateSide = 'default' | 'חתן' | 'כלה'
+
+const SAMPLE_PREVIEW_NAME = 'ישראל ישראלי'
+const SAMPLE_PREVIEW_LINK = 'https://wedding.example/inv/SAMPLE123'
+
+const TEMPLATE_SIDES: Array<{ value: TemplateSide; label: string }> = [
+  { value: 'default', label: 'ברירת מחדל' },
+  { value: 'חתן', label: 'צד חתן' },
+  { value: 'כלה', label: 'צד כלה' },
+]
+
+function templateSideArg(side: TemplateSide): 'חתן' | 'כלה' | null {
+  return side === 'default' ? null : side
+}
 
 function statusDetails(status: string | null): { label: string; variant: BadgeVariant } {
   if (status === 'SENT') return { label: 'נשלח', variant: 'default' }
@@ -101,7 +115,8 @@ function formatSentAt(value: Date | string | null) {
 export function SmsMessagingScreen() {
   const utils = api.useUtils()
   const recipientsQuery = api.sms.listSmsRecipients.useQuery()
-  const templateQuery = api.sms.getSmsTemplate.useQuery()
+  const [templateSide, setTemplateSide] = useState<TemplateSide>('default')
+  const templateQuery = api.sms.getSmsTemplate.useQuery({ side: templateSideArg(templateSide) })
   const sendersQuery = api.sms.listSmsSenders.useQuery()
   const sendSms = api.sms.sendSms.useMutation()
   const sendSmsAgain = api.sms.sendSmsAgain.useMutation()
@@ -121,10 +136,14 @@ export function SmsMessagingScreen() {
   const [sideFilter, setSideFilter] = useState<SideFilter>('חתן')
   const [senderId, setSenderId] = useState('auto')
   const [sortBy, setSortBy] = useState<SortOption>('name')
-  const [template, setTemplate] = useState(DEFAULT_SMS_INVITE_TEMPLATE)
+  const [templateBody, setTemplateBody] = useState(DEFAULT_SMS_INVITE_TEMPLATE)
+  const [templateSignature, setTemplateSignature] = useState('')
 
   useEffect(() => {
-    if (templateQuery.data !== undefined) setTemplate(templateQuery.data)
+    if (templateQuery.data !== undefined) {
+      setTemplateBody(templateQuery.data.body)
+      setTemplateSignature(templateQuery.data.signature)
+    }
   }, [templateQuery.data])
 
   const recipients = recipientsQuery.data ?? []
@@ -196,12 +215,20 @@ export function SmsMessagingScreen() {
   const isSending = progress !== null || sendSms.isPending || sendSmsAgain.isPending
   const preview = selectedRecipient?.inviteCode
     ? renderWeddingInviteSmsTemplate({
-        template,
+        template: templateBody,
         recipientName: selectedRecipient.primaryContact,
         inviteLink: selectedRecipient.inviteLink ?? '{קישור}',
       })
     : null
-  const length = messageLength(preview ?? template)
+  const templateSampleBody = renderWeddingInviteSmsTemplate({
+    template: templateBody,
+    recipientName: SAMPLE_PREVIEW_NAME,
+    inviteLink: SAMPLE_PREVIEW_LINK,
+  })
+  const templateSamplePreview = templateSignature.trim()
+    ? `${templateSampleBody}\n\nבברכה - ${templateSignature.trim()}`
+    : templateSampleBody
+  const length = messageLength(templateSamplePreview)
   const statusFilters: Array<{ value: StatusFilter; label: string }> = [
     { value: 'all', label: 'הכל' },
     { value: 'pending', label: 'טרם נשלח' },
@@ -295,14 +322,16 @@ export function SmsMessagingScreen() {
     toast.success(ids.length === 1 ? 'השליחה הסתיימה' : 'ריצת השליחה הסתיימה')
   }
 
-  const saveTemplate = async (value: string | null) => {
-    const saved = await setSmsTemplate.mutateAsync({ template: value })
-    setTemplate(saved)
+  const saveTemplate = async (body: string | null, signature: string | null) => {
+    const side = templateSideArg(templateSide)
+    const saved = await setSmsTemplate.mutateAsync({ side, template: body, signature })
+    setTemplateBody(saved.body)
+    setTemplateSignature(saved.signature)
     await Promise.all([
-      utils.sms.getSmsTemplate.invalidate(),
+      utils.sms.getSmsTemplate.invalidate({ side }),
       utils.sms.listSmsRecipients.invalidate(),
     ])
-    toast.success(value === null ? 'נוסח ברירת המחדל שוחזר' : 'נוסח ההודעה נשמר')
+    toast.success(body === null ? 'נוסח ברירת המחדל שוחזר' : 'נוסח ההודעה נשמר')
   }
 
   if (recipientsQuery.isLoading || templateQuery.isLoading || sendersQuery.isLoading) {
@@ -337,12 +366,47 @@ export function SmsMessagingScreen() {
           </p>
         </CardHeader>
         <CardContent className='space-y-3'>
+          <Select
+            value={templateSide}
+            onValueChange={(value) => setTemplateSide(value as TemplateSide)}
+          >
+            <SelectTrigger aria-label='בחירת צד לעריכת הנוסח' className='sm:w-56'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TEMPLATE_SIDES.map((side) => (
+                <SelectItem key={side.value} value={side.value}>
+                  {side.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Textarea
-            value={template}
-            onChange={(event) => setTemplate(event.target.value)}
+            value={templateBody}
+            onChange={(event) => setTemplateBody(event.target.value)}
             className='min-h-36 resize-y leading-7'
             aria-label='נוסח הודעת SMS'
           />
+          <div className='space-y-1'>
+            <label htmlFor='sms-template-signature' className='font-mono text-muted-foreground text-xs'>
+              חתימה
+            </label>
+            <Input
+              id='sms-template-signature'
+              value={templateSignature}
+              onChange={(event) => setTemplateSignature(event.target.value)}
+              placeholder='לדוגמה: דוד ומורשה'
+            />
+            <p className='text-muted-foreground text-xs'>
+              חתימה ריקה לא תוסיף שורת "בברכה -" להודעה.
+            </p>
+          </div>
+          <div className='space-y-1'>
+            <p className='font-mono text-muted-foreground text-xs'>תצוגה מקדימה לדוגמה</p>
+            <pre className='whitespace-pre-wrap rounded-md border bg-muted/20 p-4 font-sans text-sm leading-7'>
+              {templateSamplePreview}
+            </pre>
+          </div>
           <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
             <span className='font-mono text-muted-foreground text-xs'>
               {length.characters} תווים · {length.segments} חלקים
@@ -351,13 +415,13 @@ export function SmsMessagingScreen() {
               <Button
                 variant='outline'
                 disabled={setSmsTemplate.isPending}
-                onClick={() => void saveTemplate(null)}
+                onClick={() => void saveTemplate(null, null)}
               >
                 שחזר לברירת מחדל
               </Button>
               <Button
                 disabled={setSmsTemplate.isPending}
-                onClick={() => void saveTemplate(template)}
+                onClick={() => void saveTemplate(templateBody, templateSignature || null)}
               >
                 {setSmsTemplate.isPending && <Loader2 className='me-2 h-4 w-4 animate-spin' />}
                 שמור נוסח
