@@ -119,12 +119,16 @@ function GuestCardComponent({
   events = [],
 }: Readonly<GuestCardProps>) {
   const primaryGuestName = getPrimaryGuestName(household)
-  const invitedGuests = household.guests.filter((guest) => !guest.isTagAlong)
-  const tagAlongCount = household.guests.length - invitedGuests.length
   const extraGuestsCount = Math.max(household.guests.length - 1, 0)
   const summaryName =
     extraGuestsCount > 0 ? `${primaryGuestName} +${extraGuestsCount}` : primaryGuestName
   const guestCount = getHouseholdPartySize(household)
+  const guestCountLabel =
+    household.attendingCount != null
+      ? `${household.attendingCount} מגיעים בפועל`
+      : household.invitedCount != null
+        ? `${household.invitedCount} מוזמנים`
+        : `${guestCount ?? 0} רשומים`
 
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
@@ -178,8 +182,7 @@ function GuestCardComponent({
               variant='secondary'
               className='shrink-0 font-mono text-[0.54rem] uppercase tracking-wider'
             >
-              {guestCount ?? '—'} אורחים
-              {tagAlongCount > 0 && ` +${tagAlongCount}`}
+              {guestCountLabel}
             </Badge>
           </div>
 

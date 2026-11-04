@@ -34,6 +34,7 @@ const baseHousehold: HouseholdWithGuests = {
   attendingCount: null,
   childrenCount: null,
   dietaryNotes: null,
+  wishesMessage: null,
   guests: [
     {
       id: 1,
@@ -54,8 +55,8 @@ const baseHousehold: HouseholdWithGuests = {
   ],
 }
 
-describe('GuestCard invited count', () => {
-  it('renders a dash when invitedCount is unknown, never inferring from the guest rows', () => {
+describe('GuestCard party count', () => {
+  it('labels named rows when imported and confirmed counts are unknown', () => {
     render(
       <GuestCard
         household={{ ...baseHousehold, invitedCount: null }}
@@ -63,7 +64,7 @@ describe('GuestCard invited count', () => {
       />
     )
 
-    expect(screen.getByText(/^— אורחים/)).toBeInTheDocument()
+    expect(screen.getByText('1 רשומים')).toBeInTheDocument()
   })
 
   it('renders the imported invitedCount when it is a positive number', () => {
@@ -74,6 +75,17 @@ describe('GuestCard invited count', () => {
       />
     )
 
-    expect(screen.getByText(/^2 אורחים/)).toBeInTheDocument()
+    expect(screen.getByText('2 מוזמנים')).toBeInTheDocument()
+  })
+
+  it('shows the confirmed count when it exceeds the imported invited count', () => {
+    render(
+      <GuestCard
+        household={{ ...baseHousehold, invitedCount: 1, attendingCount: 4 }}
+        onSelectHousehold={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('4 מגיעים בפועל')).toBeInTheDocument()
   })
 })

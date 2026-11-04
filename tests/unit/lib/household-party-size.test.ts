@@ -2,32 +2,32 @@ import { getHouseholdPartySize, type PartySizeHousehold } from '~/lib/household-
 
 describe('getHouseholdPartySize', () => {
   it('treats an imported invitedCount of 0 as unknown', () => {
-    const household: PartySizeHousehold = { invitedCount: 0 }
+    const household: PartySizeHousehold = { invitedCount: 0, attendingCount: null, guests: [] }
 
     expect(getHouseholdPartySize(household)).toBeNull()
   })
 
   it('treats a null invitedCount as unknown', () => {
-    const household: PartySizeHousehold = { invitedCount: null }
+    const household: PartySizeHousehold = { invitedCount: null, attendingCount: null, guests: [] }
 
     expect(getHouseholdPartySize(household)).toBeNull()
   })
 
-  it('never falls back to a guest row count — unknown stays unknown', () => {
-    const household: PartySizeHousehold = { invitedCount: null }
+  it('falls back to named guest rows when sheet and RSVP counts are unknown', () => {
+    const household: PartySizeHousehold = { invitedCount: null, attendingCount: null, guests: [{}] }
 
-    expect(getHouseholdPartySize(household)).toBeNull()
+    expect(getHouseholdPartySize(household)).toBe(1)
   })
 
   it('uses a positive invitedCount as-is', () => {
-    const household: PartySizeHousehold = { invitedCount: 5 }
+    const household: PartySizeHousehold = { invitedCount: 5, attendingCount: 3, guests: [{}, {}] }
 
     expect(getHouseholdPartySize(household)).toBe(5)
   })
 
-  it('uses a positive invitedCount of 2 as-is', () => {
-    const household: PartySizeHousehold = { invitedCount: 2 }
+  it('does not clamp a confirmed count to the imported invited count', () => {
+    const household: PartySizeHousehold = { invitedCount: 1, attendingCount: 4, guests: [{}] }
 
-    expect(getHouseholdPartySize(household)).toBe(2)
+    expect(getHouseholdPartySize(household)).toBe(4)
   })
 })
