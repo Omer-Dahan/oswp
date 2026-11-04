@@ -112,7 +112,13 @@
     "summaryAttendingOne": "אורח אחד מגיע",
     "summaryChuppahOnly": "לחופה בלבד",
     "addToAppleCalendar": "הוספה ליומן אפל",
-    "addGoogleCalendar": "הוספה ליומן גוגל"
+    "addGoogleCalendar": "הוספה ליומן גוגל",
+    "selfAddCta": "לא מצאת את השם שלך? הוסף את עצמך",
+    "selfAddFullNameLabel": "שם מלא",
+    "selfAddPhoneLabel": "טלפון",
+    "selfAddAttendingCountLabel": "מספר מגיעים",
+    "selfAddSubmit": "הוספתי את עצמי ואישרתי הגעה",
+    "selfAddAlreadyListed": "אתם כבר רשומים ברשימה"
   },
   "questions": {
     "other": "אחר",
