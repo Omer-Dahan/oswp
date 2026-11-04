@@ -1,3 +1,4 @@
+import type { PrismaClient } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import {
   buildWeddingInviteLink,
@@ -5,6 +6,7 @@ import {
   DEFAULT_SMS_INVITE_TEMPLATE,
   formatSmsRecipientName,
 } from '~/lib/sms/invite-message'
+import type { HouseholdInviteService } from '~/server/application/household-invite/household-invite.service'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import type {
@@ -14,6 +16,10 @@ import type {
 } from '~/server/domains/sms/sms.repository'
 import type { SmsRecipient, SmsSenderView, SmsSendOutcome } from '~/server/domains/sms/sms.types'
 import type { CreateSmsSenderInput, UpdateSmsSenderInput } from '~/server/domains/sms/sms.validator'
+import {
+  resolveInviteMessage,
+  type ResolvedInviteMessage,
+} from '~/server/domains/sms/invite-template'
 import { decryptSecret, encryptSecret, maskSecret } from '~/server/infrastructure/crypto/secrets'
 import {
   createSmsGateway,
@@ -89,8 +95,29 @@ export class SmsService {
   constructor(
     private repo: SmsRepository,
     private fallbackGateway: SmsGateway,
-    private gatewayFactory: (credentials: SmsGatewayCredentials) => SmsGateway = createSmsGateway
+    private gatewayFactory: (credentials: SmsGatewayCredentials) => SmsGateway = createSmsGateway,
+    private inviteMessageDeps?: { db: PrismaClient; householdInviteService: HouseholdInviteService }
   ) {}
+
+  async getInviteMessage(
+    ctx: AuthzContext,
+    weddingId: string,
+    householdId: string
+  ): Promise<ResolvedInviteMessage> {
+    requirePermission(ctx, { guest: ['read'] })
+    if (!this.inviteMessageDeps) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Invite message resolver is not configured.',
+      })
+    }
+    return resolveInviteMessage(
+      this.inviteMessageDeps.db,
+      this.inviteMessageDeps.householdInviteService,
+      weddingId,
+      householdId
+    )
+  }
 
   async listRecipients(ctx: AuthzContext, weddingId: string): Promise<SmsRecipient[]> {
     requirePermission(ctx, { guest: ['read'] })

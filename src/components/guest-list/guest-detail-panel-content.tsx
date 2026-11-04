@@ -29,7 +29,6 @@ import {
 import { Slider } from '~/components/ui/slider'
 import { AGE_GROUP_OPTIONS, LIKELIHOOD_LABELS } from '~/lib/constants'
 import { RSVP_STATUS, RSVP_STATUS_LABELS, RSVP_STATUS_VALUES, type RsvpStatus } from '~/lib/constants/rsvp'
-import { buildInviteShareMessage } from '~/lib/sms/invite-message'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import type { CommunicationLogEntry } from '~/server/domains/communication-log/communication-log.types'
 import { api } from '~/trpc/react'
@@ -153,7 +152,8 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
   } = props
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [copiedInviteLink, setCopiedInviteLink] = useState(false)
-  const generateHouseholdInviteLink = api.householdInvite.generateLink.useMutation()
+  const [isCopyingInviteLink, setIsCopyingInviteLink] = useState(false)
+  const utils = api.useUtils()
   const { data: website } = api.website.getByUserId.useQuery()
   const isWebsiteMissing = website === null
   const partyMembers = selectedHousehold.guests.map((guest) => ({
@@ -180,18 +180,11 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
   const handleCopyHouseholdInviteLink = async () => {
     if (typeof window === 'undefined') return
 
+    setIsCopyingInviteLink(true)
     try {
-      const result = await generateHouseholdInviteLink.mutateAsync({
+      const { message } = await utils.sms.getInviteMessage.fetch({
         householdId: selectedHousehold.id,
       })
-      const inviteCode = result.url.split('/').pop() ?? null
-      const message =
-        buildInviteShareMessage({
-          firstName: primaryContact?.firstName ?? '',
-          lastName: primaryContact?.lastName ?? '',
-          inviteCode,
-          side: selectedHousehold.side,
-        }) ?? result.url
       const copied = await copyToClipboard(message)
       setCopiedInviteLink(true)
       setTimeout(() => setCopiedInviteLink(false), 2000)
@@ -204,6 +197,8 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
           ? error.message
           : 'העתקת הודעת ההזמנה נכשלה'
       toast.error(message)
+    } finally {
+      setIsCopyingInviteLink(false)
     }
   }
 
@@ -295,7 +290,7 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
             <button
               type='button'
               onClick={handleCopyHouseholdInviteLink}
-              disabled={generateHouseholdInviteLink.isPending || isWebsiteMissing}
+              disabled={isCopyingInviteLink || isWebsiteMissing}
               className='inline-flex items-center gap-1.5 rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5 disabled:pointer-events-none disabled:opacity-50'
             >
               {copiedInviteLink ? (

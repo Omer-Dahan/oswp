@@ -3,6 +3,7 @@ import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { smsService } from '~/server/domains/sms'
 import {
   createSmsSenderSchema,
+  getInviteMessageSchema,
   sendSmsSchema,
   setSmsSenderActiveSchema,
   setSmsTemplateSchema,
@@ -14,6 +15,11 @@ export const smsRouter = createTRPCRouter({
   listSmsRecipients: protectedProcedure.query(async ({ ctx }) => {
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return smsService.listRecipients(ctx.authz, weddingId)
+  }),
+
+  getInviteMessage: protectedProcedure.input(getInviteMessageSchema).query(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return smsService.getInviteMessage(ctx.authz, weddingId, input.householdId)
   }),
 
   getSmsTemplate: protectedProcedure.query(async ({ ctx }) => {

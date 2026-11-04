@@ -5,11 +5,13 @@ import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboa
 
 jest.mock('~/trpc/react', () => ({
   api: {
-    householdInvite: {
-      generateLink: {
-        useMutation: () => ({ mutateAsync: jest.fn() }),
+    useUtils: () => ({
+      sms: {
+        getInviteMessage: {
+          fetch: jest.fn().mockResolvedValue({ message: '' }),
+        },
       },
-    },
+    }),
   },
 }))
 

@@ -10,6 +10,10 @@ export const setSmsTemplateSchema = z.object({
   template: z.string().max(5000, 'נוסח ההודעה ארוך מדי').nullable(),
 })
 
+export const getInviteMessageSchema = z.object({
+  householdId: z.string().min(1),
+})
+
 const senderSideSchema = z.enum(['חתן', 'כלה'])
 
 export const createSmsSenderSchema = z.object({

@@ -3,13 +3,17 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { GuestCard } from '~/components/guest-list/v2/list/guest-card'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
+const mockGetInviteMessageFetch = jest.fn().mockResolvedValue({ message: '' })
+
 jest.mock('~/trpc/react', () => ({
   api: {
-    householdInvite: {
-      generateLink: {
-        useMutation: () => ({ mutateAsync: jest.fn() }),
+    useUtils: () => ({
+      sms: {
+        getInviteMessage: {
+          fetch: mockGetInviteMessageFetch,
+        },
       },
-    },
+    }),
   },
 }))
 
@@ -225,5 +229,23 @@ describe('GuestCard', () => {
     // attendingCount (1) matches the named wedding count (1), so it must not
     // be printed a second time as a confusing extra figure.
     expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
+  })
+
+  it('copies the bride-side signature for a newly created bride-side household', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    mockGetInviteMessageFetch.mockResolvedValueOnce({
+      message: 'דוד יעקב, שלום רב.\n\nבברכה - משה ומירב בן הרוש',
+    })
+
+    const brideHousehold: HouseholdWithGuests = { ...mockHousehold, side: 'כלה' }
+    render(<GuestCard household={brideHousehold} onSelectHousehold={jest.fn()} />)
+
+    fireEvent.click(screen.getByLabelText('העתקת הודעת הזמנה אישית למשק הבית'))
+
+    await screen.findByText('הועתק')
+
+    expect(mockGetInviteMessageFetch).toHaveBeenCalledWith({ householdId: 'household-1' })
+    expect(writeText).toHaveBeenCalledWith('דוד יעקב, שלום רב.\n\nבברכה - משה ומירב בן הרוש')
   })
 })

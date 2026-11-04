@@ -78,6 +78,11 @@ jest.mock('~/trpc/react', () => ({
           invalidate: jest.fn(),
         },
       },
+      sms: {
+        getInviteMessage: {
+          fetch: jest.fn().mockResolvedValue({ message: 'הודעת הזמנה' }),
+        },
+      },
     }),
     guestTag: {
       getAll: {
@@ -168,16 +173,6 @@ jest.mock('~/trpc/react', () => ({
     invitation: {
       update: {
         useMutation: () => ({ mutate: jest.fn(), isPending: false }),
-      },
-    },
-    householdInvite: {
-      generateLink: {
-        useMutation: () => ({
-          mutateAsync: jest
-            .fn()
-            .mockResolvedValue({ url: 'http://localhost:3000/save-the-date/token' }),
-          isPending: false,
-        }),
       },
     },
     website: {

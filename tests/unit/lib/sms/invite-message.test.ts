@@ -1,5 +1,4 @@
 import {
-  buildInviteShareMessage,
   buildWeddingInviteSms,
   formatSmsRecipientName,
   renderWeddingInviteSmsTemplate,
@@ -47,9 +46,22 @@ describe('SMS wedding invite template', () => {
     expect(formatSmsRecipientName('מר יהודה', 'ואשתו')).toBe('יהודה')
   })
 
-  it('renders the frozen message and household link exactly', () => {
+  it('renders the frozen message and household link, without a signature when none is given', () => {
     expect(
       buildWeddingInviteSms({ firstName: 'דוד יעקב', lastName: 'כהן', inviteCode: 'ab-123' })
+    ).toBe(`יעקב כהן, שלום רב.
+אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
+https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123`)
+  })
+
+  it('appends the given signature', () => {
+    expect(
+      buildWeddingInviteSms({
+        firstName: 'דוד יעקב',
+        lastName: 'כהן',
+        inviteCode: 'ab-123',
+        signature: 'יהודה ותמר מנחם',
+      })
     ).toBe(`יעקב כהן, שלום רב.
 אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
 https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123
@@ -103,39 +115,4 @@ https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123
     ).toBe('משפחת לוי 💛\nקישור-אישי')
   })
 
-  it('signs the groom side message with the groom parents', () => {
-    expect(
-      buildInviteShareMessage({
-        firstName: 'דוד יעקב',
-        lastName: 'כהן',
-        inviteCode: 'ab-123',
-        side: 'חתן',
-      })
-    ).toBe(`יעקב כהן, שלום רב.
-אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
-https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123
-
-בברכה - יהודה ותמר מנחם`)
-  })
-
-  it('signs the bride side message with the bride parents', () => {
-    expect(
-      buildInviteShareMessage({
-        firstName: 'דוד יעקב',
-        lastName: 'כהן',
-        inviteCode: 'ab-123',
-        side: 'כלה',
-      })
-    ).toBe(`יעקב כהן, שלום רב.
-אנו שמחים להזמין אתכם לחתונה של דוד מנחם ומורשה בן הרוש, בתאריך י״ד כסלו (24.11.26) באולמי אגדתא. נשמח לאישור הגעה
-https://david-and-morasha.duckdns.org/w/guests/save-the-date/ab-123
-
-בברכה - משה ומירב בן הרוש`)
-  })
-
-  it('marks a household without an invite code as unrenderable', () => {
-    expect(
-      buildInviteShareMessage({ firstName: 'יעקב', lastName: 'כהן', inviteCode: null, side: 'חתן' })
-    ).toBeNull()
-  })
 })

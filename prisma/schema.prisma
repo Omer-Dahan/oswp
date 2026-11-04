@@ -78,6 +78,7 @@ model Wedding {
   whatsAppInbound   WhatsAppInbound[]
   smsOutbound       SmsOutbound[]
   smsSenders        SmsSender[]
+  inviteMessageTemplates InviteMessageTemplate[]
 
   @@index([selfFillToken, selfFillTokenGeneratedAt])
 }
@@ -1420,6 +1421,23 @@ model SmsSender {
   @@index([weddingId, side, isActive])
   @@index([weddingId, isDefault, isActive])
   @@map("sms_senders")
+}
+
+// Per-side invite wording the couple can edit. A row with side = null is the
+// default template (used when a household's side is unknown); a row with a
+// side value overrides it for that side only.
+model InviteMessageTemplate {
+  id        String   @id @default(uuid())
+  weddingId String   @map("wedding_id")
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  side      String?  @map("side")
+  body      String   @db.Text
+  signature String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([weddingId, side])
+  @@map("invite_message_templates")
 }
 
 model WhatsAppInbound {

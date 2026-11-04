@@ -3,7 +3,6 @@ import { memo, useCallback, useState } from 'react'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
 import { getHouseholdPartySize } from '~/lib/household-party-size'
-import { buildInviteShareMessage } from '~/lib/sms/invite-message'
 import {
   getHouseholdWeddingRsvpCounts,
   resolveRsvpEvents,
@@ -137,26 +136,17 @@ function GuestCardComponent({
   }, [household, onSelectHousehold])
 
   const [copiedInviteLink, setCopiedInviteLink] = useState(false)
-  const generateInviteLink = api.householdInvite.generateLink.useMutation()
+  const utils = api.useUtils()
   const handleCopyInviteLink = useCallback(async () => {
     try {
-      const result = await generateInviteLink.mutateAsync({ householdId: household.id })
-      const primaryGuest = getPrimaryGuest(household)
-      const inviteCode = result.url.split('/').pop() ?? null
-      const message =
-        buildInviteShareMessage({
-          firstName: primaryGuest?.firstName ?? '',
-          lastName: primaryGuest?.lastName ?? '',
-          inviteCode,
-          side: household.side,
-        }) ?? result.url
+      const { message } = await utils.sms.getInviteMessage.fetch({ householdId: household.id })
       await copyToClipboard(message)
       setCopiedInviteLink(true)
       window.setTimeout(() => setCopiedInviteLink(false), 2000)
     } catch {
       setCopiedInviteLink(false)
     }
-  }, [generateInviteLink, household])
+  }, [utils, household.id])
 
   return (
     <button
