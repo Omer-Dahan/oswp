@@ -9,7 +9,7 @@
  */
 
 // biome-ignore lint/style/noRestrictedImports: Application services use PrismaClient for cross-domain transactions
-import type { PrismaClient } from '@prisma/client'
+import type { Prisma, PrismaClient } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { logger } from '~/lib/observability/logger'
 import { deriveRsvpCounts } from '~/server/application/rsvp-submission/rsvp-counts'
@@ -67,6 +67,52 @@ function preserveExistingWhenBlank(value: string | null | undefined): string | n
   if (value === undefined) return undefined
   if (value === null) return null
   return value.trim() === '' ? undefined : value
+}
+
+/**
+ * Decide what, if anything, to write to the household's attending/children
+ * columns. A submission that explicitly carried a count (including an
+ * explicit `0` from the decline flow) always wins, since it says something
+ * concrete about this submission. A submission that carried none derives a
+ * count purely from who it named as attending (e.g. a chuppah-only answer,
+ * or an admin edit that only touches rsvpResponses) — that number describes
+ * only what *this* submission said, not the household's full headcount, so
+ * it may only backfill a currently-NULL column and must never clobber a
+ * number collected by an earlier, broader submission. Returning `undefined`
+ * for a field tells Prisma to omit it from the update, leaving the stored
+ * value untouched.
+ */
+async function resolveHouseholdCountWrite(
+  tx: Prisma.TransactionClient,
+  householdId: string,
+  explicit: { attendingCount?: number | null; childrenCount?: number | null },
+  derived: { attendingCount: number | null; childrenCount: number | null }
+): Promise<{ attendingCount?: number | null; childrenCount?: number | null }> {
+  const needsCurrentValues =
+    explicit.attendingCount === undefined || explicit.childrenCount === undefined
+
+  const current = needsCurrentValues
+    ? await tx.household.findUnique({
+        where: { id: householdId },
+        select: { attendingCount: true, childrenCount: true },
+      })
+    : null
+
+  const attendingCount =
+    explicit.attendingCount !== undefined
+      ? explicit.attendingCount
+      : current?.attendingCount == null
+        ? derived.attendingCount
+        : undefined
+
+  const childrenCount =
+    explicit.childrenCount !== undefined
+      ? explicit.childrenCount
+      : current?.childrenCount == null
+        ? derived.childrenCount
+        : undefined
+
+  return { attendingCount, childrenCount }
 }
 
 export class RsvpSubmissionService {
@@ -282,9 +328,19 @@ export class RsvpSubmissionService {
       }
 
       if (householdPartyDetails) {
+        const countsToWrite = await resolveHouseholdCountWrite(
+          tx,
+          householdPartyDetails.householdId,
+          {
+            attendingCount: householdPartyDetails.attendingCount,
+            childrenCount: householdPartyDetails.childrenCount,
+          },
+          attendeeCounts
+        )
+
         await txHouseholdRepo.updateRsvpPartyDetails(householdPartyDetails.householdId, {
-          attendingCount: attendeeCounts.attendingCount,
-          childrenCount: attendeeCounts.childrenCount,
+          attendingCount: countsToWrite.attendingCount,
+          childrenCount: countsToWrite.childrenCount,
           dietaryNotes: preserveExistingWhenBlank(householdPartyDetails.dietaryNotes),
           wishesMessage: preserveExistingWhenBlank(householdPartyDetails.wishesMessage),
         })
@@ -364,9 +420,16 @@ export class RsvpSubmissionService {
         }
 
         if (!householdPartyDetails && data.rsvpResponses.length > 0) {
+          const countsToWrite = await resolveHouseholdCountWrite(
+            tx,
+            householdId,
+            { attendingCount: undefined, childrenCount: undefined },
+            attendeeCounts
+          )
+
           await txHouseholdRepo.updateRsvpPartyDetails(householdId, {
-            attendingCount: attendeeCounts.attendingCount,
-            childrenCount: attendeeCounts.childrenCount,
+            attendingCount: countsToWrite.attendingCount,
+            childrenCount: countsToWrite.childrenCount,
             dietaryNotes: undefined,
             wishesMessage: undefined,
           })

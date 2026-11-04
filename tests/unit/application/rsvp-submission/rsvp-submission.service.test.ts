@@ -74,6 +74,11 @@ const createMockDb = () => {
         },
       ]),
     },
+    household: {
+      // No count stored yet by default, so a derived count may backfill it —
+      // tests that care about an already-stored count override this.
+      findUnique: jest.fn().mockResolvedValue({ attendingCount: null, childrenCount: null }),
+    },
     rsvpSubmission: {
       create: jest.fn().mockResolvedValue({ id: 'submission-123' }),
     },
@@ -474,7 +479,7 @@ describe('RsvpSubmissionService', () => {
     )
   })
 
-  it('stores no counts for a declined household or its submission record', async () => {
+  it('writes an explicit decline (0) to the household even though the audit row stores null for "no one attending"', async () => {
     await service.submitPublicRsvp(
       {
         subUrl: 'ash-and-jamie',
@@ -487,13 +492,58 @@ describe('RsvpSubmissionService', () => {
       '127.0.0.1'
     )
 
+    // An explicit 0 is real information from this submission ("nobody is
+    // coming"), unlike an omitted count, so it overwrites the household
+    // column — unlike the derived-and-missing case, it is not a backfill.
     expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith(
       'household-123',
-      expect.objectContaining({ attendingCount: null, childrenCount: null })
+      expect.objectContaining({ attendingCount: 0, childrenCount: 0 })
     )
+    // The audit row is untouched by this rule: it keeps recording what
+    // deriveRsvpCounts says about "no one attending" (null), independent of
+    // what gets written to the household's own column.
     expect(mockDb.rsvpSubmission.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ attendingCount: null, childrenCount: null, source: 'site' }),
     })
+  })
+
+  it('does not overwrite a household’s confirmed headcount with a chuppah-only submission that carries no counts', async () => {
+    mockDb.household.findUnique.mockResolvedValueOnce({ attendingCount: 4, childrenCount: 2 })
+
+    await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-chuppah', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+      },
+      '127.0.0.1'
+    )
+
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({ attendingCount: undefined, childrenCount: undefined })
+    )
+    expect(mockDb.rsvpSubmission.create).toHaveBeenCalledTimes(1)
+  })
+
+  it('backfills a chuppah-only count onto a household that has never recorded one', async () => {
+    mockDb.household.findUnique.mockResolvedValueOnce({ attendingCount: null, childrenCount: null })
+
+    await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-chuppah', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+      },
+      '127.0.0.1'
+    )
+
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({ attendingCount: 1, childrenCount: 0 })
+    )
   })
 
   it('records the admin source for managed submissions', async () => {
