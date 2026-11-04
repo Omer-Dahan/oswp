@@ -141,8 +141,8 @@ export const householdRouter = createTRPCRouter({
   /**
    * Add yourself to the guest list from the public RSVP flow, for a guest
    * who can't find themselves via name search. Creates a new household +
-   * guest marked attending, or returns the existing household's invite code
-   * if this phone is already registered for this wedding.
+   * guest marked attending. The response is deliberately neutral so this
+   * unauthenticated endpoint cannot reveal whether a phone is registered.
    */
   addSelfPublic: publicProcedure.input(guestSelfAddSchema).mutation(async ({ ctx, input }) => {
     return guestSelfAddService.addSelf(input, getClientIp(ctx.headers))

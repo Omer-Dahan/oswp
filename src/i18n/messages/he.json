@@ -120,7 +120,7 @@
     "selfAddPhoneLabel": "טלפון",
     "selfAddAttendingCountLabel": "מספר מגיעים",
     "selfAddSubmit": "הוספתי את עצמי ואישרתי הגעה",
-    "selfAddAlreadyListed": "אתם כבר רשומים ברשימה"
+    "selfAddReceived": "קיבלנו. אם המספר שלך רשום אצלנו, ההזמנה שלך כבר קיימת. לתשובה מהירה אפשר לפנות לבני הזוג"
   },
   "questions": {
     "other": "אחר",

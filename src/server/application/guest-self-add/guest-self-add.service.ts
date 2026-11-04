@@ -15,13 +15,12 @@ import { TRPCError } from '@trpc/server'
 import { SELF_ADD_GROUP_NAME, SELF_ADD_NOTE_PREFIX } from '~/lib/constants/guest-self-add'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
-import type { HouseholdInviteService } from '~/server/application/household-invite/household-invite.service'
 import type { GuestSelfAddSchemaInput } from '~/server/application/guest-self-add/guest-self-add.validator'
 import { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 
-export type GuestSelfAddResult =
-  | { kind: 'already_listed'; inviteCode: string }
-  | { kind: 'created'; inviteCode: string }
+export type GuestSelfAddResult = { kind: 'received' }
+
+const ISRAELI_MOBILE_E164_PATTERN = /^\+9725\d{8}$/
 
 function formatDateDdMmYyyy(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0')
@@ -40,10 +39,7 @@ export class GuestSelfAddService {
   private ipRateLimiter: PrismaRateLimiter
   private phoneRateLimiter: PrismaRateLimiter
 
-  constructor(
-    private db: PrismaClient,
-    private householdInviteService: HouseholdInviteService
-  ) {
+  constructor(private db: PrismaClient) {
     // Generous enough for a guest retyping a typo'd phone/name a few times,
     // tight enough to stop a scripted sweep of this unauthenticated endpoint.
     this.ipRateLimiter = new PrismaRateLimiter(db, { limit: 5, windowMs: 15 * 60_000 })
@@ -63,8 +59,11 @@ export class GuestSelfAddService {
     // here defensively so the rate-limit key and the stored value can never
     // diverge from each other.
     const normalizedPhone = normalizePhoneToE164(input.phone, 'IL') ?? input.phone
+    const isValidMobile = ISRAELI_MOBILE_E164_PATTERN.test(normalizedPhone)
 
-    const phoneAllowed = await this.phoneRateLimiter.check(`guest-self-add:phone:${normalizedPhone}`)
+    const phoneAllowed = await this.phoneRateLimiter.check(
+      `guest-self-add:phone:${normalizedPhone}`
+    )
     if (!phoneAllowed) {
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',
@@ -86,7 +85,7 @@ export class GuestSelfAddService {
 
     const weddingId = website.weddingId
 
-    const transactionResult = await this.db.$transaction(async (tx) => {
+    await this.db.$transaction(async (tx) => {
       // Serialises concurrent submissions of the same phone number within
       // this transaction so the duplicate check below can't race with
       // another submission's insert — there's no DB-level unique constraint
@@ -95,9 +94,7 @@ export class GuestSelfAddService {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${weddingId}:${normalizedPhone}`})::bigint)`
 
       const existingGuest = await this.findExistingGuestByPhone(tx, weddingId, normalizedPhone)
-      if (existingGuest) {
-        return { kind: 'already_listed' as const, householdId: existingGuest.householdId }
-      }
+      if (existingGuest || !isValidMobile) return
 
       const { firstName, lastName } = splitFullName(input.fullName)
       const notes = `${SELF_ADD_NOTE_PREFIX} ${formatDateDdMmYyyy(new Date())}`
@@ -147,22 +144,9 @@ export class GuestSelfAddService {
           })),
         })
       }
-
-      return { kind: 'created' as const, householdId: household.id }
     })
 
-    const inviteCode = await this.householdInviteService.ensureInviteCode(
-      transactionResult.householdId
-    )
-
-    if (!inviteCode) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'לא ניתן היה ליצור קישור הזמנה',
-      })
-    }
-
-    return { kind: transactionResult.kind, inviteCode }
+    return { kind: 'received' }
   }
 
   /**

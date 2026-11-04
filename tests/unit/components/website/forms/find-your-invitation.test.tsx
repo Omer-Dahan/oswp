@@ -17,7 +17,7 @@ const translations: Record<string, string> = {
   'rsvp.selfAddPhoneLabel': 'Self add phone',
   'rsvp.selfAddAttendingCountLabel': 'Self add attending count',
   'rsvp.selfAddSubmit': 'SELF ADD SUBMIT',
-  'rsvp.selfAddAlreadyListed': 'ALREADY LISTED',
+  'rsvp.selfAddReceived': 'RECEIVED',
 }
 
 jest.mock('next-intl', () => ({
@@ -36,7 +36,7 @@ jest.mock('~/components/contexts/rsvp-form-context', () => ({
 
 const mockRefetch = jest.fn()
 const mockSelfAddMutate = jest.fn()
-let capturedOnSuccess: ((result: { kind: string; inviteCode: string }) => void) | undefined
+let capturedOnSuccess: ((result: { kind: 'received' }) => void) | undefined
 let capturedOnError: ((error: unknown) => void) | undefined
 let mockIsPending = false
 
@@ -62,7 +62,7 @@ jest.mock('~/trpc/react', () => ({
       },
       addSelfPublic: {
         useMutation: (options: {
-          onSuccess?: (result: { kind: string; inviteCode: string }) => void
+          onSuccess?: (result: { kind: 'received' }) => void
           onError?: (error: unknown) => void
         }) => {
           capturedOnSuccess = options.onSuccess
@@ -164,7 +164,7 @@ describe('FindYourInvitationForm self-add', () => {
     expect(screen.getByPlaceholderText('Self add full name')).toBeInTheDocument()
   })
 
-  it('submits the trimmed values and hard-navigates to the invite link on success', async () => {
+  it('submits the trimmed values and stops on the neutral message', async () => {
     await openSelfAddForm()
 
     fireEvent.change(screen.getByPlaceholderText('Self add full name'), {
@@ -182,26 +182,12 @@ describe('FindYourInvitationForm self-add', () => {
       attendingCount: 1,
     })
 
-    act(() => capturedOnSuccess?.({ kind: 'created', inviteCode: 'abc123' }))
+    act(() => capturedOnSuccess?.({ kind: 'received' }))
 
-    expect(mockAssign).toHaveBeenCalledWith('/w/the-wedding/save-the-date/abc123')
-  })
-
-  it('navigates to the existing invite code and notes the guest is already listed', async () => {
-    await openSelfAddForm()
-
-    fireEvent.change(screen.getByPlaceholderText('Self add full name'), {
-      target: { value: 'Dana Levi' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('Self add phone'), {
-      target: { value: '0501234567' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'SELF ADD SUBMIT' }))
-
-    act(() => capturedOnSuccess?.({ kind: 'already_listed', inviteCode: 'existing-code' }))
-
-    expect(mockAssign).toHaveBeenCalledWith('/w/the-wedding/save-the-date/existing-code')
-    expect(screen.getByText('ALREADY LISTED')).toBeInTheDocument()
+    expect(mockAssign).not.toHaveBeenCalled()
+    expect(screen.getByText('RECEIVED')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Self add full name')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'SELF ADD SUBMIT' })).not.toBeInTheDocument()
   })
 
   it('shows field validation errors inline and keeps the typed values', async () => {

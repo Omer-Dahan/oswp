@@ -22,23 +22,24 @@ describe('guestSelfAddSchema', () => {
     expect(result.success).toBe(true)
   })
 
-  it.each([['א'], [''], ['  ']])('rejects a single-token name shorter than 2 chars (%s)', (fullName) => {
+  it.each([
+    ['א'],
+    [''],
+    ['  '],
+  ])('rejects a single-token name shorter than 2 chars (%s)', (fullName) => {
     const result = guestSelfAddSchema.safeParse({ ...baseInput, fullName })
     expect(result.success).toBe(false)
   })
 
-  it('rejects a phone number that is not a real Israeli mobile', () => {
+  it('accepts a phone number that is not an Israeli mobile for a neutral public response', () => {
     const result = guestSelfAddSchema.safeParse({ ...baseInput, phone: '021234567' })
 
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error.issues[0]?.message).toBe('הזינו מספר טלפון נייד ישראלי תקין')
-    }
+    expect(result.success).toBe(true)
   })
 
-  it('rejects a phone number with too few digits', () => {
+  it('accepts a phone number with too few digits for a neutral public response', () => {
     const result = guestSelfAddSchema.safeParse({ ...baseInput, phone: '123' })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
   it('rejects an attendingCount of 0', () => {

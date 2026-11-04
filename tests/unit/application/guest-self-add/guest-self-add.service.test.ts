@@ -2,8 +2,6 @@
  * Tests for the Guest Self-Add Application Service
  */
 
-// biome-ignore lint/style/noRestrictedImports: test-only in-memory stand-ins
-import type { HouseholdInviteService } from '~/server/application/household-invite/household-invite.service'
 import { GuestSelfAddService } from '~/server/application/guest-self-add/guest-self-add.service'
 import { guestSelfAddSchema } from '~/server/application/guest-self-add/guest-self-add.validator'
 
@@ -91,9 +89,10 @@ function createFakeDb(options: { isRsvpEnabled?: boolean } = {}) {
     guests,
     invitations,
     website: {
-      findFirst: jest
-        .fn()
-        .mockResolvedValue({ weddingId: 'wedding-1', isRsvpEnabled: options.isRsvpEnabled ?? true }),
+      findFirst: jest.fn().mockResolvedValue({
+        weddingId: 'wedding-1',
+        isRsvpEnabled: options.isRsvpEnabled ?? true,
+      }),
     },
     rateLimitBucket: {
       findUnique: jest.fn().mockResolvedValue(null),
@@ -111,20 +110,6 @@ function createFakeDb(options: { isRsvpEnabled?: boolean } = {}) {
   }
 }
 
-function createInviteServiceStub() {
-  const codesByHouseholdId = new Map<string, string>()
-  let seq = 0
-
-  const ensureInviteCode = jest.fn(async (householdId: string) => {
-    if (!codesByHouseholdId.has(householdId)) {
-      codesByHouseholdId.set(householdId, `hh-code${++seq}`)
-    }
-    return codesByHouseholdId.get(householdId) ?? null
-  })
-
-  return { ensureInviteCode } as unknown as HouseholdInviteService
-}
-
 const validInput = guestSelfAddSchema.parse({
   subUrl: 'our-wedding',
   fullName: 'דנה כהן',
@@ -137,11 +122,12 @@ describe('GuestSelfAddService', () => {
     it('creates one household with the right group, null side, and both invitations attending', async () => {
       const fakeDb = createFakeDb()
       // biome-ignore lint/suspicious/noExplicitAny: test fake stands in for PrismaClient
-      const service = new GuestSelfAddService(fakeDb as any, createInviteServiceStub())
+      const service = new GuestSelfAddService(fakeDb as any)
 
       const result = await service.addSelf(validInput, '203.0.113.5')
 
-      expect(result).toEqual({ kind: 'created', inviteCode: expect.stringContaining('hh-code') })
+      expect(result).toEqual({ kind: 'received' })
+      expect(Object.keys(result)).toEqual(['kind'])
 
       expect(fakeDb.households).toHaveLength(1)
       expect(fakeDb.households[0]).toMatchObject({
@@ -173,17 +159,18 @@ describe('GuestSelfAddService', () => {
   })
 
   describe('duplicate phone', () => {
-    it('returns already_listed and writes nothing new', async () => {
+    it('returns the neutral response and writes nothing new', async () => {
       const fakeDb = createFakeDb()
       // biome-ignore lint/suspicious/noExplicitAny: test fake stands in for PrismaClient
-      const service = new GuestSelfAddService(fakeDb as any, createInviteServiceStub())
+      const service = new GuestSelfAddService(fakeDb as any)
 
       const first = await service.addSelf(validInput, '203.0.113.5')
-      expect(first.kind).toBe('created')
+      expect(first).toEqual({ kind: 'received' })
 
       const second = await service.addSelf(validInput, '203.0.113.6')
 
-      expect(second).toEqual({ kind: 'already_listed', inviteCode: first.inviteCode })
+      expect(second).toEqual({ kind: 'received' })
+      expect(Object.keys(second)).toEqual(['kind'])
       expect(fakeDb.households).toHaveLength(1)
       expect(fakeDb.guests).toHaveLength(1)
     })
@@ -193,7 +180,7 @@ describe('GuestSelfAddService', () => {
     it('rejects the submission without creating anything', async () => {
       const fakeDb = createFakeDb({ isRsvpEnabled: false })
       // biome-ignore lint/suspicious/noExplicitAny: test fake stands in for PrismaClient
-      const service = new GuestSelfAddService(fakeDb as any, createInviteServiceStub())
+      const service = new GuestSelfAddService(fakeDb as any)
 
       await expect(service.addSelf(validInput, '203.0.113.5')).rejects.toMatchObject({
         code: 'NOT_FOUND',
@@ -206,18 +193,35 @@ describe('GuestSelfAddService', () => {
     it('two concurrent submissions of the same phone yield one household', async () => {
       const fakeDb = createFakeDb()
       // biome-ignore lint/suspicious/noExplicitAny: test fake stands in for PrismaClient
-      const service = new GuestSelfAddService(fakeDb as any, createInviteServiceStub())
+      const service = new GuestSelfAddService(fakeDb as any)
 
       const [first, second] = await Promise.all([
         service.addSelf(validInput, '203.0.113.5'),
         service.addSelf(validInput, '203.0.113.6'),
       ])
 
-      const kinds = [first.kind, second.kind].sort()
-      expect(kinds).toEqual(['already_listed', 'created'])
+      expect(first).toEqual({ kind: 'received' })
+      expect(second).toEqual({ kind: 'received' })
       expect(fakeDb.households).toHaveLength(1)
       expect(fakeDb.guests).toHaveLength(1)
-      expect(first.inviteCode).toBe(second.inviteCode)
+    })
+  })
+
+  describe('invalid phone', () => {
+    it('returns the neutral response without creating rows', async () => {
+      const fakeDb = createFakeDb()
+      // biome-ignore lint/suspicious/noExplicitAny: test fake stands in for PrismaClient
+      const service = new GuestSelfAddService(fakeDb as any)
+      const invalidPhoneInput = guestSelfAddSchema.parse({ ...validInput, phone: '123' })
+
+      const result = await service.addSelf(invalidPhoneInput, '203.0.113.5')
+
+      expect(result).toEqual({ kind: 'received' })
+      expect(Object.keys(result)).toEqual(['kind'])
+      expect(fakeDb.households).toHaveLength(0)
+      expect(fakeDb.guests).toHaveLength(0)
+      expect(fakeDb.invitations).toHaveLength(0)
+      expect(fakeDb.$transaction).toHaveBeenCalledTimes(1)
     })
   })
 })

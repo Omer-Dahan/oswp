@@ -9,11 +9,6 @@ import { z } from 'zod'
 
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 
-// Israeli mobile numbers normalise to +972 followed by 9 digits starting
-// with 5 (05X-XXXXXXX with the leading 0 dropped). Fixed lines normalise to
-// 8 digits, so this also rejects a landline typed into a "your mobile" field.
-const ISRAELI_MOBILE_E164_PATTERN = /^\+9725\d{8}$/
-
 const fullNameSchema = z
   .string()
   .trim()
@@ -30,9 +25,6 @@ const phoneSchema = z
   .string()
   .trim()
   .transform((value) => normalizePhoneToE164(value, 'IL') ?? value)
-  .refine((value) => ISRAELI_MOBILE_E164_PATTERN.test(value), {
-    message: 'הזינו מספר טלפון נייד ישראלי תקין',
-  })
 
 export const guestSelfAddSchema = z.object({
   subUrl: z.string().min(1, { message: 'Wedding website is required' }),

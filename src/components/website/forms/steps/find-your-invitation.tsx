@@ -46,10 +46,9 @@ export default function FindYourInvitationForm({
   const [selfAddAttendingCount, setSelfAddAttendingCount] = useState<number>(MIN_SELF_ADD_ATTENDING)
   const [selfAddFieldErrors, setSelfAddFieldErrors] = useState<SelfAddFieldErrors>({})
   const [selfAddGeneralError, setSelfAddGeneralError] = useState<string | null>(null)
-  const [selfAddAlreadyListedNote, setSelfAddAlreadyListedNote] = useState<string | null>(null)
+  const [selfAddReceived, setSelfAddReceived] = useState<boolean>(false)
 
   const subUrl = weddingData.website?.subUrl ?? ''
-  const basePath = `/w/${subUrl}`
 
   const { refetch, isFetching } = api.household.findBySearchPublic.useQuery(
     { subUrl, searchText: name, accessToken },
@@ -60,18 +59,10 @@ export default function FindYourInvitationForm({
   )
 
   const selfAdd = api.household.addSelfPublic.useMutation({
-    onSuccess: (result) => {
+    onSuccess: () => {
       setSelfAddGeneralError(null)
       setSelfAddFieldErrors({})
-      // The invite link's own page (not a client-side route) owns the
-      // "you're on the list" copy (greeting, date line, calendar/navigation
-      // buttons), so a hard navigation there is the confirmation screen —
-      // a router.push would leave this step mounted with stale local state.
-      const inviteLink = `${basePath}/save-the-date/${encodeURIComponent(result.inviteCode)}`
-      if (result.kind === 'already_listed') {
-        setSelfAddAlreadyListedNote(t('selfAddAlreadyListed'))
-      }
-      window.location.assign(inviteLink)
+      setSelfAddReceived(true)
     },
     onError: (err) => {
       const zodFieldErrors = (
@@ -181,76 +172,87 @@ export default function FindYourInvitationForm({
 
       {showSelfAddForm && (
         <div className='flex flex-col gap-6 border-border border-t pt-6'>
-          <StepField label={t('selfAddFullNameLabel')} htmlFor='self-add-full-name'>
-            <StepTextInput
-              id='self-add-full-name'
-              placeholder={t('selfAddFullNameLabel')}
-              value={selfAddFullName}
-              onChange={(e) => setSelfAddFullName(e.target.value)}
-            />
-            {selfAddFieldErrors.fullName && (
-              <StepErrorText>{selfAddFieldErrors.fullName}</StepErrorText>
-            )}
-          </StepField>
+          {selfAddReceived ? (
+            <StepBody>{t('selfAddReceived')}</StepBody>
+          ) : (
+            <>
+              <StepField label={t('selfAddFullNameLabel')} htmlFor='self-add-full-name'>
+                <StepTextInput
+                  id='self-add-full-name'
+                  placeholder={t('selfAddFullNameLabel')}
+                  value={selfAddFullName}
+                  onChange={(e) => setSelfAddFullName(e.target.value)}
+                />
+                {selfAddFieldErrors.fullName && (
+                  <StepErrorText>{selfAddFieldErrors.fullName}</StepErrorText>
+                )}
+              </StepField>
 
-          <StepField label={t('selfAddPhoneLabel')} htmlFor='self-add-phone'>
-            <StepTextInput
-              id='self-add-phone'
-              type='tel'
-              placeholder={t('selfAddPhoneLabel')}
-              value={selfAddPhone}
-              onChange={(e) => setSelfAddPhone(e.target.value)}
-            />
-            {selfAddFieldErrors.phone && <StepErrorText>{selfAddFieldErrors.phone}</StepErrorText>}
-          </StepField>
+              <StepField label={t('selfAddPhoneLabel')} htmlFor='self-add-phone'>
+                <StepTextInput
+                  id='self-add-phone'
+                  type='tel'
+                  placeholder={t('selfAddPhoneLabel')}
+                  value={selfAddPhone}
+                  onChange={(e) => setSelfAddPhone(e.target.value)}
+                />
+                {selfAddFieldErrors.phone && (
+                  <StepErrorText>{selfAddFieldErrors.phone}</StepErrorText>
+                )}
+              </StepField>
 
-          <StepField label={t('selfAddAttendingCountLabel')} htmlFor='self-add-attending-count'>
-            <div className='flex items-center gap-4'>
-              <StepStepperButton
-                aria-label='הפחתת מספר המגיעים'
-                disabled={selfAddAttendingCount <= MIN_SELF_ADD_ATTENDING}
-                onClick={() =>
-                  setSelfAddAttendingCount((value) => Math.max(MIN_SELF_ADD_ATTENDING, value - 1))
-                }
-              >
-                −
-              </StepStepperButton>
-              <span
-                id='self-add-attending-count'
-                className='w-6 text-center text-base text-foreground tabular-nums'
-              >
-                {selfAddAttendingCount}
-              </span>
-              <StepStepperButton
-                aria-label='הוספת מגיע'
-                disabled={selfAddAttendingCount >= MAX_SELF_ADD_ATTENDING}
-                onClick={() =>
-                  setSelfAddAttendingCount((value) => Math.min(MAX_SELF_ADD_ATTENDING, value + 1))
-                }
-              >
-                +
-              </StepStepperButton>
-            </div>
-            {selfAddFieldErrors.attendingCount && (
-              <StepErrorText>{selfAddFieldErrors.attendingCount}</StepErrorText>
-            )}
-          </StepField>
+              <StepField label={t('selfAddAttendingCountLabel')} htmlFor='self-add-attending-count'>
+                <div className='flex items-center gap-4'>
+                  <StepStepperButton
+                    aria-label='הפחתת מספר המגיעים'
+                    disabled={selfAddAttendingCount <= MIN_SELF_ADD_ATTENDING}
+                    onClick={() =>
+                      setSelfAddAttendingCount((value) =>
+                        Math.max(MIN_SELF_ADD_ATTENDING, value - 1)
+                      )
+                    }
+                  >
+                    −
+                  </StepStepperButton>
+                  <span
+                    id='self-add-attending-count'
+                    className='w-6 text-center text-base text-foreground tabular-nums'
+                  >
+                    {selfAddAttendingCount}
+                  </span>
+                  <StepStepperButton
+                    aria-label='הוספת מגיע'
+                    disabled={selfAddAttendingCount >= MAX_SELF_ADD_ATTENDING}
+                    onClick={() =>
+                      setSelfAddAttendingCount((value) =>
+                        Math.min(MAX_SELF_ADD_ATTENDING, value + 1)
+                      )
+                    }
+                  >
+                    +
+                  </StepStepperButton>
+                </div>
+                {selfAddFieldErrors.attendingCount && (
+                  <StepErrorText>{selfAddFieldErrors.attendingCount}</StepErrorText>
+                )}
+              </StepField>
 
-          {selfAddGeneralError && <StepErrorText>{selfAddGeneralError}</StepErrorText>}
-          {selfAddAlreadyListedNote && <StepBody>{selfAddAlreadyListedNote}</StepBody>}
+              {selfAddGeneralError && <StepErrorText>{selfAddGeneralError}</StepErrorText>}
 
-          <StepActions>
-            <StepPrimaryButton
-              disabled={
-                selfAdd.isPending ||
-                selfAddFullName.trim().length === 0 ||
-                selfAddPhone.trim().length === 0
-              }
-              onClick={handleSelfAddSubmit}
-            >
-              {selfAdd.isPending ? tCommon('searching') : t('selfAddSubmit')}
-            </StepPrimaryButton>
-          </StepActions>
+              <StepActions>
+                <StepPrimaryButton
+                  disabled={
+                    selfAdd.isPending ||
+                    selfAddFullName.trim().length === 0 ||
+                    selfAddPhone.trim().length === 0
+                  }
+                  onClick={handleSelfAddSubmit}
+                >
+                  {selfAdd.isPending ? tCommon('searching') : t('selfAddSubmit')}
+                </StepPrimaryButton>
+              </StepActions>
+            </>
+          )}
         </div>
       )}
     </StepShell>
