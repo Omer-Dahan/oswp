@@ -64,6 +64,7 @@ describe('GuestForm - Validation Failure Handling', () => {
   it('submits a valid household with its event invitation matrix', async () => {
     const onValid = jest.fn()
     const values = getDefaultHouseholdFormData(mockEvents)
+    values.invitedCount = 2
     values.guestParty[0] = {
       ...values.guestParty[0],
       firstName: 'יעל',
@@ -497,6 +498,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.setValue('guestParty.0.firstName', 'John')
         result.current.setValue('guestParty.0.lastName', 'Doe')
         result.current.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.setValue('invitedCount', 2)
       })
 
       // Trigger validation
@@ -565,6 +567,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.form.setValue('guestParty.0.firstName', 'John')
         result.current.form.setValue('guestParty.0.lastName', 'Doe')
         result.current.form.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.form.setValue('invitedCount', 2)
       })
 
       // Add second guest
@@ -681,6 +684,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.setValue('guestParty.0.firstName', 'John')
         result.current.setValue('guestParty.0.lastName', 'Doe')
         result.current.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.setValue('invitedCount', 2)
         result.current.setValue('guestParty.0.tagIds', validTagIds)
       })
 
@@ -813,6 +817,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.setValue('guestParty.0.firstName', 'John')
         result.current.setValue('guestParty.0.lastName', 'Doe')
         result.current.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.setValue('invitedCount', 2)
         result.current.setValue('guestParty.0.tagIds', [])
       })
 
@@ -852,6 +857,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.form.setValue('guestParty.0.email', 'john@example.com')
         result.current.form.setValue('guestParty.0.phone', '+12025550123')
         result.current.form.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.form.setValue('invitedCount', 2)
       })
 
       // Add second guest with contact info
@@ -919,6 +925,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.form.setValue('guestParty.0.lastName', 'Doe')
         result.current.form.setValue('guestParty.0.email', 'invalid-email')
         result.current.form.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.form.setValue('invitedCount', 2)
       })
 
       // Add second guest with valid email
@@ -973,6 +980,7 @@ describe('GuestForm - Common Use Cases', () => {
         result.current.form.setValue('guestParty.0.email', null)
         result.current.form.setValue('guestParty.0.phone', null)
         result.current.form.setValue('guestParty.0.isPrimaryContact', true)
+        result.current.form.setValue('invitedCount', 2)
       })
 
       // Add second guest without contact info
@@ -1006,5 +1014,95 @@ describe('GuestForm - Common Use Cases', () => {
       expect(data.guestParty[1]?.email).toBeNull()
       expect(data.guestParty[1]?.phone).toBeNull()
     })
+  })
+})
+
+describe('GuestForm - Mandatory Invitee Count', () => {
+  const fillOtherwiseValidGuest = () => {
+    const { result } = renderHook(() => {
+      const form = useForm<HouseholdFormData>({
+        resolver: householdFormResolver,
+        defaultValues: getDefaultHouseholdFormData(mockEvents),
+      })
+      void form.formState.errors
+      return form
+    })
+
+    act(() => {
+      result.current.setValue('guestParty.0.firstName', 'John')
+      result.current.setValue('guestParty.0.lastName', 'Doe')
+      result.current.setValue('guestParty.0.isPrimaryContact', true)
+    })
+
+    return result
+  }
+
+  it('blocks submission with a Hebrew message when invitedCount is left empty', async () => {
+    const result = fillOtherwiseValidGuest()
+
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(false)
+    expect(result.current.formState.errors.invitedCount?.message).toBe(
+      'יש להזין מספר מוזמנים בין 1 ל-30'
+    )
+  })
+
+  it('rejects an invitedCount outside the 1 to 30 range', async () => {
+    const result = fillOtherwiseValidGuest()
+
+    act(() => {
+      result.current.setValue('invitedCount', 31)
+    })
+
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(false)
+    expect(result.current.formState.errors.invitedCount?.message).toBe(
+      'יש להזין מספר מוזמנים בין 1 ל-30'
+    )
+  })
+
+  it('accepts a valid invitedCount within range', async () => {
+    const result = fillOtherwiseValidGuest()
+
+    act(() => {
+      result.current.setValue('invitedCount', 5)
+    })
+
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(true)
+    expect(result.current.formState.errors.invitedCount).toBeUndefined()
+  })
+
+  it('does not require re-entry on edit when the household already has an invitedCount', async () => {
+    const { result } = renderHook(() => {
+      const form = useForm<HouseholdFormData>({
+        resolver: householdFormResolver,
+        defaultValues: {
+          ...getDefaultHouseholdFormData(mockEvents),
+          householdId: 'household-123',
+          invitedCount: 3,
+          guestParty: [
+            {
+              guestId: 1,
+              firstName: 'John',
+              lastName: 'Doe',
+              isPrimaryContact: true,
+              invites: {},
+            },
+          ],
+        },
+      })
+      void form.formState.errors
+      return form
+    })
+
+    // Nothing was touched - the prefilled invitedCount alone must satisfy validation.
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(true)
+    expect(result.current.formState.errors.invitedCount).toBeUndefined()
   })
 })

@@ -39,6 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog'
+import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { api } from '~/trpc/react'
 
@@ -312,6 +313,27 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
               </ul>
             </div>
           )}
+
+          <div className='border-b bg-muted/10 px-6 py-4'>
+            <Label htmlFor='invitedCount'>מספר מוזמנים</Label>
+            <Input
+              id='invitedCount'
+              type='number'
+              inputMode='numeric'
+              min={1}
+              max={30}
+              placeholder='כמה מוזמנים במשק הבית?'
+              {...register('invitedCount', { valueAsNumber: true })}
+              className={errors.invitedCount ? 'mt-2 border-destructive' : 'mt-2'}
+            />
+            {errors.invitedCount ? (
+              <p className='mt-1 text-destructive text-sm'>{errors.invitedCount.message}</p>
+            ) : (
+              <p className='mt-1 text-muted-foreground text-xs'>
+                מספר מוזמנים בלבד, לא מסמן הגעה, נשאר לא השיב
+              </p>
+            )}
+          </div>
 
           <Accordion
             type='multiple'

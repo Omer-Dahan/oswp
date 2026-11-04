@@ -53,7 +53,7 @@ const household: HouseholdWithGuests = {
 }
 
 describe('GuestIndividualTable', () => {
-  it('renders the eight guest row columns without children or dietary notes', () => {
+  it('renders the six guest row columns, with the counts under the name', () => {
     render(
       <GuestIndividualTable
         households={[household]}
@@ -68,20 +68,18 @@ describe('GuestIndividualTable', () => {
       'צד',
       'קבוצה',
       'סטטוס',
-      'מוזמן',
-      'מגיע בפועל',
       'קישור הזמנה',
     ])
 
     const row = screen.getByRole('row', { name: /נועה כהן/ })
-    expect(within(row).getAllByRole('cell')).toHaveLength(8)
+    expect(within(row).getAllByRole('cell')).toHaveLength(6)
+    expect(within(row).getByText('מוזמן 1')).toBeInTheDocument()
     expect(screen.queryByText('ילדים')).not.toBeInTheDocument()
     expect(screen.queryByText('הערות תזונה')).not.toBeInTheDocument()
-    expect(screen.queryByText('2')).not.toBeInTheDocument()
     expect(screen.queryByText('טבעוני')).not.toBeInTheDocument()
   })
 
-  it('spans the empty state across all eight columns', () => {
+  it('spans the empty state across all six columns', () => {
     render(
       <GuestIndividualTable
         households={[]}
@@ -90,7 +88,7 @@ describe('GuestIndividualTable', () => {
       />
     )
 
-    expect(screen.getByText('לא נמצאו אורחים')).toHaveAttribute('colspan', '8')
+    expect(screen.getByText('לא נמצאו אורחים')).toHaveAttribute('colspan', '6')
   })
 
   it('keeps unanswered RSVP details empty and derives status independently', () => {
@@ -103,9 +101,9 @@ describe('GuestIndividualTable', () => {
     )
 
     const row = screen.getByRole('row', { name: /נועה כהן/ })
-    const cells = within(row).getAllByRole('cell')
     expect(screen.getByText('לא השיב')).toBeInTheDocument()
-    expect(cells[6]).toBeEmptyDOMElement()
+    expect(within(row).getByText('מוזמן 1')).toBeInTheDocument()
+    expect(within(row).queryByText(/מגיע/)).not.toBeInTheDocument()
     expect(screen.queryByText('hidden@example.com')).not.toBeInTheDocument()
   })
 
@@ -119,10 +117,8 @@ describe('GuestIndividualTable', () => {
     )
 
     const row = screen.getByRole('row', { name: /נועה כהן/ })
-    const cells = within(row).getAllByRole('cell')
-    expect(cells[5]).toHaveTextContent('1')
-    expect(cells[6]).toHaveTextContent('4')
-    expect(within(cells[6]!).getByTitle('אישר 4 מתוך 1 שהוזמן')).toBeInTheDocument()
+    expect(within(row).getByText('מוזמן 1')).toBeInTheDocument()
+    expect(within(row).getByTitle('אישר 4 מתוך 1 שהוזמן')).toHaveTextContent('מגיע 4')
   })
 
   it('does not infer status from attendingCount', () => {
@@ -136,5 +132,19 @@ describe('GuestIndividualTable', () => {
 
     expect(screen.getByText('לא השיב')).toBeInTheDocument()
     expect(screen.queryByText('אישר')).not.toBeInTheDocument()
+  })
+
+  it('shows nothing under the name when invited and attending are both unknown', () => {
+    render(
+      <GuestIndividualTable
+        households={[{ ...household, invitedCount: null, attendingCount: null }]}
+        householdNumberMap={new Map([['household-1', 1]])}
+        onSelectHousehold={jest.fn()}
+      />
+    )
+
+    const row = screen.getByRole('row', { name: /נועה כהן/ })
+    expect(within(row).queryByText(/מוזמן/)).not.toBeInTheDocument()
+    expect(within(row).queryByText(/מגיע/)).not.toBeInTheDocument()
   })
 })

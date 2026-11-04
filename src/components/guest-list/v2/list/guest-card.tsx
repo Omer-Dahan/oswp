@@ -1,8 +1,8 @@
 import { memo, useCallback, useState } from 'react'
 
+import { InvitedAttendingLine } from '~/components/guest-list/v2/list/invited-attending-line'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
-import { getHouseholdPartySize } from '~/lib/household-party-size'
 import {
   getHouseholdWeddingRsvpCounts,
   resolveRsvpEvents,
@@ -122,13 +122,6 @@ function GuestCardComponent({
   const extraGuestsCount = Math.max(household.guests.length - 1, 0)
   const summaryName =
     extraGuestsCount > 0 ? `${primaryGuestName} +${extraGuestsCount}` : primaryGuestName
-  const guestCount = getHouseholdPartySize(household)
-  const guestCountLabel =
-    household.attendingCount != null
-      ? `${household.attendingCount} מגיעים בפועל`
-      : household.invitedCount != null
-        ? `${household.invitedCount} מוזמנים`
-        : `${guestCount ?? 0} ${(guestCount ?? 0) === 1 ? 'רשום' : 'רשומים'}`
 
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
@@ -167,23 +160,19 @@ function GuestCardComponent({
         }`}
       >
         <CardContent className='flex flex-col gap-3 p-4'>
-          <div className='flex items-start justify-between gap-3'>
-            <div className='flex min-w-0 items-start gap-2.5'>
-              <span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/80 bg-muted/60 font-mono text-[0.58rem] text-foreground/75 uppercase tracking-wider'>
-                {initials}
-              </span>
-              <div className='min-w-0'>
-                <p className='truncate font-serif text-[1.02rem] text-foreground leading-tight'>
-                  {summaryName}
-                </p>
-              </div>
+          <div className='flex min-w-0 items-start gap-2.5'>
+            <span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/80 bg-muted/60 font-mono text-[0.58rem] text-foreground/75 uppercase tracking-wider'>
+              {initials}
+            </span>
+            <div className='min-w-0'>
+              <p className='truncate font-serif text-[1.02rem] text-foreground leading-tight'>
+                {summaryName}
+              </p>
+              <InvitedAttendingLine
+                household={household}
+                className='mt-0.5 font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'
+              />
             </div>
-            <Badge
-              variant='secondary'
-              className='shrink-0 font-mono text-[0.54rem] uppercase tracking-wider'
-            >
-              {guestCountLabel}
-            </Badge>
           </div>
 
           {(phone || household.side || household.groupName) && (

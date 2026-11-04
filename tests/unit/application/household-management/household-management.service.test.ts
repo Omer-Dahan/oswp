@@ -224,6 +224,31 @@ describe('HouseholdManagementService', () => {
     )
   })
 
+  it('writes the mandatory invitedCount on create without touching attendingCount or any RSVP', async () => {
+    // Owner's decision 04.11.2026: the guest-form's mandatory invitee count
+    // records only how many were invited - it must never mark anyone as
+    // having answered, so the household's status stays "לא השיב".
+    await service.createHouseholdWithGuests(actorContext, 'wedding-123', {
+      invitedCount: 4,
+      guestParty: [
+        { firstName: 'Noa', lastName: 'Cohen', invites: { 'event-123': 'Not Invited' } },
+      ],
+    })
+
+    expect(mockCreateWithGifts).toHaveBeenCalledWith(
+      expect.objectContaining({ invitedCount: 4 }),
+      ['event-123']
+    )
+    const createHouseholdArg = mockCreateWithGifts.mock.calls[0]?.[0]
+    expect(createHouseholdArg).not.toHaveProperty('attendingCount')
+
+    expect(mockGuestCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invitations: [{ eventId: 'event-123', rsvp: 'Not Invited', weddingId: 'wedding-123' }],
+      })
+    )
+  })
+
   it('persists side, group, party size and alt phone when editing an existing household', async () => {
     // Owner report 2026-11-03: assigning a side to an already-added household
     // showed a success toast and changed nothing after a refresh, because these

@@ -1,6 +1,7 @@
 'use client'
 
 import { memo, useCallback, useState } from 'react'
+import { InvitedAttendingLine } from '~/components/guest-list/v2/list/invited-attending-line'
 import { Badge } from '~/components/ui/badge'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
@@ -31,15 +32,13 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
             <th className={thClass}>צד</th>
             <th className={thClass}>קבוצה</th>
             <th className={thClass}>סטטוס</th>
-            <th className={thClass}>מוזמן</th>
-            <th className={thClass}>מגיע בפועל</th>
             <th className={thClass}>קישור הזמנה</th>
           </tr>
         </thead>
         <tbody>
           {households.length === 0 ? (
             <tr>
-              <td colSpan={8} className='px-4 py-12 text-center font-mono text-foreground/55'>
+              <td colSpan={6} className='px-4 py-12 text-center font-mono text-foreground/55'>
                 לא נמצאו אורחים
               </td>
             </tr>
@@ -88,10 +87,6 @@ const GuestTableRow = memo(function GuestTableRow({
     : responses.some((invitation) => invitation.rsvp === 'Declined')
       ? 'סירב'
       : 'לא השיב'
-  const countMismatch =
-    household.invitedCount != null &&
-    household.attendingCount != null &&
-    household.invitedCount !== household.attendingCount
   const [copied, setCopied] = useState(false)
   const utils = api.useUtils()
   const handleCopyInvite = useCallback(async () => {
@@ -109,7 +104,11 @@ const GuestTableRow = memo(function GuestTableRow({
       }`}
     >
       <td className='px-4 py-3 font-medium text-foreground' data-household-number={householdNumber}>
-        {guestName}
+        <div>{guestName}</div>
+        <InvitedAttendingLine
+          household={household}
+          className='mt-0.5 font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
+        />
       </td>
       <td className='px-4 py-3 text-foreground/70'>
         {primaryGuest?.phone ? <span dir='ltr'>{primaryGuest.phone}</span> : null}
@@ -118,23 +117,6 @@ const GuestTableRow = memo(function GuestTableRow({
       <td className='px-4 py-3 text-foreground/70'>{household.groupName}</td>
       <td className='px-4 py-3'>
         <Badge variant='outline'>{status}</Badge>
-      </td>
-      <td className='px-4 py-3 text-foreground/70'>{household.invitedCount}</td>
-      <td className='px-4 py-3 text-foreground/70'>
-        {household.attendingCount != null ? (
-          <span
-            title={
-              countMismatch
-                ? `אישר ${household.attendingCount} מתוך ${household.invitedCount} שהוזמן`
-                : undefined
-            }
-            className={
-              countMismatch ? 'rounded-full bg-primary/10 px-2 py-0.5 text-primary' : undefined
-            }
-          >
-            {household.attendingCount}
-          </span>
-        ) : null}
       </td>
       <td className='px-4 py-3'>
         <button

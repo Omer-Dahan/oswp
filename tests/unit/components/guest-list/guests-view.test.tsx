@@ -646,7 +646,7 @@ describe('GuestsView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ביקורת אנשים' }))
 
     expect(screen.getByRole('columnheader', { name: 'שם האורח' })).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'מגיע בפועל' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'סטטוס' })).toBeInTheDocument()
   })
 
   it('should show and clear active search state via the Clear control', () => {

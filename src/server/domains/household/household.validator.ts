@@ -72,24 +72,69 @@ export const baseHouseholdFields = z.object({
 })
 
 /**
- * Schema for creating a household
+ * Message shown when the invitee count is missing or out of range. Shared by
+ * the manual-create schema (server) and the guest-form schema (client) so
+ * the two never drift apart.
  */
-export const createHouseholdSchema = baseHouseholdFields
+export const REQUIRED_INVITED_COUNT_MESSAGE = 'יש להזין מספר מוזמנים בין 1 ל-30'
+
+/**
+ * Invitee count for a household created manually via the guest-list "add
+ * household" form. Unlike `baseHouseholdFields.invitedCount` (lenient, used
+ * by CSV import where the figure is routinely missing), this is mandatory:
+ * the owner's decision is that a household can't be created without stating
+ * how many people were invited.
+ */
+export const requiredInvitedCountSchema = z
+  .number({ error: REQUIRED_INVITED_COUNT_MESSAGE })
+  .int(REQUIRED_INVITED_COUNT_MESSAGE)
+  .min(1, REQUIRED_INVITED_COUNT_MESSAGE)
+  .max(30, REQUIRED_INVITED_COUNT_MESSAGE)
+
+/**
+ * Ensures exactly one non-tag-along guest is marked as primary contact.
+ * Shared by `createHouseholdSchema` and `createHouseholdManualSchema` so
+ * both create paths enforce the same rule with the same message.
+ */
+const hasExactlyOnePrimaryContact = (data: { guestParty: GuestPartyInputSchemaInput[] }) => {
+  const invitedGuests = data.guestParty.filter((guest) => !guest.isTagAlong)
+  const primaryContacts = invitedGuests.filter((guest) => guest.isPrimaryContact)
+  return primaryContacts.length === 1
+}
+
+const primaryContactRefineOptions = {
+  message: 'יש לסמן איש קשר ראשי אחד בדיוק',
+  path: ['guestParty'],
+}
+
+/**
+ * Household fields shared by both create schemas, before the primary-contact
+ * refinement (so each variant can `.extend()` invitedCount independently).
+ */
+const createHouseholdBaseSchema = baseHouseholdFields.extend({
+  guestParty: z.array(guestPartyInputSchema).min(1, 'נדרש לפחות אורח אחד'),
+})
+
+/**
+ * Schema for creating a household. Used by bulk CSV import, where
+ * `invitedCount` is routinely absent from the sheet — kept lenient
+ * (see `baseHouseholdFields`).
+ */
+export const createHouseholdSchema = createHouseholdBaseSchema.refine(
+  hasExactlyOnePrimaryContact,
+  primaryContactRefineOptions
+)
+
+/**
+ * Schema for creating a household from the guest-list "add household" form.
+ * Same as `createHouseholdSchema`, except `invitedCount` is mandatory
+ * (1 to 30) — see `requiredInvitedCountSchema`.
+ */
+export const createHouseholdManualSchema = createHouseholdBaseSchema
   .extend({
-    guestParty: z.array(guestPartyInputSchema).min(1, 'נדרש לפחות אורח אחד'),
+    invitedCount: requiredInvitedCountSchema,
   })
-  .refine(
-    (data) => {
-      // Ensure exactly one non-tag-along guest is marked as primary contact
-      const invitedGuests = data.guestParty.filter((guest) => !guest.isTagAlong)
-      const primaryContacts = invitedGuests.filter((guest) => guest.isPrimaryContact)
-      return primaryContacts.length === 1
-    },
-    {
-      message: 'יש לסמן איש קשר ראשי אחד בדיוק',
-      path: ['guestParty'],
-    }
-  )
+  .refine(hasExactlyOnePrimaryContact, primaryContactRefineOptions)
 
 /**
  * Schema for updating a household.
@@ -174,6 +219,7 @@ export type GuestPartyInputSchemaInput = z.infer<typeof guestPartyInputSchema>
 export type GuestPartyUpdateInputSchemaInput = z.infer<typeof guestPartyUpdateInputSchema>
 export type GiftInputSchemaInput = z.infer<typeof giftInputSchema>
 export type CreateHouseholdSchemaInput = z.infer<typeof createHouseholdSchema>
+export type CreateHouseholdManualSchemaInput = z.infer<typeof createHouseholdManualSchema>
 export type UpdateHouseholdSchemaInput = z.infer<typeof updateHouseholdSchema>
 export type DeleteHouseholdSchemaInput = z.infer<typeof deleteHouseholdSchema>
 export type SearchHouseholdSchemaInput = z.infer<typeof searchHouseholdSchema>

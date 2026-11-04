@@ -18,7 +18,7 @@ import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { eventService } from '~/server/domains/event'
 import {
   bulkCreateHouseholdsSchema,
-  createHouseholdSchema,
+  createHouseholdManualSchema,
   deleteHouseholdSchema,
   publicHouseholdDetailsSchema,
   publicSearchHouseholdSchema,
@@ -28,9 +28,11 @@ import {
 
 export const householdRouter = createTRPCRouter({
   /**
-   * Create a new household with guests
+   * Create a new household with guests. Uses `createHouseholdManualSchema`
+   * (invitedCount required, 1 to 30) — distinct from the lenient schema CSV
+   * bulk import uses, where the figure is routinely missing from the sheet.
    */
-  create: protectedProcedure.input(createHouseholdSchema).mutation(async ({ ctx, input }) => {
+  create: protectedProcedure.input(createHouseholdManualSchema).mutation(async ({ ctx, input }) => {
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return householdManagementService.createHouseholdWithGuests(ctx.authz, weddingId, input)
   }),

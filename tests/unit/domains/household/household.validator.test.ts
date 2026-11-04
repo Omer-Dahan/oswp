@@ -3,6 +3,7 @@
  */
 
 import {
+  createHouseholdManualSchema,
   createHouseholdSchema,
   deleteHouseholdSchema,
   guestPartyInputSchema,
@@ -247,6 +248,69 @@ describe('createHouseholdSchema', () => {
     const result = createHouseholdSchema.safeParse(input)
     expect(result.success).toBe(true)
     expect(result.success && result.data.invitedCount).toBe(6)
+  })
+
+  it('still accepts a missing invitedCount — CSV import rows routinely omit it', () => {
+    const input = {
+      guestParty: [
+        { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+      ],
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(true)
+  })
+})
+
+describe('createHouseholdManualSchema — the guest-list "add household" form', () => {
+  const validGuestParty = [
+    { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+  ]
+
+  it('rejects a missing invitedCount with the Hebrew mandatory-count message', () => {
+    const result = createHouseholdManualSchema.safeParse({ guestParty: validGuestParty })
+
+    expect(result.success).toBe(false)
+    expect(result.success || result.error.issues[0]?.message).toBe(
+      'יש להזין מספר מוזמנים בין 1 ל-30'
+    )
+  })
+
+  it('rejects an invitedCount of 0 — it never means "unknown" here, unlike the lenient schema', () => {
+    const result = createHouseholdManualSchema.safeParse({
+      guestParty: validGuestParty,
+      invitedCount: 0,
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects an invitedCount above 30', () => {
+    const result = createHouseholdManualSchema.safeParse({
+      guestParty: validGuestParty,
+      invitedCount: 31,
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts an invitedCount within 1 to 30', () => {
+    const result = createHouseholdManualSchema.safeParse({
+      guestParty: validGuestParty,
+      invitedCount: 30,
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.invitedCount).toBe(30)
+  })
+
+  it('still enforces exactly one primary contact', () => {
+    const result = createHouseholdManualSchema.safeParse({
+      guestParty: [{ firstName: 'John', lastName: 'Doe', isPrimaryContact: false, invites: {} }],
+      invitedCount: 3,
+    })
+
+    expect(result.success).toBe(false)
   })
 })
 

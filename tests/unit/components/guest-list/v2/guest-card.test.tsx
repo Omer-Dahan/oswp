@@ -146,7 +146,6 @@ describe('GuestCard', () => {
 
     expect(screen.getByText('Alex Rivera +1')).toBeInTheDocument()
     expect(screen.getAllByText('AR').length).toBeGreaterThan(0)
-    expect(screen.getByText('2 רשומים')).toBeInTheDocument()
     expect(screen.getByText('מגיעים')).toBeInTheDocument()
     expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
   })

@@ -13,6 +13,7 @@ import {
   baseHouseholdFields,
   giftInputSchema,
   guestPartyInputSchema,
+  requiredInvitedCountSchema,
 } from '~/server/domains/household/household.validator'
 
 /**
@@ -27,6 +28,11 @@ const baseHouseholdFormSchema = baseHouseholdFields.extend({
   guestParty: z.array(guestPartyInputSchema).min(1, 'At least one guest is required'),
   gifts: z.array(giftInputSchema).default([]),
   deletedGuests: z.array(z.number()).default([]), // Track deleted guest IDs
+  // Mandatory on both create and edit (owner's decision, 04.11.2026): a new
+  // household can't be saved without stating how many people were invited.
+  // On edit, an existing value arrives via `prefillFormData` already
+  // populated, so this only blocks submission when it's genuinely unset.
+  invitedCount: requiredInvitedCountSchema,
 })
 
 /**
@@ -74,10 +80,23 @@ export const householdFormResolver: Resolver<HouseholdFormData> = async (values,
 }
 
 /**
+ * Default values for a brand-new household. `invitedCount` is deliberately
+ * omitted (left empty) rather than defaulted to 1 — the owner's decision is
+ * that the person adding a guest has to type the real number, never inherit
+ * a silent default. react-hook-form only needs `DeepPartial<HouseholdFormData>`
+ * here, so the type loosens just that one field rather than the whole shape.
+ */
+type NewHouseholdFormDefaults = Omit<HouseholdFormData, 'invitedCount'> & {
+  invitedCount?: HouseholdFormData['invitedCount']
+}
+
+/**
  * Helper to get default form values for creating a new household
  * Constructs default form data without validation (validation happens on submit)
  */
-export const getDefaultHouseholdFormData = (events: Array<{ id: string }>): HouseholdFormData => {
+export const getDefaultHouseholdFormData = (
+  events: Array<{ id: string }>
+): NewHouseholdFormDefaults => {
   const invites: Record<string, string> = {}
   const gifts: GiftFormData[] = []
 

@@ -56,7 +56,7 @@ const baseHousehold: HouseholdWithGuests = {
 }
 
 describe('GuestCard party count', () => {
-  it('labels named rows when imported and confirmed counts are unknown', () => {
+  it('shows nothing under the name when imported and confirmed counts are unknown', () => {
     render(
       <GuestCard
         household={{ ...baseHousehold, invitedCount: null }}
@@ -64,21 +64,8 @@ describe('GuestCard party count', () => {
       />
     )
 
-    expect(screen.getByText('1 רשום')).toBeInTheDocument()
-  })
-
-  it('uses the plural label for multiple named rows', () => {
-    render(
-      <GuestCard
-        household={{
-          ...baseHousehold,
-          guests: [baseHousehold.guests[0]!, { ...baseHousehold.guests[0]!, id: 2 }],
-        }}
-        onSelectHousehold={jest.fn()}
-      />
-    )
-
-    expect(screen.getByText('2 רשומים')).toBeInTheDocument()
+    expect(screen.queryByText(/מוזמן/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/מגיע/)).not.toBeInTheDocument()
   })
 
   it('renders the imported invitedCount when it is a positive number', () => {
@@ -89,10 +76,10 @@ describe('GuestCard party count', () => {
       />
     )
 
-    expect(screen.getByText('2 מוזמנים')).toBeInTheDocument()
+    expect(screen.getByText('מוזמן 2')).toBeInTheDocument()
   })
 
-  it('shows the confirmed count when it exceeds the imported invited count', () => {
+  it('shows the confirmed count alongside the invited count with a mismatch marker', () => {
     render(
       <GuestCard
         household={{ ...baseHousehold, invitedCount: 1, attendingCount: 4 }}
@@ -100,6 +87,7 @@ describe('GuestCard party count', () => {
       />
     )
 
-    expect(screen.getByText('4 מגיעים בפועל')).toBeInTheDocument()
+    expect(screen.getByText('מוזמן 1')).toBeInTheDocument()
+    expect(screen.getByTitle('אישר 4 מתוך 1 שהוזמן')).toHaveTextContent('מגיע 4')
   })
 })
