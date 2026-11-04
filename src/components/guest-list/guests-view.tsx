@@ -809,6 +809,7 @@ export default function GuestsView({
             householdNumberMap={householdNumberMap}
             selectedHouseholdId={selectedHouseholdId}
             onSelectHousehold={handleSelectHousehold}
+            events={events}
           />
         ) : (
           <GuestCardsList

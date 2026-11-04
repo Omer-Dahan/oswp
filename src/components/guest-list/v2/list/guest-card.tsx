@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from 'react'
 
 import { InvitedAttendingLine } from '~/components/guest-list/v2/list/invited-attending-line'
+import { PartialEventAnswerLine } from '~/components/guest-list/v2/list/partial-event-answer-line'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
 import {
@@ -170,6 +171,11 @@ function GuestCardComponent({
               </p>
               <InvitedAttendingLine
                 household={household}
+                className='mt-0.5 font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'
+              />
+              <PartialEventAnswerLine
+                guests={household.guests}
+                events={events}
                 className='mt-0.5 font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'
               />
             </div>

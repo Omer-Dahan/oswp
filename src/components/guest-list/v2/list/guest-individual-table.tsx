@@ -2,7 +2,9 @@
 
 import { memo, useCallback, useState } from 'react'
 import { InvitedAttendingLine } from '~/components/guest-list/v2/list/invited-attending-line'
+import { PartialEventAnswerLine } from '~/components/guest-list/v2/list/partial-event-answer-line'
 import { Badge } from '~/components/ui/badge'
+import type { RsvpEventInput } from '~/lib/wedding/rsvp-events'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
@@ -11,6 +13,8 @@ type GuestIndividualTableProps = {
   householdNumberMap: Map<string, number>
   onSelectHousehold: (household: HouseholdWithGuests) => void
   selectedHouseholdId?: string
+  /** The wedding's events, used to tell the wedding apart from the chuppah. */
+  events?: RsvpEventInput[]
 }
 
 const thClass =
@@ -21,6 +25,7 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
   householdNumberMap,
   onSelectHousehold,
   selectedHouseholdId,
+  events = [],
 }: Readonly<GuestIndividualTableProps>) {
   return (
     <div className='overflow-x-auto rounded-md border border-border'>
@@ -50,6 +55,7 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
                 householdNumber={householdNumberMap.get(household.id) ?? 0}
                 isSelected={selectedHouseholdId === household.id}
                 onSelectHousehold={onSelectHousehold}
+                events={events}
               />
             ))
           )}
@@ -64,6 +70,7 @@ type GuestTableRowProps = {
   householdNumber: number
   isSelected: boolean
   onSelectHousehold: (household: HouseholdWithGuests) => void
+  events: RsvpEventInput[]
 }
 
 const GuestTableRow = memo(function GuestTableRow({
@@ -71,6 +78,7 @@ const GuestTableRow = memo(function GuestTableRow({
   householdNumber,
   isSelected,
   onSelectHousehold,
+  events,
 }: Readonly<GuestTableRowProps>) {
   const handleClick = useCallback(() => {
     onSelectHousehold(household)
@@ -107,6 +115,11 @@ const GuestTableRow = memo(function GuestTableRow({
         <div>{guestName}</div>
         <InvitedAttendingLine
           household={household}
+          className='mt-0.5 font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
+        />
+        <PartialEventAnswerLine
+          guests={household.guests}
+          events={events}
           className='mt-0.5 font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'
         />
       </td>

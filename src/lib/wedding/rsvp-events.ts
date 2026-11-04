@@ -99,3 +99,58 @@ export function getHouseholdWeddingRsvpCounts(
 
   return counts
 }
+
+type HouseholdEventStatus = 'Attending' | 'Declined' | 'Unanswered'
+
+const EVENT_STATUS_LABEL: Record<'Attending' | 'Declined', string> = {
+  Attending: 'מגיע',
+  Declined: 'לא מגיע',
+}
+
+/** "ל" + an event name, dropping the event name's own "ה" so "ל" + "החופה" reads "לחופה". */
+const withLePrefix = (name: string): string => `ל${name.startsWith('ה') ? name.slice(1) : name}`
+
+/** Minimal guest shape needed to resolve a household's per-event RSVP answer. */
+type PartialAnswerGuest = { invitations: Array<{ eventId: string; rsvp: string }> }
+
+/**
+ * A household's answer to one event: "Attending"/"Declined" once any guest
+ * of the household has answered it, "Unanswered" when every guest is still
+ * "Invited" (or has no invitation to it at all) - "Invited" alone is never
+ * an answer.
+ */
+function getHouseholdEventStatus(guests: PartialAnswerGuest[], eventId: string): HouseholdEventStatus {
+  let declined = false
+  for (const guest of guests) {
+    const invitation = guest.invitations.find((invitation) => invitation.eventId === eventId)
+    if (!invitation) continue
+    if (invitation.rsvp === 'Attending') return 'Attending'
+    if (invitation.rsvp === 'Declined') declined = true
+  }
+  return declined ? 'Declined' : 'Unanswered'
+}
+
+/**
+ * The owner's decision (04.11.2026): a household whose answers differ across
+ * the wedding's two RSVP-able events - one confirmed while the other hasn't
+ * answered, or the two answered differently - gets a disambiguating line
+ * under its name, e.g. "מגיע לחופה · החתונה טרם השיבה". Agreeing answers
+ * (including no answers at all, or fewer than two RSVP-able events) return
+ * null, leaving today's badges as the only signal.
+ */
+export function getPartialEventAnswerLine(
+  guests: PartialAnswerGuest[],
+  events: RsvpEventInput[]
+): string | null {
+  const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
+  if (weddingEvent === null || chuppahEvent === null) return null
+
+  const chuppahStatus = getHouseholdEventStatus(guests, chuppahEvent.id)
+  const weddingStatus = getHouseholdEventStatus(guests, weddingEvent.id)
+  if (chuppahStatus === weddingStatus) return null
+
+  const describe = (event: RsvpEventRef, status: HouseholdEventStatus): string =>
+    status === 'Unanswered' ? `${event.name} טרם השיבה` : `${EVENT_STATUS_LABEL[status]} ${withLePrefix(event.name)}`
+
+  return `${describe(chuppahEvent, chuppahStatus)} · ${describe(weddingEvent, weddingStatus)}`
+}

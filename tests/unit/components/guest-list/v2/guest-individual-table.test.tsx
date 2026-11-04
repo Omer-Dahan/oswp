@@ -134,6 +134,26 @@ describe('GuestIndividualTable', () => {
     expect(screen.queryByText('אישר')).not.toBeInTheDocument()
   })
 
+  it('shows the mirrored mixed-event line when the household answered only the wedding', () => {
+    const weddingEvent = { id: 'wedding', name: 'החתונה', isPrimary: true, collectRsvp: true }
+    const chuppahEvent = { id: 'chuppah', name: 'החופה', collectRsvp: true }
+    const weddingOnlyHousehold: HouseholdWithGuests = {
+      ...household,
+      guests: [{ ...household.guests[0]!, invitations: [{ id: 'invite-1', eventId: 'wedding', guestId: 1, rsvp: 'Attending' }] }],
+    }
+
+    render(
+      <GuestIndividualTable
+        households={[weddingOnlyHousehold]}
+        householdNumberMap={new Map([['household-1', 1]])}
+        onSelectHousehold={jest.fn()}
+        events={[weddingEvent, chuppahEvent]}
+      />
+    )
+
+    expect(screen.getByText('החופה טרם השיבה · מגיע לחתונה')).toBeInTheDocument()
+  })
+
   it('shows nothing under the name when invited and attending are both unknown', () => {
     render(
       <GuestIndividualTable

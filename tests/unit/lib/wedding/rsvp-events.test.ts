@@ -1,5 +1,6 @@
 import {
   getHouseholdWeddingRsvpCounts,
+  getPartialEventAnswerLine,
   isChuppahOnlySelection,
   isChuppahEventName,
 } from '~/lib/wedding/rsvp-events'
@@ -89,5 +90,51 @@ describe('getHouseholdWeddingRsvpCounts', () => {
       invited: 1,
       declined: 1,
     })
+  })
+})
+
+describe('getPartialEventAnswerLine', () => {
+  const events = [wedding, chuppah]
+
+  it('describes a chuppah-only household with the mixed line', () => {
+    const guests = [{ invitations: [{ eventId: 'c1', rsvp: 'Attending' }] }]
+
+    expect(getPartialEventAnswerLine(guests, events)).toBe('מגיע לחופה · החתונה טרם השיבה')
+  })
+
+  it('describes a wedding-only household with the mirrored line', () => {
+    const guests = [{ invitations: [{ eventId: 'w1', rsvp: 'Attending' }] }]
+
+    expect(getPartialEventAnswerLine(guests, events)).toBe('החופה טרם השיבה · מגיע לחתונה')
+  })
+
+  it('returns null when both events are confirmed attending', () => {
+    const guests = [
+      { invitations: [{ eventId: 'c1', rsvp: 'Attending' }, { eventId: 'w1', rsvp: 'Attending' }] },
+    ]
+
+    expect(getPartialEventAnswerLine(guests, events)).toBeNull()
+  })
+
+  it('returns null when neither event has been answered', () => {
+    const guests = [
+      { invitations: [{ eventId: 'c1', rsvp: 'Invited' }, { eventId: 'w1', rsvp: 'Invited' }] },
+    ]
+
+    expect(getPartialEventAnswerLine(guests, events)).toBeNull()
+  })
+
+  it('describes two events answered differently', () => {
+    const guests = [
+      { invitations: [{ eventId: 'c1', rsvp: 'Attending' }, { eventId: 'w1', rsvp: 'Declined' }] },
+    ]
+
+    expect(getPartialEventAnswerLine(guests, events)).toBe('מגיע לחופה · לא מגיע לחתונה')
+  })
+
+  it('returns null when fewer than two RSVP-able events are configured', () => {
+    const guests = [{ invitations: [{ eventId: 'w1', rsvp: 'Attending' }] }]
+
+    expect(getPartialEventAnswerLine(guests, [wedding])).toBeNull()
   })
 })

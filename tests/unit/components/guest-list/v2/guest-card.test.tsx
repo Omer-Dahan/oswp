@@ -230,6 +230,60 @@ describe('GuestCard', () => {
     expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
   })
 
+  it('shows the mixed-event line when the household answered only the chuppah', () => {
+    const weddingEvent = { id: 'event-1', name: 'החתונה', isPrimary: true, collectRsvp: true }
+    const chuppahEvent = { id: 'event-2', name: 'החופה', collectRsvp: true }
+    const chuppahOnlyHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      guests: [
+        {
+          ...mockGuest0,
+          invitations: [
+            { ...mockGuest0.invitations[0]!, eventId: 'event-2', rsvp: 'Attending' },
+          ],
+        },
+      ],
+    }
+
+    render(
+      <GuestCard
+        household={chuppahOnlyHousehold}
+        onSelectHousehold={jest.fn()}
+        events={[weddingEvent, chuppahEvent]}
+      />
+    )
+
+    expect(screen.getByText('מגיע לחופה · החתונה טרם השיבה')).toBeInTheDocument()
+    expect(screen.queryByText('טרם השיבו')).not.toBeInTheDocument()
+  })
+
+  it('shows no mixed-event line when both events are answered the same way', () => {
+    const weddingEvent = { id: 'event-1', name: 'החתונה', isPrimary: true, collectRsvp: true }
+    const chuppahEvent = { id: 'event-2', name: 'החופה', collectRsvp: true }
+    const bothAttendingHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      guests: [
+        {
+          ...mockGuest0,
+          invitations: [
+            mockGuest0.invitations[0]!,
+            { ...mockGuest0.invitations[0]!, id: 'inv-1-chuppah', eventId: 'event-2', rsvp: 'Attending' },
+          ],
+        },
+      ],
+    }
+
+    render(
+      <GuestCard
+        household={bothAttendingHousehold}
+        onSelectHousehold={jest.fn()}
+        events={[weddingEvent, chuppahEvent]}
+      />
+    )
+
+    expect(screen.queryByText(/טרם השיבה/)).not.toBeInTheDocument()
+  })
+
   it('copies the bride-side signature for a newly created bride-side household', async () => {
     const writeText = jest.fn().mockResolvedValue(undefined)
     Object.assign(navigator, { clipboard: { writeText } })
