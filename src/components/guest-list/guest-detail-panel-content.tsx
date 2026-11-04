@@ -28,6 +28,7 @@ import {
 } from '~/components/ui/select'
 import { Slider } from '~/components/ui/slider'
 import { AGE_GROUP_OPTIONS, LIKELIHOOD_LABELS } from '~/lib/constants'
+import { SELF_ADD_NOTE_PREFIX } from '~/lib/constants/guest-self-add'
 import { RSVP_STATUS, RSVP_STATUS_LABELS, RSVP_STATUS_VALUES, type RsvpStatus } from '~/lib/constants/rsvp'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import type { CommunicationLogEntry } from '~/server/domains/communication-log/communication-log.types'
@@ -897,6 +898,7 @@ function RsvpPartyDetailsSection({
 
 function NotesSection(props: Readonly<NotesSectionProps>) {
   const { isEditing, onToggleEdit, notes, draftNotes, updateDraft } = props
+  const isSelfAdded = Boolean(notes?.startsWith(SELF_ADD_NOTE_PREFIX))
 
   return (
     <GuestDetailSection
@@ -912,6 +914,14 @@ function NotesSection(props: Readonly<NotesSectionProps>) {
         </button>
       }
     >
+      {isSelfAdded ? (
+        <Badge
+          variant='outline'
+          className='mb-2 border-primary/30 bg-primary/10 text-[0.62rem] text-primary uppercase tracking-wider'
+        >
+          נוסף עצמאית מטופס אישור ההגעה הציבורי
+        </Badge>
+      ) : null}
       {isEditing ? (
         <textarea
           name='notes'

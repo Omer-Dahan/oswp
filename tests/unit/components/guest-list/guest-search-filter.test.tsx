@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { useState } from 'react'
 
 import GuestSearchFilter from '~/components/guest-list/guest-search-filter'
+import { SELF_ADD_GROUP_NAME } from '~/lib/constants/guest-self-add'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 jest.mock('~/components/hooks', () => {
@@ -21,7 +22,11 @@ jest.mock('~/trpc/react', () => ({
   },
 }))
 
-function makeHousehold(id: string, side: string | null | undefined): HouseholdWithGuests {
+function makeHousehold(
+  id: string,
+  side: string | null | undefined,
+  groupName: string | null | undefined = null
+): HouseholdWithGuests {
   return {
     id,
     weddingId: 'wedding-1',
@@ -37,7 +42,7 @@ function makeHousehold(id: string, side: string | null | undefined): HouseholdWi
     notes: null,
     invitedCount: null,
     side: side ?? null,
-    groupName: null,
+    groupName: groupName ?? null,
     attendingCount: null,
     childrenCount: null,
     dietaryNotes: null,
@@ -164,5 +169,33 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<RestoredHarness households={households} />)
     expect(screen.getByTestId('restored-count')).toHaveTextContent(String(households.length))
     expect(screen.queryByText(/renamed-group/)).not.toBeInTheDocument()
+  })
+})
+
+describe('GuestSearchFilter — group filter for self-added households', () => {
+  it('lists the self-add group with a count when such households exist, and filters to only those', () => {
+    const selfAddHouseholds: HouseholdWithGuests[] = [
+      makeHousehold('self-added-1', null, SELF_ADD_GROUP_NAME),
+      makeHousehold('self-added-2', null, SELF_ADD_GROUP_NAME),
+      makeHousehold('regular-1', 'חתן', 'קבוצה רגילה'),
+    ]
+
+    render(<Harness households={selfAddHouseholds} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    const option = screen.getByText(`${SELF_ADD_GROUP_NAME} (סה״כ 2 משקי בית)`)
+    fireEvent.click(option)
+
+    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
+    expect(listItems.map((li) => li.textContent)).toEqual(['self-added-1', 'self-added-2'])
+  })
+
+  it('does not show the self-add group option when no household belongs to it', () => {
+    const households: HouseholdWithGuests[] = [makeHousehold('a', 'חתן', 'קבוצה רגילה')]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+
+    expect(screen.queryByText(new RegExp(SELF_ADD_GROUP_NAME))).not.toBeInTheDocument()
   })
 })

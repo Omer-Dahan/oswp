@@ -12,6 +12,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 
+import { SELF_ADD_GROUP_NAME, SELF_ADD_NOTE_PREFIX } from '~/lib/constants/guest-self-add'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import type { HouseholdInviteService } from '~/server/application/household-invite/household-invite.service'
@@ -21,8 +22,6 @@ import { PrismaRateLimiter } from '~/server/infrastructure/rate-limit'
 export type GuestSelfAddResult =
   | { kind: 'already_listed'; inviteCode: string }
   | { kind: 'created'; inviteCode: string }
-
-const SELF_ADD_GROUP_NAME = 'נוספו עצמאית'
 
 function formatDateDdMmYyyy(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0')
@@ -101,7 +100,7 @@ export class GuestSelfAddService {
       }
 
       const { firstName, lastName } = splitFullName(input.fullName)
-      const notes = `נוסף עצמאית מהקישור הכללי ${formatDateDdMmYyyy(new Date())}`
+      const notes = `${SELF_ADD_NOTE_PREFIX} ${formatDateDdMmYyyy(new Date())}`
 
       const household = await tx.household.create({
         data: {

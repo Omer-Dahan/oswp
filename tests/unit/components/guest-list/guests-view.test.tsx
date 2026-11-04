@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import GuestsView from '~/components/guest-list/guests-view'
+import { SELF_ADD_NOTE_PREFIX } from '~/lib/constants/guest-self-add'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 
 const mockToggleGuestForm = jest.fn()
@@ -1073,6 +1074,46 @@ describe('GuestsView', () => {
     expect(screen.queryByRole('textbox', { name: 'דוא״ל' })).not.toBeInTheDocument()
     expect(screen.getByText('Vegetarian meals only')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'שמירת שינויים' })).not.toBeInTheDocument()
+  })
+
+  it('shows the self-add marker in the drawer for a household created from the public RSVP form', () => {
+    const selfAddedHouseholds: HouseholdWithGuests[] = [
+      { ...households[0], notes: `${SELF_ADD_NOTE_PREFIX} 01.01.2026` },
+    ]
+
+    render(
+      <GuestsView
+        events={events}
+        households={selfAddedHouseholds}
+        selectedEventId='event-1'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
+
+    expect(screen.getByText('נוסף עצמאית מטופס אישור ההגעה הציבורי')).toBeInTheDocument()
+  })
+
+  it('does not show the self-add marker for a household with regular notes', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='event-1'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
+
+    expect(
+      screen.queryByText('נוסף עצמאית מטופס אישור ההגעה הציבורי')
+    ).not.toBeInTheDocument()
   })
 
   it('should preserve dirty draft when save fails', () => {
