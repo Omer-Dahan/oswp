@@ -16,6 +16,7 @@ export interface KitchenReportHousehold {
   childrenCount: number | null
   attendingCount: number | null
   dietaryNotes: string | null
+  groupName: string | null
 }
 
 export interface KitchenReportGuest {
@@ -45,6 +46,11 @@ export interface KitchenReportAssignment {
   eventId: string
 }
 
+export interface KitchenReportGroupPlan {
+  groupName: string
+  plannedHeadcount: number
+}
+
 export interface BuildKitchenReportInput {
   households: KitchenReportHousehold[]
   guests: KitchenReportGuest[]
@@ -52,6 +58,15 @@ export interface BuildKitchenReportInput {
   tables: KitchenReportTable[]
   assignments: KitchenReportAssignment[]
   eventId: string
+  /** Manual per-group headcount floors (e.g. a group whose real RSVPs aren't tracked yet). Optional - omitting it changes nothing. */
+  plans?: KitchenReportGroupPlan[]
+}
+
+export interface KitchenReportGroupSummary {
+  groupName: string
+  actualMeals: number
+  plannedMeals: number | null
+  usedMeals: number
 }
 
 export interface KitchenReportRow {
@@ -82,6 +97,7 @@ export interface KitchenReport {
   /** Explains how attending/meals/children/dietary were derived, for display alongside the summary. */
   summaryNote: string
   rows: KitchenReportRow[]
+  groups: KitchenReportGroupSummary[]
 }
 
 export const KITCHEN_REPORT_SUMMARY_NOTE =
@@ -100,7 +116,7 @@ function householdName(
 const UNSEATED_SORT_KEY = '￿'
 
 export function buildKitchenReport(input: BuildKitchenReportInput): KitchenReport {
-  const { households, guests, invitations, tables, assignments, eventId } = input
+  const { households, guests, invitations, tables, assignments, eventId, plans = [] } = input
 
   const guestsById = new Map(guests.map((guest) => [guest.id, guest]))
   const householdsById = new Map(households.map((household) => [household.id, household]))
@@ -187,6 +203,7 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
   // count of other families via the global clamp below.
   let children = 0
   let headcount = 0
+  const actualMealsByGroup = new Map<string, number>()
   for (const [householdId, attendingInHousehold] of attendingGuestsByHousehold) {
     const household = householdsById.get(householdId)
     const namedAnyEvent =
@@ -202,14 +219,45 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
         : attendingInHousehold.filter(
             (guest) => guest.ageGroup !== null && CHILD_AGE_GROUPS.has(guest.ageGroup)
           ).length
-    children += Math.min(rawChildren, householdHeadcount)
+    const householdChildren = Math.min(rawChildren, householdHeadcount)
+    children += householdChildren
+
+    if (household?.groupName) {
+      const householdMeals = Math.max(0, householdHeadcount - householdChildren)
+      actualMealsByGroup.set(
+        household.groupName,
+        (actualMealsByGroup.get(household.groupName) ?? 0) + householdMeals
+      )
+    }
+  }
+
+  // A plan is a floor, not a replacement: it only tops up a group whose real
+  // (named + self-reported) meals fall short of the planned headcount, e.g. a
+  // group whose RSVPs aren't tracked yet. It never lowers a group that's
+  // already at or above the plan, and an unknown group name is ignored.
+  const knownGroupNames = new Set(
+    households.map((household) => household.groupName).filter((name): name is string => !!name)
+  )
+  let plannedExtra = 0
+  const groups: KitchenReportGroupSummary[] = []
+  for (const plan of plans) {
+    if (!knownGroupNames.has(plan.groupName)) continue
+    const actualMeals = actualMealsByGroup.get(plan.groupName) ?? 0
+    const usedMeals = Math.max(actualMeals, plan.plannedHeadcount)
+    plannedExtra += Math.max(0, plan.plannedHeadcount - actualMeals)
+    groups.push({
+      groupName: plan.groupName,
+      actualMeals,
+      plannedMeals: plan.plannedHeadcount,
+      usedMeals,
+    })
   }
 
   // meals can never go negative - this is now just a final safety net since
   // children is already capped per household above. attending is derived
   // from meals so that attending = meals + children stays an invariant
   // rather than something that can drift apart once the clamp kicks in.
-  const meals = Math.max(0, headcount - children)
+  const meals = Math.max(0, headcount - children) + plannedExtra
   const attending = meals + children
 
   // A household's dietaryNotes is one restriction shared by the family, not
@@ -233,5 +281,6 @@ export function buildKitchenReport(input: BuildKitchenReportInput): KitchenRepor
     summary: { attending, meals, children, dietary },
     summaryNote: KITCHEN_REPORT_SUMMARY_NOTE,
     rows,
+    groups,
   }
 }

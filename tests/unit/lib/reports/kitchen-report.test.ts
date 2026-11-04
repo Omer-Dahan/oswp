@@ -10,7 +10,7 @@ import {
 const EVENT_ID = 'event-1'
 
 function household(overrides: Partial<KitchenReportHousehold> & { id: string }): KitchenReportHousehold {
-  return { childrenCount: null, dietaryNotes: null, ...overrides }
+  return { childrenCount: null, dietaryNotes: null, groupName: null, ...overrides }
 }
 
 function guest(overrides: Partial<KitchenReportGuest> & { id: number; householdId: string }): KitchenReportGuest {
@@ -239,5 +239,116 @@ describe('buildKitchenReport', () => {
 
     expect(report.rows).toHaveLength(1)
     expect(report.rows[0]?.tableName).toBeNull()
+  })
+
+  it('leaves totals unchanged when no plan is given', () => {
+    const households = [household({ id: 'h1', groupName: 'חברות כלה' })]
+    const guests = [guest({ id: 1, householdId: 'h1' })]
+    const invitations = [invitation({ guestId: 1 })]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+    })
+
+    expect(report.summary).toEqual({ attending: 1, meals: 1, children: 0, dietary: 0 })
+    expect(report.groups).toEqual([])
+  })
+
+  it('raises summary.meals by the shortfall when a plan exceeds the actual group meals', () => {
+    const households = [household({ id: 'h1', groupName: 'חברות כלה' })]
+    const guests = [guest({ id: 1, householdId: 'h1' })]
+    const invitations = [invitation({ guestId: 1 })]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+      plans: [{ groupName: 'חברות כלה', plannedHeadcount: 40 }],
+    })
+
+    expect(report.summary.meals).toBe(40)
+    expect(report.summary.attending).toBe(40)
+    expect(report.groups).toEqual([
+      { groupName: 'חברות כלה', actualMeals: 1, plannedMeals: 40, usedMeals: 40 },
+    ])
+  })
+
+  it('does not lower a group that already exceeds its plan', () => {
+    const households = [household({ id: 'h1', groupName: 'חברות כלה' })]
+    const guests = [
+      guest({ id: 1, householdId: 'h1' }),
+      guest({ id: 2, householdId: 'h1' }),
+      guest({ id: 3, householdId: 'h1' }),
+    ]
+    const invitations = [
+      invitation({ guestId: 1 }),
+      invitation({ guestId: 2 }),
+      invitation({ guestId: 3 }),
+    ]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+      plans: [{ groupName: 'חברות כלה', plannedHeadcount: 2 }],
+    })
+
+    expect(report.summary.meals).toBe(3)
+    expect(report.groups).toEqual([
+      { groupName: 'חברות כלה', actualMeals: 3, plannedMeals: 2, usedMeals: 3 },
+    ])
+  })
+
+  it('ignores a plan for a group name that does not exist among the households', () => {
+    const households = [household({ id: 'h1', groupName: 'חברות כלה' })]
+    const guests = [guest({ id: 1, householdId: 'h1' })]
+    const invitations = [invitation({ guestId: 1 })]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+      plans: [{ groupName: 'לא קיים', plannedHeadcount: 40 }],
+    })
+
+    expect(report.summary.meals).toBe(1)
+    expect(report.groups).toEqual([])
+  })
+
+  it('leaves the children count unaffected by a group plan', () => {
+    const households = [household({ id: 'h1', groupName: 'חברות כלה' })]
+    const guests = [
+      guest({ id: 1, householdId: 'h1', ageGroup: 'ADULT' }),
+      guest({ id: 2, householdId: 'h1', ageGroup: 'CHILD' }),
+    ]
+    const invitations = [invitation({ guestId: 1 }), invitation({ guestId: 2 })]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+      plans: [{ groupName: 'חברות כלה', plannedHeadcount: 40 }],
+    })
+
+    expect(report.summary.children).toBe(1)
+    expect(report.summary.meals).toBe(40)
+    expect(report.summary.attending).toBe(41)
   })
 })

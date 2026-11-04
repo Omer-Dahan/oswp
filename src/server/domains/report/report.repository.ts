@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { GroupPortionPlan, PrismaClient } from '@prisma/client'
 
 import type {
   KitchenReportAssignment,
@@ -36,7 +36,13 @@ export class ReportRepository {
     const [households, guests, invitations, tables, assignments] = await Promise.all([
       this.db.household.findMany({
         where: { weddingId },
-        select: { id: true, childrenCount: true, attendingCount: true, dietaryNotes: true },
+        select: {
+          id: true,
+          childrenCount: true,
+          attendingCount: true,
+          dietaryNotes: true,
+          groupName: true,
+        },
       }),
       this.db.guest.findMany({
         where: { weddingId },
@@ -57,5 +63,39 @@ export class ReportRepository {
     ])
 
     return { households, guests, invitations, tables, assignments }
+  }
+
+  async findGroupPortionPlans(weddingId: string): Promise<GroupPortionPlan[]> {
+    return this.db.groupPortionPlan.findMany({
+      where: { weddingId },
+      orderBy: { groupName: 'asc' },
+    })
+  }
+
+  async upsertGroupPortionPlan(
+    weddingId: string,
+    groupName: string,
+    plannedHeadcount: number,
+    note: string | null
+  ): Promise<GroupPortionPlan> {
+    return this.db.groupPortionPlan.upsert({
+      where: { weddingId_groupName: { weddingId, groupName } },
+      create: { weddingId, groupName, plannedHeadcount, note },
+      update: { plannedHeadcount, note },
+    })
+  }
+
+  async deleteGroupPortionPlan(weddingId: string, groupName: string): Promise<void> {
+    await this.db.groupPortionPlan.deleteMany({ where: { weddingId, groupName } })
+  }
+
+  async findHouseholdGroupNames(weddingId: string): Promise<string[]> {
+    const rows = await this.db.household.findMany({
+      where: { weddingId, groupName: { not: null } },
+      select: { groupName: true },
+      distinct: ['groupName'],
+      orderBy: { groupName: 'asc' },
+    })
+    return rows.map((row) => row.groupName).filter((name): name is string => !!name)
   }
 }

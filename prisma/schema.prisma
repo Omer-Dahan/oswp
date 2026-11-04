@@ -79,6 +79,7 @@ model Wedding {
   smsOutbound       SmsOutbound[]
   smsSenders        SmsSender[]
   inviteMessageTemplates InviteMessageTemplate[]
+  groupPortionPlans      GroupPortionPlan[]
 
   @@index([selfFillToken, selfFillTokenGeneratedAt])
 }
@@ -1438,6 +1439,20 @@ model InviteMessageTemplate {
 
   @@unique([weddingId, side])
   @@map("invite_message_templates")
+}
+
+model GroupPortionPlan {
+  id               String   @id @default(uuid())
+  weddingId        String   @map("wedding_id")
+  wedding          Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  groupName        String   @map("group_name")
+  plannedHeadcount Int      @map("planned_headcount")
+  note             String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([weddingId, groupName])
+  @@map("group_portion_plans")
 }
 
 model WhatsAppInbound {

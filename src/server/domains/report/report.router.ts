@@ -12,6 +12,14 @@ import { reportService } from '~/server/domains/report'
 
 const eventIdSchema = z.object({ eventId: z.string().min(1) })
 
+const setGroupPortionPlanSchema = z.object({
+  groupName: z.string().trim().min(1),
+  plannedHeadcount: z.number().int().min(0),
+  note: z.string().optional(),
+})
+
+const groupNameSchema = z.object({ groupName: z.string().trim().min(1) })
+
 export const reportRouter = createTRPCRouter({
   getKitchenReport: protectedProcedure.input(eventIdSchema).query(async ({ ctx, input }) => {
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
@@ -23,5 +31,30 @@ export const reportRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
       return reportService.getKitchenReportForExport(ctx.authz, weddingId, input.eventId)
+    }),
+
+  getGroupPortionPlans: protectedProcedure.query(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return reportService.getGroupPortionPlans(ctx.authz, weddingId)
+  }),
+
+  setGroupPortionPlan: protectedProcedure
+    .input(setGroupPortionPlanSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return reportService.setGroupPortionPlan(
+        ctx.authz,
+        weddingId,
+        input.groupName,
+        input.plannedHeadcount,
+        input.note ?? null
+      )
+    }),
+
+  deleteGroupPortionPlan: protectedProcedure
+    .input(groupNameSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      await reportService.deleteGroupPortionPlan(ctx.authz, weddingId, input.groupName)
     }),
 })

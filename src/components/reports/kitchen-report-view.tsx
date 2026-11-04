@@ -1,6 +1,6 @@
 'use client'
 
-import { Download } from 'lucide-react'
+import { Download, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { AsyncState } from '~/components/ui/async-state'
@@ -33,6 +33,43 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
   const reportQuery = api.report.getKitchenReport.useQuery(
     { eventId: eventId ?? '' },
     { enabled: eventId !== null }
+  )
+
+  const utils = api.useUtils()
+  const plansQuery = api.report.getGroupPortionPlans.useQuery()
+  const [editingGroupName, setEditingGroupName] = useState<string | null>(null)
+  const [editHeadcount, setEditHeadcount] = useState('')
+  const [newGroupName, setNewGroupName] = useState('')
+  const [newHeadcount, setNewHeadcount] = useState('')
+
+  const invalidatePlans = () => {
+    void utils.report.getGroupPortionPlans.invalidate()
+    void utils.report.getKitchenReport.invalidate()
+  }
+
+  const setPlanMutation = api.report.setGroupPortionPlan.useMutation({
+    onSuccess: () => {
+      invalidatePlans()
+      setEditingGroupName(null)
+      setNewGroupName('')
+      setNewHeadcount('')
+    },
+  })
+  const deletePlanMutation = api.report.deleteGroupPortionPlan.useMutation({
+    onSuccess: invalidatePlans,
+  })
+
+  const actualMealsByGroup = useMemo(() => {
+    const map = new Map<string, { actualMeals: number; usedMeals: number }>()
+    for (const group of reportQuery.data?.groups ?? []) {
+      map.set(group.groupName, { actualMeals: group.actualMeals, usedMeals: group.usedMeals })
+    }
+    return map
+  }, [reportQuery.data])
+
+  const plans = plansQuery.data?.plans ?? []
+  const unplannedGroupNames = (plansQuery.data?.availableGroupNames ?? []).filter(
+    (name) => !plans.some((plan) => plan.groupName === name)
   )
 
   const rows = useMemo(() => {
@@ -123,6 +160,144 @@ export function KitchenReportView(props: Readonly<KitchenReportViewProps>) {
           </div>
 
           <p className='text-muted-foreground text-xs'>{reportQuery.data.summaryNote}</p>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-base'>מנות מתוכננות לפי קבוצה</CardTitle>
+            </CardHeader>
+            <CardContent className='flex flex-col gap-3'>
+              {plans.length > 0 && (
+                <div className='overflow-x-auto rounded-xl border'>
+                  <table className='w-full text-right text-sm'>
+                    <thead className='bg-muted/50'>
+                      <tr>
+                        <th className='p-2 font-semibold'>הקבוצה</th>
+                        <th className='p-2 font-semibold'>מתוכנן</th>
+                        <th className='p-2 font-semibold'>בפועל</th>
+                        <th className='p-2 font-semibold'>נספר</th>
+                        <th className='p-2 font-semibold'></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {plans.map((plan) => {
+                        const actual = actualMealsByGroup.get(plan.groupName)
+                        const isEditing = editingGroupName === plan.groupName
+                        return (
+                          <tr key={plan.groupName} className='border-t'>
+                            <td className='p-2'>{plan.groupName}</td>
+                            <td className='p-2'>
+                              {isEditing ? (
+                                <Input
+                                  type='number'
+                                  min={0}
+                                  step={1}
+                                  value={editHeadcount}
+                                  onChange={(event) => setEditHeadcount(event.target.value)}
+                                  className='w-24'
+                                  autoFocus
+                                />
+                              ) : (
+                                plan.plannedHeadcount
+                              )}
+                            </td>
+                            <td className='p-2'>{actual?.actualMeals ?? 0}</td>
+                            <td className='p-2'>{actual?.usedMeals ?? plan.plannedHeadcount}</td>
+                            <td className='p-2'>
+                              <div className='flex justify-end gap-1'>
+                                {isEditing ? (
+                                  <Button
+                                    type='button'
+                                    size='sm'
+                                    onClick={() => {
+                                      const parsed = Number.parseInt(editHeadcount, 10)
+                                      if (Number.isNaN(parsed) || parsed < 0) return
+                                      setPlanMutation.mutate({
+                                        groupName: plan.groupName,
+                                        plannedHeadcount: parsed,
+                                      })
+                                    }}
+                                    disabled={setPlanMutation.isPending}
+                                  >
+                                    שמירה
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    type='button'
+                                    size='sm'
+                                    variant='outline'
+                                    onClick={() => {
+                                      setEditingGroupName(plan.groupName)
+                                      setEditHeadcount(String(plan.plannedHeadcount))
+                                    }}
+                                    aria-label='עריכה'
+                                  >
+                                    <Pencil className='h-4 w-4' aria-hidden='true' />
+                                  </Button>
+                                )}
+                                <Button
+                                  type='button'
+                                  size='sm'
+                                  variant='outline'
+                                  onClick={() => deletePlanMutation.mutate({ groupName: plan.groupName })}
+                                  disabled={deletePlanMutation.isPending}
+                                  aria-label='מחיקה'
+                                >
+                                  <Trash2 className='h-4 w-4' aria-hidden='true' />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {unplannedGroupNames.length > 0 && (
+                <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                  <Select value={newGroupName} onValueChange={setNewGroupName}>
+                    <SelectTrigger className='sm:w-56' aria-label='בחירת קבוצה'>
+                      <SelectValue placeholder='הוספת קבוצה' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unplannedGroupNames.map((name) => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type='number'
+                    min={0}
+                    step={1}
+                    value={newHeadcount}
+                    onChange={(event) => setNewHeadcount(event.target.value)}
+                    placeholder='מספר מנות'
+                    className='sm:w-32'
+                  />
+                  <Button
+                    type='button'
+                    size='sm'
+                    disabled={!newGroupName || setPlanMutation.isPending}
+                    onClick={() => {
+                      const parsed = Number.parseInt(newHeadcount, 10)
+                      if (!newGroupName || Number.isNaN(parsed) || parsed < 0) return
+                      setPlanMutation.mutate({ groupName: newGroupName, plannedHeadcount: parsed })
+                    }}
+                  >
+                    <Plus className='me-1 h-4 w-4' aria-hidden='true' />
+                    הוספה
+                  </Button>
+                </div>
+              )}
+
+              {plans.length === 0 && unplannedGroupNames.length === 0 && (
+                <p className='text-muted-foreground text-xs'>אין קבוצות זמינות להוספת תוכנית מנות.</p>
+              )}
+            </CardContent>
+          </Card>
 
           <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
             <Input
