@@ -27,6 +27,7 @@ import {
   mockBelongsToWedding as mockGuestBelongsToWedding,
   mockCreate as mockGuestCreate,
   mockDeleteMany as mockGuestDeleteMany,
+  mockExists as mockGuestExists,
   mockFindByIdWithInvitations as mockGuestFindByIdWithInvitations,
   mockUpdateTags as mockGuestUpdateTags,
   mockUpsert as mockGuestUpsert,
@@ -111,6 +112,7 @@ describe('HouseholdManagementService', () => {
 
     mockBelongsToWeddingFn.mockResolvedValue(true)
     mockGuestBelongsToWeddingFn.mockResolvedValue(true)
+    mockGuestExists.mockResolvedValue(true)
     mockEventBelongsToWeddingFn.mockResolvedValue(true)
 
     mockCreateWithGifts.mockResolvedValue({ ...mockHousehold, guests: [], gifts: [] })
@@ -273,6 +275,7 @@ describe('HouseholdManagementService', () => {
           firstName: 'John',
           lastName: 'Doe',
           isTagAlong: true,
+          isPrimaryContact: false,
           invites: { 'event-123': 'Attending' },
           tagIds: ['tag-1'],
         },

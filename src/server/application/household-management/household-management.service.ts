@@ -203,7 +203,13 @@ export class HouseholdManagementService {
       data.guestParty.flatMap((guest) => (guest.guestId ? [guest.guestId] : [])),
       weddingId
     )
-    await this.assertGuestIdsInWeddingScope(data.deletedGuests ?? [], weddingId)
+    // Idempotent on purpose: a guest id here may have already been deleted by
+    // a concurrent save from the other panel - that's a no-op, not a scope
+    // violation, so only an id that still exists in a DIFFERENT wedding throws.
+    const deletedGuestIds = await this.filterDeletedGuestIdsStillInWeddingScope(
+      data.deletedGuests ?? [],
+      weddingId
+    )
     await this.assertEventIdsInWeddingScope(
       [
         ...data.guestParty.flatMap((guest) => Object.keys(guest.invites)),
@@ -248,17 +254,26 @@ export class HouseholdManagementService {
         expectedCheck: data.expectedCheck,
       })
 
-      if (data.deletedGuests && data.deletedGuests.length > 0) {
-        await txGuestRepo.deleteMany(data.deletedGuests)
+      if (deletedGuestIds.length > 0) {
+        await txGuestRepo.deleteMany(deletedGuestIds)
       }
 
-      await txGuestRepo.clearPrimaryContactsByHousehold(data.householdId)
+      // A save that doesn't manage isPrimaryContact for any guest (e.g. the
+      // drawer, which only edits the primary contact's email/phone) must not
+      // clear the flag at all - clearing it here unconditionally and then
+      // never re-setting it for guests this request doesn't mention is
+      // exactly how a household silently lost its primary contact.
+      const managesPrimaryContact = data.guestParty.some(
+        (guest) => guest.isPrimaryContact !== undefined
+      )
+      if (managesPrimaryContact) {
+        await txGuestRepo.clearPrimaryContactsByHousehold(data.householdId)
+      }
 
       const updatedGuests: NonNullable<
         Awaited<ReturnType<typeof txGuestRepo.findByIdWithInvitations>>
       >[] = []
       for (const guest of data.guestParty) {
-        const isTagAlong = guest.isTagAlong ?? false
         const inviteEntries = Object.entries(guest.invites)
         const defaultInviteEntries =
           !guest.guestId && inviteEntries.length === 0
@@ -270,18 +285,24 @@ export class HouseholdManagementService {
           weddingId,
         }))
 
+        // A tag-along can never be the primary contact, even if a stale
+        // payload says otherwise; everyone else's flag is only touched when
+        // the request actually provided one (see managesPrimaryContact).
+        const resolvedIsPrimaryContact =
+          guest.isTagAlong === true ? false : guest.isPrimaryContact
+
         const updatedGuest = await txGuestRepo.upsert(
           guest.guestId,
           {
             firstName: guest.firstName,
             lastName: guest.lastName,
-            email: guest.email ?? null,
-            phone: guest.phone ?? null,
+            email: guest.email,
+            phone: guest.phone,
             householdId: data.householdId,
             weddingId,
-            isPrimaryContact: isTagAlong ? false : (guest.isPrimaryContact ?? false),
-            ageGroup: guest.ageGroup ?? null,
-            isTagAlong,
+            isPrimaryContact: resolvedIsPrimaryContact,
+            ageGroup: guest.ageGroup,
+            isTagAlong: guest.isTagAlong,
           },
           invitations
         )
@@ -293,7 +314,7 @@ export class HouseholdManagementService {
         // which would wipe every invitation this guest has.
         const hasInviteData = inviteEntries.length > 0
 
-        if (isTagAlong && guest.guestId && hasInviteData) {
+        if (guest.isTagAlong === true && guest.guestId && hasInviteData) {
           const allowedEventIds = Object.keys(guest.invites)
           await txInvitationRepo.deleteByGuestExcludingEvents(guest.guestId, allowedEventIds)
         }
@@ -613,6 +634,35 @@ export class HouseholdManagementService {
         })
       }
     }
+  }
+
+  /**
+   * Like assertGuestIdsInWeddingScope, but for `deletedGuests`: a guest that
+   * no longer exists at all has already been deleted (most likely by a
+   * concurrent save from the other panel), which is a no-op, not a scope
+   * violation. A guest that still exists but belongs to a different wedding
+   * is still rejected.
+   */
+  private async filterDeletedGuestIdsStillInWeddingScope(
+    guestIds: number[],
+    weddingId: string
+  ): Promise<number[]> {
+    const uniqueGuestIds = [...new Set(guestIds)]
+    const stillPresent: number[] = []
+    for (const guestId of uniqueGuestIds) {
+      const exists = await this.guestRepo.exists(guestId)
+      if (!exists) continue
+
+      const belongsToWedding = await this.guestRepo.belongsToWedding(guestId, weddingId)
+      if (!belongsToWedding) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `Guest ${guestId} is outside the requested wedding scope`,
+        })
+      }
+      stillPresent.push(guestId)
+    }
+    return stillPresent
   }
 
   private async assertEventIdsInWeddingScope(eventIds: string[], weddingId: string): Promise<void> {

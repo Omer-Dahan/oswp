@@ -7,13 +7,14 @@
 import { z } from 'zod'
 
 import { optionalPhoneSchema } from '~/lib/phone/phone-validator'
-import { guestPartySchema } from '~/server/domains/guest/guest.validator'
+import { guestPartySchema, guestPartyUpdateSchema } from '~/server/domains/guest/guest.validator'
 
 /**
- * Re-export guest party schema for convenience
- * (Canonical definition is in guest.validator.ts)
+ * Re-export guest party schemas for convenience
+ * (Canonical definitions are in guest.validator.ts)
  */
 export const guestPartyInputSchema = guestPartySchema
+export const guestPartyUpdateInputSchema = guestPartyUpdateSchema
 
 /**
  * Schema for gift input
@@ -91,27 +92,21 @@ export const createHouseholdSchema = baseHouseholdFields
   )
 
 /**
- * Schema for updating a household
+ * Schema for updating a household.
+ *
+ * Unlike `createHouseholdSchema`, this does NOT require exactly one primary
+ * contact across `guestParty`: an update is routinely sent by a panel that
+ * owns only a slice of the household (the drawer edits household fields +
+ * the primary contact's email/phone, the members editor edits names/tags),
+ * so a request legitimately mentions zero or one guest with `isPrimaryContact`
+ * set rather than the whole household every time.
  */
-export const updateHouseholdSchema = baseHouseholdFields
-  .extend({
-    householdId: z.string().min(1, 'Household ID is required'),
-    guestParty: z.array(guestPartyInputSchema).min(1, 'נדרש לפחות אורח אחד'),
-    deletedGuests: z.array(z.number()).optional(),
-    gifts: z.array(giftInputSchema),
-  })
-  .refine(
-    (data) => {
-      // Ensure exactly one non-tag-along guest is marked as primary contact
-      const invitedGuests = data.guestParty.filter((guest) => !guest.isTagAlong)
-      const primaryContacts = invitedGuests.filter((guest) => guest.isPrimaryContact)
-      return primaryContacts.length === 1
-    },
-    {
-      message: 'יש לסמן איש קשר ראשי אחד בדיוק',
-      path: ['guestParty'],
-    }
-  )
+export const updateHouseholdSchema = baseHouseholdFields.extend({
+  householdId: z.string().min(1, 'Household ID is required'),
+  guestParty: z.array(guestPartyUpdateInputSchema).min(1, 'נדרש לפחות אורח אחד'),
+  deletedGuests: z.array(z.number()).optional(),
+  gifts: z.array(giftInputSchema),
+})
 
 /**
  * Schema for deleting a household
@@ -176,6 +171,7 @@ export const bulkCreateHouseholdsSchema = z.object({
 
 // Export inferred types
 export type GuestPartyInputSchemaInput = z.infer<typeof guestPartyInputSchema>
+export type GuestPartyUpdateInputSchemaInput = z.infer<typeof guestPartyUpdateInputSchema>
 export type GiftInputSchemaInput = z.infer<typeof giftInputSchema>
 export type CreateHouseholdSchemaInput = z.infer<typeof createHouseholdSchema>
 export type UpdateHouseholdSchemaInput = z.infer<typeof updateHouseholdSchema>

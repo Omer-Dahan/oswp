@@ -6,7 +6,10 @@
 
 import type { Gift } from '~/server/domains/gift'
 import type { GuestWithInvitations } from '~/server/domains/guest'
-import type { GuestPartyInput as DomainGuestPartyInput } from '~/server/domains/household'
+import type {
+  GuestPartyInput as DomainGuestPartyInput,
+  GuestPartyUpdateInput as DomainGuestPartyUpdateInput,
+} from '~/server/domains/household'
 import type { Invitation } from '~/server/domains/invitation'
 
 /**
@@ -22,6 +25,14 @@ export type GuestPartyInput = Omit<
   isTagAlong?: boolean
   tagIds?: string[]
 }
+
+/**
+ * Guest party input for updating a household. Every field but `invites` is
+ * optional and carries no default - a save from a panel that doesn't own a
+ * given field must send it as `undefined` so the service and repository
+ * leave the existing value untouched instead of blanking it.
+ */
+export type GuestPartyUpdateInput = DomainGuestPartyUpdateInput
 
 /**
  * Input for creating a household with guests
@@ -65,7 +76,7 @@ export type UpdateHouseholdWithGuestsInput = {
   groupName?: string | null
   phoneAlt?: string | null
   expectedCheck?: number | null
-  guestParty: GuestPartyInput[]
+  guestParty: GuestPartyUpdateInput[]
   deletedGuests?: number[]
   gifts: Array<{
     eventId: string

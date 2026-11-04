@@ -298,28 +298,26 @@ export default function GuestsView({
       groupName: drawerDraft.groupName,
     }
 
-    // This handler only ever edits household-level fields, never RSVPs, so
-    // every guest here already has a guestId - sending an empty `invites`
-    // tells the service to leave their invitations untouched instead of
-    // rewriting them from this stale canonical snapshot.
-    const guestParty = selectedCanonicalHousehold.guests.map((guest) => {
-      const invites: FormInvites = {}
-
-      return {
-        guestId: guest.id,
-        firstName: guest.firstName,
-        lastName: guest.lastName,
-        email: guest.isPrimaryContact ? draftSnapshot.email || null : guest.email,
-        phone: guest.isPrimaryContact
-          ? (normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? null)
-          : (normalizePhoneToE164(guest.phone, 'IL') ?? null),
-        isPrimaryContact: guest.isPrimaryContact,
-        ageGroup: guest.ageGroup ?? 'ADULT',
-        isTagAlong: guest.isTagAlong ?? false,
-        tagIds: guest.guestTags?.map((guestTag) => guestTag.tagId) ?? [],
-        invites,
-      }
-    })
+    // This panel owns only household-level fields plus the primary contact's
+    // email/phone - it must not touch names, tags, isTagAlong or isPrimaryContact
+    // (the members panel owns those), so the guestParty it sends contains only
+    // the primary contact, with only the fields this panel actually edits. Every
+    // other guest, and every field not listed here, is left untouched by the
+    // service rather than rewritten from this stale canonical snapshot.
+    const primaryContact =
+      selectedCanonicalHousehold.guests.find((guest) => guest.isPrimaryContact) ??
+      selectedCanonicalHousehold.guests[0]
+    const invites: FormInvites = {}
+    const guestParty = primaryContact
+      ? [
+          {
+            guestId: primaryContact.id,
+            email: draftSnapshot.email || null,
+            phone: normalizePhoneToE164(draftSnapshot.phone, 'IL') ?? null,
+            invites,
+          },
+        ]
+      : []
 
     updateHouseholdMutation.mutate(
       {
@@ -404,6 +402,11 @@ export default function GuestsView({
       )
       const editableGuestIds = new Set(selectedHousehold.guests.map((guest) => guest.id))
 
+      // This panel owns names/ageGroup/tags/isTagAlong/isPrimaryContact and
+      // who exists, never household fields or a guest's email/phone - so the
+      // household-level fields below are omitted entirely (left untouched)
+      // and email/phone are never part of the guestParty it sends, even
+      // though the local draft still carries them for display.
       const guestParty = nextMembers.map((member) => {
         const canonicalGuest =
           member.id !== undefined ? canonicalGuestsById.get(member.id) : undefined
@@ -421,8 +424,6 @@ export default function GuestsView({
           guestId: member.id,
           firstName: member.firstName,
           lastName: member.lastName,
-          email: member.email,
-          phone: normalizePhoneToE164(member.phone, 'IL') ?? member.phone ?? null,
           isPrimaryContact: member.isPrimaryContact,
           ageGroup: member.ageGroup,
           isTagAlong: member.isTagAlong,
@@ -436,18 +437,21 @@ export default function GuestsView({
           .map((member) => member.id)
           .filter((memberId): memberId is number => memberId !== undefined)
       )
+      // Guests hidden from the current filtered view are still sent back
+      // with their existing isPrimaryContact/tags/etc preserved, since this
+      // save clears every guest's primary-contact flag before re-setting it
+      // from guestParty (see household-management.service.ts) - a guest
+      // missing from the request entirely would lose that flag instead of
+      // keeping it.
       const hiddenCanonicalGuestParty = selectedCanonicalHousehold.guests
         .filter((guest) => !editableGuestIds.has(guest.id))
         .map((guest) => {
-          // Not edited in this view either - same empty-invites rule as above.
           const invites: FormInvites = {}
 
           return {
             guestId: guest.id,
             firstName: guest.firstName,
             lastName: guest.lastName,
-            email: guest.email,
-            phone: normalizePhoneToE164(guest.phone, 'IL') ?? guest.phone ?? null,
             isPrimaryContact: guest.isPrimaryContact,
             ageGroup: guest.ageGroup ?? 'ADULT',
             isTagAlong: guest.isTagAlong ?? false,
@@ -464,13 +468,6 @@ export default function GuestsView({
         updateHouseholdMutation.mutate(
           {
             householdId: activeHouseholdId,
-            address1: selectedCanonicalHousehold.address1,
-            address2: selectedCanonicalHousehold.address2,
-            city: selectedCanonicalHousehold.city,
-            state: selectedCanonicalHousehold.state,
-            zipCode: selectedCanonicalHousehold.zipCode,
-            country: selectedCanonicalHousehold.country,
-            notes: selectedCanonicalHousehold.notes,
             guestParty: [...guestParty, ...hiddenCanonicalGuestParty],
             deletedGuests: deletedGuests.length > 0 ? deletedGuests : undefined,
             gifts: selectedCanonicalHousehold.gifts.map((gift) => ({
@@ -480,7 +477,7 @@ export default function GuestsView({
             })),
           },
           {
-            onSuccess: () => {
+            onSuccess: (result) => {
               const applyPatch = (previous: HouseholdWithGuests[]) =>
                 previous.map((household) => {
                   if (household.id !== activeHouseholdId) return household
@@ -492,18 +489,25 @@ export default function GuestsView({
                   return {
                     ...household,
                     guests: nextMembers.map((member, index) => {
-                      const guestId = member.id ?? -(index + 1)
                       const sourceGuest =
                         (member.id !== undefined
                           ? canonicalGuestsById.get(member.id)
                           : undefined) ??
                         (member.id !== undefined ? displayedGuestsById.get(member.id) : undefined)
+                      // The server response's guests are in the same order as
+                      // the guestParty this save sent (visible members first,
+                      // same indices as nextMembers), which gives a brand-new
+                      // member its real DB id instead of a fabricated one that
+                      // the next save would send back as an invalid guestId.
+                      const guestId = result.guests[index]?.id ?? sourceGuest?.id ?? member.id ?? 0
 
                       return {
                         ...(sourceGuest ?? {
                           id: guestId,
                           householdId: household.id,
                           weddingId: household.weddingId,
+                          email: null,
+                          phone: null,
                           isTagAlong: false,
                           createdAt: household.createdAt,
                           updatedAt: household.updatedAt,
@@ -513,8 +517,6 @@ export default function GuestsView({
                         id: guestId,
                         firstName: member.firstName,
                         lastName: member.lastName,
-                        email: member.email,
-                        phone: member.phone,
                         ageGroup: member.ageGroup,
                         isPrimaryContact: member.isPrimaryContact,
                         isTagAlong: member.isTagAlong,

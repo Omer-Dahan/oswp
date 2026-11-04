@@ -102,15 +102,23 @@ jest.mock('~/trpc/react', () => ({
       update: {
         useMutation: () => ({
           mutate: (
-            payload: unknown,
+            payload: { guestParty?: Array<{ guestId?: number }> },
             options?: {
-              onSuccess?: () => void
+              onSuccess?: (result: { guests: Array<{ id: number }> }) => void
               onError?: () => void
             }
           ) => {
             mockHouseholdUpdateMutate(payload)
 
-            const resolveSuccess = () => options?.onSuccess?.()
+            // Mirrors the real tRPC response shape: one guest per guestParty
+            // entry, in the same order, with a real (always positive) id -
+            // a fabricated one for a brand-new member that had no guestId.
+            const result = {
+              guests: (payload.guestParty ?? []).map((guest, index) => ({
+                id: guest.guestId ?? 9000 + index,
+              })),
+            }
+            const resolveSuccess = () => options?.onSuccess?.(result)
             const resolveError = () => options?.onError?.()
 
             if (deferMutationResolution) {
@@ -1075,12 +1083,9 @@ describe('GuestsView', () => {
       guestParty: Array<{ guestId: number; phone: string | null }>
     }
 
-    expect(payload.guestParty).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ guestId: 1, phone: null }),
-        expect.objectContaining({ guestId: 2, phone: null }),
-      ])
-    )
+    // The drawer owns only the primary contact's phone - it must not send
+    // (or rewrite) a second guest's phone, which belongs to the members panel.
+    expect(payload.guestParty).toEqual([expect.objectContaining({ guestId: 1, phone: null })])
   })
 
   it('should guard closing when there are unsaved changes', () => {

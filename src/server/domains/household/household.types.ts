@@ -15,6 +15,7 @@ import type {
   DeleteHouseholdSchemaInput,
   GiftInputSchemaInput,
   GuestPartyInputSchemaInput,
+  GuestPartyUpdateInputSchemaInput,
   SearchHouseholdSchemaInput,
   UpdateHouseholdSchemaInput,
 } from '~/server/domains/household/household.validator'
@@ -65,6 +66,7 @@ export type HouseholdWithGuestsAndGifts = Household & {
  * These re-exports provide cleaner names and centralize type definitions
  */
 export type GuestPartyInput = GuestPartyInputSchemaInput
+export type GuestPartyUpdateInput = GuestPartyUpdateInputSchemaInput
 export type GiftInput = GiftInputSchemaInput
 export type CreateHouseholdInput = CreateHouseholdSchemaInput
 export type UpdateHouseholdInput = UpdateHouseholdSchemaInput

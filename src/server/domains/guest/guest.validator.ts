@@ -85,6 +85,40 @@ export const guestPartySchema = z.object({
   invites: z.record(z.string(), z.string()),
 })
 
+/**
+ * Guest party input for updating an existing household. Unlike
+ * `guestPartySchema` (used at creation, where every guest is always a full
+ * record), an update is often sent by a panel that only owns some of a
+ * guest's fields - e.g. the drawer only edits the primary contact's
+ * email/phone, the members editor only edits names/tags. Every field but
+ * `guestId` is therefore optional with no default, so an omitted field stays
+ * `undefined` all the way to the repository, which must leave it unchanged
+ * rather than overwriting it with a default. A guest with no `guestId` is a
+ * brand-new member, which still needs a `firstName` to be created.
+ */
+export const guestPartyUpdateSchema = z
+  .object({
+    guestId: z.number().optional(),
+    firstName: z.string().min(1, { message: 'שם פרטי נדרש' }).max(NAME_MAX, nameTooLong).optional(),
+    lastName: z.string().max(NAME_MAX, nameTooLong).optional(),
+    email: z
+      .string()
+      .email('כתובת מייל לא תקינה')
+      .optional()
+      .nullable()
+      .or(z.literal('').transform(() => null)),
+    phone: optionalPhoneSchema,
+    isPrimaryContact: z.boolean().optional(),
+    ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).optional(),
+    isTagAlong: z.boolean().optional(),
+    tagIds: z.array(z.guid()).max(10, 'Maximum 10 tags allowed').optional(),
+    invites: z.record(z.string(), z.string()).default({}),
+  })
+  .refine((guest) => guest.guestId !== undefined || !!guest.firstName, {
+    message: 'שם פרטי נדרש',
+    path: ['firstName'],
+  })
+
 // Export inferred types
 export type CreateGuestSchemaInput = z.infer<typeof createGuestSchema>
 export type UpdateGuestSchemaInput = z.infer<typeof updateGuestSchema>
@@ -92,3 +126,4 @@ export type GuestIdSchemaInput = z.infer<typeof guestIdSchema>
 export type GetByHouseholdSchemaInput = z.infer<typeof getByHouseholdSchema>
 export type GetByEventSchemaInput = z.infer<typeof getByEventSchema>
 export type GuestPartySchemaInput = z.infer<typeof guestPartySchema>
+export type GuestPartyUpdateSchemaInput = z.infer<typeof guestPartyUpdateSchema>

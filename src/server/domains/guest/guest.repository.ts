@@ -149,12 +149,20 @@ export class GuestRepository {
   /**
    * Upsert a guest with optional invitations and tags
    * Note: Tags are only created in the CREATE branch. For updates, use updateTags() separately.
+   *
+   * The `update` branch passes every field through as given - Prisma treats
+   * an explicit `undefined` as "leave this column unchanged" - so a caller
+   * that doesn't own a given field (e.g. the drawer never sends firstName)
+   * can omit it without blanking it. Collapsing with `?? null` here would
+   * silently overwrite that field for every guest touched by an edit that
+   * was never meant to manage it. The `create` branch still needs concrete
+   * defaults since there is no prior row to leave alone.
    */
   async upsert(
     id: number | undefined,
     data: {
-      firstName: string
-      lastName: string
+      firstName?: string
+      lastName?: string
       email?: string | null
       phone?: string | null
       householdId: string
@@ -175,15 +183,15 @@ export class GuestRepository {
       update: {
         firstName: data.firstName,
         lastName: data.lastName,
-        email: data.email ?? null,
-        phone: data.phone ?? null,
+        email: data.email,
+        phone: data.phone,
         isPrimaryContact: data.isPrimaryContact,
         ageGroup: data.ageGroup,
         isTagAlong: data.isTagAlong,
       },
       create: {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: data.firstName ?? '',
+        lastName: data.lastName ?? '',
         email: data.email ?? null,
         phone: data.phone ?? null,
         householdId: data.householdId,
