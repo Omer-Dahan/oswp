@@ -33,21 +33,27 @@ export const GuestIndividualTable = memo(function GuestIndividualTable({
             <th className={thClass}>סטטוס</th>
             <th className={thClass}>מוזמן</th>
             <th className={thClass}>מגיע בפועל</th>
-            <th className={thClass}>ילדים</th>
-            <th className={thClass}>הערות תזונה</th>
             <th className={thClass}>קישור הזמנה</th>
           </tr>
         </thead>
         <tbody>
-          {households.map((household) => (
-            <GuestTableRow
-              key={household.id}
-              household={household}
-              householdNumber={householdNumberMap.get(household.id) ?? 0}
-              isSelected={selectedHouseholdId === household.id}
-              onSelectHousehold={onSelectHousehold}
-            />
-          ))}
+          {households.length === 0 ? (
+            <tr>
+              <td colSpan={8} className='px-4 py-12 text-center font-mono text-foreground/55'>
+                לא נמצאו אורחים
+              </td>
+            </tr>
+          ) : (
+            households.map((household) => (
+              <GuestTableRow
+                key={household.id}
+                household={household}
+                householdNumber={householdNumberMap.get(household.id) ?? 0}
+                isSelected={selectedHouseholdId === household.id}
+                onSelectHousehold={onSelectHousehold}
+              />
+            ))
+          )}
         </tbody>
       </table>
     </div>
@@ -130,8 +136,6 @@ const GuestTableRow = memo(function GuestTableRow({
           </span>
         ) : null}
       </td>
-      <td className='px-4 py-3 text-foreground/70'>{household.childrenCount}</td>
-      <td className='max-w-64 px-4 py-3 text-foreground/70'>{household.dietaryNotes}</td>
       <td className='px-4 py-3'>
         <button
           type='button'

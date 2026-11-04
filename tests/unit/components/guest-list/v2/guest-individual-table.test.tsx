@@ -28,8 +28,8 @@ const household: HouseholdWithGuests = {
   side: 'כלה',
   groupName: 'משפחה',
   attendingCount: 4,
-  childrenCount: null,
-  dietaryNotes: null,
+  childrenCount: 2,
+  dietaryNotes: 'טבעוני',
   wishesMessage: null,
   gifts: [],
   guests: [
@@ -53,6 +53,46 @@ const household: HouseholdWithGuests = {
 }
 
 describe('GuestIndividualTable', () => {
+  it('renders the eight guest row columns without children or dietary notes', () => {
+    render(
+      <GuestIndividualTable
+        households={[household]}
+        householdNumberMap={new Map([['household-1', 1]])}
+        onSelectHousehold={jest.fn()}
+      />
+    )
+
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+      'שם האורח',
+      'טלפון',
+      'צד',
+      'קבוצה',
+      'סטטוס',
+      'מוזמן',
+      'מגיע בפועל',
+      'קישור הזמנה',
+    ])
+
+    const row = screen.getByRole('row', { name: /נועה כהן/ })
+    expect(within(row).getAllByRole('cell')).toHaveLength(8)
+    expect(screen.queryByText('ילדים')).not.toBeInTheDocument()
+    expect(screen.queryByText('הערות תזונה')).not.toBeInTheDocument()
+    expect(screen.queryByText('2')).not.toBeInTheDocument()
+    expect(screen.queryByText('טבעוני')).not.toBeInTheDocument()
+  })
+
+  it('spans the empty state across all eight columns', () => {
+    render(
+      <GuestIndividualTable
+        households={[]}
+        householdNumberMap={new Map()}
+        onSelectHousehold={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('לא נמצאו אורחים')).toHaveAttribute('colspan', '8')
+  })
+
   it('keeps unanswered RSVP details empty and derives status independently', () => {
     render(
       <GuestIndividualTable
@@ -66,8 +106,6 @@ describe('GuestIndividualTable', () => {
     const cells = within(row).getAllByRole('cell')
     expect(screen.getByText('לא השיב')).toBeInTheDocument()
     expect(cells[6]).toBeEmptyDOMElement()
-    expect(cells[7]).toBeEmptyDOMElement()
-    expect(cells[8]).toBeEmptyDOMElement()
     expect(screen.queryByText('hidden@example.com')).not.toBeInTheDocument()
   })
 
