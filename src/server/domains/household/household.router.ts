@@ -11,6 +11,7 @@
 import { TRPCError } from '@trpc/server'
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '~/server/api/trpc'
+import { guestSelfAddSchema, guestSelfAddService } from '~/server/application/guest-self-add'
 import { householdManagementService } from '~/server/application/household-management'
 import { getClientIp } from '~/server/application/rsvp-submission'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
@@ -136,4 +137,14 @@ export const householdRouter = createTRPCRouter({
         input.accessToken
       )
     }),
+
+  /**
+   * Add yourself to the guest list from the public RSVP flow, for a guest
+   * who can't find themselves via name search. Creates a new household +
+   * guest marked attending, or returns the existing household's invite code
+   * if this phone is already registered for this wedding.
+   */
+  addSelfPublic: publicProcedure.input(guestSelfAddSchema).mutation(async ({ ctx, input }) => {
+    return guestSelfAddService.addSelf(input, getClientIp(ctx.headers))
+  }),
 })
