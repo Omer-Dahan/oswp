@@ -82,6 +82,29 @@ function Harness({ households }: { households: HouseholdWithGuests[] }) {
   )
 }
 
+function RestoredHarness({ households }: { households: HouseholdWithGuests[] }) {
+  const [filtered, setFiltered] = useState<HouseholdWithGuests[]>(households)
+  return (
+    <>
+      <GuestSearchFilter
+        households={households}
+        setFilteredHouseholds={setFiltered}
+        events={[]}
+        selectedEventId='all'
+        initialFilters={{
+          search: '',
+          rsvp: null,
+          tagId: null,
+          country: null,
+          side: null,
+          group: 'renamed-group',
+        }}
+      />
+      <span data-testid='restored-count'>{filtered.length}</span>
+    </>
+  )
+}
+
 describe('GuestSearchFilter — side filter "ללא צד" option', () => {
   const households: HouseholdWithGuests[] = [
     makeHousehold('side-groom', 'חתן'),
@@ -135,5 +158,11 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
 
     expect(screen.queryByText(/ללא צד/)).not.toBeInTheDocument()
+  })
+
+  it('ignores a stored group name that no longer exists', () => {
+    render(<RestoredHarness households={households} />)
+    expect(screen.getByTestId('restored-count')).toHaveTextContent(String(households.length))
+    expect(screen.queryByText(/renamed-group/)).not.toBeInTheDocument()
   })
 })

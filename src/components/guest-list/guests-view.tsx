@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
 } from 'react'
 import { BiPencil } from 'react-icons/bi'
 import { toast } from 'sonner'
@@ -19,6 +20,14 @@ import {
   type DrawerDraft,
   GuestDetailPanelContent,
 } from '~/components/guest-list/guest-detail-panel-content'
+import { GuestListLoadingIndicator } from '~/components/guest-list/guest-list-loading-indicator'
+import {
+  clearGuestListViewState,
+  DEFAULT_GUEST_LIST_VIEW_STATE,
+  type GuestListFilters,
+  readGuestListViewState,
+  writeGuestListViewState,
+} from '~/components/guest-list/guest-list-view-state'
 import GuestSearchFilter from '~/components/guest-list/guest-search-filter'
 import type { HouseholdMemberDraft } from '~/components/guest-list/household-members-modal'
 import { GuestDetailDrawer } from '~/components/guest-list/v2/drawer/guest-detail-drawer'
@@ -74,6 +83,8 @@ export default function GuestsView({
 }: GuestsViewProps) {
   const utils = api.useUtils()
   const { workspace } = useWorkspace()
+  const weddingId = allHouseholds[0]?.weddingId ?? workspace.weddingId
+  const [initialViewState] = useState(() => readGuestListViewState(weddingId))
   const { data: allTags = [] } = api.guestTag.getAll.useQuery()
   const toggleGuestForm = useToggleGuestForm()
   // The source GuestSearchFilter rebuilds from. Kept in sync with the `households`
@@ -81,11 +92,15 @@ export default function GuestsView({
   // before the server refresh lands doesn't rebuild from stale, pre-save data.
   const [baseHouseholds, setBaseHouseholds] = useState(households)
   const [filteredHouseholds, setFilteredHouseholds] = useState(households)
-  const [nameSort, setNameSort] = useState<'none' | 'ascending' | 'descending'>('none')
-  const [partySort, setPartySort] = useState<'none' | 'ascending' | 'descending'>('none')
+  const [nameSort, setNameSort] = useState(initialViewState.nameSort)
+  const [partySort, setPartySort] = useState(initialViewState.partySort)
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<string | undefined>()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('cards')
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewState.viewMode)
+  const [filters, setFilters] = useState<GuestListFilters>(initialViewState.filters)
+  const [filterResetKey, setFilterResetKey] = useState(0)
+  const [isRefreshing, startRefreshTransition] = useTransition()
+  const skipNextPersistenceRef = useRef(false)
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode>('households')
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [showDeleteHouseholdDialog, setShowDeleteHouseholdDialog] = useState(false)
@@ -123,6 +138,24 @@ export default function GuestsView({
     groupName: '',
   })
   const initializedDrawerHouseholdIdRef = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (skipNextPersistenceRef.current) {
+      skipNextPersistenceRef.current = false
+      return
+    }
+    writeGuestListViewState(weddingId, { viewMode, nameSort, partySort, filters })
+  }, [filters, nameSort, partySort, viewMode, weddingId])
+
+  const resetView = useCallback(() => {
+    skipNextPersistenceRef.current = true
+    clearGuestListViewState(weddingId)
+    setViewMode(DEFAULT_GUEST_LIST_VIEW_STATE.viewMode)
+    setNameSort(DEFAULT_GUEST_LIST_VIEW_STATE.nameSort)
+    setPartySort(DEFAULT_GUEST_LIST_VIEW_STATE.partySort)
+    setFilters(DEFAULT_GUEST_LIST_VIEW_STATE.filters)
+    setFilterResetKey((key) => key + 1)
+  }, [weddingId])
 
   const { filteredCounts, totalTagAlongs } = useMemo(() => {
     let tagAlongs = 0
@@ -273,7 +306,7 @@ export default function GuestsView({
         setShowDeleteAllDialog(false)
         setDeleteAllConfirmText('')
         toast.success(`נמחקו ${deleted} משקי בית`)
-        router.refresh()
+        startRefreshTransition(() => router.refresh())
       },
       onError: () => {
         toast.error('מחיקת כל האורחים נכשלה')
@@ -378,7 +411,7 @@ export default function GuestsView({
           }
           toast.success('פרטי האורח נשמרו')
           void utils.dashboard.getForActiveWorkspace.invalidate()
-          router.refresh()
+          startRefreshTransition(() => router.refresh())
         },
         onError: () => {
           toast.error('שמירת פרטי האורח נכשלה')
@@ -531,7 +564,7 @@ export default function GuestsView({
               setBaseHouseholds(applyPatch)
               toast.success('בני הבית נשמרו')
               void utils.dashboard.getForActiveWorkspace.invalidate()
-              router.refresh()
+              startRefreshTransition(() => router.refresh())
               resolve(true)
             },
             onError: () => {
@@ -723,6 +756,9 @@ export default function GuestsView({
           households={baseHouseholds}
           events={events}
           selectedEventId={selectedEventId}
+          initialFilters={filters}
+          resetKey={filterResetKey}
+          onFiltersChange={setFilters}
         />
         <div className='flex shrink-0 gap-3'>
           {workspace.capabilities.canDeleteAllGuests && (
@@ -763,6 +799,7 @@ export default function GuestsView({
           onWorkflowModeChange={setWorkflowMode}
           sortStateLabel={sortStateLabel}
           activeSort={activeSort}
+          onResetView={resetView}
         />
         {sortedHouseholds.length === 0 ? (
           <AsyncState isEmpty emptyText='אין משקי בית עדיין' />
@@ -782,6 +819,8 @@ export default function GuestsView({
           />
         )}
       </div>
+
+      <GuestListLoadingIndicator loading={isRefreshing} refetching />
 
       <GuestDetailDrawer
         open={isDrawerOpen && selectedHousehold !== undefined}

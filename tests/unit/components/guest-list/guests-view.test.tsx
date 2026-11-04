@@ -457,6 +457,7 @@ const _householdsWithCountries: HouseholdWithGuests[] = [
 
 describe('GuestsView', () => {
   beforeEach(() => {
+    localStorage.clear()
     mockToggleGuestForm.mockReset()
     mockRefresh.mockReset()
     mockHouseholdUpdateMutate.mockReset()
@@ -465,6 +466,34 @@ describe('GuestsView', () => {
     deferMutationResolution = false
     pendingMutationSuccess = undefined
     mockTagsData = []
+  })
+
+  it('restores the view mode and clears it with reset', () => {
+    localStorage.setItem(
+      'oswp:guest-list-view:wedding-1:v1',
+      JSON.stringify({
+        viewMode: 'table',
+        nameSort: 'none',
+        partySort: 'none',
+        filters: { search: '', rsvp: null, tagId: null, country: null, side: null, group: null },
+      })
+    )
+
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).toHaveClass('bg-primary')
+    fireEvent.click(screen.getByRole('button', { name: 'איפוס תצוגה' }))
+    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).toHaveClass('bg-primary')
+    expect(localStorage.getItem('oswp:guest-list-view:wedding-1:v1')).toBeNull()
   })
 
   it('should save canonical household guest party when members modal is saved from a filtered list', async () => {
@@ -919,9 +948,7 @@ describe('GuestsView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ניהול חברים' }))
     fireEvent.click(screen.getByRole('button', { name: /הוספת אורח/i }))
 
-    expect(
-      screen.getByText('לכל חבר במשק הבית יש להזין שם פרטי ושם משפחה.')
-    ).toBeInTheDocument()
+    expect(screen.getByText('לכל חבר במשק הבית יש להזין שם פרטי ושם משפחה.')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'שמירת חברים' }))
 

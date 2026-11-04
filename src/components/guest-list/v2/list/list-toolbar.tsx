@@ -25,6 +25,7 @@ type ListToolbarProps = {
   onWorkflowModeChange?: (mode: WorkflowMode) => void
   sortStateLabel?: string
   activeSort?: ActiveSort
+  onResetView?: () => void
 }
 
 function SortIcon({ active, direction }: { active: boolean; direction?: SortDirection }) {
@@ -46,6 +47,7 @@ export function ListToolbar({
   onWorkflowModeChange,
   sortStateLabel,
   activeSort,
+  onResetView,
 }: Readonly<ListToolbarProps>) {
   const isFiltered =
     totalUnfilteredHouseholds !== undefined && totalUnfilteredHouseholds > totalHouseholds
@@ -69,6 +71,17 @@ export function ListToolbar({
       </div>
 
       <div className='flex flex-wrap items-center gap-2'>
+        {onResetView ? (
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            onClick={onResetView}
+            className='font-sans text-muted-foreground text-sm normal-case tracking-normal hover:text-foreground'
+          >
+            איפוס תצוגה
+          </Button>
+        ) : null}
         {onWorkflowModeChange ? (
           <WorkflowModeToggle
             workflowMode={workflowMode}

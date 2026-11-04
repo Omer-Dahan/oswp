@@ -4,6 +4,7 @@ import { IoIosArrowDown, IoMdCheckmark } from 'react-icons/io'
 import { sharedStyles } from '~/app/utils/shared-styles'
 import type { Event } from '~/app/utils/shared-types'
 import { useOuterClick } from '~/components/hooks'
+import type { GuestListFilters } from '~/components/guest-list/guest-list-view-state'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { RSVP_STATUS_LABELS, type RsvpStatus } from '~/lib/constants/rsvp'
@@ -20,11 +21,29 @@ const NO_SIDE_FILTER_KEY = '__no_side__'
 const householdsCountLabel = (count: number) =>
   `סה״כ ${count} ${count === 1 ? 'משק בית' : 'משקי בית'}`
 
+const countByNormalizedValue = (values: Array<string | null | undefined>) => {
+  const counts = new Map<string, { label: string; count: number }>()
+  for (const raw of values) {
+    const trimmed = raw?.trim()
+    if (!trimmed) continue
+    const key = trimmed.toLowerCase()
+    const existing = counts.get(key)
+    if (existing) existing.count += 1
+    else counts.set(key, { label: trimmed, count: 1 })
+  }
+  return Array.from(counts.entries())
+    .map(([key, { label, count }]) => ({ key, label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
 type GuestSearchFilterProps = {
   households: HouseholdWithGuests[]
   setFilteredHouseholds: Dispatch<SetStateAction<HouseholdWithGuests[]>>
   events: Event[]
   selectedEventId: string
+  initialFilters?: GuestListFilters
+  resetKey?: number
+  onFiltersChange?: (filters: GuestListFilters) => void
 }
 
 export default function GuestSearchFilter({
@@ -32,18 +51,31 @@ export default function GuestSearchFilter({
   setFilteredHouseholds,
   events,
   selectedEventId,
+  initialFilters,
+  resetKey = 0,
+  onFiltersChange,
 }: GuestSearchFilterProps) {
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useState(initialFilters?.search ?? '')
   const [showInvitationDropdown, setShowInvitationDropdown] = useState(false)
-  const [selectedRsvpFilter, setSelectedRsvpFilter] = useState<TSelectedRsvpFilter | null>(null)
+  const [selectedRsvpFilter, setSelectedRsvpFilter] = useState<TSelectedRsvpFilter | null>(
+    initialFilters?.rsvp ?? null
+  )
   const [showTagDropdown, setShowTagDropdown] = useState(false)
-  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null)
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(
+    initialFilters?.tagId ?? null
+  )
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
-  const [selectedCountryFilter, setSelectedCountryFilter] = useState<string | null>(null)
+  const [selectedCountryFilter, setSelectedCountryFilter] = useState<string | null>(
+    initialFilters?.country ?? null
+  )
   const [showSideDropdown, setShowSideDropdown] = useState(false)
-  const [selectedSideFilter, setSelectedSideFilter] = useState<string | null>(null)
+  const [selectedSideFilter, setSelectedSideFilter] = useState<string | null>(
+    initialFilters?.side ?? null
+  )
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string | null>(null)
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string | null>(
+    initialFilters?.group ?? null
+  )
 
   const invitationFilterRef = useOuterClick(() => setShowInvitationDropdown(false))
   const tagFilterRef = useOuterClick(() => setShowTagDropdown(false))
@@ -60,26 +92,6 @@ export default function GuestSearchFilter({
     }
     return Array.from(countrySet).sort()
   }, [households])
-
-  // Groups households by trimmed/case-insensitive value while keeping one canonical
-  // spelling (the first one seen) so stray whitespace/case differences don't split a count.
-  const countByNormalizedValue = (values: Array<string | null | undefined>) => {
-    const counts = new Map<string, { label: string; count: number }>()
-    for (const raw of values) {
-      const trimmed = raw?.trim()
-      if (!trimmed) continue
-      const key = trimmed.toLowerCase()
-      const existing = counts.get(key)
-      if (existing) {
-        existing.count += 1
-      } else {
-        counts.set(key, { label: trimmed, count: 1 })
-      }
-    }
-    return Array.from(counts.entries())
-      .map(([key, { label, count }]) => ({ key, label, count }))
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-  }
 
   const availableSides = useMemo(() => {
     const sides = countByNormalizedValue(households.map((h) => h.side))
@@ -116,24 +128,41 @@ export default function GuestSearchFilter({
     [allTags, availableTagCounts]
   )
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: restore only when the event, data source, or explicit reset changes
   useEffect(() => {
-    void selectedEventId
     // Reset filters when event context changes so state never carries hidden stale constraints.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedRsvpFilter(null)
+    const rsvp = initialFilters?.rsvp
+    const validRsvp = rsvp && events.some((event) => event.id === rsvp.eventId) ? rsvp : null
+    const tagId = initialFilters?.tagId
+    const validTagId = tagId && availableTags.some((tag) => tag.id === tagId) ? tagId : null
+    const country = availableCountries.includes(initialFilters?.country ?? '')
+      ? (initialFilters?.country ?? null)
+      : null
+    const side = availableSides.some((entry) => entry.key === initialFilters?.side)
+      ? (initialFilters?.side ?? null)
+      : null
+    const group = availableGroups.some((entry) => entry.key === initialFilters?.group)
+      ? (initialFilters?.group ?? null)
+      : null
+    const search = initialFilters?.search ?? ''
+    setSelectedRsvpFilter(validRsvp)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedTagFilter(null)
+    setSelectedTagFilter(validTagId)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedCountryFilter(null)
+    setSelectedCountryFilter(country)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedSideFilter(null)
+    setSelectedSideFilter(side)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedGroupFilter(null)
+    setSelectedGroupFilter(group)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFilteredHouseholds(households)
+    filterHouseholds(search, validRsvp, validTagId, country, side, group)
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSearchInput('')
-  }, [selectedEventId, households, setFilteredHouseholds])
+    setSearchInput(search)
+    // Restoration is intentionally keyed to the wedding/event/reset, not to option arrays
+    // that can update while the user is actively changing filters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEventId, households, resetKey])
 
   const eventsToMap =
     selectedEventId === 'all' ? events : [events.find((event) => event.id === selectedEventId)]
@@ -269,6 +298,25 @@ export default function GuestSearchFilter({
     !!selectedSideFilter ||
     !!selectedGroupFilter ||
     !!searchInput
+
+  useEffect(() => {
+    onFiltersChange?.({
+      search: searchInput,
+      rsvp: selectedRsvpFilter,
+      tagId: selectedTagFilter,
+      country: selectedCountryFilter,
+      side: selectedSideFilter,
+      group: selectedGroupFilter,
+    })
+  }, [
+    onFiltersChange,
+    searchInput,
+    selectedCountryFilter,
+    selectedGroupFilter,
+    selectedRsvpFilter,
+    selectedSideFilter,
+    selectedTagFilter,
+  ])
 
   const clearAllFilters = () => {
     setFilteredHouseholds(households)

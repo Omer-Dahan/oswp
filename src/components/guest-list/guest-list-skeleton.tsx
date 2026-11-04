@@ -1,8 +1,10 @@
+import { GuestListLoadingIndicator } from '~/components/guest-list/guest-list-loading-indicator'
 import { Skeleton } from '~/components/ui/skeleton'
 
 export function GuestListSkeleton() {
   return (
     <div className='flex flex-col gap-4 px-4 py-5 lg:px-6 lg:py-6' aria-busy='true'>
+      <GuestListLoadingIndicator loading />
       {/* Event filter tabs */}
       <div className='flex items-center gap-5 border-border border-b pb-px'>
         <Skeleton className='mb-3 h-5 w-20' />
