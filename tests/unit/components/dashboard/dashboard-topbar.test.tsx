@@ -8,10 +8,16 @@ jest.mock('~/components/theme-toggle', () => ({
 }))
 
 const mockOpenSidebar = jest.fn()
+const mockToggleEttaPanel = jest.fn()
+let mockHasEttaPanel = false
+let mockEttaPanelOpen = false
 
 jest.mock('~/components/layout/authenticated-app-shell', () => ({
   useAuthenticatedSidebar: () => ({
+    ettaPanelOpen: mockEttaPanelOpen,
+    hasEttaPanel: mockHasEttaPanel,
     openSidebar: mockOpenSidebar,
+    toggleEttaPanel: mockToggleEttaPanel,
   }),
 }))
 
@@ -20,6 +26,9 @@ describe('DashboardTopbar', () => {
 
   beforeEach(() => {
     mockOpenSidebar.mockReset()
+    mockToggleEttaPanel.mockReset()
+    mockHasEttaPanel = false
+    mockEttaPanelOpen = false
   })
 
   afterEach(() => {
@@ -76,6 +85,15 @@ describe('DashboardTopbar', () => {
 
     expect(onMenuToggle).toHaveBeenCalledTimes(1)
     expect(mockOpenSidebar).not.toHaveBeenCalled()
+  })
+
+  it('opens Etta from a header action when the assistant is available', () => {
+    mockHasEttaPanel = true
+    render(<DashboardTopbar />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'פתיחת Etta' }))
+
+    expect(mockToggleEttaPanel).toHaveBeenCalledTimes(1)
   })
 
   it('renders today string using browser locale formatter', () => {

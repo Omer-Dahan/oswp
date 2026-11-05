@@ -15,7 +15,7 @@ type DashboardTopbarProps = {
 
 export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
   const { title = 'לוח בקרה', showManagementActions = true, onMenuToggle, onAddTask } = props
-  const { openSidebar } = useAuthenticatedSidebar()
+  const { ettaPanelOpen, hasEttaPanel, openSidebar, toggleEttaPanel } = useAuthenticatedSidebar()
   const [today, setToday] = useState('')
 
   useEffect(() => {
@@ -62,6 +62,19 @@ export default function DashboardTopbar(props: Readonly<DashboardTopbarProps>) {
       </div>
 
       <div className='flex items-center gap-2'>
+        {hasEttaPanel ? (
+          <button
+            type='button'
+            aria-label={ettaPanelOpen ? 'סגירת Etta' : 'פתיחת Etta'}
+            aria-pressed={ettaPanelOpen}
+            onClick={toggleEttaPanel}
+            className='flex h-11 w-11 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2 lg:hidden'
+          >
+            <span aria-hidden='true' className='font-display text-lg'>
+              ✦
+            </span>
+          </button>
+        ) : null}
         <ThemeToggle />
         {showManagementActions && (
           <button

@@ -728,10 +728,10 @@ export default function GuestsView({
 
   return (
     <section className='pb-[calc(7rem+env(safe-area-inset-bottom))] font-hebrew lg:pb-0'>
-      <header className='border-b border-border py-5 sm:py-6'>
+      <header className='border-border border-b py-5 sm:py-6'>
         <div className='flex items-center justify-between gap-3'>
           <div className='hidden sm:block'>
-            <h1 className='font-hebrew text-2xl font-semibold tracking-tight'>רשימת אורחים</h1>
+            <h1 className='font-hebrew font-semibold text-2xl tracking-tight'>רשימת אורחים</h1>
             <p className='mt-1 text-muted-foreground text-sm'>
               ניהול משקי בית, הזמנות ואישורי הגעה
             </p>
@@ -1054,9 +1054,9 @@ const DefaultTableHeader = ({
   answeredGuests,
 }: DefaultTableHeaderProps) => {
   return (
-    <div className='border-b border-border py-4'>
-      <div className='flex flex-wrap items-center gap-x-5 gap-y-2 text-sm md:gap-x-7'>
-        <div>
+    <div className='border-border border-b py-4'>
+      <div className='grid grid-cols-2 gap-x-5 gap-y-3 text-sm sm:flex sm:flex-nowrap sm:items-center sm:gap-x-5 md:gap-x-7'>
+        <div className='flex items-baseline gap-1'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ משקי בית:{' '}
           </span>
@@ -1064,13 +1064,13 @@ const DefaultTableHeader = ({
             {households.length}
           </span>
         </div>
-        <div className='hidden h-4 w-px bg-border md:block' />
-        <div>
+        <div className='hidden h-4 w-px bg-border sm:block' />
+        <div className='flex items-baseline gap-1'>
           <span className='font-hebrew text-muted-foreground'>ענו: </span>
           <span className='font-semibold tabular-nums'>{answeredGuests}</span>
         </div>
-        <div className='hidden h-4 w-px bg-border md:block' />
-        <div>
+        <div className='hidden h-4 w-px bg-border sm:block' />
+        <div className='flex items-baseline gap-1'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ אורחים:{' '}
           </span>
@@ -1084,8 +1084,8 @@ const DefaultTableHeader = ({
             )}
           </span>
         </div>
-        <div className='hidden h-4 w-px bg-border md:block' />
-        <div>
+        <div className='hidden h-4 w-px bg-border sm:block' />
+        <div className='flex items-baseline gap-1'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ אירועים:{' '}
           </span>
