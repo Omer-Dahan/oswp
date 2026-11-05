@@ -35,7 +35,26 @@ export function deriveGuestListCounts(
       counts.guests += partySize
       counts.households += 1
 
-      if (!eventId || partySize === 0) return counts
+      if (partySize === 0) return counts
+
+      if (!eventId) {
+        let attending = 0
+        let declined = 0
+
+        for (const guest of household.guests) {
+          const responses = guest.invitations ?? []
+          if (responses.some((invitation) => invitation.rsvp === 'Attending')) {
+            attending += 1
+          } else if (responses.some((invitation) => invitation.rsvp === 'Declined')) {
+            declined += 1
+          }
+        }
+
+        counts.attending += attending
+        counts.declined += declined
+        counts.noResponse += Math.max(0, partySize - attending - declined)
+        return counts
+      }
 
       const responses = household.guests
         .flatMap((guest) => guest.invitations ?? [])

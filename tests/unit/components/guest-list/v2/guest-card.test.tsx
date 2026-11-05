@@ -361,4 +361,15 @@ describe('GuestCard', () => {
 
     expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument()
   })
+
+  it('lets the guest name wrap on card layouts from the sm breakpoint', () => {
+    render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('Alex Rivera')).toHaveClass(
+      'min-w-0',
+      'truncate',
+      'sm:line-clamp-2',
+      'sm:whitespace-normal'
+    )
+  })
 })

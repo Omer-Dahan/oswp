@@ -727,7 +727,7 @@ export default function GuestsView({
   const answeredGuests = filteredCounts.attending + filteredCounts.declined
 
   return (
-    <section className='font-hebrew'>
+    <section className='pb-[calc(7rem+env(safe-area-inset-bottom))] font-hebrew lg:pb-0'>
       <header className='border-b border-border py-5 sm:py-6'>
         <div className='flex items-center justify-between gap-3'>
           <div className='hidden sm:block'>

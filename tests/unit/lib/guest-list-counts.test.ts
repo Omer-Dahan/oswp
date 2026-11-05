@@ -58,4 +58,24 @@ describe('deriveGuestListCounts', () => {
       noResponse: 0,
     })
   })
+
+  it('counts each guest with an answer on any event when no event is selected', () => {
+    const answeredAcrossEvents: CountableHousehold = {
+      invitedCount: 3,
+      attendingCount: 3,
+      guests: [
+        { invitations: [{ eventId: 'chuppah', rsvp: 'Attending' }] },
+        { invitations: [{ eventId: 'wedding', rsvp: 'Invited' }] },
+        { invitations: [{ eventId: 'wedding', rsvp: 'Declined' }] },
+      ],
+    }
+
+    expect(deriveGuestListCounts([answeredAcrossEvents])).toEqual({
+      guests: 3,
+      households: 1,
+      attending: 1,
+      declined: 1,
+      noResponse: 1,
+    })
+  })
 })

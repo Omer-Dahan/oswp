@@ -193,22 +193,24 @@ function GuestCardComponent({
           aria-label={`בחירת משק הבית של ${primaryGuestName}`}
           onClick={handleSelect}
         />
-        <CardContent className='pointer-events-none relative z-10 grid grid-cols-[1fr_auto] items-start gap-x-[14px] gap-y-1 p-[15px_16px]'>
-          <div className='min-w-0'>
+        <CardContent className='pointer-events-none relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-[14px] gap-y-1 p-[15px_16px]'>
+          <div className='min-w-0 grow'>
             <div className='flex min-w-0 items-center gap-2'>
               <span className='flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border border-border bg-muted text-[11px] text-muted-foreground'>
                 {initials}
               </span>
-              <span className='truncate font-hebrew text-[16.5px] font-medium leading-[1.2] text-foreground'>
+              <span className='min-w-0 truncate font-hebrew font-medium text-[16.5px] text-foreground leading-[1.2] sm:line-clamp-2 sm:whitespace-normal sm:break-words'>
                 {primaryGuestName}
               </span>
             </div>
             {metaLine && (
-              <p className='mt-[5px] truncate text-[12.5px] text-muted-foreground'>{metaLine}</p>
+              <p className='mt-[5px] hidden text-[12.5px] text-muted-foreground sm:line-clamp-1'>
+                {metaLine}
+              </p>
             )}
           </div>
 
-          <div className='pt-0.5 text-left leading-[1.05]'>
+          <div className='whitespace-nowrap pt-0.5 text-left leading-[1.05]'>
             {weddingAnswered && rsvpSummary.attending > 0 ? (
               <>
                 <div className='text-[22px] font-semibold text-success tabular-nums'>
