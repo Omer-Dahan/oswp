@@ -110,7 +110,7 @@ function RestoredHarness({ households }: { households: HouseholdWithGuests[] }) 
   )
 }
 
-describe('GuestSearchFilter side filter "ללא צד" option', () => {
+describe('GuestSearchFilter — side filter "ללא צד" option', () => {
   const households: HouseholdWithGuests[] = [
     makeHousehold('side-groom', 'חתן'),
     makeHousehold('side-bride', 'כלה'),
@@ -122,14 +122,11 @@ describe('GuestSearchFilter side filter "ללא צד" option', () => {
   it('shows "ללא צד" with the count of households missing a side, and filters to only those', () => {
     render(<Harness households={households} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
-    fireEvent.change(screen.getByRole('combobox', { name: 'צד' }), {
-      target: { value: '__no_side__' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    const option = screen.getByText('ללא צד (סה״כ 3 משקי בית)')
+    fireEvent.click(option)
 
-    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem', {
-      hidden: true,
-    })
+    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
     expect(listItems.map((li) => li.textContent)).toEqual([
       'no-side-null',
       'no-side-empty',
@@ -140,28 +137,22 @@ describe('GuestSearchFilter side filter "ללא צד" option', () => {
   it('still filters by a real side after the no-side option exists', () => {
     render(<Harness households={households} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
-    fireEvent.change(screen.getByRole('combobox', { name: 'צד' }), { target: { value: 'חתן' } })
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    fireEvent.click(screen.getByText('חתן (סה״כ 1 משק בית)'))
 
-    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem', {
-      hidden: true,
-    })
+    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
     expect(listItems.map((li) => li.textContent)).toEqual(['side-groom'])
   })
 
   it('the clear chip removes the no-side filter', () => {
     render(<Harness households={households} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
-    fireEvent.change(screen.getByRole('combobox', { name: 'צד' }), {
-      target: { value: '__no_side__' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    fireEvent.click(screen.getByText('ללא צד (סה״כ 3 משקי בית)'))
 
-    fireEvent.click(screen.getByRole('button', { name: 'הסרת הסינון צד: ללא צד' }))
+    fireEvent.click(screen.getByText(/^צד: ללא צד/))
 
-    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem', {
-      hidden: true,
-    })
+    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
     expect(listItems).toHaveLength(households.length)
   })
 
@@ -169,7 +160,7 @@ describe('GuestSearchFilter side filter "ללא צד" option', () => {
     const allWithSides = [makeHousehold('a', 'חתן'), makeHousehold('b', 'כלה')]
     render(<Harness households={allWithSides} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
 
     expect(screen.queryByText(/ללא צד/)).not.toBeInTheDocument()
   })
@@ -179,29 +170,9 @@ describe('GuestSearchFilter side filter "ללא צד" option', () => {
     expect(screen.getByTestId('restored-count')).toHaveTextContent(String(households.length))
     expect(screen.queryByText(/renamed-group/)).not.toBeInTheDocument()
   })
-
-  it('announces the filtered count and shows reset only while a filter is active', () => {
-    render(<Harness households={households} />)
-
-    expect(
-      screen.getByText(`מציג ${households.length} מתוך ${households.length} משקי בית`)
-    ).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
-    expect(screen.queryByRole('button', { name: 'איפוס' })).not.toBeInTheDocument()
-
-    fireEvent.change(screen.getByRole('combobox', { name: 'צד' }), { target: { value: 'חתן' } })
-    expect(screen.getAllByText(`מציג 1 מתוך ${households.length} משקי בית`).length).toBeGreaterThan(
-      0
-    )
-    expect(screen.getByRole('button', { name: 'איפוס' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'הסרת הסינון צד: חתן' })).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'איפוס' }))
-    expect(screen.queryByRole('button', { name: 'איפוס' })).not.toBeInTheDocument()
-  })
 })
 
-describe('GuestSearchFilter group filter for self-added households', () => {
+describe('GuestSearchFilter — group filter for self-added households', () => {
   it('lists the self-add group with a count when such households exist, and filters to only those', () => {
     const selfAddHouseholds: HouseholdWithGuests[] = [
       makeHousehold('self-added-1', null, SELF_ADD_GROUP_NAME),
@@ -211,14 +182,11 @@ describe('GuestSearchFilter group filter for self-added households', () => {
 
     render(<Harness households={selfAddHouseholds} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
-    fireEvent.change(screen.getByRole('combobox', { name: 'קבוצה' }), {
-      target: { value: SELF_ADD_GROUP_NAME.toLowerCase() },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    const option = screen.getByText(`${SELF_ADD_GROUP_NAME} (סה״כ 2 משקי בית)`)
+    fireEvent.click(option)
 
-    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem', {
-      hidden: true,
-    })
+    const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
     expect(listItems.map((li) => li.textContent)).toEqual(['self-added-1', 'self-added-2'])
   })
 
@@ -226,7 +194,7 @@ describe('GuestSearchFilter group filter for self-added households', () => {
     const households: HouseholdWithGuests[] = [makeHousehold('a', 'חתן', 'קבוצה רגילה')]
     render(<Harness households={households} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
 
     expect(screen.queryByText(new RegExp(SELF_ADD_GROUP_NAME))).not.toBeInTheDocument()
   })

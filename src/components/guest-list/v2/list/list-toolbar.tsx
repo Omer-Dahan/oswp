@@ -1,26 +1,21 @@
-import { Check, ChevronDown, LayoutGrid, Table2 } from 'lucide-react'
-import type { ReactNode } from 'react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
+import { ArrowDown, ArrowUp, ArrowUpDown, LayoutGrid, Table2, Users } from 'lucide-react'
+
+import { Button } from '~/components/ui/button'
 
 export type ViewMode = 'cards' | 'table'
 export type WorkflowMode = 'households' | 'personAudit'
 
+type SortDirection = 'ascending' | 'descending'
+
 type ActiveSort = {
   field: 'name' | 'partySize'
-  direction: 'ascending' | 'descending'
+  direction: SortDirection
 }
 
 type ListToolbarProps = {
   totalHouseholds: number
   totalUnfilteredHouseholds?: number
-  totalGuests?: number
+  totalGuests: number
   totalUnfilteredGuests?: number
   onSortByName?: () => void
   onSortByPartySize?: () => void
@@ -33,88 +28,155 @@ type ListToolbarProps = {
   onResetView?: () => void
 }
 
+function SortIcon({ active, direction }: { active: boolean; direction?: SortDirection }) {
+  if (!active) return <ArrowUpDown className='me-2 h-3 w-3' aria-hidden='true' />
+  if (direction === 'ascending') return <ArrowUp className='me-2 h-3 w-3' aria-hidden='true' />
+  return <ArrowDown className='me-2 h-3 w-3' aria-hidden='true' />
+}
+
 export function ListToolbar({
+  totalHouseholds,
+  totalUnfilteredHouseholds,
+  totalGuests,
+  totalUnfilteredGuests,
   onSortByName,
   onSortByPartySize,
   viewMode = 'cards',
   onViewModeChange,
+  workflowMode = 'households',
+  onWorkflowModeChange,
+  sortStateLabel,
   activeSort,
+  onResetView,
 }: Readonly<ListToolbarProps>) {
-  const sortLabel = activeSort?.field === 'partySize' ? 'לפי גודל' : 'לפי שם'
+  const isFiltered =
+    totalUnfilteredHouseholds !== undefined && totalUnfilteredHouseholds > totalHouseholds
+
+  const householdsLabel = (count: number) => `${count} ${count === 1 ? 'משק בית' : 'משקי בית'}`
+
+  const householdCountLabel = isFiltered
+    ? `${totalGuests} מוזמנים · ${householdsLabel(totalHouseholds)} מתוך ${totalUnfilteredGuests} מוזמנים · ${householdsLabel(totalUnfilteredHouseholds)}`
+    : `${totalGuests} מוזמנים · ${householdsLabel(totalHouseholds)}`
 
   return (
-    <div className='flex min-h-11 items-center justify-end gap-2 border-b border-border pb-3'>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type='button'
-            className='inline-flex min-h-11 items-center gap-2 rounded-md px-3 font-hebrew text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-          >
-            מיון: {sortLabel}
-            <ChevronDown className='h-4 w-4' aria-hidden='true' />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='w-48 font-hebrew'>
-          <DropdownMenuLabel>מיון הרשימה</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onSortByName} className='min-h-11'>
-            <Check
-              className={activeSort?.field === 'name' ? 'opacity-100' : 'opacity-0'}
-              aria-hidden='true'
-            />
-            לפי שם
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={onSortByPartySize} className='min-h-11'>
-            <Check
-              className={activeSort?.field === 'partySize' ? 'opacity-100' : 'opacity-0'}
-              aria-hidden='true'
-            />
-            לפי גודל
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+      <div className='flex flex-col gap-1'>
+        <div className='flex items-center gap-2 text-muted-foreground text-sm'>
+          <Users className='h-4 w-4' aria-hidden='true' />
+          <span>{householdCountLabel}</span>
+        </div>
+        {sortStateLabel ? (
+          <span className='text-muted-foreground text-xs'>ממוין לפי {sortStateLabel}</span>
+        ) : null}
+      </div>
 
-      {onViewModeChange ? (
-        <fieldset className='flex rounded-[10px] bg-muted p-1'>
-          <legend className='sr-only'>מצב תצוגה</legend>
-          <ViewButton
-            active={viewMode === 'cards'}
-            onClick={() => onViewModeChange('cards')}
-            label='כרטיסים'
-            icon={<LayoutGrid className='h-4 w-4' aria-hidden='true' />}
+      <div className='flex flex-wrap items-center gap-2'>
+        {onResetView ? (
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            onClick={onResetView}
+            className='font-sans text-muted-foreground text-sm normal-case tracking-normal hover:text-foreground'
+          >
+            איפוס תצוגה
+          </Button>
+        ) : null}
+        {onWorkflowModeChange ? (
+          <WorkflowModeToggle
+            workflowMode={workflowMode}
+            onWorkflowModeChange={onWorkflowModeChange}
           />
-          <ViewButton
-            active={viewMode === 'table'}
-            onClick={() => onViewModeChange('table')}
-            label='טבלה'
-            icon={<Table2 className='h-4 w-4' aria-hidden='true' />}
-          />
-        </fieldset>
-      ) : null}
+        ) : null}
+        <Button
+          type='button'
+          variant={activeSort?.field === 'name' ? 'default' : 'outline'}
+          size='sm'
+          onClick={onSortByName}
+          className='font-sans text-sm normal-case tracking-normal'
+        >
+          <SortIcon active={activeSort?.field === 'name'} direction={activeSort?.direction} />
+          מיון לפי שם
+        </Button>
+        <Button
+          type='button'
+          variant={activeSort?.field === 'partySize' ? 'default' : 'outline'}
+          size='sm'
+          onClick={onSortByPartySize}
+          className='font-sans text-sm normal-case tracking-normal'
+        >
+          <SortIcon active={activeSort?.field === 'partySize'} direction={activeSort?.direction} />
+          מיון לפי גודל קבוצה
+        </Button>
+        {onViewModeChange && workflowMode === 'households' && (
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
+        )}
+      </div>
     </div>
   )
 }
 
-function ViewButton({
-  active,
-  onClick,
-  label,
-  icon,
+const toggleBtnClass = (isActive: boolean, hasBorderLeft = false) =>
+  `flex items-center px-2.5 py-1.5 transition-colors${hasBorderLeft ? ' border-border border-s' : ''} ${
+    isActive
+      ? 'bg-primary text-primary-foreground'
+      : 'bg-background text-foreground/60 hover:bg-muted/50'
+  }`
+
+function ViewModeToggle({
+  viewMode,
+  onViewModeChange,
 }: {
-  active: boolean
-  onClick: () => void
-  label: string
-  icon: ReactNode
+  viewMode: ViewMode
+  onViewModeChange: (mode: ViewMode) => void
 }) {
   return (
-    <button
-      type='button'
-      aria-pressed={active}
-      onClick={onClick}
-      className={`inline-flex min-h-9 items-center gap-2 rounded-md px-3 font-hebrew text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-    >
-      {icon}
-      {label}
-    </button>
+    <div className='flex overflow-hidden rounded-md border border-border'>
+      <button
+        type='button'
+        aria-label='תצוגת כרטיסים'
+        onClick={() => onViewModeChange('cards')}
+        className={toggleBtnClass(viewMode === 'cards')}
+      >
+        <LayoutGrid className='h-3.5 w-3.5' aria-hidden='true' />
+      </button>
+      <button
+        type='button'
+        aria-label='תצוגת טבלה'
+        onClick={() => onViewModeChange('table')}
+        className={toggleBtnClass(viewMode === 'table', true)}
+      >
+        <Table2 className='h-3.5 w-3.5' aria-hidden='true' />
+      </button>
+    </div>
+  )
+}
+
+function WorkflowModeToggle({
+  workflowMode,
+  onWorkflowModeChange,
+}: {
+  workflowMode: WorkflowMode
+  onWorkflowModeChange: (mode: WorkflowMode) => void
+}) {
+  return (
+    <div className='flex overflow-hidden rounded-md border border-border'>
+      <button
+        type='button'
+        aria-label='משקי בית'
+        onClick={() => onWorkflowModeChange('households')}
+        className={toggleBtnClass(workflowMode === 'households')}
+      >
+        משקי בית
+      </button>
+      <button
+        type='button'
+        aria-label='ביקורת אנשים'
+        onClick={() => onWorkflowModeChange('personAudit')}
+        className={toggleBtnClass(workflowMode === 'personAudit', true)}
+      >
+        ביקורת אנשים
+      </button>
+    </div>
   )
 }

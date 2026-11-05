@@ -1,19 +1,12 @@
-import { MoreVertical } from 'lucide-react'
 import { memo, useCallback, useState } from 'react'
 
 import { PartialEventAnswerLine } from '~/components/guest-list/v2/list/partial-event-answer-line'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
-import {
   getHouseholdWeddingRsvpCounts,
-  type RsvpEventInput,
   resolveRsvpEvents,
+  type RsvpEventInput,
 } from '~/lib/wedding/rsvp-events'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
@@ -57,7 +50,7 @@ const resolveHouseholdWeddingEventId = (
   const eventIds = new Set(
     household.guests.flatMap((guest) => guest.invitations.map((invitation) => invitation.eventId))
   )
-  return eventIds.size === 1 ? ([...eventIds][0] ?? null) : null
+  return eventIds.size === 1 ? [...eventIds][0] ?? null : null
 }
 
 /** Compact "1 לפי דיווח האורח · 2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
@@ -73,11 +66,7 @@ const getRsvpPartyDetailsLabel = (
   // guests) - otherwise either a household that hasn't answered the
   // reception, or the same headcount printed twice, reads as a mismatch
   // rather than a confirmation.
-  if (
-    weddingAnswered &&
-    household.attendingCount != null &&
-    household.attendingCount !== namedAttending
-  ) {
+  if (weddingAnswered && household.attendingCount != null && household.attendingCount !== namedAttending) {
     parts.push(`${household.attendingCount} לפי דיווח האורח`)
   }
   if (household.childrenCount != null && household.childrenCount > 0) {
@@ -152,16 +141,9 @@ function GuestCardComponent({
   const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
   const chuppahSummary = getHouseholdWeddingRsvpCounts(household.guests, chuppahEvent?.id ?? null)
   const isChuppahOnlyArrival =
-    !weddingAnswered &&
-    weddingEvent !== null &&
-    chuppahEvent !== null &&
-    chuppahSummary.attending > 0
+    !weddingAnswered && weddingEvent !== null && chuppahEvent !== null && chuppahSummary.attending > 0
 
-  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(
-    household,
-    rsvpSummary.attending,
-    weddingAnswered
-  )
+  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household, rsvpSummary.attending, weddingAnswered)
   const initials = getInitials(primaryGuestName)
   const handleSelect = useCallback(() => {
     onSelectHousehold(household)
@@ -181,74 +163,69 @@ function GuestCardComponent({
   }, [utils, household.id])
 
   return (
-    <div className='group w-full text-start'>
+    <button
+      type='button'
+      className='w-full text-start'
+      aria-label={`בחירת משק הבית של ${primaryGuestName}`}
+      onClick={handleSelect}
+    >
       <Card
-        className={`relative rounded-xl border-border transition-colors hover:bg-muted/30 ${
+        className={`rounded-[14px] border-[#e7e1d5] transition-colors hover:bg-muted/30 ${
           isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/30' : 'bg-card/90'
         }`}
       >
-        <button
-          type='button'
-          className='absolute inset-0 z-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-          aria-label={`בחירת משק הבית של ${primaryGuestName}`}
-          onClick={handleSelect}
-        />
-        <CardContent className='pointer-events-none relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-[14px] gap-y-1 p-[15px_16px]'>
-          <div className='min-w-0 grow'>
+        <CardContent className='grid grid-cols-[1fr_auto] items-start gap-x-[14px] gap-y-1 p-[15px_16px]'>
+          <div className='min-w-0'>
             <div className='flex min-w-0 items-center gap-2'>
-              <span className='flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border border-border bg-muted text-[11px] text-muted-foreground'>
+              <span className='flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border border-[#e2dacb] bg-[#f1ece1] text-[11px] text-[#6d6353]'>
                 {initials}
               </span>
-              <span className='min-w-0 truncate font-hebrew font-medium text-[16.5px] text-foreground leading-[1.2] sm:line-clamp-2 sm:whitespace-normal sm:break-words'>
+              <span className='truncate font-hebrew text-[16.5px] font-medium leading-[1.2] text-foreground'>
                 {primaryGuestName}
               </span>
             </div>
             {metaLine && (
-              <p className='mt-[5px] hidden text-[12.5px] text-muted-foreground sm:line-clamp-1'>
-                {metaLine}
-              </p>
+              <p className='mt-[5px] truncate text-[12.5px] text-[#8a7f6d]'>{metaLine}</p>
             )}
           </div>
 
-          <div className='whitespace-nowrap pt-0.5 text-left leading-[1.05]'>
+          <div className='pt-0.5 text-left leading-[1.05]'>
             {weddingAnswered && rsvpSummary.attending > 0 ? (
               <>
-                <div className='text-[22px] font-semibold text-success tabular-nums'>
+                <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
                   {rsvpSummary.attending}
-                  <small className='mt-0.5 block text-[12px] font-normal text-success/80'>
+                  <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
                     {rsvpSummary.attending === 1 ? 'מגיע' : 'מגיעים'}
                   </small>
                 </div>
-                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-muted-foreground'>
+                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
                   מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
                 </div>
               </>
             ) : isChuppahOnlyArrival ? (
               <>
-                <div className='text-[22px] font-semibold text-success tabular-nums'>
+                <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
                   {chuppahSummary.attending}
-                  <small className='mt-0.5 block text-[12px] font-normal text-success/80'>
+                  <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
                     {chuppahSummary.attending === 1 ? 'מגיע לחופה' : 'מגיעים לחופה'}
                   </small>
                 </div>
-                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-muted-foreground'>
+                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
                   {weddingEvent?.name} טרם השיבה
                 </div>
               </>
             ) : weddingAnswered ? (
               <>
-                <div className='pt-1 text-[19px] font-semibold text-destructive'>לא מגיעים</div>
-                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-muted-foreground'>
+                <div className='pt-1 text-[19px] font-semibold text-[#a4553f]'>לא מגיעים</div>
+                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
                   מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
                 </div>
               </>
             ) : (
               <>
-                <div className='pt-1.5 text-[16px] font-medium text-muted-foreground'>
-                  טרם השיבו
-                </div>
+                <div className='pt-1.5 text-[16px] font-medium text-[#a2937c]'>טרם השיבו</div>
                 {rsvpSummary.invited > 0 && (
-                  <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-muted-foreground'>
+                  <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
                     {rsvpSummary.invited} {rsvpSummary.invited === 1 ? 'הוזמן' : 'הוזמנו'}
                   </div>
                 )}
@@ -260,9 +237,31 @@ function GuestCardComponent({
             <PartialEventAnswerLine
               guests={household.guests}
               events={events}
-              className='col-span-2 text-[12.5px] text-destructive'
+              className='col-span-2 text-[12.5px] text-[#a4553f]'
             />
           )}
+
+          <div className='col-span-2 flex justify-end text-xs'>
+            <span
+              role='button'
+              tabIndex={0}
+              aria-label='העתקת הודעת הזמנה אישית למשק הבית'
+              onClick={(event) => {
+                event.stopPropagation()
+                void handleCopyInviteLink()
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  void handleCopyInviteLink()
+                }
+              }}
+              className='inline-flex cursor-pointer items-center gap-1 rounded-full border border-border/70 bg-transparent px-2.5 py-1 text-xs text-foreground/70 transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
+            >
+              {copiedInviteLink ? 'הועתק' : 'העתקת הודעה'}
+            </span>
+          </div>
 
           {rsvpPartyDetailsLabel && (
             <Badge
@@ -272,34 +271,15 @@ function GuestCardComponent({
               {rsvpPartyDetailsLabel}
             </Badge>
           )}
+
+          <div className='col-span-2 flex items-center justify-end border-border/80 border-t pt-2'>
+            <span className='font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>
+              צפייה בפרטים →
+            </span>
+          </div>
         </CardContent>
-        <div className='absolute bottom-2 start-2 z-20 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100'>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type='button'
-                aria-label={`פעולות עבור ${primaryGuestName}`}
-                className='flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-              >
-                <MoreVertical className='h-4 w-4' aria-hidden='true' />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align='start'
-              className='font-hebrew'
-              onClick={(event) => event.stopPropagation()}
-            >
-              <DropdownMenuItem onSelect={() => void handleCopyInviteLink()} className='min-h-11'>
-                {copiedInviteLink ? 'ההודעה הועתקה' : 'העתקת הודעת הזמנה'}
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleSelect} className='min-h-11'>
-                צפייה בפרטים
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </Card>
-    </div>
+    </button>
   )
 }
 

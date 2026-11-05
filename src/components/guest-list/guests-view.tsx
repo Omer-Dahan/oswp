@@ -1,4 +1,3 @@
-import { ChevronDown, MoreVertical, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   type Dispatch,
@@ -23,6 +22,8 @@ import {
 } from '~/components/guest-list/guest-detail-panel-content'
 import { GuestListLoadingIndicator } from '~/components/guest-list/guest-list-loading-indicator'
 import {
+  clearGuestListViewState,
+  DEFAULT_GUEST_LIST_VIEW_STATE,
   type GuestListFilters,
   readGuestListViewState,
   writeGuestListViewState,
@@ -32,7 +33,11 @@ import type { HouseholdMemberDraft } from '~/components/guest-list/household-mem
 import { GuestDetailDrawer } from '~/components/guest-list/v2/drawer/guest-detail-drawer'
 import { GuestCardsList } from '~/components/guest-list/v2/list/guest-cards-list'
 import { GuestIndividualTable } from '~/components/guest-list/v2/list/guest-individual-table'
-import { ListToolbar, type ViewMode } from '~/components/guest-list/v2/list/list-toolbar'
+import {
+  ListToolbar,
+  type ViewMode,
+  type WorkflowMode,
+} from '~/components/guest-list/v2/list/list-toolbar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,13 +51,6 @@ import {
 import { AsyncState } from '~/components/ui/async-state'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useWorkspace } from '~/hooks/use-workspace'
@@ -100,7 +98,10 @@ export default function GuestsView({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewState.viewMode)
   const [filters, setFilters] = useState<GuestListFilters>(initialViewState.filters)
+  const [filterResetKey, setFilterResetKey] = useState(0)
   const [isRefreshing, startRefreshTransition] = useTransition()
+  const skipNextPersistenceRef = useRef(false)
+  const [workflowMode, setWorkflowMode] = useState<WorkflowMode>('households')
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [showDeleteHouseholdDialog, setShowDeleteHouseholdDialog] = useState(false)
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
@@ -139,8 +140,22 @@ export default function GuestsView({
   const initializedDrawerHouseholdIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
+    if (skipNextPersistenceRef.current) {
+      skipNextPersistenceRef.current = false
+      return
+    }
     writeGuestListViewState(weddingId, { viewMode, nameSort, partySort, filters })
   }, [filters, nameSort, partySort, viewMode, weddingId])
+
+  const resetView = useCallback(() => {
+    skipNextPersistenceRef.current = true
+    clearGuestListViewState(weddingId)
+    setViewMode(DEFAULT_GUEST_LIST_VIEW_STATE.viewMode)
+    setNameSort(DEFAULT_GUEST_LIST_VIEW_STATE.nameSort)
+    setPartySort(DEFAULT_GUEST_LIST_VIEW_STATE.partySort)
+    setFilters(DEFAULT_GUEST_LIST_VIEW_STATE.filters)
+    setFilterResetKey((key) => key + 1)
+  }, [weddingId])
 
   const { filteredCounts, totalTagAlongs } = useMemo(() => {
     let tagAlongs = 0
@@ -719,82 +734,14 @@ export default function GuestsView({
     [isDrawerDirty]
   )
 
-  const openHouseholdForm = useCallback(() => {
-    setPrefillHousehold(undefined)
-    toggleGuestForm()
-  }, [setPrefillHousehold, toggleGuestForm])
-
-  const answeredGuests = filteredCounts.attending + filteredCounts.declined
-
   return (
-    <section className='pb-[calc(7rem+env(safe-area-inset-bottom))] font-hebrew lg:pb-0'>
-      <header className='border-border border-b py-5 sm:py-6'>
-        <div className='flex items-center justify-between gap-3'>
-          <div className='hidden sm:block'>
-            <h1 className='font-hebrew font-semibold text-2xl tracking-tight'>רשימת אורחים</h1>
-            <p className='mt-1 text-muted-foreground text-sm'>
-              ניהול משקי בית, הזמנות ואישורי הגעה
-            </p>
-          </div>
-          <div className='flex w-full items-center justify-end gap-2 sm:w-auto'>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type='button' variant='outline' className='min-h-11 gap-2 font-hebrew'>
-                  פעולות נוספות
-                  <ChevronDown className='h-4 w-4' aria-hidden='true' />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='end' className='w-52 font-hebrew'>
-                <DropdownMenuItem onSelect={openHouseholdForm} className='min-h-11'>
-                  הוספת אורח יחיד
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={onImportClick} className='min-h-11'>
-                  ייבוא אורחים
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              type='button'
-              onClick={openHouseholdForm}
-              className='min-h-11 gap-2 font-hebrew'
-            >
-              <Plus className='h-4 w-4' aria-hidden='true' />
-              הוספת משק בית
-            </Button>
-            {workspace.capabilities.canDeleteAllGuests ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    className='min-h-11 min-w-11'
-                    aria-label='פעולות ניהול'
-                  >
-                    <MoreVertical className='h-5 w-5' aria-hidden='true' />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align='end' className='w-52 font-hebrew'>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => setShowDeleteAllDialog(true)}
-                    className='min-h-11 text-destructive focus:text-destructive'
-                  >
-                    מחיקת כל האורחים
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-          </div>
-        </div>
-      </header>
+    <section>
       {selectedEventId === 'all' ? (
         <DefaultTableHeader
           households={filteredHouseholds}
           totalGuests={filteredCounts.guests}
           totalTagAlongs={totalTagAlongs}
           numEvents={events.length}
-          answeredGuests={answeredGuests}
         />
       ) : (
         <SelectedEventTableHeader
@@ -803,15 +750,40 @@ export default function GuestsView({
           setPrefillEvent={setPrefillEvent}
         />
       )}
-      <div className='mb-4 flex flex-col gap-3 py-4'>
+      <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
         <GuestSearchFilter
           setFilteredHouseholds={setFilteredHouseholds}
           households={baseHouseholds}
           events={events}
           selectedEventId={selectedEventId}
           initialFilters={filters}
+          resetKey={filterResetKey}
           onFiltersChange={setFilters}
         />
+        <div className='flex shrink-0 gap-3'>
+          {workspace.capabilities.canDeleteAllGuests && (
+            <Button
+              type='button'
+              variant='outline'
+              className='border-destructive text-destructive hover:bg-destructive/10'
+              onClick={() => setShowDeleteAllDialog(true)}
+            >
+              מחיקת כל האורחים
+            </Button>
+          )}
+          <Button type='button' variant='outline' onClick={onImportClick}>
+            ייבוא אורחים
+          </Button>
+          <Button
+            type='button'
+            onClick={() => {
+              setPrefillHousehold(undefined)
+              toggleGuestForm()
+            }}
+          >
+            הוספת אורח
+          </Button>
+        </div>
       </div>
       <div className='space-y-4'>
         <ListToolbar
@@ -823,12 +795,15 @@ export default function GuestsView({
           onSortByPartySize={sortByParty}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          workflowMode={workflowMode}
+          onWorkflowModeChange={setWorkflowMode}
           sortStateLabel={sortStateLabel}
           activeSort={activeSort}
+          onResetView={resetView}
         />
         {sortedHouseholds.length === 0 ? (
           <AsyncState isEmpty emptyText='אין משקי בית עדיין' />
-        ) : viewMode === 'table' ? (
+        ) : workflowMode === 'personAudit' || viewMode === 'table' ? (
           <GuestIndividualTable
             households={sortedHouseholds}
             householdNumberMap={householdNumberMap}
@@ -1043,7 +1018,6 @@ type DefaultTableHeaderProps = {
   numEvents: number
   totalGuests: number
   totalTagAlongs: number
-  answeredGuests: number
 }
 
 const DefaultTableHeader = ({
@@ -1051,12 +1025,11 @@ const DefaultTableHeader = ({
   numEvents,
   totalGuests,
   totalTagAlongs,
-  answeredGuests,
 }: DefaultTableHeaderProps) => {
   return (
-    <div className='border-border border-b py-4'>
-      <div className='grid grid-cols-2 gap-x-5 gap-y-3 text-sm sm:flex sm:flex-nowrap sm:items-center sm:gap-x-5 md:gap-x-7'>
-        <div className='flex items-baseline gap-1'>
+    <div className='py-8'>
+      <div className='flex flex-wrap items-center gap-4 md:gap-6'>
+        <div>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ משקי בית:{' '}
           </span>
@@ -1064,13 +1037,8 @@ const DefaultTableHeader = ({
             {households.length}
           </span>
         </div>
-        <div className='hidden h-4 w-px bg-border sm:block' />
-        <div className='flex items-baseline gap-1'>
-          <span className='font-hebrew text-muted-foreground'>ענו: </span>
-          <span className='font-semibold tabular-nums'>{answeredGuests}</span>
-        </div>
-        <div className='hidden h-4 w-px bg-border sm:block' />
-        <div className='flex items-baseline gap-1'>
+        <div className='hidden h-4 w-px bg-border md:block' />
+        <div>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ אורחים:{' '}
           </span>
@@ -1084,8 +1052,8 @@ const DefaultTableHeader = ({
             )}
           </span>
         </div>
-        <div className='hidden h-4 w-px bg-border sm:block' />
-        <div className='flex items-baseline gap-1'>
+        <div className='hidden h-4 w-px bg-border md:block' />
+        <div>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ אירועים:{' '}
           </span>

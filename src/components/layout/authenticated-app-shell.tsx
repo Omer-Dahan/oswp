@@ -6,17 +6,11 @@ import { EttaChat } from '~/components/etta/EttaChat'
 import SidebarNavFrame from '~/components/nav/sidebar-nav'
 
 type AuthenticatedSidebarContextValue = {
-  ettaPanelOpen: boolean
-  hasEttaPanel: boolean
   openSidebar: () => void
-  toggleEttaPanel: () => void
 }
 
 const AuthenticatedSidebarContext = createContext<AuthenticatedSidebarContextValue>({
-  ettaPanelOpen: false,
-  hasEttaPanel: false,
   openSidebar: () => {},
-  toggleEttaPanel: () => {},
 })
 
 export function useAuthenticatedSidebar(): AuthenticatedSidebarContextValue {
@@ -88,14 +82,7 @@ export default function AuthenticatedAppShell(props: Readonly<AuthenticatedAppSh
   }, [isEttaPanelOpen, toggleEttaPanel])
 
   return (
-    <AuthenticatedSidebarContext.Provider
-      value={{
-        ettaPanelOpen: isEttaPanelOpen,
-        hasEttaPanel: showEttaPanel && Boolean(weddingId),
-        openSidebar: () => setIsOpen(true),
-        toggleEttaPanel,
-      }}
-    >
+    <AuthenticatedSidebarContext.Provider value={{ openSidebar: () => setIsOpen(true) }}>
       <div className='flex h-screen overflow-hidden bg-background'>
         <SidebarNavFrame
           isOpen={isOpen}

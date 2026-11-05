@@ -155,10 +155,9 @@ describe('GuestCard', () => {
   it('uses selected styling when card is active', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} isSelected />)
 
-    expect(screen.getByLabelText(/בחירת משק הבית של Alex Rivera/i).parentElement).toHaveClass(
-      'ring-1',
-      'ring-primary/30'
-    )
+    expect(
+      screen.getByLabelText(/בחירת משק הבית של Alex Rivera/i).firstElementChild
+    ).toHaveClass('ring-1', 'ring-primary/30')
   })
 
   it('should call selection callback with household id', () => {
@@ -307,15 +306,9 @@ describe('GuestCard', () => {
     const brideHousehold: HouseholdWithGuests = { ...mockHousehold, side: 'כלה' }
     render(<GuestCard household={brideHousehold} onSelectHousehold={jest.fn()} />)
 
-    fireEvent.keyDown(screen.getByRole('button', { name: 'פעולות עבור Alex Rivera' }), {
-      key: 'ArrowDown',
-    })
-    fireEvent.click(screen.getByRole('menuitem', { name: 'העתקת הודעת הזמנה' }))
+    fireEvent.click(screen.getByLabelText('העתקת הודעת הזמנה אישית למשק הבית'))
 
-    fireEvent.keyDown(screen.getByRole('button', { name: 'פעולות עבור Alex Rivera' }), {
-      key: 'ArrowDown',
-    })
-    await screen.findByText('ההודעה הועתקה')
+    await screen.findByText('הועתק')
 
     expect(mockGetInviteMessageFetch).toHaveBeenCalledWith({ householdId: 'household-1' })
     expect(writeText).toHaveBeenCalledWith('דוד יעקב, שלום רב.\n\nבברכה - משה ומירב בן הרוש')
@@ -360,16 +353,5 @@ describe('GuestCard', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
 
     expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument()
-  })
-
-  it('lets the guest name wrap on card layouts from the sm breakpoint', () => {
-    render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
-
-    expect(screen.getByText('Alex Rivera')).toHaveClass(
-      'min-w-0',
-      'truncate',
-      'sm:line-clamp-2',
-      'sm:whitespace-normal'
-    )
   })
 })
