@@ -641,7 +641,7 @@ describe('GuestsView', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('כלה (סה״כ 1 משק בית)'))
+    fireEvent.click(screen.getByText('כלה (1)'))
 
     const eventCounts = screen.getByText('4 אורחים הוזמנו:').parentElement
     expect(eventCounts).toHaveTextContent('3אורחים מגיעים')
@@ -683,9 +683,9 @@ describe('GuestsView', () => {
 
     fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Brooke' } })
 
-    expect(screen.getByRole('button', { name: 'נקה סינון' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'איפוס' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'נקה סינון' }))
+    fireEvent.click(screen.getByRole('button', { name: 'איפוס' }))
 
     expect(screen.queryByRole('button', { name: 'נקה סינון' })).not.toBeInTheDocument()
     expect(
@@ -1129,9 +1129,7 @@ describe('GuestsView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
 
-    expect(
-      screen.queryByText('נוסף עצמאית מטופס אישור ההגעה הציבורי')
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('נוסף עצמאית מטופס אישור ההגעה הציבורי')).not.toBeInTheDocument()
   })
 
   it('should preserve dirty draft when save fails', () => {

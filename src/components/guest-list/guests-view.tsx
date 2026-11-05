@@ -749,7 +749,7 @@ export default function GuestsView({
           setPrefillEvent={setPrefillEvent}
         />
       )}
-      <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+      <div className='relative mb-4 flex flex-col gap-3'>
         <GuestSearchFilter
           setFilteredHouseholds={setFilteredHouseholds}
           households={baseHouseholds}
@@ -759,7 +759,7 @@ export default function GuestsView({
           resetKey={filterResetKey}
           onFiltersChange={setFilters}
         />
-        <div className='flex shrink-0 gap-3'>
+        <div className='flex shrink-0 gap-3 md:absolute md:end-0 md:top-0'>
           {workspace.capabilities.canDeleteAllGuests && (
             <Button
               type='button'
@@ -1018,11 +1018,7 @@ type DefaultTableHeaderProps = {
   totalTagAlongs: number
 }
 
-const DefaultTableHeader = ({
-  households,
-  counts,
-  totalTagAlongs,
-}: DefaultTableHeaderProps) => {
+const DefaultTableHeader = ({ households, counts, totalTagAlongs }: DefaultTableHeaderProps) => {
   return (
     <div className='py-8'>
       <div className='flex flex-wrap items-center gap-4 md:gap-6'>
@@ -1053,7 +1049,9 @@ const DefaultTableHeader = ({
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             מגיעים:{' '}
           </span>
-          <span className='font-semibold text-success text-sm md:text-base'>{counts.attending}</span>
+          <span className='font-semibold text-sm text-success md:text-base'>
+            {counts.attending}
+          </span>
         </div>
         <div className='whitespace-nowrap'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>

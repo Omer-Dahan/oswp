@@ -12,11 +12,13 @@ jest.mock('~/components/hooks', () => {
   }
 })
 
+let mockTags: Array<{ id: string; name: string }> = []
+
 jest.mock('~/trpc/react', () => ({
   api: {
     guestTag: {
       getAll: {
-        useQuery: () => ({ data: [] }),
+        useQuery: () => ({ data: mockTags }),
       },
     },
   },
@@ -123,7 +125,7 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    const option = screen.getByText('ללא צד (סה״כ 3 משקי בית)')
+    const option = screen.getByText('ללא צד (3)')
     fireEvent.click(option)
 
     const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
@@ -138,7 +140,7 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('חתן (סה״כ 1 משק בית)'))
+    fireEvent.click(screen.getByText('חתן (1)'))
 
     const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
     expect(listItems.map((li) => li.textContent)).toEqual(['side-groom'])
@@ -148,7 +150,7 @@ describe('GuestSearchFilter — side filter "ללא צד" option', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('ללא צד (סה״כ 3 משקי בית)'))
+    fireEvent.click(screen.getByText('ללא צד (3)'))
 
     fireEvent.click(screen.getByText(/^צד: ללא צד/))
 
@@ -183,7 +185,7 @@ describe('GuestSearchFilter — group filter for self-added households', () => {
     render(<Harness households={selfAddHouseholds} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
-    const option = screen.getByText(`${SELF_ADD_GROUP_NAME} (סה״כ 2 משקי בית)`)
+    const option = screen.getByText(`${SELF_ADD_GROUP_NAME} (2)`)
     fireEvent.click(option)
 
     const listItems = within(screen.getByTestId('filtered-households')).getAllByRole('listitem')
@@ -197,5 +199,115 @@ describe('GuestSearchFilter — group filter for self-added households', () => {
     fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
 
     expect(screen.queryByText(new RegExp(SELF_ADD_GROUP_NAME))).not.toBeInTheDocument()
+  })
+})
+
+describe('GuestSearchFilter — grouped affiliation options', () => {
+  const households = [
+    makeHousehold('groom-friends-1', 'חתן', 'חברים'),
+    makeHousehold('groom-friends-2', 'חתן', 'חברים'),
+    makeHousehold('groom-friends-3', 'חתן', 'חברים'),
+    makeHousehold('groom-family', 'חתן', 'משפחה'),
+    makeHousehold('bride-work-1', 'כלה', 'עבודה'),
+    makeHousehold('bride-work-2', 'כלה', 'עבודה'),
+    makeHousehold('bride-family', 'כלה', 'משפחה'),
+    makeHousehold('no-side-neighbors', null, 'שכנים'),
+  ]
+
+  it('groups by side and sorts each section by household count, then alphabetically', () => {
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+
+    const sections = screen.getAllByRole('region')
+    expect(sections.map((section) => section.getAttribute('aria-label'))).toEqual([
+      'קבוצות צד חתן',
+      'קבוצות צד כלה',
+      'קבוצות צד ללא צד',
+    ])
+    expect(within(sections[0]).getByText('2 קבוצות · 4 משקי בית')).toBeInTheDocument()
+    expect(
+      within(sections[0])
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['חברים (3)', 'משפחה (1)'])
+    expect(
+      within(sections[1])
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['עבודה (2)', 'משפחה (1)'])
+  })
+
+  it('narrows the grouped list with Hebrew search and shows the empty state', () => {
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    const search = screen.getByRole('textbox', { name: 'חיפוש קבוצה' })
+    fireEvent.change(search, { target: { value: 'עבו' } })
+
+    expect(screen.getByText('עבודה (2)')).toBeInTheDocument()
+    expect(screen.queryByText('חברים (3)')).not.toBeInTheDocument()
+
+    fireEvent.change(search, { target: { value: 'לא קיימת' } })
+    expect(screen.getByText('לא נמצאה קבוצה בשם הזה')).toBeInTheDocument()
+  })
+
+  it('keeps the filter controls left anchored, ordered, and non-wrapping from md', () => {
+    mockTags = [{ id: 'family', name: 'משפחה' }]
+    const householdsWithTag = households.map((household, index) => ({
+      ...household,
+      guests:
+        index === 0
+          ? [
+              {
+                ...household.guests[0],
+                guestTags: [
+                  { tagId: 'family' },
+                ] as HouseholdWithGuests['guests'][number]['guestTags'],
+              },
+            ]
+          : household.guests,
+    }))
+    render(<Harness households={householdsWithTag} />)
+
+    const row = screen.getByTestId('affiliation-filter-row')
+    expect(row).toHaveClass('ms-auto', 'justify-end', 'md:flex-nowrap')
+    expect(
+      within(row)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['סטטוס RSVP', 'תגית אורח', 'צד', 'קבוצה', 'ארץ'])
+    mockTags = []
+  })
+})
+
+describe('GuestSearchFilter — tag option search', () => {
+  beforeEach(() => {
+    mockTags = Array.from({ length: 9 }, (_, index) => ({
+      id: `tag-${index + 1}`,
+      name: index === 8 ? 'משפחה קרובה' : `תגית ${index + 1}`,
+    }))
+  })
+
+  afterEach(() => {
+    mockTags = []
+  })
+
+  it('shows household counts and search when more than eight tags are available', () => {
+    const taggedHouseholds = mockTags.map((tag, index) => {
+      const household = makeHousehold(`tagged-${index + 1}`, 'חתן')
+      household.guests[0].guestTags = [
+        { tagId: tag.id },
+      ] as HouseholdWithGuests['guests'][number]['guestTags']
+      return household
+    })
+
+    render(<Harness households={taggedHouseholds} />)
+    fireEvent.click(screen.getByRole('button', { name: 'תגית אורח' }))
+
+    const search = screen.getByRole('textbox', { name: 'חיפוש תגית' })
+    fireEvent.change(search, { target: { value: 'משפחה' } })
+    expect(screen.getByText('משפחה קרובה (1)')).toBeInTheDocument()
+    expect(screen.queryByText('תגית 1 (1)')).not.toBeInTheDocument()
   })
 })

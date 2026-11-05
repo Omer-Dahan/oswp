@@ -95,4 +95,14 @@ describe('ListToolbar', () => {
       'bg-primary'
     )
   })
+
+  it('anchors sort and view controls to the physical left without wrapping from md', () => {
+    render(<ListToolbar totalHouseholds={3} onViewModeChange={jest.fn()} />)
+
+    expect(screen.getByTestId('sort-view-controls')).toHaveClass(
+      'ms-auto',
+      'justify-end',
+      'md:flex-nowrap'
+    )
+  })
 })

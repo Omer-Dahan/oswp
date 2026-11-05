@@ -70,7 +70,10 @@ export function ListToolbar({
         ) : null}
       </div>
 
-      <div className='flex flex-wrap items-center gap-2'>
+      <div
+        data-testid='sort-view-controls'
+        className='ms-auto flex flex-wrap items-center justify-end gap-2 md:flex-nowrap'
+      >
         {onResetView ? (
           <Button
             type='button'

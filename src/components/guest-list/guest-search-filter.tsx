@@ -3,8 +3,8 @@ import { FaMagnifyingGlass } from 'react-icons/fa6'
 import { IoIosArrowDown, IoMdCheckmark } from 'react-icons/io'
 import { sharedStyles } from '~/app/utils/shared-styles'
 import type { Event } from '~/app/utils/shared-types'
-import { useOuterClick } from '~/components/hooks'
 import type { GuestListFilters } from '~/components/guest-list/guest-list-view-state'
+import { useOuterClick } from '~/components/hooks'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { RSVP_STATUS_LABELS, type RsvpStatus } from '~/lib/constants/rsvp'
@@ -17,9 +17,8 @@ type TSelectedRsvpFilter = {
 }
 
 const NO_SIDE_FILTER_KEY = '__no_side__'
-
-const householdsCountLabel = (count: number) =>
-  `סה״כ ${count} ${count === 1 ? 'משק בית' : 'משקי בית'}`
+const GROUP_SIDE_ORDER = ['חתן', 'כלה', 'ללא צד'] as const
+const SEARCHABLE_TAG_THRESHOLD = 8
 
 const countByNormalizedValue = (values: Array<string | null | undefined>) => {
   const counts = new Map<string, { label: string; count: number }>()
@@ -34,6 +33,39 @@ const countByNormalizedValue = (values: Array<string | null | undefined>) => {
   return Array.from(counts.entries())
     .map(([key, { label, count }]) => ({ key, label, count }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
+type CountedOption = ReturnType<typeof countByNormalizedValue>[number]
+
+const affiliationSide = (side: string | null | undefined) => {
+  const normalizedSide = side?.trim()
+  return normalizedSide === 'חתן' || normalizedSide === 'כלה' ? normalizedSide : 'ללא צד'
+}
+
+const groupAffiliationsBySide = (households: HouseholdWithGuests[]) => {
+  const groupsBySide = new Map<string, Map<string, CountedOption>>()
+
+  for (const side of GROUP_SIDE_ORDER) groupsBySide.set(side, new Map())
+
+  for (const household of households) {
+    const label = household.groupName?.trim()
+    if (!label) continue
+
+    const sideGroups = groupsBySide.get(affiliationSide(household.side))
+    if (!sideGroups) continue
+
+    const key = label.toLowerCase()
+    const existing = sideGroups.get(key)
+    if (existing) existing.count += 1
+    else sideGroups.set(key, { key, label, count: 1 })
+  }
+
+  return GROUP_SIDE_ORDER.map((side) => ({
+    side,
+    groups: Array.from(groupsBySide.get(side)?.values() ?? []).sort(
+      (a, b) => b.count - a.count || a.label.localeCompare(b.label, 'he')
+    ),
+  })).filter(({ groups }) => groups.length > 0)
 }
 
 type GuestSearchFilterProps = {
@@ -61,6 +93,7 @@ export default function GuestSearchFilter({
     initialFilters?.rsvp ?? null
   )
   const [showTagDropdown, setShowTagDropdown] = useState(false)
+  const [tagSearch, setTagSearch] = useState('')
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(
     initialFilters?.tagId ?? null
   )
@@ -73,6 +106,7 @@ export default function GuestSearchFilter({
     initialFilters?.side ?? null
   )
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
+  const [groupSearch, setGroupSearch] = useState('')
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string | null>(
     initialFilters?.group ?? null
   )
@@ -102,8 +136,12 @@ export default function GuestSearchFilter({
     return sides
   }, [households])
 
+  const groupedAffiliations = useMemo(() => groupAffiliationsBySide(households), [households])
   const availableGroups = useMemo(
-    () => countByNormalizedValue(households.map((h) => h.groupName)),
+    () =>
+      countByNormalizedValue(households.map((h) => h.groupName)).sort(
+        (a, b) => b.count - a.count || a.label.localeCompare(b.label, 'he')
+      ),
     [households]
   )
 
@@ -124,9 +162,35 @@ export default function GuestSearchFilter({
   }, [households])
 
   const availableTags = useMemo(
-    () => allTags.filter((tag) => (availableTagCounts.get(tag.id) ?? 0) > 0),
+    () =>
+      allTags
+        .filter((tag) => (availableTagCounts.get(tag.id) ?? 0) > 0)
+        .sort(
+          (a, b) =>
+            (availableTagCounts.get(b.id) ?? 0) - (availableTagCounts.get(a.id) ?? 0) ||
+            a.name.localeCompare(b.name, 'he')
+        ),
     [allTags, availableTagCounts]
   )
+
+  const filteredGroupSections = useMemo(() => {
+    const normalizedSearch = groupSearch.trim().toLowerCase()
+    if (!normalizedSearch) return groupedAffiliations
+    return groupedAffiliations
+      .map((section) => ({
+        ...section,
+        groups: section.groups.filter((group) =>
+          group.label.toLowerCase().includes(normalizedSearch)
+        ),
+      }))
+      .filter(({ groups }) => groups.length > 0)
+  }, [groupSearch, groupedAffiliations])
+
+  const filteredTags = useMemo(() => {
+    const normalizedSearch = tagSearch.trim().toLowerCase()
+    if (!normalizedSearch) return availableTags
+    return availableTags.filter((tag) => tag.name.toLowerCase().includes(normalizedSearch))
+  }, [availableTags, tagSearch])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: restore only when the event, data source, or explicit reset changes
   useEffect(() => {
@@ -291,6 +355,32 @@ export default function GuestSearchFilter({
     )
   }
 
+  const clearTagFilter = () => {
+    setShowTagDropdown(false)
+    setSelectedTagFilter(null)
+    filterHouseholds(
+      searchInput,
+      selectedRsvpFilter,
+      null,
+      selectedCountryFilter,
+      selectedSideFilter,
+      selectedGroupFilter
+    )
+  }
+
+  const clearGroupFilter = () => {
+    setShowGroupDropdown(false)
+    setSelectedGroupFilter(null)
+    filterHouseholds(
+      searchInput,
+      selectedRsvpFilter,
+      selectedTagFilter,
+      selectedCountryFilter,
+      selectedSideFilter,
+      null
+    )
+  }
+
   const hasActiveFilters =
     !!selectedRsvpFilter ||
     !!selectedTagFilter ||
@@ -337,8 +427,8 @@ export default function GuestSearchFilter({
       : events.find((event) => event.id === selectedRsvpFilter.eventId)?.name
 
   return (
-    <div className='flex flex-col gap-2'>
-      <div className='flex flex-wrap items-center gap-3'>
+    <div className='flex w-full flex-col gap-3'>
+      <div className='flex justify-start'>
         <div className='relative flex items-center'>
           <Input
             id='search-guests-input'
@@ -351,13 +441,18 @@ export default function GuestSearchFilter({
             <FaMagnifyingGlass className='text-primary-foreground' size={18} />
           </div>
         </div>
+      </div>
 
+      <div
+        data-testid='affiliation-filter-row'
+        className='ms-auto flex max-w-full flex-wrap items-center justify-end gap-2 md:flex-nowrap'
+      >
         <div ref={invitationFilterRef}>
           <div className='relative'>
             <Button
               variant='outline'
               onClick={() => setShowInvitationDropdown((prev) => !prev)}
-              className='w-48 justify-between font-sans text-sm normal-case tracking-normal'
+              className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
             >
               {selectedRsvpFilter === null ? (
                 <span>סטטוס RSVP</span>
@@ -377,7 +472,7 @@ export default function GuestSearchFilter({
               <IoIosArrowDown size={16} />
             </Button>
             {showInvitationDropdown && (
-              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md'>
+              <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md'>
                 {eventsToMap?.map(
                   (event) =>
                     event && (
@@ -414,8 +509,11 @@ export default function GuestSearchFilter({
             <div className='relative'>
               <Button
                 variant='outline'
-                onClick={() => setShowTagDropdown((prev) => !prev)}
-                className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
+                onClick={() => {
+                  setShowTagDropdown((prev) => !prev)
+                  setTagSearch('')
+                }}
+                className='w-36 justify-between font-sans text-sm normal-case tracking-normal'
               >
                 {selectedTagFilter === null ? (
                   <span>תגית אורח</span>
@@ -425,22 +523,51 @@ export default function GuestSearchFilter({
                 <IoIosArrowDown size={16} />
               </Button>
               {showTagDropdown && (
-                <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-                  {availableTags.map((tag) => (
+                <div className='absolute start-0 top-full z-10 mt-1 w-64 rounded-md border bg-popover shadow-md'>
+                  {availableTags.length > SEARCHABLE_TAG_THRESHOLD ? (
+                    <div className='border-b p-2'>
+                      <Input
+                        aria-label='חיפוש תגית'
+                        placeholder='חיפוש תגית'
+                        value={tagSearch}
+                        onChange={(event) => setTagSearch(event.target.value)}
+                        className='h-9 font-sans text-sm'
+                        autoFocus
+                      />
+                    </div>
+                  ) : null}
+                  <div className='max-h-64 overflow-y-auto p-1'>
                     <button
-                      key={tag.id}
                       type='button'
-                      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsByTag(tag.id)}
+                      className='flex w-full items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
+                      onClick={clearTagFilter}
                     >
-                      <span>
-                        {tag.name} ({householdsCountLabel(availableTagCounts.get(tag.id) ?? 0)})
-                      </span>
-                      {selectedTagFilter === tag.id && (
+                      <span>הכל</span>
+                      {selectedTagFilter === null ? (
                         <IoMdCheckmark size={16} className='text-primary' />
-                      )}
+                      ) : null}
                     </button>
-                  ))}
+                    {filteredTags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type='button'
+                        className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
+                        onClick={() => filterHouseholdsByTag(tag.id)}
+                      >
+                        <span>
+                          {tag.name} ({availableTagCounts.get(tag.id) ?? 0})
+                        </span>
+                        {selectedTagFilter === tag.id && (
+                          <IoMdCheckmark size={16} className='text-primary' />
+                        )}
+                      </button>
+                    ))}
+                    {filteredTags.length === 0 ? (
+                      <p className='px-2 py-5 text-center text-muted-foreground text-sm'>
+                        לא נמצאה תגית בשם הזה
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </div>
@@ -453,7 +580,7 @@ export default function GuestSearchFilter({
               <Button
                 variant='outline'
                 onClick={() => setShowSideDropdown((prev) => !prev)}
-                className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
+                className='w-32 justify-between font-sans text-sm normal-case tracking-normal'
               >
                 {selectedSideFilter === null ? (
                   <span>צד</span>
@@ -463,7 +590,7 @@ export default function GuestSearchFilter({
                 <IoIosArrowDown size={16} />
               </Button>
               {showSideDropdown && (
-                <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
+                <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
                   {availableSides.map((side) => (
                     <button
                       key={side.key}
@@ -472,7 +599,7 @@ export default function GuestSearchFilter({
                       onClick={() => filterHouseholdsBySide(side.key)}
                     >
                       <span>
-                        {side.label} ({householdsCountLabel(side.count)})
+                        {side.label} ({side.count})
                       </span>
                       {selectedSideFilter === side.key && (
                         <IoMdCheckmark size={16} className='text-primary' />
@@ -490,8 +617,11 @@ export default function GuestSearchFilter({
             <div className='relative'>
               <Button
                 variant='outline'
-                onClick={() => setShowGroupDropdown((prev) => !prev)}
-                className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
+                onClick={() => {
+                  setShowGroupDropdown((prev) => !prev)
+                  setGroupSearch('')
+                }}
+                className='w-36 justify-between font-sans text-sm normal-case tracking-normal'
               >
                 {selectedGroupFilter === null ? (
                   <span>קבוצה</span>
@@ -501,22 +631,66 @@ export default function GuestSearchFilter({
                 <IoIosArrowDown size={16} />
               </Button>
               {showGroupDropdown && (
-                <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-                  {availableGroups.map((group) => (
+                <div className='absolute start-0 top-full z-10 mt-1 w-80 rounded-md border bg-popover shadow-md'>
+                  <div className='border-b p-2'>
+                    <Input
+                      aria-label='חיפוש קבוצה'
+                      placeholder='חיפוש קבוצה'
+                      value={groupSearch}
+                      onChange={(event) => setGroupSearch(event.target.value)}
+                      className='h-9 font-sans text-sm'
+                      autoFocus
+                    />
+                  </div>
+                  <div className='max-h-[min(28rem,calc(100vh-12rem))] overflow-y-auto p-1'>
                     <button
-                      key={group.key}
                       type='button'
                       className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsByGroup(group.key)}
+                      onClick={clearGroupFilter}
                     >
-                      <span>
-                        {group.label} ({householdsCountLabel(group.count)})
-                      </span>
-                      {selectedGroupFilter === group.key && (
+                      <span>הכל</span>
+                      {selectedGroupFilter === null ? (
                         <IoMdCheckmark size={16} className='text-primary' />
-                      )}
+                      ) : null}
                     </button>
-                  ))}
+                    {filteredGroupSections.map(({ side, groups }) => {
+                      const householdCount = groups.reduce((sum, group) => sum + group.count, 0)
+                      return (
+                        <section
+                          key={side}
+                          aria-label={`קבוצות צד ${side}`}
+                          className='border-t py-1'
+                        >
+                          <div className='flex items-center justify-between px-2 py-1.5 text-muted-foreground text-xs'>
+                            <span className='font-medium text-foreground'>{side}</span>
+                            <span>
+                              {groups.length} קבוצות · {householdCount} משקי בית
+                            </span>
+                          </div>
+                          {groups.map((group) => (
+                            <button
+                              key={`${side}-${group.key}`}
+                              type='button'
+                              className='flex w-full cursor-pointer items-center justify-between rounded-sm px-2 py-2 text-sm transition-colors hover:bg-accent'
+                              onClick={() => filterHouseholdsByGroup(group.key)}
+                            >
+                              <span>
+                                {group.label} ({group.count})
+                              </span>
+                              {selectedGroupFilter === group.key ? (
+                                <IoMdCheckmark size={16} className='text-primary' />
+                              ) : null}
+                            </button>
+                          ))}
+                        </section>
+                      )
+                    })}
+                    {filteredGroupSections.length === 0 ? (
+                      <p className='px-2 py-8 text-center text-muted-foreground text-sm'>
+                        לא נמצאה קבוצה בשם הזה
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </div>
@@ -528,7 +702,7 @@ export default function GuestSearchFilter({
             <Button
               variant='outline'
               onClick={() => setShowCountryDropdown((prev) => !prev)}
-              className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
+              className='w-32 justify-between font-sans text-sm normal-case tracking-normal'
             >
               {selectedCountryFilter === null ? (
                 <span>ארץ</span>
@@ -538,7 +712,7 @@ export default function GuestSearchFilter({
               <IoIosArrowDown size={16} />
             </Button>
             {showCountryDropdown && (
-              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
+              <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
                 {availableCountries.length === 0 ? (
                   <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו מדינות</p>
                 ) : (
@@ -561,129 +735,126 @@ export default function GuestSearchFilter({
           </div>
         </div>
 
-        {hasActiveFilters && (
-          <Button
-            variant='ghost'
-            size='sm'
-            className='font-sans text-primary text-sm normal-case tracking-normal'
-            onClick={clearAllFilters}
-          >
-            נקה סינון
-          </Button>
-        )}
+        {hasActiveFilters ? (
+          <>
+            {searchInput ? (
+              <button
+                type='button'
+                className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => filterHouseholdsBySearch('')}
+              >
+                חיפוש: {searchInput} ×
+              </button>
+            ) : null}
+            {selectedRsvpFilter ? (
+              <button
+                type='button'
+                className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedRsvpFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    null,
+                    selectedTagFilter,
+                    selectedCountryFilter,
+                    selectedSideFilter,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                סטטוס RSVP:{' '}
+                {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
+                  selectedRsvpFilter.rsvpValue}
+                {selectedEventName ? ` (${selectedEventName})` : ''} ×
+              </button>
+            ) : null}
+            {selectedTagFilter ? (
+              <button
+                type='button'
+                className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedTagFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    null,
+                    selectedCountryFilter,
+                    selectedSideFilter,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                תגית: {selectedTagName ?? selectedTagFilter} ×
+              </button>
+            ) : null}
+            {selectedSideFilter ? (
+              <button
+                type='button'
+                className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedSideFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    selectedTagFilter,
+                    selectedCountryFilter,
+                    null,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                צד: {selectedSideLabel ?? selectedSideFilter} ×
+              </button>
+            ) : null}
+            {selectedGroupFilter ? (
+              <button
+                type='button'
+                className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedGroupFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    selectedTagFilter,
+                    selectedCountryFilter,
+                    selectedSideFilter,
+                    null
+                  )
+                }}
+              >
+                קבוצה: {selectedGroupLabel ?? selectedGroupFilter} ×
+              </button>
+            ) : null}
+            {selectedCountryFilter ? (
+              <button
+                type='button'
+                className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedCountryFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    selectedTagFilter,
+                    null,
+                    selectedSideFilter,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                ארץ: {selectedCountryFilter} ×
+              </button>
+            ) : null}
+            <Button
+              variant='ghost'
+              size='sm'
+              className='shrink-0 font-sans text-primary text-sm normal-case tracking-normal'
+              onClick={clearAllFilters}
+            >
+              איפוס
+            </Button>
+          </>
+        ) : null}
       </div>
-
-      {hasActiveFilters ? (
-        <div className='flex flex-wrap items-center gap-2'>
-          {searchInput ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => filterHouseholdsBySearch('')}
-            >
-              חיפוש: {searchInput} ×
-            </button>
-          ) : null}
-          {selectedRsvpFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedRsvpFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  null,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              סטטוס RSVP:{' '}
-              {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
-                selectedRsvpFilter.rsvpValue}
-              {selectedEventName ? ` (${selectedEventName})` : ''} ×
-            </button>
-          ) : null}
-          {selectedTagFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedTagFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  null,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              תגית: {selectedTagName ?? selectedTagFilter} ×
-            </button>
-          ) : null}
-          {selectedSideFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedSideFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  null,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              צד: {selectedSideLabel ?? selectedSideFilter} ×
-            </button>
-          ) : null}
-          {selectedGroupFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedGroupFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  null
-                )
-              }}
-            >
-              קבוצה: {selectedGroupLabel ?? selectedGroupFilter} ×
-            </button>
-          ) : null}
-          {selectedCountryFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedCountryFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  null,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              ארץ: {selectedCountryFilter} ×
-            </button>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   )
 }
