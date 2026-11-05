@@ -739,9 +739,8 @@ export default function GuestsView({
       {selectedEventId === 'all' ? (
         <DefaultTableHeader
           households={filteredHouseholds}
-          totalGuests={filteredCounts.guests}
+          counts={filteredCounts}
           totalTagAlongs={totalTagAlongs}
-          numEvents={events.length}
         />
       ) : (
         <SelectedEventTableHeader
@@ -1015,21 +1014,19 @@ export default function GuestsView({
 
 type DefaultTableHeaderProps = {
   households: HouseholdWithGuests[]
-  numEvents: number
-  totalGuests: number
+  counts: ReturnType<typeof deriveGuestListCounts>
   totalTagAlongs: number
 }
 
 const DefaultTableHeader = ({
   households,
-  numEvents,
-  totalGuests,
+  counts,
   totalTagAlongs,
 }: DefaultTableHeaderProps) => {
   return (
     <div className='py-8'>
       <div className='flex flex-wrap items-center gap-4 md:gap-6'>
-        <div>
+        <div className='whitespace-nowrap'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ משקי בית:{' '}
           </span>
@@ -1038,12 +1035,12 @@ const DefaultTableHeader = ({
           </span>
         </div>
         <div className='hidden h-4 w-px bg-border md:block' />
-        <div>
+        <div className='whitespace-nowrap'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             סה״כ אורחים:{' '}
           </span>
           <span className='font-semibold text-foreground text-sm md:text-base'>
-            {totalGuests}
+            {counts.guests}
             {totalTagAlongs > 0 && (
               <span className='font-normal text-foreground/55'>
                 {' '}
@@ -1052,12 +1049,27 @@ const DefaultTableHeader = ({
             )}
           </span>
         </div>
-        <div className='hidden h-4 w-px bg-border md:block' />
-        <div>
+        <div className='whitespace-nowrap'>
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            סה״כ אירועים:{' '}
+            מגיעים:{' '}
           </span>
-          <span className='font-semibold text-foreground text-sm md:text-base'>{numEvents}</span>
+          <span className='font-semibold text-success text-sm md:text-base'>{counts.attending}</span>
+        </div>
+        <div className='whitespace-nowrap'>
+          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
+            לא מגיעים:{' '}
+          </span>
+          <span className='font-semibold text-destructive text-sm md:text-base'>
+            {counts.declined}
+          </span>
+        </div>
+        <div className='whitespace-nowrap'>
+          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
+            טרם השיבו:{' '}
+          </span>
+          <span className='font-semibold text-muted-foreground text-sm md:text-base'>
+            {counts.noResponse}
+          </span>
         </div>
       </div>
     </div>

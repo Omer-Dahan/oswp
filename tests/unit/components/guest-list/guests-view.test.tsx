@@ -497,6 +497,24 @@ describe('GuestsView', () => {
     expect(localStorage.getItem('oswp:guest-list-view:wedding-1:v1')).toBeNull()
   })
 
+  it('shows response counts in the summary strip instead of the event total', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('מגיעים:').parentElement).toHaveTextContent('מגיעים: 1')
+    expect(screen.getByText('לא מגיעים:').parentElement).toHaveTextContent('לא מגיעים: 1')
+    expect(screen.getByText('טרם השיבו:').parentElement).toHaveTextContent('טרם השיבו: 1')
+    expect(screen.queryByText('סה״כ אירועים:')).not.toBeInTheDocument()
+  })
+
   it('should save canonical household guest party when members modal is saved from a filtered list', async () => {
     render(
       <GuestsView
