@@ -54,13 +54,19 @@ const resolveHouseholdWeddingEventId = (
 }
 
 /** Compact "1 לפי דיווח האורח · 2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
-const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests, namedAttending: number): string | null => {
+const getRsvpPartyDetailsLabel = (
+  household: HouseholdWithGuests,
+  namedAttending: number,
+  weddingAnswered: boolean
+): string | null => {
   const parts: string[] = []
 
-  // Only surfaced when it adds information beyond the "X מגיעים" badge above
-  // (e.g. unnamed extra guests) - otherwise the same headcount printed twice
-  // reads as a mismatch rather than a confirmation.
-  if (household.attendingCount != null && household.attendingCount !== namedAttending) {
+  // Only surfaced when the reception was actually answered and it adds
+  // information beyond the "X מגיעים" badge above (e.g. unnamed extra
+  // guests) - otherwise either a household that hasn't answered the
+  // reception, or the same headcount printed twice, reads as a mismatch
+  // rather than a confirmation.
+  if (weddingAnswered && household.attendingCount != null && household.attendingCount !== namedAttending) {
     parts.push(`${household.attendingCount} לפי דיווח האורח`)
   }
   if (household.childrenCount != null && household.childrenCount > 0) {
@@ -128,7 +134,16 @@ function GuestCardComponent({
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
   const totalInvited = rsvpSummary.attending + rsvpSummary.invited + rsvpSummary.declined
-  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household, rsvpSummary.attending)
+  const weddingAnswered = rsvpSummary.attending > 0 || rsvpSummary.declined > 0
+
+  // A household that answered only the chuppah gets its own arrival state
+  // instead of reading as entirely unanswered (owner decision, 05.11.2026).
+  const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
+  const chuppahSummary = getHouseholdWeddingRsvpCounts(household.guests, chuppahEvent?.id ?? null)
+  const isChuppahOnlyArrival =
+    !weddingAnswered && weddingEvent !== null && chuppahEvent !== null && chuppahSummary.attending > 0
+
+  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household, rsvpSummary.attending, weddingAnswered)
   const initials = getInitials(primaryGuestName)
   const handleSelect = useCallback(() => {
     onSelectHousehold(household)
@@ -175,9 +190,9 @@ function GuestCardComponent({
           </div>
 
           <div className='pt-0.5 text-left leading-[1.05]'>
-            {rsvpSummary.attending > 0 ? (
+            {weddingAnswered && rsvpSummary.attending > 0 ? (
               <>
-                <div className='text-[26px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
+                <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
                   {rsvpSummary.attending}
                   <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
                     {rsvpSummary.attending === 1 ? 'מגיע' : 'מגיעים'}
@@ -187,7 +202,19 @@ function GuestCardComponent({
                   מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
                 </div>
               </>
-            ) : rsvpSummary.declined > 0 ? (
+            ) : isChuppahOnlyArrival ? (
+              <>
+                <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
+                  {chuppahSummary.attending}
+                  <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
+                    {chuppahSummary.attending === 1 ? 'מגיע לחופה' : 'מגיעים לחופה'}
+                  </small>
+                </div>
+                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
+                  {weddingEvent?.name} טרם השיבה
+                </div>
+              </>
+            ) : weddingAnswered ? (
               <>
                 <div className='pt-1 text-[19px] font-semibold text-[#a4553f]'>לא מגיעים</div>
                 <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
@@ -206,11 +233,13 @@ function GuestCardComponent({
             )}
           </div>
 
-          <PartialEventAnswerLine
-            guests={household.guests}
-            events={events}
-            className='col-span-2 text-[12.5px] text-[#a4553f]'
-          />
+          {!isChuppahOnlyArrival && (
+            <PartialEventAnswerLine
+              guests={household.guests}
+              events={events}
+              className='col-span-2 text-[12.5px] text-[#a4553f]'
+            />
+          )}
 
           <div className='col-span-2 flex justify-end text-xs'>
             <span

@@ -232,7 +232,7 @@ describe('GuestCard', () => {
     expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
   })
 
-  it('shows the mixed-event line when the household answered only the chuppah', () => {
+  it('shows a dedicated chuppah-only state when the household answered only the chuppah', () => {
     const weddingEvent = { id: 'event-1', name: 'החתונה', isPrimary: true, collectRsvp: true }
     const chuppahEvent = { id: 'event-2', name: 'החופה', collectRsvp: true }
     const chuppahOnlyHousehold: HouseholdWithGuests = {
@@ -255,10 +255,15 @@ describe('GuestCard', () => {
       />
     )
 
-    expect(screen.getByText('מגיע לחופה · החתונה טרם השיבה')).toBeInTheDocument()
-    // The household has no invitation to the wedding event itself, so the
-    // arrival state reads "not yet answered" even though the chuppah is settled.
-    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    // The chuppah count and label drive the main state...
+    expect(screen.getByText('מגיע לחופה').closest('div')).toHaveTextContent('1')
+    expect(screen.getByText('החתונה טרם השיבה')).toBeInTheDocument()
+    // ...so the household must never read as entirely unanswered, nor get
+    // the separate mixed-event line (the state above already says it), nor
+    // a "לפי דיווח האורח" figure for a reception nobody answered.
+    expect(screen.queryByText('טרם השיבו')).not.toBeInTheDocument()
+    expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
+    expect(screen.queryByText('מגיע לחופה · החתונה טרם השיבה')).not.toBeInTheDocument()
   })
 
   it('shows no mixed-event line when both events are answered the same way', () => {
@@ -333,6 +338,12 @@ describe('GuestCard', () => {
     expect(screen.getByText('1 הוזמן')).toBeInTheDocument()
     expect(screen.queryByText(/0 מגיעים/)).not.toBeInTheDocument()
     expect(screen.queryByText(/מגיעים/)).not.toBeInTheDocument()
+  })
+
+  it('renders the arrival number at 22px', () => {
+    render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('מגיע').closest('div')).toHaveClass('text-[22px]')
   })
 
   it('never appends a "+N" suffix to the household name', () => {
