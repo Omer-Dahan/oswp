@@ -55,8 +55,12 @@ const baseHousehold: HouseholdWithGuests = {
   ],
 }
 
+// The card's arrival count is driven by per-guest wedding RSVP tallies, not by
+// the household's imported `invitedCount`/`attendingCount` fields (those still
+// feed the row view's InvitedAttendingLine) - so these cases exercise the
+// arrival-first states via guest invitations instead.
 describe('GuestCard party count', () => {
-  it('shows nothing under the name when imported and confirmed counts are unknown', () => {
+  it('shows only the arrival state when there is no RSVP data to report an invited count from', () => {
     render(
       <GuestCard
         household={{ ...baseHousehold, invitedCount: null }}
@@ -65,29 +69,90 @@ describe('GuestCard party count', () => {
     )
 
     expect(screen.queryByText(/מוזמן/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/מגיע/)).not.toBeInTheDocument()
+    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    expect(screen.queryByText(/הוזמנו/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
   })
 
-  it('renders the imported invitedCount when it is a positive number', () => {
+  it('shows the invited total once guests are invited but have not answered', () => {
+    const guestsInvited = [1, 2].map((guestId) => ({
+      ...baseHousehold.guests[0]!,
+      id: guestId,
+      invitations: [
+        {
+          id: `inv-${guestId}`,
+          weddingId: 'wedding-1',
+          guestId,
+          eventId: 'event-1',
+          rsvp: 'Invited',
+          dietaryRestrictions: null,
+          submittedBy: null,
+          submittedAt: null,
+          invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+        },
+      ],
+    }))
+
     render(
       <GuestCard
-        household={{ ...baseHousehold, invitedCount: 2 }}
+        household={{ ...baseHousehold, guests: guestsInvited }}
         onSelectHousehold={jest.fn()}
       />
     )
 
-    expect(screen.getByText('מוזמן 2')).toBeInTheDocument()
+    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    expect(screen.getByText(/2 הוזמנו/)).toBeInTheDocument()
   })
 
-  it('shows the confirmed count alongside the invited count with a mismatch marker', () => {
-    render(
-      <GuestCard
-        household={{ ...baseHousehold, invitedCount: 1, attendingCount: 4 }}
-        onSelectHousehold={jest.fn()}
-      />
-    )
+  it('shows the arrival count alongside the invited total when some guests have answered', () => {
+    const household: HouseholdWithGuests = {
+      ...baseHousehold,
+      guests: [
+        {
+          ...baseHousehold.guests[0]!,
+          invitations: [
+            {
+              id: 'inv-1',
+              weddingId: 'wedding-1',
+              guestId: 1,
+              eventId: 'event-1',
+              rsvp: 'Attending',
+              dietaryRestrictions: null,
+              submittedBy: null,
+              submittedAt: null,
+              invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ],
+        },
+        {
+          ...baseHousehold.guests[0]!,
+          id: 2,
+          invitations: [
+            {
+              id: 'inv-2',
+              weddingId: 'wedding-1',
+              guestId: 2,
+              eventId: 'event-1',
+              rsvp: 'Invited',
+              dietaryRestrictions: null,
+              submittedBy: null,
+              submittedAt: null,
+              invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ],
+        },
+      ],
+    }
 
-    expect(screen.getByText('מוזמן 1')).toBeInTheDocument()
-    expect(screen.getByTitle('אישר 4 מתוך 1 שהוזמן')).toHaveTextContent('מגיע 4')
+    render(<GuestCard household={household} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
+    expect(screen.getByText(/מתוך 2 שהוזמנו/)).toBeInTheDocument()
   })
 })

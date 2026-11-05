@@ -1,7 +1,7 @@
 import '~/styles/globals.css'
 
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, DM_Mono, Instrument_Serif } from 'next/font/google'
+import { Cormorant_Garamond, DM_Mono, Heebo, Instrument_Serif } from 'next/font/google'
 import { Toaster as SonnerToaster } from 'sonner'
 
 import { Providers } from '~/app/providers'
@@ -29,6 +29,13 @@ const instrumentSerif = Instrument_Serif({
   weight: ['400'],
   style: ['normal', 'italic'],
   variable: '--font-instrument',
+  display: 'swap',
+})
+
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-heebo',
   display: 'swap',
 })
 
@@ -88,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang='he'
       dir='rtl'
       suppressHydrationWarning
-      className={`${cormorantGaramond.variable} ${dmMono.variable} ${instrumentSerif.variable} antialiased`}
+      className={`${cormorantGaramond.variable} ${dmMono.variable} ${instrumentSerif.variable} ${heebo.variable} antialiased`}
     >
       <body className='bg-background text-foreground antialiased'>
         <Providers>

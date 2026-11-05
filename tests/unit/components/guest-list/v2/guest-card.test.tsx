@@ -144,10 +144,12 @@ describe('GuestCard', () => {
   it('should render polished identity, location, and summary details', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
 
-    expect(screen.getByText('Alex Rivera +1')).toBeInTheDocument()
+    // No "+1" suffix on the name - the household size is already implied by the arrival count.
+    expect(screen.getByText('Alex Rivera')).toBeInTheDocument()
     expect(screen.getAllByText('AR').length).toBeGreaterThan(0)
-    expect(screen.getByText('מגיעים')).toBeInTheDocument()
-    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    // Alex is Attending, Jamie is still Invited: one arriving out of two invited.
+    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
+    expect(screen.getByText(/מתוך 2 שהוזמנו/)).toBeInTheDocument()
   })
 
   it('uses selected styling when card is active', () => {
@@ -172,7 +174,7 @@ describe('GuestCard', () => {
     render(<GuestCard household={mockHouseholdWithTagAlong} onSelectHousehold={jest.fn()} />)
 
     // Both regular guest and tag-along are "Attending"
-    expect(screen.getByText('2 מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('מגיעים').closest('div')).toHaveTextContent('2')
   })
 
   it('should not count tag-alongs without invitations in RSVP summary', () => {
@@ -181,7 +183,7 @@ describe('GuestCard', () => {
     )
 
     // Only the regular guest has invitations
-    expect(screen.getByText('מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
   })
 
   it('should not double-count a guest attending both the wedding and the chuppah', () => {
@@ -223,7 +225,7 @@ describe('GuestCard', () => {
 
     // Only one guest RSVPed Attending to the wedding; the chuppah invitation
     // must not add a second count.
-    expect(screen.getByText('מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
     expect(screen.queryByText('2 מגיעים')).not.toBeInTheDocument()
     // attendingCount (1) matches the named wedding count (1), so it must not
     // be printed a second time as a confusing extra figure.
@@ -254,7 +256,9 @@ describe('GuestCard', () => {
     )
 
     expect(screen.getByText('מגיע לחופה · החתונה טרם השיבה')).toBeInTheDocument()
-    expect(screen.queryByText('טרם השיבו')).not.toBeInTheDocument()
+    // The household has no invitation to the wedding event itself, so the
+    // arrival state reads "not yet answered" even though the chuppah is settled.
+    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
   })
 
   it('shows no mixed-event line when both events are answered the same way', () => {
@@ -300,5 +304,40 @@ describe('GuestCard', () => {
 
     expect(mockGetInviteMessageFetch).toHaveBeenCalledWith({ householdId: 'household-1' })
     expect(writeText).toHaveBeenCalledWith('דוד יעקב, שלום רב.\n\nבברכה - משה ומירב בן הרוש')
+  })
+
+  it('shows "לא מגיעים" instead of a zero count when every guest declined', () => {
+    const declinedHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      guests: [
+        { ...mockGuest0, invitations: [{ ...mockGuest0.invitations[0]!, rsvp: 'Declined' }] },
+      ],
+    }
+
+    render(<GuestCard household={declinedHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('לא מגיעים')).toBeInTheDocument()
+    expect(screen.getByText('מתוך 1 שהוזמן')).toBeInTheDocument()
+    expect(screen.queryByText(/0 מגיעים/)).not.toBeInTheDocument()
+  })
+
+  it('never renders "0 מגיעים", even when nobody has answered', () => {
+    const unansweredHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      guests: [mockGuest1], // Still "Invited", nobody attending yet
+    }
+
+    render(<GuestCard household={unansweredHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    expect(screen.getByText('1 הוזמן')).toBeInTheDocument()
+    expect(screen.queryByText(/0 מגיעים/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/מגיעים/)).not.toBeInTheDocument()
+  })
+
+  it('never appends a "+N" suffix to the household name', () => {
+    render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument()
   })
 })

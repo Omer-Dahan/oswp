@@ -89,6 +89,7 @@ const config = {
         serif: ['var(--font-ui-serif)'],
         mono: ['var(--font-ui-mono)'],
         display: ['var(--font-display)', 'Instrument Serif', 'serif'],
+        hebrew: ['var(--font-hebrew-ui)'],
       },
       colors: themeColorTokens,
       borderRadius: {

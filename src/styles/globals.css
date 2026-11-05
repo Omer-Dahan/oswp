@@ -78,6 +78,11 @@
 
     --font-display: var(--font-instrument, "Instrument Serif", serif);
 
+    /* Hebrew UI typography (guest-list card/row typography) - see DESIGN brief
+       04.11.2026. Falls back to the system UI stack when the Heebo variable
+       isn't present (e.g. in isolated component tests). */
+    --font-hebrew-ui: var(--font-heebo), var(--font-ui-sans);
+
     --shadow-color: hsl(0 0% 0%);
 
     --shadow-opacity: 0.09;

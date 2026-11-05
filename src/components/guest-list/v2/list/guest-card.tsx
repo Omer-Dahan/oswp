@@ -1,6 +1,5 @@
 import { memo, useCallback, useState } from 'react'
 
-import { InvitedAttendingLine } from '~/components/guest-list/v2/list/invited-attending-line'
 import { PartialEventAnswerLine } from '~/components/guest-list/v2/list/partial-event-answer-line'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
@@ -31,10 +30,6 @@ const getInitials = (name: string): string => {
 
 const getPrimaryGuest = (household: HouseholdWithGuests) =>
   household.guests.find((guest) => guest.isPrimaryContact) ?? household.guests[0]
-
-const getPrimaryGuestPhone = (household: HouseholdWithGuests): string | null => {
-  return getPrimaryGuest(household)?.phone ?? null
-}
 
 /**
  * The wedding event's id, used to scope the RSVP summary to the wedding -
@@ -75,6 +70,14 @@ const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests, namedAttending
     parts.push('תזונה')
   }
 
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+/** "צד כלה · קבוצה חברים" meta line under the name - only the parts that exist. */
+const getHouseholdMetaLine = (household: HouseholdWithGuests): string | null => {
+  const parts: string[] = []
+  if (household.side) parts.push(`צד ${household.side}`)
+  if (household.groupName) parts.push(`קבוצה ${household.groupName}`)
   return parts.length > 0 ? parts.join(' · ') : null
 }
 
@@ -120,15 +123,13 @@ function GuestCardComponent({
   events = [],
 }: Readonly<GuestCardProps>) {
   const primaryGuestName = getPrimaryGuestName(household)
-  const extraGuestsCount = Math.max(household.guests.length - 1, 0)
-  const summaryName =
-    extraGuestsCount > 0 ? `${primaryGuestName} +${extraGuestsCount}` : primaryGuestName
+  const metaLine = getHouseholdMetaLine(household)
 
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
+  const totalInvited = rsvpSummary.attending + rsvpSummary.invited + rsvpSummary.declined
   const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household, rsvpSummary.attending)
   const initials = getInitials(primaryGuestName)
-  const phone = getPrimaryGuestPhone(household)
   const handleSelect = useCallback(() => {
     onSelectHousehold(household)
   }, [household, onSelectHousehold])
@@ -154,75 +155,64 @@ function GuestCardComponent({
       onClick={handleSelect}
     >
       <Card
-        className={`transition-colors hover:bg-muted/30 ${
-          isSelected
-            ? 'border-primary bg-primary/5 ring-1 ring-primary/30'
-            : 'border-border bg-card/90'
+        className={`rounded-[14px] border-[#e7e1d5] transition-colors hover:bg-muted/30 ${
+          isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/30' : 'bg-card/90'
         }`}
       >
-        <CardContent className='flex flex-col gap-3 p-4'>
-          <div className='flex min-w-0 items-start gap-2.5'>
-            <span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/80 bg-muted/60 font-mono text-[0.58rem] text-foreground/75 uppercase tracking-wider'>
-              {initials}
-            </span>
-            <div className='min-w-0'>
-              <p className='truncate font-serif text-[1.02rem] text-foreground leading-tight'>
-                {summaryName}
-              </p>
-              <InvitedAttendingLine
-                household={household}
-                className='mt-0.5 font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'
-              />
-              <PartialEventAnswerLine
-                guests={household.guests}
-                events={events}
-                className='mt-0.5 font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'
-              />
+        <CardContent className='grid grid-cols-[1fr_auto] items-start gap-x-[14px] gap-y-1 p-[15px_16px]'>
+          <div className='min-w-0'>
+            <div className='flex min-w-0 items-center gap-2'>
+              <span className='flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border border-[#e2dacb] bg-[#f1ece1] text-[11px] text-[#6d6353]'>
+                {initials}
+              </span>
+              <span className='truncate font-hebrew text-[16.5px] font-medium leading-[1.2] text-foreground'>
+                {primaryGuestName}
+              </span>
             </div>
+            {metaLine && (
+              <p className='mt-[5px] truncate text-[12.5px] text-[#8a7f6d]'>{metaLine}</p>
+            )}
           </div>
 
-          {(phone || household.side || household.groupName) && (
-            <div className='flex flex-wrap gap-3 font-mono text-[0.58rem] text-foreground/60 uppercase tracking-wider'>
-              {phone && (
-                <span>
-                  טלפון <span dir='ltr'>{phone}</span>
-                </span>
-              )}
-              {household.side && <span>צד {household.side}</span>}
-              {household.groupName && <span>קבוצה {household.groupName}</span>}
-            </div>
-          )}
+          <div className='pt-0.5 text-left leading-[1.05]'>
+            {rsvpSummary.attending > 0 ? (
+              <>
+                <div className='text-[26px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
+                  {rsvpSummary.attending}
+                  <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
+                    {rsvpSummary.attending === 1 ? 'מגיע' : 'מגיעים'}
+                  </small>
+                </div>
+                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
+                  מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
+                </div>
+              </>
+            ) : rsvpSummary.declined > 0 ? (
+              <>
+                <div className='pt-1 text-[19px] font-semibold text-[#a4553f]'>לא מגיעים</div>
+                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
+                  מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className='pt-1.5 text-[16px] font-medium text-[#a2937c]'>טרם השיבו</div>
+                {rsvpSummary.invited > 0 && (
+                  <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
+                    {rsvpSummary.invited} {rsvpSummary.invited === 1 ? 'הוזמן' : 'הוזמנו'}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
-          <div className='flex flex-wrap gap-2 text-xs'>
-            {rsvpSummary.attending > 0 && (
-              <Badge
-                variant='outline'
-                className='border-success/35 bg-success/12 font-normal text-success'
-              >
-                {rsvpSummary.attending === 1 ? 'מגיעים' : `${rsvpSummary.attending} מגיעים`}
-              </Badge>
-            )}
-            {rsvpSummary.invited > 0 && (
-              <Badge
-                variant='outline'
-                className='border-foreground/20 bg-gold/12 font-normal text-foreground/80'
-              >
-                {rsvpSummary.invited === 1 ? 'טרם השיבו' : `${rsvpSummary.invited} טרם השיבו`}
-              </Badge>
-            )}
-            {rsvpSummary.declined > 0 && (
-              <Badge
-                variant='outline'
-                className='border-destructive/30 bg-destructive/10 font-normal text-destructive'
-              >
-                {rsvpSummary.declined === 1 ? 'לא מגיעים' : `${rsvpSummary.declined} לא מגיעים`}
-              </Badge>
-            )}
-            {rsvpSummary.attending === 0 &&
-              rsvpSummary.invited === 0 &&
-              rsvpSummary.declined === 0 && (
-                <span className='text-muted-foreground'>אין נתוני אישור הגעה</span>
-              )}
+          <PartialEventAnswerLine
+            guests={household.guests}
+            events={events}
+            className='col-span-2 text-[12.5px] text-[#a4553f]'
+          />
+
+          <div className='col-span-2 flex justify-end text-xs'>
             <span
               role='button'
               tabIndex={0}
@@ -238,7 +228,7 @@ function GuestCardComponent({
                   void handleCopyInviteLink()
                 }
               }}
-              className='ms-auto inline-flex cursor-pointer items-center gap-1 rounded-full border border-border/70 bg-transparent px-2.5 py-1 text-xs text-foreground/70 transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
+              className='inline-flex cursor-pointer items-center gap-1 rounded-full border border-border/70 bg-transparent px-2.5 py-1 text-xs text-foreground/70 transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]'
             >
               {copiedInviteLink ? 'הועתק' : 'העתקת הודעה'}
             </span>
@@ -247,13 +237,13 @@ function GuestCardComponent({
           {rsvpPartyDetailsLabel && (
             <Badge
               variant='outline'
-              className='w-fit border-foreground/15 bg-foreground/[0.04] font-normal text-foreground/70'
+              className='col-span-2 w-fit border-foreground/15 bg-foreground/[0.04] font-normal text-foreground/70'
             >
               {rsvpPartyDetailsLabel}
             </Badge>
           )}
 
-          <div className='flex items-center justify-end border-border/80 border-t pt-2'>
+          <div className='col-span-2 flex items-center justify-end border-border/80 border-t pt-2'>
             <span className='font-mono text-[0.56rem] text-foreground/55 uppercase tracking-wider'>
               צפייה בפרטים →
             </span>
