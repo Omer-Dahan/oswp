@@ -52,10 +52,6 @@ jest.mock('~/components/guest-list/no-guests-view', () => ({
   ),
 }))
 
-jest.mock('~/components/guest-list/invite-link-panel', () => ({
-  InviteLinkPanel: () => <div data-testid='invite-link-panel' />,
-}))
-
 jest.mock('~/components/guest-list/csv-upload-dialog', () => ({
   CsvUploadDialog: () => <div data-testid='csv-upload-dialog' />,
 }))
@@ -103,16 +99,6 @@ const dashboardDataWithGuests = {
 } as unknown as DashboardData
 
 describe('GuestList index', () => {
-  it('renders InviteLinkPanel when there are no guests', () => {
-    render(<GuestList dashboardData={dashboardDataNoGuests} />)
-    expect(screen.getByTestId('invite-link-panel')).toBeInTheDocument()
-  })
-
-  it('renders InviteLinkPanel when there are guests', () => {
-    render(<GuestList dashboardData={dashboardDataWithGuests} />)
-    expect(screen.getByTestId('invite-link-panel')).toBeInTheDocument()
-  })
-
   it('renders GuestsView (not NoGuestsView) when totalGuests > 0', () => {
     render(<GuestList dashboardData={dashboardDataWithGuests} />)
     expect(screen.getByTestId('guests-view')).toBeInTheDocument()

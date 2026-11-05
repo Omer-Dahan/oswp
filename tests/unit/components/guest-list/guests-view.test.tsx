@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import GuestsView from '~/components/guest-list/guests-view'
 import { SELF_ADD_NOTE_PREFIX } from '~/lib/constants/guest-self-add'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
@@ -607,7 +607,7 @@ describe('GuestsView', () => {
     expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'הוספת אורח' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'הוספת אורח' })).toHaveLength(2)
     expect(
       screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i })
     ).toBeInTheDocument()
@@ -712,8 +712,9 @@ describe('GuestsView', () => {
       />
     )
 
-    const importButton = screen.getByRole('button', { name: 'ייבוא אורחים' })
-    const addButton = screen.getByRole('button', { name: 'הוספת אורח' })
+    const actions = screen.getByTestId('guest-actions-cluster')
+    const importButton = within(actions).getByRole('button', { name: 'ייבוא אורחים' })
+    const addButton = within(actions).getByRole('button', { name: 'הוספת אורח' })
 
     fireEvent.click(importButton)
     fireEvent.click(addButton)
@@ -723,6 +724,43 @@ describe('GuestsView', () => {
     expect(onImportClick).toHaveBeenCalledTimes(1)
     expect(setPrefillHousehold).toHaveBeenCalledWith(undefined)
     expect(mockToggleGuestForm).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders the invite-link button inside the desktop actions cluster', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    const actions = screen.getByTestId('guest-actions-cluster')
+    expect(within(actions).getByRole('button', { name: 'קישור הזמנה' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+    expect(actions.parentElement).not.toHaveClass('mb-4', 'flex', 'justify-end')
+  })
+
+  it('keeps the destructive action last in the mobile overflow menu', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'פעולות נוספות' }), { key: 'Enter' })
+    const items = screen.getAllByRole('menuitem')
+    expect(items.at(-1)).toHaveTextContent('מחיקת כל האורחים')
   })
 
   it('should show an empty async status when no households match', () => {

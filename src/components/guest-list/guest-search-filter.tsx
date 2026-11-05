@@ -76,6 +76,8 @@ type GuestSearchFilterProps = {
   initialFilters?: GuestListFilters
   resetKey?: number
   onFiltersChange?: (filters: GuestListFilters) => void
+  mobileFiltersOpen?: boolean
+  onMobileFiltersOpenChange?: (open: boolean) => void
 }
 
 export default function GuestSearchFilter({
@@ -86,6 +88,8 @@ export default function GuestSearchFilter({
   initialFilters,
   resetKey = 0,
   onFiltersChange,
+  mobileFiltersOpen = false,
+  onMobileFiltersOpenChange,
 }: GuestSearchFilterProps) {
   const [searchInput, setSearchInput] = useState(initialFilters?.search ?? '')
   const [showInvitationDropdown, setShowInvitationDropdown] = useState(false)
@@ -418,6 +422,17 @@ export default function GuestSearchFilter({
     setSelectedGroupFilter(null)
   }
 
+  useEffect(() => {
+    if (!mobileFiltersOpen) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onMobileFiltersOpenChange?.(false)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [mobileFiltersOpen, onMobileFiltersOpenChange])
+
   const selectedTagName = allTags.find((t) => t.id === selectedTagFilter)?.name
   const selectedSideLabel = availableSides.find((s) => s.key === selectedSideFilter)?.label
   const selectedGroupLabel = availableGroups.find((g) => g.key === selectedGroupFilter)?.label
@@ -428,25 +443,56 @@ export default function GuestSearchFilter({
 
   return (
     <div className='flex w-full flex-col gap-3'>
-      <div className='flex justify-start'>
-        <div className='relative flex items-center'>
+      <div className='flex w-full justify-start md:w-auto'>
+        <div className='relative flex w-full items-center md:w-auto'>
           <Input
             id='search-guests-input'
-            className='w-64 pe-12 font-sans text-sm'
+            className='h-11 w-full pe-12 font-sans text-sm md:h-10 md:w-64'
             placeholder='חיפוש אורחים'
             value={searchInput}
             onChange={(e) => filterHouseholdsBySearch(e.target.value)}
           />
-          <div className='absolute end-0 flex h-full w-12 items-center justify-center rounded-e-md bg-primary'>
+          <button
+            type='button'
+            aria-label='חיפוש אורחים'
+            className='absolute end-0 flex h-11 w-12 items-center justify-center rounded-e-md bg-primary md:h-10'
+          >
             <FaMagnifyingGlass className='text-primary-foreground' size={18} />
-          </div>
+          </button>
         </div>
       </div>
 
+      {mobileFiltersOpen ? (
+        <button
+          type='button'
+          aria-label='סגירת מסננים'
+          className='fixed inset-0 z-40 bg-foreground/35 md:hidden'
+          onClick={() => onMobileFiltersOpenChange?.(false)}
+        />
+      ) : null}
+      {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: the responsive container has role=dialog whenever aria-modal is present */}
       <div
         data-testid='affiliation-filter-row'
-        className='ms-auto flex max-w-full flex-wrap items-center justify-end gap-2 md:flex-nowrap'
+        role={mobileFiltersOpen ? 'dialog' : undefined}
+        aria-modal={mobileFiltersOpen ? true : undefined}
+        aria-label={mobileFiltersOpen ? 'סינון אורחים' : undefined}
+        className={`${
+          mobileFiltersOpen ? 'fixed' : 'hidden'
+        } inset-x-0 bottom-0 z-50 ms-auto max-h-[85dvh] flex-col items-stretch justify-end gap-2 overflow-y-auto rounded-t-lg border-t bg-background p-4 shadow-lg md:static md:z-auto md:flex md:max-h-none md:max-w-full md:flex-row md:flex-wrap md:flex-nowrap md:items-center md:overflow-visible md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none [&>div>div>button]:max-md:min-h-11 [&>div>div>button]:max-md:w-full [&>div_button]:max-md:min-h-11 [&>div_button]:max-md:w-full`}
       >
+        {mobileFiltersOpen ? (
+          <div className='mb-2 flex items-center justify-between md:hidden'>
+            <p className='font-mono text-sm'>סינון אורחים</p>
+            <button
+              type='button'
+              className='flex min-h-11 min-w-11 items-center justify-center text-xl'
+              aria-label='סגירת מסננים'
+              onClick={() => onMobileFiltersOpenChange?.(false)}
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
         <div ref={invitationFilterRef}>
           <div className='relative'>
             <Button
@@ -853,6 +899,20 @@ export default function GuestSearchFilter({
               איפוס
             </Button>
           </>
+        ) : null}
+        {mobileFiltersOpen ? (
+          <div className='mt-3 grid grid-cols-2 gap-2 border-t pt-4 md:hidden'>
+            <Button type='button' variant='outline' className='min-h-11' onClick={clearAllFilters}>
+              איפוס
+            </Button>
+            <Button
+              type='button'
+              className='min-h-11'
+              onClick={() => onMobileFiltersOpenChange?.(false)}
+            >
+              החל
+            </Button>
+          </div>
         ) : null}
       </div>
     </div>

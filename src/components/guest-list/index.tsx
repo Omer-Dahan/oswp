@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import { sharedStyles } from '~/app/utils/shared-styles'
 import type { DashboardData, EventFormData } from '~/app/utils/shared-types'
 import { useEventForm } from '~/components/contexts/event-form-context'
 import { useGuestForm } from '~/components/contexts/guest-form-context'
@@ -12,7 +11,6 @@ import GuestForm from '~/components/forms/guest-form'
 import type { HouseholdFormData } from '~/components/forms/guest-form.schema'
 import EventsTabs from '~/components/guest-list/event-tabs'
 import GuestsView from '~/components/guest-list/guests-view'
-import { InviteLinkPanel } from '~/components/guest-list/invite-link-panel'
 import NoGuestsView from '~/components/guest-list/no-guests-view'
 
 const CsvUploadDialog = dynamic(
@@ -91,9 +89,6 @@ export default function GuestList({ dashboardData }: { dashboardData: DashboardD
         />
       )}
       <EventsTabs events={dashboardData?.events} selectedEventId={selectedEventId} />
-      <div className={`${sharedStyles.desktopPaddingSidesGuestList} mb-4 flex justify-end`}>
-        <InviteLinkPanel />
-      </div>
       {hasAnyGuests ? (
         <GuestsView
           events={dashboardData.events}

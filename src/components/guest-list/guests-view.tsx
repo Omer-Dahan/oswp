@@ -10,6 +10,7 @@ import {
   useTransition,
 } from 'react'
 import { BiPencil } from 'react-icons/bi'
+import { HiOutlineDotsVertical } from 'react-icons/hi'
 import { toast } from 'sonner'
 import { formatDateStandard } from '~/app/utils/helpers'
 import type { Event, EventFormData, FormInvites } from '~/app/utils/shared-types'
@@ -30,6 +31,7 @@ import {
 } from '~/components/guest-list/guest-list-view-state'
 import GuestSearchFilter from '~/components/guest-list/guest-search-filter'
 import type { HouseholdMemberDraft } from '~/components/guest-list/household-members-modal'
+import { InviteLinkButton, InviteLinkContent } from '~/components/guest-list/invite-link-panel'
 import { GuestDetailDrawer } from '~/components/guest-list/v2/drawer/guest-detail-drawer'
 import { GuestCardsList } from '~/components/guest-list/v2/list/guest-cards-list'
 import { GuestIndividualTable } from '~/components/guest-list/v2/list/guest-individual-table'
@@ -51,6 +53,16 @@ import {
 import { AsyncState } from '~/components/ui/async-state'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useWorkspace } from '~/hooks/use-workspace'
@@ -105,6 +117,8 @@ export default function GuestsView({
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [showDeleteHouseholdDialog, setShowDeleteHouseholdDialog] = useState(false)
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
+  const [inviteLinkOpen, setInviteLinkOpen] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
   const [editingSections, setEditingSections] = useState<
     Set<'contactAddress' | 'notes' | 'sideGroup'>
@@ -146,6 +160,17 @@ export default function GuestsView({
     }
     writeGuestListViewState(weddingId, { viewMode, nameSort, partySort, filters })
   }, [filters, nameSort, partySort, viewMode, weddingId])
+
+  useEffect(() => {
+    if (!inviteLinkOpen) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setInviteLinkOpen(false)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [inviteLinkOpen])
 
   const resetView = useCallback(() => {
     skipNextPersistenceRef.current = true
@@ -718,6 +743,12 @@ export default function GuestsView({
     return undefined
   }, [nameSort, partySort])
 
+  const mobileSortLabel = useMemo(() => {
+    if (nameSort !== 'none') return 'לפי שם'
+    if (partySort !== 'none') return 'לפי גודל קבוצה'
+    return 'ללא'
+  }, [nameSort, partySort])
+
   const handleDrawerOpenChange = useCallback(
     (open: boolean) => {
       if (!open && isDrawerDirty) {
@@ -758,8 +789,29 @@ export default function GuestsView({
           initialFilters={filters}
           resetKey={filterResetKey}
           onFiltersChange={setFilters}
+          mobileFiltersOpen={mobileFiltersOpen}
+          onMobileFiltersOpenChange={setMobileFiltersOpen}
         />
-        <div className='flex shrink-0 gap-3 md:absolute md:end-0 md:top-0'>
+        <div
+          data-testid='guest-actions-cluster'
+          className='hidden shrink-0 gap-3 md:absolute md:end-0 md:top-0 md:flex'
+        >
+          <Button
+            type='button'
+            onClick={() => {
+              setPrefillHousehold(undefined)
+              toggleGuestForm()
+            }}
+          >
+            הוספת אורח
+          </Button>
+          <Button type='button' variant='outline' onClick={onImportClick}>
+            ייבוא אורחים
+          </Button>
+          <InviteLinkButton
+            open={inviteLinkOpen}
+            onToggle={() => setInviteLinkOpen((open) => !open)}
+          />
           {workspace.capabilities.canDeleteAllGuests && (
             <Button
               type='button'
@@ -770,11 +822,11 @@ export default function GuestsView({
               מחיקת כל האורחים
             </Button>
           )}
-          <Button type='button' variant='outline' onClick={onImportClick}>
-            ייבוא אורחים
-          </Button>
+        </div>
+        <div className='grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_44px] gap-2 md:hidden'>
           <Button
             type='button'
+            className='min-h-11 min-w-0 px-2'
             onClick={() => {
               setPrefillHousehold(undefined)
               toggleGuestForm()
@@ -782,24 +834,114 @@ export default function GuestsView({
           >
             הוספת אורח
           </Button>
+          <Button
+            type='button'
+            variant='outline'
+            className='min-h-11 min-w-0 px-2'
+            onClick={() => setMobileFiltersOpen(true)}
+          >
+            סינון
+          </Button>
+          <DropdownMenu dir='rtl'>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type='button'
+                variant='outline'
+                className='min-h-11 min-w-11 px-0 text-lg'
+                aria-label='פעולות נוספות'
+              >
+                <HiOutlineDotsVertical aria-hidden='true' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end' className='w-56'>
+              <DropdownMenuItem className='min-h-11' onSelect={onImportClick}>
+                ייבוא אורחים
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='min-h-11'
+                aria-expanded={inviteLinkOpen}
+                onSelect={() => setInviteLinkOpen((open) => !open)}
+              >
+                קישור הזמנה
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className='min-h-11'>מיון</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem className='min-h-11' onSelect={sortByName}>
+                    לפי שם
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className='min-h-11' onSelect={sortByParty}>
+                    לפי גודל קבוצה
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className='min-h-11'>מצב תצוגה</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem
+                    className='min-h-11'
+                    onSelect={() => setWorkflowMode('households')}
+                  >
+                    משקי בית
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className='min-h-11'
+                    onSelect={() => setWorkflowMode('personAudit')}
+                  >
+                    ביקורת אנשים
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className='min-h-11' onSelect={() => setViewMode('cards')}>
+                    כרטיסים
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className='min-h-11' onSelect={() => setViewMode('table')}>
+                    טבלה
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              {workspace.capabilities.canDeleteAllGuests ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    data-testid='mobile-delete-all-guests'
+                    className='min-h-11 text-destructive focus:text-destructive'
+                    onSelect={() => setShowDeleteAllDialog(true)}
+                  >
+                    מחיקת כל האורחים
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+        <p className='text-muted-foreground text-xs md:hidden'>
+          מיון: {mobileSortLabel} · תצוגה:{' '}
+          {workflowMode === 'personAudit'
+            ? 'ביקורת אנשים'
+            : viewMode === 'cards'
+              ? 'כרטיסים'
+              : 'טבלה'}
+        </p>
+        <InviteLinkContent open={inviteLinkOpen} />
       </div>
       <div className='space-y-4'>
-        <ListToolbar
-          totalHouseholds={sortedHouseholds.length}
-          totalUnfilteredHouseholds={baseHouseholds.length}
-          totalGuests={filteredCounts.guests}
-          totalUnfilteredGuests={unfilteredCounts.guests}
-          onSortByName={sortByName}
-          onSortByPartySize={sortByParty}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          workflowMode={workflowMode}
-          onWorkflowModeChange={setWorkflowMode}
-          sortStateLabel={sortStateLabel}
-          activeSort={activeSort}
-          onResetView={resetView}
-        />
+        <div className='hidden md:block'>
+          <ListToolbar
+            totalHouseholds={sortedHouseholds.length}
+            totalUnfilteredHouseholds={baseHouseholds.length}
+            totalGuests={filteredCounts.guests}
+            totalUnfilteredGuests={unfilteredCounts.guests}
+            onSortByName={sortByName}
+            onSortByPartySize={sortByParty}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            workflowMode={workflowMode}
+            onWorkflowModeChange={setWorkflowMode}
+            sortStateLabel={sortStateLabel}
+            activeSort={activeSort}
+            onResetView={resetView}
+          />
+        </div>
         {sortedHouseholds.length === 0 ? (
           <AsyncState isEmpty emptyText='אין משקי בית עדיין' />
         ) : workflowMode === 'personAudit' || viewMode === 'table' ? (

@@ -47,4 +47,16 @@ describe('InviteLinkPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'קישור הזמנה' }))
     expect(screen.queryByTestId('self-invite-link-manager')).not.toBeInTheDocument()
   })
+
+  it('closes the panel on Escape', () => {
+    render(<InviteLinkPanel />)
+    fireEvent.click(screen.getByRole('button', { name: 'קישור הזמנה' }))
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    expect(screen.queryByTestId('self-invite-link-manager')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'קישור הזמנה' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+  })
 })
