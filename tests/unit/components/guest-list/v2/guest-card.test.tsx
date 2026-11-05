@@ -155,9 +155,10 @@ describe('GuestCard', () => {
   it('uses selected styling when card is active', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} isSelected />)
 
-    expect(
-      screen.getByLabelText(/בחירת משק הבית של Alex Rivera/i).firstElementChild
-    ).toHaveClass('ring-1', 'ring-primary/30')
+    expect(screen.getByLabelText(/בחירת משק הבית של Alex Rivera/i).parentElement).toHaveClass(
+      'ring-1',
+      'ring-primary/30'
+    )
   })
 
   it('should call selection callback with household id', () => {
@@ -240,9 +241,7 @@ describe('GuestCard', () => {
       guests: [
         {
           ...mockGuest0,
-          invitations: [
-            { ...mockGuest0.invitations[0]!, eventId: 'event-2', rsvp: 'Attending' },
-          ],
+          invitations: [{ ...mockGuest0.invitations[0]!, eventId: 'event-2', rsvp: 'Attending' }],
         },
       ],
     }
@@ -276,7 +275,12 @@ describe('GuestCard', () => {
           ...mockGuest0,
           invitations: [
             mockGuest0.invitations[0]!,
-            { ...mockGuest0.invitations[0]!, id: 'inv-1-chuppah', eventId: 'event-2', rsvp: 'Attending' },
+            {
+              ...mockGuest0.invitations[0]!,
+              id: 'inv-1-chuppah',
+              eventId: 'event-2',
+              rsvp: 'Attending',
+            },
           ],
         },
       ],
@@ -303,9 +307,15 @@ describe('GuestCard', () => {
     const brideHousehold: HouseholdWithGuests = { ...mockHousehold, side: 'כלה' }
     render(<GuestCard household={brideHousehold} onSelectHousehold={jest.fn()} />)
 
-    fireEvent.click(screen.getByLabelText('העתקת הודעת הזמנה אישית למשק הבית'))
+    fireEvent.keyDown(screen.getByRole('button', { name: 'פעולות עבור Alex Rivera' }), {
+      key: 'ArrowDown',
+    })
+    fireEvent.click(screen.getByRole('menuitem', { name: 'העתקת הודעת הזמנה' }))
 
-    await screen.findByText('הועתק')
+    fireEvent.keyDown(screen.getByRole('button', { name: 'פעולות עבור Alex Rivera' }), {
+      key: 'ArrowDown',
+    })
+    await screen.findByText('ההודעה הועתקה')
 
     expect(mockGetInviteMessageFetch).toHaveBeenCalledWith({ householdId: 'household-1' })
     expect(writeText).toHaveBeenCalledWith('דוד יעקב, שלום רב.\n\nבברכה - משה ומירב בן הרוש')

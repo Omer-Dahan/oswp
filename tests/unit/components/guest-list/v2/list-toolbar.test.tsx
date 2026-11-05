@@ -1,98 +1,47 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-
 import { ListToolbar } from '~/components/guest-list/v2/list/list-toolbar'
 
 describe('ListToolbar', () => {
-  it('shows household count and sort actions', () => {
-    render(<ListToolbar totalHouseholds={2} />)
+  it('renders one sort menu and one segmented view switch', () => {
+    render(<ListToolbar totalHouseholds={3} onViewModeChange={jest.fn()} />)
 
-    expect(screen.getByText(/משקי בית/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'מיון: לפי שם' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'מצב תצוגה' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'כרטיסים' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'טבלה' })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('invokes sort handlers when buttons are clicked', () => {
+  it('changes the segmented view', () => {
+    const onViewModeChange = jest.fn()
+    render(<ListToolbar totalHouseholds={3} onViewModeChange={onViewModeChange} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'טבלה' }))
+    expect(onViewModeChange).toHaveBeenCalledWith('table')
+  })
+
+  it('shows the active sort in the trigger and invokes the menu choices', () => {
     const onSortByName = jest.fn()
     const onSortByPartySize = jest.fn()
-
     render(
       <ListToolbar
-        totalHouseholds={1}
+        totalHouseholds={3}
+        activeSort={{ field: 'partySize', direction: 'descending' }}
         onSortByName={onSortByName}
         onSortByPartySize={onSortByPartySize}
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי שם' }))
-    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' }))
-
+    fireEvent.keyDown(screen.getByRole('button', { name: 'מיון: לפי גודל' }), { key: 'ArrowDown' })
+    fireEvent.click(screen.getByRole('menuitem', { name: 'לפי שם' }))
     expect(onSortByName).toHaveBeenCalledTimes(1)
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'מיון: לפי גודל' }), { key: 'ArrowDown' })
+    fireEvent.click(screen.getByRole('menuitem', { name: 'לפי גודל' }))
     expect(onSortByPartySize).toHaveBeenCalledTimes(1)
   })
 
-  it('shows cards as the default active view state', () => {
-    render(<ListToolbar totalHouseholds={3} onViewModeChange={jest.fn()} />)
-
-    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).not.toHaveClass('bg-primary')
-  })
-
-  it('shows table as the active view state when requested', () => {
+  it('marks table as selected when restored', () => {
     render(<ListToolbar totalHouseholds={3} viewMode='table' onViewModeChange={jest.fn()} />)
-
-    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).not.toHaveClass('bg-primary')
-  })
-
-  it('shows workflow mode controls and calls mode change handler', () => {
-    const onWorkflowModeChange = jest.fn()
-
-    render(
-      <ListToolbar
-        totalHouseholds={3}
-        workflowMode='households'
-        onWorkflowModeChange={onWorkflowModeChange}
-      />
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'ביקורת אנשים' }))
-    expect(onWorkflowModeChange).toHaveBeenCalledWith('personAudit')
-  })
-
-  it('renders active sort state text when provided', () => {
-    render(<ListToolbar totalHouseholds={3} sortStateLabel='Name (A-Z)' />)
-    expect(screen.getByText('ממוין לפי Name (A-Z)')).toBeInTheDocument()
-  })
-
-  it('highlights the name sort button when name sort is active', () => {
-    render(
-      <ListToolbar totalHouseholds={3} activeSort={{ field: 'name', direction: 'ascending' }} />
-    )
-
-    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).not.toHaveClass(
-      'bg-primary'
-    )
-  })
-
-  it('highlights the party size sort button when party sort is active', () => {
-    render(
-      <ListToolbar
-        totalHouseholds={3}
-        activeSort={{ field: 'partySize', direction: 'descending' }}
-      />
-    )
-
-    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).not.toHaveClass('bg-primary')
-  })
-
-  it('shows no sort button highlighted when activeSort is not provided', () => {
-    render(<ListToolbar totalHouseholds={3} />)
-
-    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).not.toHaveClass('bg-primary')
-    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).not.toHaveClass(
-      'bg-primary'
-    )
+    expect(screen.getByRole('button', { name: 'טבלה' })).toHaveAttribute('aria-pressed', 'true')
   })
 })

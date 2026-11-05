@@ -1,25 +1,30 @@
-import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from 'react'
-import { FaMagnifyingGlass } from 'react-icons/fa6'
-import { IoIosArrowDown, IoMdCheckmark } from 'react-icons/io'
-import { sharedStyles } from '~/app/utils/shared-styles'
+import { Filter, Search, X } from 'lucide-react'
+import {
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import type { Event } from '~/app/utils/shared-types'
-import { useOuterClick } from '~/components/hooks'
 import type { GuestListFilters } from '~/components/guest-list/guest-list-view-state'
 import { Button } from '~/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import { RSVP_STATUS_LABELS, type RsvpStatus } from '~/lib/constants/rsvp'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
-type TSelectedRsvpFilter = {
-  eventId: string
-  rsvpValue: string
-}
-
 const NO_SIDE_FILTER_KEY = '__no_side__'
-
-const householdsCountLabel = (count: number) =>
-  `סה״כ ${count} ${count === 1 ? 'משק בית' : 'משקי בית'}`
 
 const countByNormalizedValue = (values: Array<string | null | undefined>) => {
   const counts = new Map<string, { label: string; count: number }>()
@@ -32,7 +37,7 @@ const countByNormalizedValue = (values: Array<string | null | undefined>) => {
     else counts.set(key, { label: trimmed, count: 1 })
   }
   return Array.from(counts.entries())
-    .map(([key, { label, count }]) => ({ key, label, count }))
+    .map(([key, value]) => ({ key, ...value }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
 }
 
@@ -55,670 +60,326 @@ export default function GuestSearchFilter({
   resetKey = 0,
   onFiltersChange,
 }: GuestSearchFilterProps) {
-  const [searchInput, setSearchInput] = useState(initialFilters?.search ?? '')
-  const [showInvitationDropdown, setShowInvitationDropdown] = useState(false)
-  const [selectedRsvpFilter, setSelectedRsvpFilter] = useState<TSelectedRsvpFilter | null>(
-    initialFilters?.rsvp ?? null
+  const [filters, setFilters] = useState<GuestListFilters>(
+    initialFilters ?? {
+      search: '',
+      rsvp: null,
+      tagId: null,
+      country: null,
+      side: null,
+      group: null,
+    }
   )
-  const [showTagDropdown, setShowTagDropdown] = useState(false)
-  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(
-    initialFilters?.tagId ?? null
-  )
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
-  const [selectedCountryFilter, setSelectedCountryFilter] = useState<string | null>(
-    initialFilters?.country ?? null
-  )
-  const [showSideDropdown, setShowSideDropdown] = useState(false)
-  const [selectedSideFilter, setSelectedSideFilter] = useState<string | null>(
-    initialFilters?.side ?? null
-  )
-  const [showGroupDropdown, setShowGroupDropdown] = useState(false)
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string | null>(
-    initialFilters?.group ?? null
-  )
-
-  const invitationFilterRef = useOuterClick(() => setShowInvitationDropdown(false))
-  const tagFilterRef = useOuterClick(() => setShowTagDropdown(false))
-  const countryFilterRef = useOuterClick(() => setShowCountryDropdown(false))
-  const sideFilterRef = useOuterClick(() => setShowSideDropdown(false))
-  const groupFilterRef = useOuterClick(() => setShowGroupDropdown(false))
-
   const { data: allTags = [] } = api.guestTag.getAll.useQuery()
 
-  const availableCountries = useMemo(() => {
-    const countrySet = new Set<string>()
-    for (const household of households) {
-      if (household.country) countrySet.add(household.country)
-    }
-    return Array.from(countrySet).sort()
+  const countries = useMemo(
+    () => Array.from(new Set(households.map((h) => h.country).filter(Boolean) as string[])).sort(),
+    [households]
+  )
+  const sides = useMemo(() => {
+    const values = countByNormalizedValue(households.map((h) => h.side))
+    const missing = households.filter((h) => !h.side?.trim()).length
+    if (missing > 0) values.push({ key: NO_SIDE_FILTER_KEY, label: 'ללא צד', count: missing })
+    return values
   }, [households])
-
-  const availableSides = useMemo(() => {
-    const sides = countByNormalizedValue(households.map((h) => h.side))
-    const noSideCount = households.filter((h) => !h.side?.trim()).length
-    if (noSideCount > 0) {
-      sides.push({ key: NO_SIDE_FILTER_KEY, label: 'ללא צד', count: noSideCount })
-    }
-    return sides
-  }, [households])
-
-  const availableGroups = useMemo(
+  const groups = useMemo(
     () => countByNormalizedValue(households.map((h) => h.groupName)),
     [households]
   )
-
-  const availableTagCounts = useMemo(() => {
+  const tagCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const household of households) {
-      const tagIdsInHousehold = new Set<string>()
-      for (const guest of household.guests) {
-        for (const guestTag of guest.guestTags ?? []) {
-          tagIdsInHousehold.add(guestTag.tagId)
-        }
-      }
-      for (const tagId of tagIdsInHousehold) {
-        counts.set(tagId, (counts.get(tagId) ?? 0) + 1)
-      }
+      const ids = new Set(household.guests.flatMap((g) => g.guestTags?.map((t) => t.tagId) ?? []))
+      for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1)
     }
     return counts
   }, [households])
-
-  const availableTags = useMemo(
-    () => allTags.filter((tag) => (availableTagCounts.get(tag.id) ?? 0) > 0),
-    [allTags, availableTagCounts]
+  const tags = useMemo(
+    () => allTags.filter((tag) => (tagCounts.get(tag.id) ?? 0) > 0),
+    [allTags, tagCounts]
   )
+
+  const filtered = useMemo(() => {
+    const search = filters.search.trim().toLowerCase()
+    return households.filter((household) => {
+      if (filters.country && household.country !== filters.country) return false
+      if (filters.side === NO_SIDE_FILTER_KEY && household.side?.trim()) return false
+      if (
+        filters.side &&
+        filters.side !== NO_SIDE_FILTER_KEY &&
+        household.side?.trim().toLowerCase() !== filters.side
+      )
+        return false
+      if (filters.group && household.groupName?.trim().toLowerCase() !== filters.group) return false
+      if (
+        filters.tagId &&
+        !household.guests.some((g) => g.guestTags?.some((tag) => tag.tagId === filters.tagId))
+      )
+        return false
+
+      return household.guests.some((guest) => {
+        const name = `${guest.firstName} ${guest.lastName}`.toLowerCase()
+        if (search && !name.includes(search)) return false
+        if (!filters.rsvp) return true
+        return guest.invitations.some(
+          (invitation) =>
+            invitation.eventId === filters.rsvp?.eventId &&
+            invitation.rsvp === filters.rsvp.rsvpValue
+        )
+      })
+    })
+  }, [filters, households])
+
+  useEffect(() => {
+    setFilteredHouseholds(filtered)
+    onFiltersChange?.(filters)
+  }, [filtered, filters, onFiltersChange, setFilteredHouseholds])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: restore only when the event, data source, or explicit reset changes
   useEffect(() => {
-    // Reset filters when event context changes so state never carries hidden stale constraints.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    const rsvp = initialFilters?.rsvp
-    const validRsvp = rsvp && events.some((event) => event.id === rsvp.eventId) ? rsvp : null
-    const tagId = initialFilters?.tagId
-    const validTagId = tagId && availableTags.some((tag) => tag.id === tagId) ? tagId : null
-    const country = availableCountries.includes(initialFilters?.country ?? '')
-      ? (initialFilters?.country ?? null)
-      : null
-    const side = availableSides.some((entry) => entry.key === initialFilters?.side)
-      ? (initialFilters?.side ?? null)
-      : null
-    const group = availableGroups.some((entry) => entry.key === initialFilters?.group)
-      ? (initialFilters?.group ?? null)
-      : null
-    const search = initialFilters?.search ?? ''
-    setSelectedRsvpFilter(validRsvp)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedTagFilter(validTagId)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedCountryFilter(country)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedSideFilter(side)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedGroupFilter(group)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    filterHouseholds(search, validRsvp, validTagId, country, side, group)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSearchInput(search)
-    // Restoration is intentionally keyed to the wedding/event/reset, not to option arrays
-    // that can update while the user is actively changing filters.
+    const stored = initialFilters ?? {
+      search: '',
+      rsvp: null,
+      tagId: null,
+      country: null,
+      side: null,
+      group: null,
+    }
+    const next: GuestListFilters = {
+      search: stored.search,
+      rsvp:
+        stored.rsvp && events.some((event) => event.id === stored.rsvp?.eventId)
+          ? stored.rsvp
+          : null,
+      tagId: stored.tagId && tags.some((tag) => tag.id === stored.tagId) ? stored.tagId : null,
+      country: stored.country && countries.includes(stored.country) ? stored.country : null,
+      side: stored.side && sides.some((side) => side.key === stored.side) ? stored.side : null,
+      group:
+        stored.group && groups.some((group) => group.key === stored.group) ? stored.group : null,
+    }
+    setFilters(next)
+    // Restore only when the event, source data or explicit reset changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEventId, households, resetKey])
 
-  const eventsToMap =
-    selectedEventId === 'all' ? events : [events.find((event) => event.id === selectedEventId)]
-
-  const filterHouseholds = (
-    searchText: string,
-    rsvpFilter: TSelectedRsvpFilter | null,
-    tagFilter: string | null,
-    countryFilter: string | null,
-    sideFilter: string | null,
-    groupFilter: string | null
-  ) => {
-    const normalizedSearch = searchText.toLowerCase()
-    setFilteredHouseholds(() =>
-      households.filter((household) => {
-        if (countryFilter && household.country !== countryFilter) return false
-
-        if (sideFilter) {
-          if (sideFilter === NO_SIDE_FILTER_KEY) {
-            if (household.side?.trim()) return false
-          } else if (household.side?.trim().toLowerCase() !== sideFilter) {
-            return false
-          }
-        }
-
-        if (groupFilter && household.groupName?.trim().toLowerCase() !== groupFilter) return false
-
-        if (
-          tagFilter &&
-          !household.guests.some((g) => g.guestTags?.some((t) => t.tagId === tagFilter))
-        ) {
-          return false
-        }
-
-        return household.guests.some((guest) => {
-          const fullName = `${guest.firstName} ${guest.lastName}`.toLowerCase()
-          const matchesName =
-            guest.firstName.toLowerCase().includes(normalizedSearch) ||
-            guest.lastName.toLowerCase().includes(normalizedSearch) ||
-            fullName.includes(normalizedSearch)
-          return rsvpFilter
-            ? matchesName &&
-                guest.invitations?.some(
-                  (inv) => inv.eventId === rsvpFilter?.eventId && inv.rsvp === rsvpFilter?.rsvpValue
-                )
-            : matchesName
-        })
-      })
-    )
-  }
-
-  const filterHouseholdsBySearch = (searchText: string) => {
-    setSearchInput(searchText)
-    filterHouseholds(
-      searchText,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
-    )
-  }
-
-  const filterHouseholdsByInvitation = ({ eventId, rsvpValue }: TSelectedRsvpFilter) => {
-    setShowInvitationDropdown(false)
-    setSelectedRsvpFilter({ eventId, rsvpValue })
-    filterHouseholds(
-      searchInput,
-      { eventId, rsvpValue },
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
-    )
-  }
-
-  const filterHouseholdsByTag = (tagId: string) => {
-    setShowTagDropdown(false)
-    setSelectedTagFilter(tagId)
-    filterHouseholds(
-      searchInput,
-      selectedRsvpFilter,
-      tagId,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
-    )
-  }
-
-  const filterHouseholdsByCountry = (country: string) => {
-    setShowCountryDropdown(false)
-    setSelectedCountryFilter(country)
-    filterHouseholds(
-      searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      country,
-      selectedSideFilter,
-      selectedGroupFilter
-    )
-  }
-
-  const filterHouseholdsBySide = (sideKey: string) => {
-    setShowSideDropdown(false)
-    setSelectedSideFilter(sideKey)
-    filterHouseholds(
-      searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      sideKey,
-      selectedGroupFilter
-    )
-  }
-
-  const filterHouseholdsByGroup = (groupKey: string) => {
-    setShowGroupDropdown(false)
-    setSelectedGroupFilter(groupKey)
-    filterHouseholds(
-      searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      groupKey
-    )
-  }
-
-  const hasActiveFilters =
-    !!selectedRsvpFilter ||
-    !!selectedTagFilter ||
-    !!selectedCountryFilter ||
-    !!selectedSideFilter ||
-    !!selectedGroupFilter ||
-    !!searchInput
-
-  useEffect(() => {
-    onFiltersChange?.({
-      search: searchInput,
-      rsvp: selectedRsvpFilter,
-      tagId: selectedTagFilter,
-      country: selectedCountryFilter,
-      side: selectedSideFilter,
-      group: selectedGroupFilter,
-    })
-  }, [
-    onFiltersChange,
-    searchInput,
-    selectedCountryFilter,
-    selectedGroupFilter,
-    selectedRsvpFilter,
-    selectedSideFilter,
-    selectedTagFilter,
-  ])
-
-  const clearAllFilters = () => {
-    setFilteredHouseholds(households)
-    setSearchInput('')
-    setSelectedRsvpFilter(null)
-    setSelectedTagFilter(null)
-    setSelectedCountryFilter(null)
-    setSelectedSideFilter(null)
-    setSelectedGroupFilter(null)
-  }
-
-  const selectedTagName = allTags.find((t) => t.id === selectedTagFilter)?.name
-  const selectedSideLabel = availableSides.find((s) => s.key === selectedSideFilter)?.label
-  const selectedGroupLabel = availableGroups.find((g) => g.key === selectedGroupFilter)?.label
-  const selectedEventName =
-    selectedRsvpFilter === null
-      ? null
-      : events.find((event) => event.id === selectedRsvpFilter.eventId)?.name
+  const update = <K extends keyof GuestListFilters>(key: K, value: GuestListFilters[K]) =>
+    setFilters((current) => ({ ...current, [key]: value }))
+  const clearAll = () =>
+    setFilters({ search: '', rsvp: null, tagId: null, country: null, side: null, group: null })
+  const activeCount = [
+    filters.rsvp,
+    filters.tagId,
+    filters.country,
+    filters.side,
+    filters.group,
+  ].filter(Boolean).length
+  const hasActiveFilters = activeCount > 0 || filters.search.length > 0
+  const eventOptions =
+    selectedEventId === 'all' ? events : events.filter((event) => event.id === selectedEventId)
+  const rsvpValue = filters.rsvp ? `${filters.rsvp.eventId}|${filters.rsvp.rsvpValue}` : ''
+  const chips = [
+    filters.rsvp && {
+      key: 'rsvp' as const,
+      label: `RSVP: ${RSVP_STATUS_LABELS[filters.rsvp.rsvpValue as RsvpStatus] ?? filters.rsvp.rsvpValue}`,
+    },
+    filters.tagId && {
+      key: 'tagId' as const,
+      label: `תגית: ${allTags.find((tag) => tag.id === filters.tagId)?.name ?? ''}`,
+    },
+    filters.side && {
+      key: 'side' as const,
+      label: `צד: ${sides.find((side) => side.key === filters.side)?.label ?? ''}`,
+    },
+    filters.group && {
+      key: 'group' as const,
+      label: `קבוצה: ${groups.find((group) => group.key === filters.group)?.label ?? ''}`,
+    },
+    filters.country && { key: 'country' as const, label: `ארץ: ${filters.country}` },
+  ].filter(Boolean) as Array<{
+    key: 'rsvp' | 'tagId' | 'side' | 'group' | 'country'
+    label: string
+  }>
 
   return (
-    <div className='flex flex-col gap-2'>
-      <div className='flex flex-wrap items-center gap-3'>
-        <div className='relative flex items-center'>
-          <Input
-            id='search-guests-input'
-            className='w-64 pe-12 font-sans text-sm'
-            placeholder='חיפוש אורחים'
-            value={searchInput}
-            onChange={(e) => filterHouseholdsBySearch(e.target.value)}
-          />
-          <div className='absolute end-0 flex h-full w-12 items-center justify-center rounded-e-md bg-primary'>
-            <FaMagnifyingGlass className='text-primary-foreground' size={18} />
-          </div>
-        </div>
-
-        <div ref={invitationFilterRef}>
-          <div className='relative'>
-            <Button
-              variant='outline'
-              onClick={() => setShowInvitationDropdown((prev) => !prev)}
-              className='w-48 justify-between font-sans text-sm normal-case tracking-normal'
-            >
-              {selectedRsvpFilter === null ? (
-                <span>סטטוס RSVP</span>
-              ) : (
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${sharedStyles.getRSVPcolor(
-                      selectedRsvpFilter.rsvpValue
-                    )}`}
+    <div className='flex min-w-0 flex-1 flex-col gap-3'>
+      <div className='flex items-center gap-2'>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button type='button' variant='outline' className='min-h-11 gap-2 font-hebrew'>
+              <Filter className='h-4 w-4' aria-hidden='true' />
+              סינון
+              {activeCount > 0 ? (
+                <span className='flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-primary-foreground text-xs tabular-nums'>
+                  {activeCount}
+                </span>
+              ) : null}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className='top-auto bottom-0 max-h-[88dvh] w-full max-w-none translate-y-0 rounded-b-none rounded-t-xl p-0 sm:top-1/2 sm:bottom-auto sm:max-w-2xl sm:-translate-y-1/2 sm:rounded-xl'>
+            <DialogHeader className='border-b px-5 py-4 text-start'>
+              <DialogTitle className='font-hebrew text-xl'>סינון רשימת האורחים</DialogTitle>
+              <DialogDescription className='font-hebrew'>
+                בחרו מאפיינים כדי לצמצם את הרשימה.
+              </DialogDescription>
+            </DialogHeader>
+            <div className='grid max-h-[65dvh] gap-5 overflow-y-auto px-5 py-5 sm:grid-cols-2'>
+              <div className='space-y-2 sm:col-span-2'>
+                <Label htmlFor='guest-search' className='font-hebrew'>
+                  חיפוש לפי שם
+                </Label>
+                <div className='relative'>
+                  <Search
+                    className='absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground'
+                    aria-hidden='true'
                   />
-                  <span className='truncate'>
-                    {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
-                      selectedRsvpFilter.rsvpValue}
-                  </span>
+                  <Input
+                    id='guest-search'
+                    value={filters.search}
+                    onChange={(event) => update('search', event.target.value)}
+                    className='min-h-11 ps-10 font-hebrew'
+                  />
                 </div>
-              )}
-              <IoIosArrowDown size={16} />
-            </Button>
-            {showInvitationDropdown && (
-              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md'>
-                {eventsToMap?.map(
-                  (event) =>
-                    event && (
-                      <div
-                        key={event.id}
-                        className='mb-4 flex flex-col border-b pb-2 last:mb-0 last:border-0'
-                      >
-                        <h5 className='mb-2 font-medium text-muted-foreground text-xs uppercase'>
-                          {event.name}
-                        </h5>
-                        {['Not Invited', 'Invited', 'Attending', 'Declined'].map((rsvp) => (
-                          <InvitationOption
-                            key={rsvp}
-                            rsvpValue={rsvp}
-                            eventId={event.id}
-                            filterHouseholdsByInvitation={filterHouseholdsByInvitation}
-                            setSelectedRsvpFilter={setSelectedRsvpFilter}
-                            isSelected={
-                              event.id === selectedRsvpFilter?.eventId &&
-                              rsvp === selectedRsvpFilter?.rsvpValue
-                            }
-                          />
-                        ))}
-                      </div>
-                    )
-                )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {availableTags.length > 0 && (
-          <div ref={tagFilterRef}>
-            <div className='relative'>
-              <Button
-                variant='outline'
-                onClick={() => setShowTagDropdown((prev) => !prev)}
-                className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
+              <FilterSelect
+                id='rsvp-filter'
+                label='סטטוס RSVP'
+                value={rsvpValue}
+                onChange={(value) => {
+                  const [eventId, rsvpValue] = value.split('|')
+                  update('rsvp', eventId && rsvpValue ? { eventId, rsvpValue } : null)
+                }}
               >
-                {selectedTagFilter === null ? (
-                  <span>תגית אורח</span>
-                ) : (
-                  <span className='truncate'>{selectedTagName ?? selectedTagFilter}</span>
-                )}
-                <IoIosArrowDown size={16} />
-              </Button>
-              {showTagDropdown && (
-                <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-                  {availableTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type='button'
-                      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsByTag(tag.id)}
-                    >
-                      <span>
-                        {tag.name} ({householdsCountLabel(availableTagCounts.get(tag.id) ?? 0)})
-                      </span>
-                      {selectedTagFilter === tag.id && (
-                        <IoMdCheckmark size={16} className='text-primary' />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {availableSides.length > 0 && (
-          <div ref={sideFilterRef}>
-            <div className='relative'>
-              <Button
-                variant='outline'
-                onClick={() => setShowSideDropdown((prev) => !prev)}
-                className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
-              >
-                {selectedSideFilter === null ? (
-                  <span>צד</span>
-                ) : (
-                  <span className='truncate'>{selectedSideLabel ?? selectedSideFilter}</span>
-                )}
-                <IoIosArrowDown size={16} />
-              </Button>
-              {showSideDropdown && (
-                <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-                  {availableSides.map((side) => (
-                    <button
-                      key={side.key}
-                      type='button'
-                      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsBySide(side.key)}
-                    >
-                      <span>
-                        {side.label} ({householdsCountLabel(side.count)})
-                      </span>
-                      {selectedSideFilter === side.key && (
-                        <IoMdCheckmark size={16} className='text-primary' />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {availableGroups.length > 0 && (
-          <div ref={groupFilterRef}>
-            <div className='relative'>
-              <Button
-                variant='outline'
-                onClick={() => setShowGroupDropdown((prev) => !prev)}
-                className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
-              >
-                {selectedGroupFilter === null ? (
-                  <span>קבוצה</span>
-                ) : (
-                  <span className='truncate'>{selectedGroupLabel ?? selectedGroupFilter}</span>
-                )}
-                <IoIosArrowDown size={16} />
-              </Button>
-              {showGroupDropdown && (
-                <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-                  {availableGroups.map((group) => (
-                    <button
-                      key={group.key}
-                      type='button'
-                      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsByGroup(group.key)}
-                    >
-                      <span>
-                        {group.label} ({householdsCountLabel(group.count)})
-                      </span>
-                      {selectedGroupFilter === group.key && (
-                        <IoMdCheckmark size={16} className='text-primary' />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div ref={countryFilterRef}>
-          <div className='relative'>
-            <Button
-              variant='outline'
-              onClick={() => setShowCountryDropdown((prev) => !prev)}
-              className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
-            >
-              {selectedCountryFilter === null ? (
-                <span>ארץ</span>
-              ) : (
-                <span className='truncate'>{selectedCountryFilter}</span>
-              )}
-              <IoIosArrowDown size={16} />
-            </Button>
-            {showCountryDropdown && (
-              <div className='absolute top-full start-0 z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
-                {availableCountries.length === 0 ? (
-                  <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו מדינות</p>
-                ) : (
-                  availableCountries.map((country) => (
-                    <button
-                      key={country}
-                      type='button'
-                      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsByCountry(country)}
-                    >
-                      <span>{country}</span>
-                      {selectedCountryFilter === country && (
-                        <IoMdCheckmark size={16} className='text-primary' />
-                      )}
-                    </button>
+                <option value=''>כל הסטטוסים</option>
+                {eventOptions.flatMap((event) =>
+                  Object.entries(RSVP_STATUS_LABELS).map(([value, label]) => (
+                    <option key={`${event.id}-${value}`} value={`${event.id}|${value}`}>
+                      {event.name}: {label}
+                    </option>
                   ))
                 )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {hasActiveFilters && (
-          <Button
-            variant='ghost'
-            size='sm'
-            className='font-sans text-primary text-sm normal-case tracking-normal'
-            onClick={clearAllFilters}
-          >
-            נקה סינון
-          </Button>
-        )}
+              </FilterSelect>
+              <FilterSelect
+                id='tag-filter'
+                label='תגית אורח'
+                value={filters.tagId ?? ''}
+                onChange={(value) => update('tagId', value || null)}
+              >
+                <option value=''>כל התגיות</option>
+                {tags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name} ({tagCounts.get(tag.id)})
+                  </option>
+                ))}
+              </FilterSelect>
+              <FilterSelect
+                id='side-filter'
+                label='צד'
+                value={filters.side ?? ''}
+                onChange={(value) => update('side', value || null)}
+              >
+                <option value=''>כל הצדדים</option>
+                {sides.map((side) => (
+                  <option key={side.key} value={side.key}>
+                    {side.label} (סה״כ {side.count} {side.count === 1 ? 'משק בית' : 'משקי בית'})
+                  </option>
+                ))}
+              </FilterSelect>
+              <FilterSelect
+                id='group-filter'
+                label='קבוצה'
+                value={filters.group ?? ''}
+                onChange={(value) => update('group', value || null)}
+              >
+                <option value=''>כל הקבוצות</option>
+                {groups.map((group) => (
+                  <option key={group.key} value={group.key}>
+                    {group.label} (סה״כ {group.count} {group.count === 1 ? 'משק בית' : 'משקי בית'})
+                  </option>
+                ))}
+              </FilterSelect>
+              <FilterSelect
+                id='country-filter'
+                label='ארץ'
+                value={filters.country ?? ''}
+                onChange={(value) => update('country', value || null)}
+              >
+                <option value=''>כל הארצות</option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </FilterSelect>
+            </div>
+            <div className='flex items-center justify-between border-t px-5 py-4'>
+              <p className='font-hebrew text-muted-foreground text-sm' aria-live='polite'>
+                מציג {filtered.length} מתוך {households.length} משקי בית
+              </p>
+              {hasActiveFilters ? (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  onClick={clearAll}
+                  className='min-h-11 font-hebrew'
+                >
+                  איפוס
+                </Button>
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
+        <p className='font-hebrew text-muted-foreground text-sm' aria-live='polite'>
+          מציג {filtered.length} מתוך {households.length} משקי בית
+        </p>
       </div>
-
-      {hasActiveFilters ? (
-        <div className='flex flex-wrap items-center gap-2'>
-          {searchInput ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => filterHouseholdsBySearch('')}
-            >
-              חיפוש: {searchInput} ×
-            </button>
-          ) : null}
-          {selectedRsvpFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedRsvpFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  null,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              סטטוס RSVP:{' '}
-              {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
-                selectedRsvpFilter.rsvpValue}
-              {selectedEventName ? ` (${selectedEventName})` : ''} ×
-            </button>
-          ) : null}
-          {selectedTagFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedTagFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  null,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              תגית: {selectedTagName ?? selectedTagFilter} ×
-            </button>
-          ) : null}
-          {selectedSideFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedSideFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  null,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              צד: {selectedSideLabel ?? selectedSideFilter} ×
-            </button>
-          ) : null}
-          {selectedGroupFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedGroupFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  null
-                )
-              }}
-            >
-              קבוצה: {selectedGroupLabel ?? selectedGroupFilter} ×
-            </button>
-          ) : null}
-          {selectedCountryFilter ? (
-            <button
-              type='button'
-              className='rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedCountryFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  null,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              ארץ: {selectedCountryFilter} ×
-            </button>
-          ) : null}
-        </div>
+      {chips.length > 0 ? (
+        <ul className='flex list-none flex-wrap gap-2 p-0' aria-label='סינונים פעילים'>
+          {chips.map((chip) => (
+            <li key={chip.key}>
+              <button
+                type='button'
+                onClick={() => update(chip.key, null)}
+                aria-label={`הסרת הסינון ${chip.label}`}
+                className='inline-flex min-h-11 items-center gap-1.5 rounded-full border bg-card px-3 font-hebrew text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              >
+                {chip.label}
+                <X className='h-3.5 w-3.5' aria-hidden='true' />
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : null}
     </div>
   )
 }
 
-type InvitationOptionProps = {
-  rsvpValue: string
-  eventId: string
-  setSelectedRsvpFilter: Dispatch<SetStateAction<TSelectedRsvpFilter | null>>
-  filterHouseholdsByInvitation: (filter: TSelectedRsvpFilter) => void
-  isSelected: boolean
-}
-
-const InvitationOption = ({
-  rsvpValue,
-  eventId,
-  setSelectedRsvpFilter,
-  filterHouseholdsByInvitation,
-  isSelected,
-}: InvitationOptionProps) => {
-  const handleChangeOption = () => {
-    setSelectedRsvpFilter({ eventId, rsvpValue })
-    filterHouseholdsByInvitation({ eventId, rsvpValue })
-  }
-
+function FilterSelect({
+  id,
+  label,
+  value,
+  onChange,
+  children,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  children: ReactNode
+}) {
   return (
-    <button
-      type='button'
-      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-      onClick={handleChangeOption}
-    >
-      <div className='flex items-center gap-1.5'>
-        <span className={`h-1.5 w-1.5 rounded-full ${sharedStyles.getRSVPcolor(rsvpValue)}`} />
-        <span>{RSVP_STATUS_LABELS[rsvpValue as RsvpStatus] ?? rsvpValue}</span>
-      </div>
-      {isSelected && <IoMdCheckmark size={16} className='text-primary' />}
-    </button>
+    <div className='space-y-2'>
+      <Label htmlFor={id} className='font-hebrew'>
+        {label}
+      </Label>
+      <select
+        id={id}
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className='min-h-11 w-full rounded-md border border-input bg-background px-3 font-hebrew text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+      >
+        {children}
+      </select>
+    </div>
   )
 }

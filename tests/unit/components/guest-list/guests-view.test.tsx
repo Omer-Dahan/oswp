@@ -456,6 +456,15 @@ const _householdsWithCountries: HouseholdWithGuests[] = [
   },
 ]
 
+const openGuestSearch = () => {
+  const existing = screen.queryByRole('textbox', { name: 'חיפוש לפי שם' })
+  if (existing) return existing
+  fireEvent.click(screen.getByRole('button', { name: /^סינון/ }))
+  return screen.getByRole('textbox', { name: 'חיפוש לפי שם' })
+}
+
+const closeGuestFilter = () => fireEvent.keyDown(document, { key: 'Escape' })
+
 describe('GuestsView', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -469,7 +478,7 @@ describe('GuestsView', () => {
     mockTagsData = []
   })
 
-  it('restores the view mode and clears it with reset', () => {
+  it('restores the view mode and allows switching through the single segmented control', () => {
     localStorage.setItem(
       'oswp:guest-list-view:wedding-1:v1',
       JSON.stringify({
@@ -491,10 +500,9 @@ describe('GuestsView', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).toHaveClass('bg-primary')
-    fireEvent.click(screen.getByRole('button', { name: 'איפוס תצוגה' }))
-    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).toHaveClass('bg-primary')
-    expect(localStorage.getItem('oswp:guest-list-view:wedding-1:v1')).toBeNull()
+    expect(screen.getByRole('button', { name: 'טבלה' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'כרטיסים' }))
+    expect(screen.getByRole('button', { name: 'כרטיסים' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('should save canonical household guest party when members modal is saved from a filtered list', async () => {
@@ -579,17 +587,17 @@ describe('GuestsView', () => {
       />
     )
 
-    expect(screen.getByPlaceholderText('חיפוש אורחים')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'סטטוס RSVP' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'תגית אורח' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'ארץ' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'משקי בית' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'ביקורת אנשים' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'מיון לפי שם' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'מיון לפי גודל קבוצה' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'תצוגת כרטיסים' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'תצוגת טבלה' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'הוספת אורח' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'סינון' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
+    expect(screen.getByRole('combobox', { name: 'סטטוס RSVP' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'תגית אורח' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'ארץ' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'ביקורת אנשים' })).not.toBeInTheDocument()
+    closeGuestFilter()
+    expect(screen.getByRole('button', { name: 'מיון: לפי שם' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'כרטיסים' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'טבלה' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'הוספת משק בית' })).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i })
     ).toBeInTheDocument()
@@ -622,8 +630,8 @@ describe('GuestsView', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('כלה (סה״כ 1 משק בית)'))
+    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'צד' }), { target: { value: 'כלה' } })
 
     const eventCounts = screen.getByText('4 אורחים הוזמנו:').parentElement
     expect(eventCounts).toHaveTextContent('3אורחים מגיעים')
@@ -631,7 +639,7 @@ describe('GuestsView', () => {
     expect(eventCounts).toHaveTextContent('1אורחים ללא מענה')
   })
 
-  it('should switch to person audit mode and show table headings', () => {
+  it('should switch to table mode and show table headings', () => {
     render(
       <GuestsView
         events={events}
@@ -643,7 +651,7 @@ describe('GuestsView', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'ביקורת אנשים' }))
+    fireEvent.click(screen.getByRole('button', { name: 'טבלה' }))
 
     expect(screen.getByRole('columnheader', { name: 'שם האורח' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'סטטוס' })).toBeInTheDocument()
@@ -661,15 +669,15 @@ describe('GuestsView', () => {
       />
     )
 
-    expect(screen.queryByRole('button', { name: 'נקה סינון' })).not.toBeInTheDocument()
-
-    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Brooke' } })
-
-    expect(screen.getByRole('button', { name: 'נקה סינון' })).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'נקה סינון' }))
-
-    expect(screen.queryByRole('button', { name: 'נקה סינון' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'סינון' }))
+    expect(screen.queryByRole('button', { name: 'איפוס' })).not.toBeInTheDocument()
+    fireEvent.change(screen.getByRole('textbox', { name: 'חיפוש לפי שם' }), {
+      target: { value: 'Brooke' },
+    })
+    expect(screen.getByRole('button', { name: 'איפוס' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'איפוס' }))
+    expect(screen.queryByRole('button', { name: 'איפוס' })).not.toBeInTheDocument()
+    closeGuestFilter()
     expect(
       screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i })
     ).toBeInTheDocument()
@@ -694,13 +702,12 @@ describe('GuestsView', () => {
       />
     )
 
-    const importButton = screen.getByRole('button', { name: 'ייבוא אורחים' })
-    const addButton = screen.getByRole('button', { name: 'הוספת אורח' })
-
+    fireEvent.keyDown(screen.getByRole('button', { name: 'פעולות נוספות' }), { key: 'ArrowDown' })
+    const importButton = screen.getByRole('menuitem', { name: 'ייבוא אורחים' })
     fireEvent.click(importButton)
+    const addButton = screen.getByRole('button', { name: 'הוספת משק בית' })
     fireEvent.click(addButton)
 
-    expect(importButton).toHaveAttribute('type', 'button')
     expect(addButton).toHaveAttribute('type', 'button')
     expect(onImportClick).toHaveBeenCalledTimes(1)
     expect(setPrefillHousehold).toHaveBeenCalledWith(undefined)
@@ -1041,7 +1048,8 @@ describe('GuestsView', () => {
 
     // Simulates a search/filter action rebuilding the list before the server
     // refresh triggered by the save has landed - the saved side must survive it.
-    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Alex' } })
+    fireEvent.change(openGuestSearch(), { target: { value: 'Alex' } })
+    closeGuestFilter()
 
     expect(screen.getByText('צד חתן')).toBeInTheDocument()
 
@@ -1111,9 +1119,7 @@ describe('GuestsView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
 
-    expect(
-      screen.queryByText('נוסף עצמאית מטופס אישור ההגעה הציבורי')
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('נוסף עצמאית מטופס אישור ההגעה הציבורי')).not.toBeInTheDocument()
   })
 
   it('should preserve dirty draft when save fails', () => {
@@ -1377,7 +1383,8 @@ describe('GuestsView', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Brooke' } })
+    fireEvent.change(openGuestSearch(), { target: { value: 'Brooke' } })
+    closeGuestFilter()
 
     expect(
       screen.queryByRole('button', { name: /בחירת משק הבית של alex rivera/i })
@@ -1399,7 +1406,8 @@ describe('GuestsView', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Chen' } })
+    fireEvent.change(openGuestSearch(), { target: { value: 'Chen' } })
+    closeGuestFilter()
 
     expect(
       screen.queryByRole('button', { name: /בחירת משק הבית של alex rivera/i })
@@ -1421,9 +1429,10 @@ describe('GuestsView', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), {
+    fireEvent.change(openGuestSearch(), {
       target: { value: 'Alex Rivera' },
     })
+    closeGuestFilter()
 
     expect(
       screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i })
@@ -1445,7 +1454,8 @@ describe('GuestsView', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'alex' } })
+    fireEvent.change(openGuestSearch(), { target: { value: 'alex' } })
+    closeGuestFilter()
 
     expect(
       screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i })
@@ -1470,17 +1480,20 @@ describe('GuestsView', () => {
     const householdButtons = () =>
       screen
         .getAllByRole('button', { name: /בחירת משק הבית של .*/i })
-        .map((node) => node.textContent)
+        .map((node) => node.getAttribute('aria-label'))
 
     expect(householdButtons()[0]).toContain('Alex Rivera')
 
-    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי שם' }))
+    fireEvent.keyDown(screen.getByRole('button', { name: 'מיון: לפי שם' }), { key: 'ArrowDown' })
+    fireEvent.click(screen.getByRole('menuitem', { name: 'לפי שם' }))
     expect(householdButtons()[0]).toContain('Alex Rivera')
 
-    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי שם' }))
+    fireEvent.keyDown(screen.getByRole('button', { name: 'מיון: לפי שם' }), { key: 'ArrowDown' })
+    fireEvent.click(screen.getByRole('menuitem', { name: 'לפי שם' }))
     expect(householdButtons()[0]).toContain('Brooke Chen')
 
-    fireEvent.click(screen.getByRole('button', { name: 'מיון לפי שם' }))
+    fireEvent.keyDown(screen.getByRole('button', { name: 'מיון: לפי שם' }), { key: 'ArrowDown' })
+    fireEvent.click(screen.getByRole('menuitem', { name: 'לפי שם' }))
     expect(householdButtons()[0]).toContain('Alex Rivera')
   })
 
@@ -1516,7 +1529,7 @@ describe('GuestsView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
 
-    // Change the slider value — the Radix Slider renders a hidden input
+    // Change the slider value. The Radix Slider renders a hidden input.
     const slider = screen.getByRole('slider')
     // Simulate changing the slider by setting aria-valuenow via keyboard
     fireEvent.keyDown(slider, { key: 'ArrowRight' })
