@@ -152,7 +152,40 @@ describe('GuestCard party count', () => {
 
     render(<GuestCard household={household} onSelectHousehold={jest.fn()} />)
 
-    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
-    expect(screen.getByText(/מתוך 2 שהוזמנו/)).toBeInTheDocument()
+    expect(screen.getByText('מגיע לחתונה').closest('div')).toHaveTextContent('1')
+    expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
+  })
+
+  it("uses the household's reported attending count over the named-guest count, and renders the plural copy", () => {
+    const household: HouseholdWithGuests = {
+      ...baseHousehold,
+      attendingCount: 2,
+      guests: [
+        {
+          ...baseHousehold.guests[0]!,
+          invitations: [
+            {
+              id: 'inv-1',
+              weddingId: 'wedding-1',
+              guestId: 1,
+              eventId: 'event-1',
+              rsvp: 'Attending',
+              dietaryRestrictions: null,
+              submittedBy: null,
+              submittedAt: null,
+              invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ],
+        },
+      ],
+    }
+
+    render(<GuestCard household={household} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('מגיעים לחתונה').closest('div')).toHaveTextContent('2')
+    expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
   })
 })

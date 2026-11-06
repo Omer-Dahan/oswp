@@ -148,8 +148,8 @@ describe('GuestCard', () => {
     expect(screen.getByText('Alex Rivera')).toBeInTheDocument()
     expect(screen.getAllByText('AR').length).toBeGreaterThan(0)
     // Alex is Attending, Jamie is still Invited: one arriving out of two invited.
-    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
-    expect(screen.getByText(/מתוך 2 שהוזמנו/)).toBeInTheDocument()
+    expect(screen.getByText('מגיע לחתונה').closest('div')).toHaveTextContent('1')
+    expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
   })
 
   it('uses selected styling when card is active', () => {
@@ -174,7 +174,7 @@ describe('GuestCard', () => {
     render(<GuestCard household={mockHouseholdWithTagAlong} onSelectHousehold={jest.fn()} />)
 
     // Both regular guest and tag-along are "Attending"
-    expect(screen.getByText('מגיעים').closest('div')).toHaveTextContent('2')
+    expect(screen.getByText('מגיעים לחתונה').closest('div')).toHaveTextContent('2')
   })
 
   it('should not count tag-alongs without invitations in RSVP summary', () => {
@@ -183,7 +183,7 @@ describe('GuestCard', () => {
     )
 
     // Only the regular guest has invitations
-    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
+    expect(screen.getByText('מגיע לחתונה').closest('div')).toHaveTextContent('1')
   })
 
   it('should not double-count a guest attending both the wedding and the chuppah', () => {
@@ -225,8 +225,8 @@ describe('GuestCard', () => {
 
     // Only one guest RSVPed Attending to the wedding; the chuppah invitation
     // must not add a second count.
-    expect(screen.getByText('מגיע').closest('div')).toHaveTextContent('1')
-    expect(screen.queryByText('2 מגיעים')).not.toBeInTheDocument()
+    expect(screen.getByText('מגיע לחתונה').closest('div')).toHaveTextContent('1')
+    expect(screen.queryByText('2 מגיעים לחתונה')).not.toBeInTheDocument()
     // attendingCount (1) matches the named wedding count (1), so it must not
     // be printed a second time as a confusing extra figure.
     expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
@@ -324,8 +324,8 @@ describe('GuestCard', () => {
 
     render(<GuestCard household={declinedHousehold} onSelectHousehold={jest.fn()} />)
 
-    expect(screen.getByText('לא מגיעים')).toBeInTheDocument()
-    expect(screen.getByText('מתוך 1 שהוזמן')).toBeInTheDocument()
+    expect(screen.getByText('לא מגיעים לחתונה')).toBeInTheDocument()
+    expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
     expect(screen.queryByText(/0 מגיעים/)).not.toBeInTheDocument()
   })
 
@@ -346,12 +346,40 @@ describe('GuestCard', () => {
   it('renders the arrival number at 22px', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
 
-    expect(screen.getByText('מגיע').closest('div')).toHaveClass('text-[22px]')
+    expect(screen.getByText('מגיע לחתונה').closest('div')).toHaveClass('text-[22px]')
   })
 
   it('never appends a "+N" suffix to the household name', () => {
     render(<GuestCard household={mockHousehold} onSelectHousehold={jest.fn()} />)
 
     expect(screen.queryByText(/\+\d/)).not.toBeInTheDocument()
+  })
+
+  it("uses the guest's own reported count over the named-guest count", () => {
+    const householdWithHigherReportedCount: HouseholdWithGuests = {
+      ...mockHousehold,
+      attendingCount: 2,
+      guests: [mockGuest0], // Only one named guest has an Attending row
+    }
+
+    render(
+      <GuestCard household={householdWithHigherReportedCount} onSelectHousehold={jest.fn()} />
+    )
+
+    expect(screen.getByText('מגיעים לחתונה').closest('div')).toHaveTextContent('2')
+    expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
+  })
+
+  it('shows the singular "מגיע לחתונה" when exactly one guest is arriving', () => {
+    const singleArrivalHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      attendingCount: 1,
+      guests: [mockGuest0],
+    }
+
+    render(<GuestCard household={singleArrivalHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('מגיע לחתונה').closest('div')).toHaveTextContent('1')
   })
 })

@@ -53,22 +53,10 @@ const resolveHouseholdWeddingEventId = (
   return eventIds.size === 1 ? [...eventIds][0] ?? null : null
 }
 
-/** Compact "1 לפי דיווח האורח · 2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
-const getRsvpPartyDetailsLabel = (
-  household: HouseholdWithGuests,
-  namedAttending: number,
-  weddingAnswered: boolean
-): string | null => {
+/** Compact "2 ילדים · תזונה" summary of what the guest reported on the RSVP flow. */
+const getRsvpPartyDetailsLabel = (household: HouseholdWithGuests): string | null => {
   const parts: string[] = []
 
-  // Only surfaced when the reception was actually answered and it adds
-  // information beyond the "X מגיעים" badge above (e.g. unnamed extra
-  // guests) - otherwise either a household that hasn't answered the
-  // reception, or the same headcount printed twice, reads as a mismatch
-  // rather than a confirmation.
-  if (weddingAnswered && household.attendingCount != null && household.attendingCount !== namedAttending) {
-    parts.push(`${household.attendingCount} לפי דיווח האורח`)
-  }
   if (household.childrenCount != null && household.childrenCount > 0) {
     parts.push(`${household.childrenCount} ילדים`)
   }
@@ -133,8 +121,14 @@ function GuestCardComponent({
 
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
-  const totalInvited = rsvpSummary.attending + rsvpSummary.invited + rsvpSummary.declined
   const weddingAnswered = rsvpSummary.attending > 0 || rsvpSummary.declined > 0
+  // A stored household count is the guest's own report and always wins over
+  // the count of named guests with an Attending row; a null count falls back
+  // to the named rows.
+  const arrivingCount =
+    household.attendingCount != null && household.attendingCount > 0
+      ? household.attendingCount
+      : rsvpSummary.attending
 
   // A household that answered only the chuppah gets its own arrival state
   // instead of reading as entirely unanswered (owner decision, 05.11.2026).
@@ -143,7 +137,7 @@ function GuestCardComponent({
   const isChuppahOnlyArrival =
     !weddingAnswered && weddingEvent !== null && chuppahEvent !== null && chuppahSummary.attending > 0
 
-  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household, rsvpSummary.attending, weddingAnswered)
+  const rsvpPartyDetailsLabel = getRsvpPartyDetailsLabel(household)
   const initials = getInitials(primaryGuestName)
   const handleSelect = useCallback(() => {
     onSelectHousehold(household)
@@ -191,17 +185,12 @@ function GuestCardComponent({
 
           <div className='pt-0.5 text-left leading-[1.05]'>
             {weddingAnswered && rsvpSummary.attending > 0 ? (
-              <>
-                <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
-                  {rsvpSummary.attending}
-                  <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
-                    {rsvpSummary.attending === 1 ? 'מגיע' : 'מגיעים'}
-                  </small>
-                </div>
-                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
-                  מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
-                </div>
-              </>
+              <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
+                {arrivingCount}
+                <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
+                  {arrivingCount === 1 ? 'מגיע לחתונה' : 'מגיעים לחתונה'}
+                </small>
+              </div>
             ) : isChuppahOnlyArrival ? (
               <>
                 <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
@@ -215,12 +204,7 @@ function GuestCardComponent({
                 </div>
               </>
             ) : weddingAnswered ? (
-              <>
-                <div className='pt-1 text-[19px] font-semibold text-[#a4553f]'>לא מגיעים</div>
-                <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
-                  מתוך {totalInvited} {totalInvited === 1 ? 'שהוזמן' : 'שהוזמנו'}
-                </div>
-              </>
+              <div className='pt-1 text-[19px] font-semibold text-[#a4553f]'>לא מגיעים לחתונה</div>
             ) : (
               <>
                 <div className='pt-1.5 text-[16px] font-medium text-[#a2937c]'>טרם השיבו</div>
