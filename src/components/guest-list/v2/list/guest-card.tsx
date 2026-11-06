@@ -208,10 +208,8 @@ function GuestCardComponent({
             ) : (
               <>
                 <div className='pt-1.5 text-[16px] font-medium text-[#a2937c]'>טרם השיבו</div>
-                {rsvpSummary.invited > 0 && (
-                  <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>
-                    {rsvpSummary.invited} {rsvpSummary.invited === 1 ? 'הוזמן' : 'הוזמנו'}
-                  </div>
+                {rsvpSummary.attending + rsvpSummary.invited + rsvpSummary.declined === 0 && (
+                  <div className='mt-1.5 whitespace-nowrap text-[12.5px] text-[#9a8f7c]'>לא הוזמן</div>
                 )}
               </>
             )}

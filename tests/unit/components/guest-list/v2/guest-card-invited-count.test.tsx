@@ -60,7 +60,7 @@ const baseHousehold: HouseholdWithGuests = {
 // feed the row view's InvitedAttendingLine) - so these cases exercise the
 // arrival-first states via guest invitations instead.
 describe('GuestCard party count', () => {
-  it('shows only the arrival state when there is no RSVP data to report an invited count from', () => {
+  it('shows "לא הוזמן" when there is no RSVP data to report an invited count from', () => {
     render(
       <GuestCard
         household={{ ...baseHousehold, invitedCount: null }}
@@ -68,13 +68,13 @@ describe('GuestCard party count', () => {
       />
     )
 
-    expect(screen.queryByText(/מוזמן/)).not.toBeInTheDocument()
     expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    expect(screen.getByText('לא הוזמן')).toBeInTheDocument()
     expect(screen.queryByText(/הוזמנו/)).not.toBeInTheDocument()
     expect(screen.queryByText(/מתוך/)).not.toBeInTheDocument()
   })
 
-  it('shows the invited total once guests are invited but have not answered', () => {
+  it('does not show an invited total once guests are invited but have not answered', () => {
     const guestsInvited = [1, 2].map((guestId) => ({
       ...baseHousehold.guests[0]!,
       id: guestId,
@@ -103,7 +103,8 @@ describe('GuestCard party count', () => {
     )
 
     expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
-    expect(screen.getByText(/2 הוזמנו/)).toBeInTheDocument()
+    expect(screen.queryByText(/הוזמנו/)).not.toBeInTheDocument()
+    expect(screen.queryByText('לא הוזמן')).not.toBeInTheDocument()
   })
 
   it('shows the arrival count alongside the invited total when some guests have answered', () => {

@@ -338,9 +338,22 @@ describe('GuestCard', () => {
     render(<GuestCard household={unansweredHousehold} onSelectHousehold={jest.fn()} />)
 
     expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
-    expect(screen.getByText('1 הוזמן')).toBeInTheDocument()
+    expect(screen.queryByText(/הוזמן/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/הוזמנו/)).not.toBeInTheDocument()
     expect(screen.queryByText(/0 מגיעים/)).not.toBeInTheDocument()
     expect(screen.queryByText(/מגיעים/)).not.toBeInTheDocument()
+  })
+
+  it('shows "לא הוזמן" when the household has no invitation rows at all', () => {
+    const notInvitedHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      guests: [{ ...mockGuest1, invitations: [] }],
+    }
+
+    render(<GuestCard household={notInvitedHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('טרם השיבו')).toBeInTheDocument()
+    expect(screen.getByText('לא הוזמן')).toBeInTheDocument()
   })
 
   it('renders the arrival number at 22px', () => {
