@@ -117,6 +117,31 @@ describe('buildKitchenReport', () => {
     expect(report.rows.find((row) => row.guestId === 3)?.dietaryNote).toBe('Kosher')
   })
 
+  it('costs the kitchen nothing for a household that attends only the chuppah (not EVENT_ID, the meal event)', () => {
+    // The owner's chuppah-only decline rule (05.11.2026) persists `Declined`
+    // on the wedding/meal invitation for these households — but this report
+    // already excluded them before that rule existed, since it only walks
+    // `Attending` invitations for `eventId`. Verified here, unchanged.
+    const households = [household({ id: 'h1' })]
+    const guests = [guest({ id: 1, householdId: 'h1' })]
+    const invitations = [
+      invitation({ guestId: 1, eventId: 'event-chuppah', rsvp: 'Attending' }),
+      invitation({ guestId: 1, eventId: EVENT_ID, rsvp: 'Declined' }),
+    ]
+
+    const report = buildKitchenReport({
+      households,
+      guests,
+      invitations,
+      tables: [],
+      assignments: [],
+      eventId: EVENT_ID,
+    })
+
+    expect(report.summary).toEqual({ attending: 0, meals: 0, children: 0, dietary: 0 })
+    expect(report.rows).toHaveLength(0)
+  })
+
   it('orders rows deterministically by table, then household, then guest name', () => {
     const households = [household({ id: 'h1' }), household({ id: 'h2' })]
     const guests = [

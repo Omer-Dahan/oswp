@@ -12,6 +12,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { logger } from '~/lib/observability/logger'
+import { getHouseholdEventStatus, resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import { deriveRsvpCounts } from '~/server/application/rsvp-submission/rsvp-counts'
 import type {
   SubmitPublicRsvpSchemaInput,
@@ -319,6 +320,8 @@ export class RsvpSubmissionService {
         })
       }
 
+      await this.applyChuppahOnlyDecline(tx, data.rsvpResponses as RsvpResponse[])
+
       for (const answer of data.answersToQuestions as AnswerToQuestion[]) {
         if (answer.questionType === 'Option') {
           await this.processOptionAnswer(txQuestionRepo, answer)
@@ -462,6 +465,66 @@ export class RsvpSubmissionService {
         submittedAt,
       }
     })
+  }
+
+  /**
+   * The owner's decision (05.11.2026): a household that confirmed the
+   * chuppah and hasn't answered the wedding is not coming to the wedding —
+   * persist that as an explicit `Declined` on the wedding invitation rather
+   * than leaving it `Invited` indefinitely. Runs after this submission's own
+   * rsvpResponses are written, so it reads the up-to-date chuppah/wedding
+   * status: an explicit wedding answer in *this* submission already moved
+   * weddingStatus away from 'Unanswered', and the rule leaves it alone — the
+   * same reason a later submission with a real wedding answer simply
+   * overwrites the derived row instead of being blocked by it.
+   * `updateMany` only touches rows still `rsvp: 'Invited'` and never sets
+   * `submittedAt`, so it stays NULL: the guest never said these words, the
+   * rule did, and a derived answer must not look like an audited one.
+   */
+  private async applyChuppahOnlyDecline(
+    tx: Prisma.TransactionClient,
+    responses: RsvpResponse[]
+  ): Promise<void> {
+    if (responses.length === 0) return
+
+    const guestIds = Array.from(new Set(responses.map((response) => response.guestId)))
+    const touchedGuests = await tx.guest.findMany({
+      where: { id: { in: guestIds } },
+      select: { householdId: true, weddingId: true },
+    })
+
+    const weddingIdByHousehold = new Map(
+      touchedGuests.map((guest) => [guest.householdId, guest.weddingId])
+    )
+
+    for (const [householdId, weddingId] of weddingIdByHousehold) {
+      const events = await tx.event.findMany({
+        where: { weddingId },
+        select: { id: true, name: true, isPrimary: true, collectRsvp: true },
+      })
+
+      const { weddingEvent, chuppahEvent } = resolveRsvpEvents(events)
+      if (!weddingEvent || !chuppahEvent) continue
+
+      const householdGuests = await tx.guest.findMany({
+        where: { householdId },
+        select: {
+          invitations: {
+            where: { eventId: { in: [chuppahEvent.id, weddingEvent.id] } },
+            select: { eventId: true, rsvp: true },
+          },
+        },
+      })
+
+      const chuppahStatus = getHouseholdEventStatus(householdGuests, chuppahEvent.id)
+      const weddingStatus = getHouseholdEventStatus(householdGuests, weddingEvent.id)
+      if (chuppahStatus !== 'Attending' || weddingStatus !== 'Unanswered') continue
+
+      await tx.invitation.updateMany({
+        where: { guest: { householdId }, eventId: weddingEvent.id, rsvp: 'Invited' },
+        data: { rsvp: 'Declined' },
+      })
+    }
   }
 
   private async processOptionAnswer(

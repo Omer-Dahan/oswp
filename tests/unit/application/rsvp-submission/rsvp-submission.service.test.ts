@@ -62,6 +62,7 @@ const createMockDb = () => {
     },
     invitation: {
       findMany: jest.fn().mockResolvedValue([]),
+      updateMany: jest.fn().mockResolvedValue({ count: 0 }),
     },
     guest: {
       findMany: jest.fn().mockResolvedValue([
@@ -78,6 +79,12 @@ const createMockDb = () => {
       // No count stored yet by default, so a derived count may backfill it —
       // tests that care about an already-stored count override this.
       findUnique: jest.fn().mockResolvedValue({ attendingCount: null, childrenCount: null }),
+    },
+    event: {
+      // No wedding-events shape by default, so the chuppah-only decline rule
+      // (needs a resolvable chuppah + wedding event pair) never fires unless
+      // a test opts in by overriding this.
+      findMany: jest.fn().mockResolvedValue([]),
     },
     rsvpSubmission: {
       create: jest.fn().mockResolvedValue({ id: 'submission-123' }),
@@ -685,6 +692,105 @@ describe('RsvpSubmissionService', () => {
       ['event-123'],
       []
     )
+  })
+
+  describe('chuppah-only decline (owner decision, 05.11.2026)', () => {
+    const CHUPPAH_EVENT = { id: 'event-chuppah', name: 'חופה', isPrimary: false, collectRsvp: true }
+    const WEDDING_EVENT = { id: 'event-wedding', name: 'החתונה', isPrimary: true, collectRsvp: true }
+
+    /** Stubs the per-household invitations lookup with a fixed chuppah/wedding state, leaving the guest-id lookup untouched. */
+    const stubHouseholdInvitations = (
+      invitations: Array<{ eventId: string; rsvp: string }>
+    ): void => {
+      mockDb.guest.findMany.mockImplementation((args: { where?: { householdId?: string } }) => {
+        if (args.where?.householdId) {
+          return Promise.resolve([{ invitations }])
+        }
+        return Promise.resolve([
+          {
+            id: 1,
+            weddingId: 'wedding-123',
+            householdId: 'household-123',
+            firstName: 'Ari',
+            lastName: 'Cohen',
+          },
+        ])
+      })
+    }
+
+    beforeEach(() => {
+      mockDb.event.findMany.mockResolvedValue([CHUPPAH_EVENT, WEDDING_EVENT])
+    })
+
+    it('declines the wedding invitation for a household attending only the chuppah', async () => {
+      stubHouseholdInvitations([
+        { eventId: CHUPPAH_EVENT.id, rsvp: 'Attending' },
+        { eventId: WEDDING_EVENT.id, rsvp: 'Invited' },
+      ])
+
+      await service.submitPublicRsvp(
+        {
+          subUrl: 'ash-and-jamie',
+          householdId: 'household-123',
+          rsvpResponses: [{ eventId: CHUPPAH_EVENT.id, guestId: 1, rsvp: 'Attending' }],
+          answersToQuestions: [],
+        },
+        '127.0.0.1'
+      )
+
+      // Declined without a submittedAt: the guest never answered the
+      // wedding event, the rule did, so no audit timestamp is fabricated.
+      expect(mockDb.invitation.updateMany).toHaveBeenCalledWith({
+        where: { guest: { householdId: 'household-123' }, eventId: WEDDING_EVENT.id, rsvp: 'Invited' },
+        data: { rsvp: 'Declined' },
+      })
+    })
+
+    it('leaves the wedding invitation alone when the household also answered the wedding event', async () => {
+      stubHouseholdInvitations([
+        { eventId: CHUPPAH_EVENT.id, rsvp: 'Attending' },
+        { eventId: WEDDING_EVENT.id, rsvp: 'Declined' },
+      ])
+      mockCountByWeddingAndGuestEventPairs.mockResolvedValue(2)
+
+      await service.submitPublicRsvp(
+        {
+          subUrl: 'ash-and-jamie',
+          householdId: 'household-123',
+          rsvpResponses: [
+            { eventId: CHUPPAH_EVENT.id, guestId: 1, rsvp: 'Attending' },
+            { eventId: WEDDING_EVENT.id, guestId: 1, rsvp: 'Declined' },
+          ],
+          answersToQuestions: [],
+        },
+        '127.0.0.1'
+      )
+
+      // An explicit wedding answer always wins - the derived decline must
+      // never touch it.
+      expect(mockDb.invitation.updateMany).not.toHaveBeenCalled()
+    })
+
+    it('does not re-decline a wedding invitation that a previous submission already derived', async () => {
+      stubHouseholdInvitations([
+        { eventId: CHUPPAH_EVENT.id, rsvp: 'Attending' },
+        { eventId: WEDDING_EVENT.id, rsvp: 'Declined' },
+      ])
+
+      await service.submitPublicRsvp(
+        {
+          subUrl: 'ash-and-jamie',
+          householdId: 'household-123',
+          rsvpResponses: [{ eventId: CHUPPAH_EVENT.id, guestId: 1, rsvp: 'Attending' }],
+          answersToQuestions: [],
+        },
+        '127.0.0.1'
+      )
+
+      // Idempotent: the wedding event is already Declined (not 'Invited'),
+      // so re-submitting the chuppah-only answer must not flip it again.
+      expect(mockDb.invitation.updateMany).not.toHaveBeenCalled()
+    })
   })
 
   it('rejects when the site is unknown or RSVP is disabled and no token is supplied', async () => {

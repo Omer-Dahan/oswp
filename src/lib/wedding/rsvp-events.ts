@@ -119,7 +119,10 @@ type PartialAnswerGuest = { invitations: Array<{ eventId: string; rsvp: string }
  * "Invited" (or has no invitation to it at all) - "Invited" alone is never
  * an answer.
  */
-function getHouseholdEventStatus(guests: PartialAnswerGuest[], eventId: string): HouseholdEventStatus {
+export function getHouseholdEventStatus(
+  guests: PartialAnswerGuest[],
+  eventId: string
+): HouseholdEventStatus {
   let declined = false
   for (const guest of guests) {
     const invitation = guest.invitations.find((invitation) => invitation.eventId === eventId)
