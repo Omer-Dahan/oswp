@@ -279,6 +279,23 @@ describe('GuestSearchFilter — grouped affiliation options', () => {
     ).toEqual(['סטטוס RSVP', 'תגית אורח', 'צד', 'קבוצה', 'ארץ'])
     mockTags = []
   })
+
+  it('has no active-filter-chips row when no filter is active', () => {
+    render(<Harness households={households} />)
+    expect(screen.queryByTestId('active-filter-chips')).not.toBeInTheDocument()
+  })
+
+  it('moves the active-filter chip out of the dropdown row and into its own row', () => {
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    fireEvent.click(screen.getByText('חתן (4)'))
+
+    const row = screen.getByTestId('affiliation-filter-row')
+    const chipsRow = screen.getByTestId('active-filter-chips')
+    expect(within(chipsRow).getByText(/^צד: חתן/)).toBeInTheDocument()
+    expect(within(row).queryByText(/^צד: חתן/)).not.toBeInTheDocument()
+  })
 })
 
 describe('GuestSearchFilter — tag option search', () => {
