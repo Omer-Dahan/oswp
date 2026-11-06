@@ -795,130 +795,130 @@ export default function GuestSearchFilter({
             </Button>
           </div>
         ) : null}
-      </div>
 
-      {hasActiveFilters ? (
-        <div
-          data-testid='active-filter-chips'
-          className='flex flex-wrap items-center justify-start gap-2'
-        >
-          {searchInput ? (
-            <button
-              type='button'
-              className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => filterHouseholdsBySearch('')}
-            >
-              חיפוש: {searchInput} ×
-            </button>
-          ) : null}
-          {selectedRsvpFilter ? (
-            <button
-              type='button'
-              className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedRsvpFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  null,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              סטטוס RSVP:{' '}
-              {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
-                selectedRsvpFilter.rsvpValue}
-              {selectedEventName ? ` (${selectedEventName})` : ''} ×
-            </button>
-          ) : null}
-          {selectedTagFilter ? (
-            <button
-              type='button'
-              className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedTagFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  null,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              תגית: {selectedTagName ?? selectedTagFilter} ×
-            </button>
-          ) : null}
-          {selectedSideFilter ? (
-            <button
-              type='button'
-              className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedSideFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  null,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              צד: {selectedSideLabel ?? selectedSideFilter} ×
-            </button>
-          ) : null}
-          {selectedGroupFilter ? (
-            <button
-              type='button'
-              className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedGroupFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  selectedCountryFilter,
-                  selectedSideFilter,
-                  null
-                )
-              }}
-            >
-              קבוצה: {selectedGroupLabel ?? selectedGroupFilter} ×
-            </button>
-          ) : null}
-          {selectedCountryFilter ? (
-            <button
-              type='button'
-              className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-              onClick={() => {
-                setSelectedCountryFilter(null)
-                filterHouseholds(
-                  searchInput,
-                  selectedRsvpFilter,
-                  selectedTagFilter,
-                  null,
-                  selectedSideFilter,
-                  selectedGroupFilter
-                )
-              }}
-            >
-              ארץ: {selectedCountryFilter} ×
-            </button>
-          ) : null}
-          <Button
-            variant='ghost'
-            size='sm'
-            className='shrink-0 font-sans text-primary text-sm normal-case tracking-normal'
-            onClick={clearAllFilters}
+        {hasActiveFilters ? (
+          <div
+            data-testid='active-filter-chips'
+            className='flex min-w-0 flex-1 flex-wrap items-center justify-start gap-2'
           >
-            איפוס
-          </Button>
-        </div>
-      ) : null}
+            {searchInput ? (
+              <button
+                type='button'
+                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => filterHouseholdsBySearch('')}
+              >
+                חיפוש: {searchInput} ×
+              </button>
+            ) : null}
+            {selectedRsvpFilter ? (
+              <button
+                type='button'
+                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedRsvpFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    null,
+                    selectedTagFilter,
+                    selectedCountryFilter,
+                    selectedSideFilter,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                סטטוס RSVP:{' '}
+                {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
+                  selectedRsvpFilter.rsvpValue}
+                {selectedEventName ? ` (${selectedEventName})` : ''} ×
+              </button>
+            ) : null}
+            {selectedTagFilter ? (
+              <button
+                type='button'
+                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedTagFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    null,
+                    selectedCountryFilter,
+                    selectedSideFilter,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                תגית: {selectedTagName ?? selectedTagFilter} ×
+              </button>
+            ) : null}
+            {selectedSideFilter ? (
+              <button
+                type='button'
+                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedSideFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    selectedTagFilter,
+                    selectedCountryFilter,
+                    null,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                צד: {selectedSideLabel ?? selectedSideFilter} ×
+              </button>
+            ) : null}
+            {selectedGroupFilter ? (
+              <button
+                type='button'
+                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedGroupFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    selectedTagFilter,
+                    selectedCountryFilter,
+                    selectedSideFilter,
+                    null
+                  )
+                }}
+              >
+                קבוצה: {selectedGroupLabel ?? selectedGroupFilter} ×
+              </button>
+            ) : null}
+            {selectedCountryFilter ? (
+              <button
+                type='button'
+                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                onClick={() => {
+                  setSelectedCountryFilter(null)
+                  filterHouseholds(
+                    searchInput,
+                    selectedRsvpFilter,
+                    selectedTagFilter,
+                    null,
+                    selectedSideFilter,
+                    selectedGroupFilter
+                  )
+                }}
+              >
+                ארץ: {selectedCountryFilter} ×
+              </button>
+            ) : null}
+            <Button
+              variant='ghost'
+              size='sm'
+              className='shrink-0 font-sans text-primary text-sm normal-case tracking-normal'
+              onClick={clearAllFilters}
+            >
+              איפוס
+            </Button>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

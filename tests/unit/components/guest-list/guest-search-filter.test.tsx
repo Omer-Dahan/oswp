@@ -285,7 +285,7 @@ describe('GuestSearchFilter — grouped affiliation options', () => {
     expect(screen.queryByTestId('active-filter-chips')).not.toBeInTheDocument()
   })
 
-  it('moves the active-filter chip out of the dropdown row and into its own row', () => {
+  it('renders the active-filter chips inline inside the dropdown row', () => {
     render(<Harness households={households} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
@@ -293,8 +293,8 @@ describe('GuestSearchFilter — grouped affiliation options', () => {
 
     const row = screen.getByTestId('affiliation-filter-row')
     const chipsRow = screen.getByTestId('active-filter-chips')
+    expect(row).toContainElement(chipsRow)
     expect(within(chipsRow).getByText(/^צד: חתן/)).toBeInTheDocument()
-    expect(within(row).queryByText(/^צד: חתן/)).not.toBeInTheDocument()
   })
 })
 
