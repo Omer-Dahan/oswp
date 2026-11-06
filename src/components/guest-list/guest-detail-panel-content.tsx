@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import type { Event } from '~/app/utils/shared-types'
+import { parseOptionalCountInput } from '~/components/forms/guest-form.utils'
 import {
   SideGroupCombobox,
   useHouseholdSideGroupOptions,
@@ -339,6 +340,8 @@ export function GuestDetailPanelContent(props: Readonly<GuestDetailPanelContentP
           rsvpManageHref={rsvpManageHref}
         />
 
+        <GuestCountsSection selectedHousehold={selectedHousehold} />
+
         <AnswersSection answers={householdAnswers} isLoading={isLoadingAnswers} />
 
         <RsvpPartyDetailsSection selectedHousehold={selectedHousehold} />
@@ -503,6 +506,140 @@ function InvitationRsvpSelect(props: Readonly<InvitationRsvpSelectProps>) {
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+type GuestCountsSectionProps = {
+  selectedHousehold: HouseholdWithGuests
+}
+
+function GuestCountsSection(props: Readonly<GuestCountsSectionProps>) {
+  const { selectedHousehold } = props
+  const householdId = selectedHousehold.id
+  const invitedCount = selectedHousehold.invitedCount
+  const attendingCount = selectedHousehold.attendingCount
+  const utils = api.useUtils()
+  const router = useRouter()
+  const [isEditing, setIsEditing] = useState(false)
+  const [invitedInput, setInvitedInput] = useState('')
+  const [attendingInput, setAttendingInput] = useState('')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const updateHousehold = api.household.update.useMutation({
+    onSuccess: () => {
+      setIsEditing(false)
+      setErrorMessage(null)
+      void utils.dashboard.getForActiveWorkspace.invalidate()
+      router.refresh()
+    },
+    onError: () => {
+      setErrorMessage('שמירת מספר המגיעים נכשלה. נסו שוב.')
+    },
+  })
+
+  const handleStartEdit = () => {
+    setInvitedInput(invitedCount != null ? String(invitedCount) : '')
+    setAttendingInput(attendingCount != null ? String(attendingCount) : '')
+    setErrorMessage(null)
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setErrorMessage(null)
+    setIsEditing(false)
+  }
+
+  const handleSave = () => {
+    const anyGuestId = selectedHousehold.guests[0]?.id
+    updateHousehold.mutate({
+      householdId,
+      invitedCount: Number(invitedInput),
+      attendingCount: parseOptionalCountInput(attendingInput),
+      guestParty: anyGuestId !== undefined ? [{ guestId: anyGuestId, invites: {} }] : [],
+      gifts: [],
+    })
+  }
+
+  if (isEditing) {
+    return (
+      <GuestDetailSection title='מספר מגיעים' contentClassName='space-y-3'>
+        <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+          <label className='space-y-1'>
+            <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
+              מספר מוזמנים
+            </span>
+            <input
+              id='drawer-invited-count'
+              type='number'
+              inputMode='numeric'
+              min={1}
+              max={30}
+              value={invitedInput}
+              onChange={(event) => setInvitedInput(event.target.value)}
+              className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
+            />
+          </label>
+          <div className='space-y-1'>
+            <label className='space-y-1' htmlFor='drawer-attending-count'>
+              <span className='font-mono text-[0.55rem] text-foreground/55 uppercase tracking-widest'>
+                כמה יגיעו בפועל
+              </span>
+            </label>
+            <input
+              id='drawer-attending-count'
+              type='number'
+              inputMode='numeric'
+              min={0}
+              max={50}
+              value={attendingInput}
+              onChange={(event) => setAttendingInput(event.target.value)}
+              className='h-9 w-full rounded-md border border-border/70 bg-background px-2.5 text-sm'
+            />
+            <span className='block text-[0.7rem] text-foreground/55'>
+              עדכון כאן לא משנה את האישור של האורח
+            </span>
+          </div>
+        </div>
+        {errorMessage ? <p className='text-destructive text-sm'>{errorMessage}</p> : null}
+        <div className='flex gap-2'>
+          <button
+            type='button'
+            onClick={handleSave}
+            disabled={updateHousehold.isPending}
+            className='rounded-md border border-primary/30 bg-primary/10 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/20 disabled:opacity-50'
+          >
+            שמירה
+          </button>
+          <button
+            type='button'
+            onClick={handleCancel}
+            className='rounded-md border border-border/70 px-2 py-1 font-medium text-foreground/70 text-xs hover:bg-muted'
+          >
+            ביטול
+          </button>
+        </div>
+      </GuestDetailSection>
+    )
+  }
+
+  return (
+    <GuestDetailSection
+      title='מספר מגיעים'
+      action={
+        <button
+          type='button'
+          onClick={handleStartEdit}
+          className='rounded-md border border-border/70 px-2 py-1 font-medium text-primary text-xs hover:bg-primary/5'
+          aria-label='עריכת מספר מגיעים'
+        >
+          עריכה
+        </button>
+      }
+    >
+      <p className='text-foreground/85 text-sm'>
+        מוזמן {invitedCount ?? 'לא צוין'} · מגיע {attendingCount ?? 'לא צוין'}
+      </p>
+    </GuestDetailSection>
   )
 }
 
