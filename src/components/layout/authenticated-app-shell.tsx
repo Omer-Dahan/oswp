@@ -56,7 +56,7 @@ export default function AuthenticatedAppShell(props: Readonly<AuthenticatedAppSh
     }
 
     const saved = localStorage.getItem('etta-panel-open')
-    setIsEttaPanelOpen(saved ? saved === 'true' : true)
+    setIsEttaPanelOpen(saved === 'true')
   }, [showEttaPanel])
 
   const toggleEttaPanel = useCallback(() => {

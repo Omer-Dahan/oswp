@@ -21,9 +21,11 @@ jest.mock('~/components/etta/EttaChat', () => ({
 describe('AuthenticatedAppShell', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    localStorage.clear()
   })
 
   it('passes Etta availability into the chat panel', () => {
+    localStorage.setItem('etta-panel-open', 'true')
     render(
       <AuthenticatedAppShell showEttaPanel weddingId='wedding-1' isEttaConfigured={false}>
         <div>Content</div>
@@ -38,5 +40,37 @@ describe('AuthenticatedAppShell', () => {
         isConfigured: false,
       })
     )
+  })
+
+  it('keeps the panel closed by default when nothing is stored', () => {
+    render(
+      <AuthenticatedAppShell showEttaPanel weddingId='wedding-1' isEttaConfigured={false}>
+        <div>Content</div>
+      </AuthenticatedAppShell>
+    )
+
+    expect(screen.queryByTestId('etta-chat')).not.toBeInTheDocument()
+  })
+
+  it('opens the panel when etta-panel-open is stored as true', () => {
+    localStorage.setItem('etta-panel-open', 'true')
+    render(
+      <AuthenticatedAppShell showEttaPanel weddingId='wedding-1' isEttaConfigured={false}>
+        <div>Content</div>
+      </AuthenticatedAppShell>
+    )
+
+    expect(screen.getAllByTestId('etta-chat')).toHaveLength(2)
+  })
+
+  it('keeps the panel closed when etta-panel-open is stored as false', () => {
+    localStorage.setItem('etta-panel-open', 'false')
+    render(
+      <AuthenticatedAppShell showEttaPanel weddingId='wedding-1' isEttaConfigured={false}>
+        <div>Content</div>
+      </AuthenticatedAppShell>
+    )
+
+    expect(screen.queryByTestId('etta-chat')).not.toBeInTheDocument()
   })
 })
