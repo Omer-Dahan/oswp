@@ -47,6 +47,7 @@ export type CreateHouseholdWithGuestsInput = {
   likelihoodOfAttending?: number | null
   notes?: string | null
   invitedCount?: number | null
+  attendingCount?: number | null
   side?: string | null
   groupName?: string | null
   phoneAlt?: string | null
@@ -72,6 +73,7 @@ export type UpdateHouseholdWithGuestsInput = {
   // creation time and never changed afterwards - the UI showed a success
   // message and the database kept the old value (owner report, 2026-11-03).
   invitedCount?: number | null
+  attendingCount?: number | null
   side?: string | null
   groupName?: string | null
   phoneAlt?: string | null

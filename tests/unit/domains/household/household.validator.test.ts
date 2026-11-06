@@ -260,6 +260,56 @@ describe('createHouseholdSchema', () => {
     const result = createHouseholdSchema.safeParse(input)
     expect(result.success).toBe(true)
   })
+
+  it('keeps an attendingCount of 0 as 0 — unlike invitedCount, 0 is a real, confirmed answer', () => {
+    const input = {
+      guestParty: [
+        { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+      ],
+      attendingCount: 0,
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.attendingCount).toBe(0)
+  })
+
+  it('accepts a missing attendingCount as undefined — "no number known yet"', () => {
+    const input = {
+      guestParty: [
+        { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+      ],
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.attendingCount).toBeUndefined()
+  })
+
+  it('accepts an explicit null attendingCount, distinct from 0 or missing', () => {
+    const input = {
+      guestParty: [
+        { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+      ],
+      attendingCount: null,
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.attendingCount).toBeNull()
+  })
+
+  it('rejects an attendingCount outside the 0 to 50 range', () => {
+    const input = {
+      guestParty: [
+        { firstName: 'John', lastName: 'Doe', isPrimaryContact: true, invites: {} },
+      ],
+      attendingCount: 51,
+    }
+
+    const result = createHouseholdSchema.safeParse(input)
+    expect(result.success).toBe(false)
+  })
 })
 
 describe('createHouseholdManualSchema — the guest-list "add household" form', () => {

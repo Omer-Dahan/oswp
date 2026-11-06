@@ -20,7 +20,10 @@ import {
   type HouseholdFormData,
   householdFormResolver,
 } from '~/components/forms/guest-form.schema'
-import { shouldShowUnsavedCloseConfirm } from '~/components/forms/guest-form.utils'
+import {
+  parseOptionalCountInput,
+  shouldShowUnsavedCloseConfirm,
+} from '~/components/forms/guest-form.utils'
 import SidePaneWrapper from '~/components/forms/wrapper'
 import { SelfInviteLinkManager } from '~/components/guest-list/self-invite-link-manager'
 import {
@@ -315,24 +318,49 @@ export default function GuestForm({ events, prefillFormData }: GuestFormProps) {
           )}
 
           <div className='border-b bg-muted/10 px-6 py-4'>
-            <Label htmlFor='invitedCount'>מספר מוזמנים</Label>
-            <Input
-              id='invitedCount'
-              type='number'
-              inputMode='numeric'
-              min={1}
-              max={30}
-              placeholder='כמה מוזמנים במשק הבית?'
-              {...register('invitedCount', { valueAsNumber: true })}
-              className={errors.invitedCount ? 'mt-2 border-destructive' : 'mt-2'}
-            />
-            {errors.invitedCount ? (
-              <p className='mt-1 text-destructive text-sm'>{errors.invitedCount.message}</p>
-            ) : (
-              <p className='mt-1 text-muted-foreground text-xs'>
-                מספר מוזמנים בלבד, לא מסמן הגעה, נשאר לא השיב
-              </p>
-            )}
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <div>
+                <Label htmlFor='invitedCount'>מספר מוזמנים</Label>
+                <Input
+                  id='invitedCount'
+                  type='number'
+                  inputMode='numeric'
+                  min={1}
+                  max={30}
+                  placeholder='כמה מוזמנים במשק הבית?'
+                  {...register('invitedCount', { valueAsNumber: true })}
+                  className={errors.invitedCount ? 'mt-2 border-destructive' : 'mt-2'}
+                />
+                {errors.invitedCount ? (
+                  <p className='mt-1 text-destructive text-sm'>{errors.invitedCount.message}</p>
+                ) : (
+                  <p className='mt-1 text-muted-foreground text-xs'>
+                    מספר מוזמנים בלבד, לא מסמן הגעה, נשאר לא השיב
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor='attendingCount'>כמה יגיעו בפועל</Label>
+                <Input
+                  id='attendingCount'
+                  type='number'
+                  inputMode='numeric'
+                  min={0}
+                  max={50}
+                  placeholder='אם ידוע כבר'
+                  {...register('attendingCount', { setValueAs: parseOptionalCountInput })}
+                  className={errors.attendingCount ? 'mt-2 border-destructive' : 'mt-2'}
+                />
+                {errors.attendingCount ? (
+                  <p className='mt-1 text-destructive text-sm'>{errors.attendingCount.message}</p>
+                ) : (
+                  <p className='mt-1 text-muted-foreground text-xs'>
+                    עדכון כאן לא משנה את האישור של האורח
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           <Accordion

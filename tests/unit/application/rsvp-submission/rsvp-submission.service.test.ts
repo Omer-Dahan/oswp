@@ -553,6 +553,33 @@ describe('RsvpSubmissionService', () => {
     )
   })
 
+  it("overwrites an admin-corrected attendingCount once the guest submits their own explicit count", async () => {
+    // Owner's decision 06.11.2026: an admin may fix the household's
+    // attendingCount by hand (e.g. "8" was wrong, should be "4"). That manual
+    // edit must not block the guest's own answer from winning once they
+    // actually submit - there's no marker distinguishing an admin-written
+    // value from any other stored value, so the normal explicit-wins rule
+    // (see resolveHouseholdCountWrite) already covers this.
+    mockDb.household.findUnique.mockResolvedValueOnce({ attendingCount: 4, childrenCount: 0 })
+
+    await service.submitPublicRsvp(
+      {
+        subUrl: 'ash-and-jamie',
+        householdId: 'household-123',
+        rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],
+        answersToQuestions: [],
+        attendingCount: 2,
+        childrenCount: 0,
+      },
+      '127.0.0.1'
+    )
+
+    expect(mockUpdateRsvpPartyDetails).toHaveBeenCalledWith(
+      'household-123',
+      expect.objectContaining({ attendingCount: 2, childrenCount: 0 })
+    )
+  })
+
   it('records the admin source for managed submissions', async () => {
     await service.submitManagedRsvp(actorContext, 'wedding-123', {
       rsvpResponses: [{ eventId: 'event-123', guestId: 1, rsvp: 'Attending' }],

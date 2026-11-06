@@ -17,7 +17,10 @@ import {
   HouseholdFormSchema,
   householdFormResolver,
 } from '~/components/forms/guest-form.schema'
-import { shouldShowUnsavedCloseConfirm } from '~/components/forms/guest-form.utils'
+import {
+  parseOptionalCountInput,
+  shouldShowUnsavedCloseConfirm,
+} from '~/components/forms/guest-form.utils'
 
 // Mock events for form initialization
 const mockEvents = [
@@ -1104,5 +1107,96 @@ describe('GuestForm - Mandatory Invitee Count', () => {
 
     expect(isValid).toBe(true)
     expect(result.current.formState.errors.invitedCount).toBeUndefined()
+  })
+})
+
+describe('GuestForm - Attending Count (admin-editable, optional)', () => {
+  it('parseOptionalCountInput clears an emptied input to null, not 0 or NaN', () => {
+    expect(parseOptionalCountInput('')).toBeNull()
+    expect(parseOptionalCountInput('0')).toBe(0)
+    expect(parseOptionalCountInput('4')).toBe(4)
+  })
+
+  it('accepts a missing attendingCount - it is optional, unlike invitedCount', async () => {
+    const { result } = renderHook(() => {
+      const form = useForm<HouseholdFormData>({
+        resolver: householdFormResolver,
+        defaultValues: getDefaultHouseholdFormData(mockEvents),
+      })
+      void form.formState.errors
+      return form
+    })
+
+    act(() => {
+      result.current.setValue('guestParty.0.firstName', 'John')
+      result.current.setValue('guestParty.0.lastName', 'Doe')
+      result.current.setValue('guestParty.0.isPrimaryContact', true)
+      result.current.setValue('invitedCount', 4)
+    })
+
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(true)
+    expect(result.current.formState.errors.attendingCount).toBeUndefined()
+  })
+
+  it('accepts clearing attendingCount to null on an edit where a guest already answered', async () => {
+    const { result } = renderHook(() => {
+      const form = useForm<HouseholdFormData>({
+        resolver: householdFormResolver,
+        defaultValues: {
+          ...getDefaultHouseholdFormData(mockEvents),
+          householdId: 'household-123',
+          invitedCount: 8,
+          attendingCount: 8,
+          guestParty: [
+            {
+              guestId: 1,
+              firstName: 'John',
+              lastName: 'Doe',
+              isPrimaryContact: true,
+              invites: { 'event-1': 'Attending' },
+            },
+          ],
+        },
+      })
+      void form.formState.errors
+      return form
+    })
+
+    act(() => {
+      result.current.setValue('attendingCount', parseOptionalCountInput(''))
+    })
+
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(true)
+    expect(result.current.getValues('attendingCount')).toBeNull()
+    // Clearing the number must not touch the guest's own RSVP status.
+    expect(result.current.getValues('guestParty.0.invites.event-1')).toBe('Attending')
+  })
+
+  it('rejects an attendingCount outside the 0 to 50 range', async () => {
+    const { result } = renderHook(() => {
+      const form = useForm<HouseholdFormData>({
+        resolver: householdFormResolver,
+        defaultValues: getDefaultHouseholdFormData(mockEvents),
+      })
+      void form.formState.errors
+      return form
+    })
+
+    act(() => {
+      result.current.setValue('guestParty.0.firstName', 'John')
+      result.current.setValue('guestParty.0.lastName', 'Doe')
+      result.current.setValue('guestParty.0.isPrimaryContact', true)
+      result.current.setValue('invitedCount', 4)
+      result.current.setValue('attendingCount', 51)
+    })
+
+    const isValid = await act(async () => result.current.trigger())
+
+    expect(isValid).toBe(false)
+    expect(result.current.formState.errors.attendingCount).toBeDefined()
   })
 })

@@ -287,6 +287,7 @@ export class HouseholdRepository {
       likelihoodOfAttending?: number | null
       notes?: string | null
       invitedCount?: number | null
+      attendingCount?: number | null
       side?: string | null
       groupName?: string | null
       phoneAlt?: string | null
@@ -306,6 +307,7 @@ export class HouseholdRepository {
         likelihoodOfAttending: data.likelihoodOfAttending,
         notes: data.notes,
         invitedCount: data.invitedCount,
+        attendingCount: data.attendingCount,
         side: data.side,
         groupName: data.groupName,
         phoneAlt: data.phoneAlt,
@@ -359,6 +361,7 @@ export class HouseholdRepository {
       groupName?: string | null
       phoneAlt?: string | null
       invitedCount?: number | null
+      attendingCount?: number | null
       expectedCheck?: number | null
     }
   ): Promise<Household> {
@@ -377,6 +380,7 @@ export class HouseholdRepository {
         groupName: keepNullable(data.groupName),
         phoneAlt: keepNullable(data.phoneAlt),
         invitedCount: keepNullable(data.invitedCount),
+        attendingCount: keepNullable(data.attendingCount),
         expectedCheck: keepNullable(data.expectedCheck),
       },
     })

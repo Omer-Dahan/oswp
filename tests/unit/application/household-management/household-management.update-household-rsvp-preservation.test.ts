@@ -49,7 +49,13 @@ type FakeGuest = {
   isTagAlong: boolean
 }
 
-type FakeInvitation = { guestId: number; eventId: string; rsvp: string; weddingId: string }
+type FakeInvitation = {
+  guestId: number
+  eventId: string
+  rsvp: string
+  weddingId: string
+  submittedAt?: string | null
+}
 
 // A tiny in-memory stand-in for Prisma, covering only the guest/invitation
 // calls this flow makes, so GuestRepository and InvitationRepository can run
@@ -309,6 +315,68 @@ describe('updateHouseholdWithGuests: RSVPs survive a household-details-only edit
       ])
     )
     expect(invitationStore).toHaveLength(2)
+  })
+
+  it('correcting attendingCount from the admin form leaves an existing Attending invitation and its submittedAt untouched', async () => {
+    // Owner's decision 06.11.2026: fixing the "how many are actually coming"
+    // number after a guest already answered must not re-confirm, decline, or
+    // otherwise rewrite that guest's own RSVP (including when it was submitted).
+    const { fakeDb, invitationStore } = createFakeDb(
+      [
+        {
+          id: 1,
+          firstName: 'John',
+          lastName: 'Doe',
+          email: null,
+          phone: null,
+          householdId,
+          weddingId,
+          isPrimaryContact: true,
+          ageGroup: 'ADULT',
+          isTagAlong: false,
+        },
+      ],
+      [
+        {
+          guestId: 1,
+          eventId: 'event-1',
+          rsvp: 'Attending',
+          weddingId,
+          submittedAt: '2026-10-01T00:00:00.000Z',
+        },
+      ]
+    )
+    const service = buildService(fakeDb)
+
+    await service.updateHouseholdWithGuests(authz, weddingId, {
+      householdId,
+      attendingCount: 4,
+      guestParty: [
+        {
+          guestId: 1,
+          firstName: 'John',
+          lastName: 'Doe',
+          isPrimaryContact: true,
+          invites: {},
+        },
+      ],
+      gifts: [],
+    })
+
+    expect(fakeDb.invitation.update).not.toHaveBeenCalled()
+    expect(invitationStore).toEqual([
+      {
+        guestId: 1,
+        eventId: 'event-1',
+        rsvp: 'Attending',
+        weddingId,
+        submittedAt: '2026-10-01T00:00:00.000Z',
+      },
+    ])
+    expect(mockHouseholdUpdate).toHaveBeenCalledWith(
+      householdId,
+      expect.objectContaining({ attendingCount: 4 })
+    )
   })
 
   it('an explicit RSVP change sent for an existing guest still writes', async () => {

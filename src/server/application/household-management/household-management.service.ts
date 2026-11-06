@@ -118,6 +118,7 @@ export class HouseholdManagementService {
           likelihoodOfAttending: data.likelihoodOfAttending,
           notes: data.notes,
           invitedCount: data.invitedCount,
+          attendingCount: data.attendingCount,
           side: data.side,
           groupName: data.groupName,
           phoneAlt: data.phoneAlt,
@@ -251,6 +252,7 @@ export class HouseholdManagementService {
         groupName: data.groupName,
         phoneAlt: data.phoneAlt,
         invitedCount: data.invitedCount,
+        attendingCount: data.attendingCount,
         expectedCheck: data.expectedCheck,
       })
 

@@ -33,6 +33,31 @@ describe('HouseholdRepository.update', () => {
     expect(data.groupName).toBeUndefined()
     expect(data.notes).toBeUndefined()
   })
+
+  it('corrects an imported invitedCount from 4 to 3 without touching attendingCount', async () => {
+    await repository.update('household-1', { invitedCount: 3 })
+
+    const data = mockHouseholdUpdate.mock.calls[0]?.[0]?.data
+    expect(data.invitedCount).toBe(3)
+    expect(data.attendingCount).toBeUndefined()
+  })
+
+  it('writes an admin-corrected attendingCount alongside other fields', async () => {
+    await repository.update('household-1', { attendingCount: 4 })
+
+    expect(mockHouseholdUpdate).toHaveBeenCalledWith({
+      where: { id: 'household-1' },
+      data: expect.objectContaining({ attendingCount: 4 }),
+    })
+  })
+
+  it('clears attendingCount to null (not 0) when the admin empties the field', async () => {
+    await repository.update('household-1', { attendingCount: null })
+
+    const data = mockHouseholdUpdate.mock.calls[0]?.[0]?.data
+    expect(data.attendingCount).toBeNull()
+    expect(data.invitedCount).toBeUndefined()
+  })
 })
 
 describe('HouseholdRepository.search', () => {

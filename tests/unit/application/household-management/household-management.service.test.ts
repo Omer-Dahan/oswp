@@ -224,7 +224,7 @@ describe('HouseholdManagementService', () => {
     )
   })
 
-  it('writes the mandatory invitedCount on create without touching attendingCount or any RSVP', async () => {
+  it('writes the mandatory invitedCount on create without touching any RSVP', async () => {
     // Owner's decision 04.11.2026: the guest-form's mandatory invitee count
     // records only how many were invited - it must never mark anyone as
     // having answered, so the household's status stays "לא השיב".
@@ -236,12 +236,33 @@ describe('HouseholdManagementService', () => {
     })
 
     expect(mockCreateWithGifts).toHaveBeenCalledWith(
-      expect.objectContaining({ invitedCount: 4 }),
+      expect.objectContaining({ invitedCount: 4, attendingCount: undefined }),
       ['event-123']
     )
-    const createHouseholdArg = mockCreateWithGifts.mock.calls[0]?.[0]
-    expect(createHouseholdArg).not.toHaveProperty('attendingCount')
 
+    expect(mockGuestCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invitations: [{ eventId: 'event-123', rsvp: 'Not Invited', weddingId: 'wedding-123' }],
+      })
+    )
+  })
+
+  it('writes attendingCount on create without creating or touching any Invitation row', async () => {
+    // Owner's decision 06.11.2026: the admin can state both counts up front
+    // (e.g. a sheet already says "4 invited, 3 confirmed"). This must not be
+    // mistaken for an RSVP - no invitation is created with a non-default rsvp.
+    await service.createHouseholdWithGuests(actorContext, 'wedding-123', {
+      invitedCount: 4,
+      attendingCount: 3,
+      guestParty: [
+        { firstName: 'Noa', lastName: 'Cohen', invites: { 'event-123': 'Not Invited' } },
+      ],
+    })
+
+    expect(mockCreateWithGifts).toHaveBeenCalledWith(
+      expect.objectContaining({ invitedCount: 4, attendingCount: 3 }),
+      ['event-123']
+    )
     expect(mockGuestCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         invitations: [{ eventId: 'event-123', rsvp: 'Not Invited', weddingId: 'wedding-123' }],

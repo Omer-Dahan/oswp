@@ -123,6 +123,7 @@ export const getDefaultHouseholdFormData = (
     email: null,
     notes: null,
     likelihoodOfAttending: null,
+    attendingCount: null,
     deletedGuests: [],
     gifts,
     guestParty: [

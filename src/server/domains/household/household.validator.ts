@@ -65,6 +65,12 @@ export const baseHouseholdFields = z.object({
     .nullish()
     .transform((v) => (v === 0 ? null : v))
     .optional(),
+  // How many of the invitedCount are actually coming. Distinct from
+  // invitedCount (0 and null both mean something here too, and neither
+  // collapses into the other): null means "no number known yet", 0 means
+  // "confirmed nobody is coming". Admin edits here never touch an
+  // Invitation row or submittedAt — see HouseholdRepository.update.
+  attendingCount: z.number().int().min(0).max(50).nullish().optional(),
   side: z.string().max(40).nullish().transform(trimToNull).optional(),
   groupName: z.string().max(60).nullish().transform(trimToNull).optional(),
   phoneAlt: z.string().max(40).nullish().optional(),
