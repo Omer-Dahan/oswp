@@ -204,7 +204,7 @@ function GuestCardComponent({
                 </div>
               </>
             ) : weddingAnswered ? (
-              <div className='pt-1 text-[19px] font-semibold text-[#a4553f]'>לא מגיעים לחתונה</div>
+              <div className='pt-1 text-[15px] font-semibold text-[#a4553f]'>לא מגיעים לחתונה</div>
             ) : (
               <>
                 <div className='pt-1.5 text-[16px] font-medium text-[#a2937c]'>טרם השיבו</div>
