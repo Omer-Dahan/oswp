@@ -511,8 +511,42 @@ describe('GuestsView', () => {
 
     expect(screen.getByText('מגיעים:').parentElement).toHaveTextContent('מגיעים: 1')
     expect(screen.getByText('לא מגיעים:').parentElement).toHaveTextContent('לא מגיעים: 1')
-    expect(screen.getByText('טרם השיבו:').parentElement).toHaveTextContent('טרם השיבו: 1')
+    expect(screen.getByText('טרם השיבו:').parentElement).toHaveTextContent(
+      'טרם השיבו: 1 בית אב · 1 אורח'
+    )
     expect(screen.queryByText('סה״כ אירועים:')).not.toBeInTheDocument()
+  })
+
+  it('shows the pending household count beside its guest figure', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('טרם השיבו:').parentElement).toHaveTextContent(
+      'טרם השיבו: 1 בית אב · 1 אורח'
+    )
+  })
+
+  it('shows everyone answered when no household is pending', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('טרם השיבו:').parentElement).toHaveTextContent('טרם השיבו: כולם השיבו')
   })
 
   it('should save canonical household guest party when members modal is saved from a filtered list', async () => {

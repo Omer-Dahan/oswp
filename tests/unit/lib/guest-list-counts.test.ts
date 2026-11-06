@@ -20,6 +20,8 @@ describe('deriveGuestListCounts', () => {
       attending: 3,
       declined: 0,
       noResponse: 0,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
     })
   })
 
@@ -36,6 +38,8 @@ describe('deriveGuestListCounts', () => {
       attending: 51,
       declined: 13,
       noResponse: 100,
+      pendingHouseholds: 1,
+      pendingGuests: 100,
     })
   })
 
@@ -46,6 +50,8 @@ describe('deriveGuestListCounts', () => {
       attending: 4,
       declined: 0,
       noResponse: 0,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
     })
   })
 
@@ -56,6 +62,8 @@ describe('deriveGuestListCounts', () => {
       attending: 2,
       declined: 0,
       noResponse: 0,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
     })
   })
 
@@ -76,6 +84,62 @@ describe('deriveGuestListCounts', () => {
       attending: 1,
       declined: 1,
       noResponse: 1,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
+    })
+  })
+
+  it('does not count a partially answered household as pending', () => {
+    const counts = deriveGuestListCounts(
+      [household(4, 2, ['Attending', 'Attending'])],
+      'wedding'
+    )
+
+    expect(counts).toEqual({
+      guests: 4,
+      households: 1,
+      attending: 2,
+      declined: 0,
+      noResponse: 2,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
+    })
+  })
+
+  it('counts a household with no invitations at all as pending', () => {
+    const silentHousehold: CountableHousehold = {
+      invitedCount: 3,
+      attendingCount: null,
+      guests: [],
+    }
+
+    expect(deriveGuestListCounts([silentHousehold], 'wedding')).toEqual({
+      guests: 3,
+      households: 1,
+      attending: 0,
+      declined: 0,
+      noResponse: 3,
+      pendingHouseholds: 1,
+      pendingGuests: 3,
+    })
+  })
+
+  it('counts only the silent household as pending next to a declined one', () => {
+    const silentHousehold: CountableHousehold = {
+      invitedCount: 2,
+      attendingCount: null,
+      guests: [],
+    }
+    const declinedHousehold = household(1, 0, ['Declined'])
+
+    expect(deriveGuestListCounts([silentHousehold, declinedHousehold], 'wedding')).toEqual({
+      guests: 3,
+      households: 2,
+      attending: 0,
+      declined: 1,
+      noResponse: 2,
+      pendingHouseholds: 1,
+      pendingGuests: 2,
     })
   })
 })

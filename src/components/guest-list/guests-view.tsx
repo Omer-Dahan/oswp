@@ -1207,9 +1207,21 @@ const DefaultTableHeader = ({ households, counts, totalTagAlongs }: DefaultTable
           <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
             טרם השיבו:{' '}
           </span>
-          <span className='font-semibold text-muted-foreground text-sm md:text-base'>
-            {counts.noResponse}
-          </span>
+          {counts.pendingHouseholds === 0 ? (
+            <span className='font-semibold text-muted-foreground text-sm md:text-base'>
+              כולם השיבו
+            </span>
+          ) : (
+            <span className='font-semibold text-muted-foreground text-sm md:text-base'>
+              {counts.pendingHouseholds} {counts.pendingHouseholds === 1 ? 'בית אב' : 'בתי אב'}
+              {counts.pendingGuests > 0 && (
+                <span className='font-normal text-foreground/55'>
+                  {' '}
+                  · {counts.pendingGuests} {counts.pendingGuests === 1 ? 'אורח' : 'אורחים'}
+                </span>
+              )}
+            </span>
+          )}
         </div>
       </div>
     </div>

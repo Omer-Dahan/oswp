@@ -21,6 +21,8 @@ export type GuestListCounts = {
   attending: number
   declined: number
   noResponse: number
+  pendingHouseholds: number
+  pendingGuests: number
 }
 
 const clamp = (value: number, maximum: number) => Math.max(0, Math.min(value, maximum))
@@ -36,6 +38,17 @@ export function deriveGuestListCounts(
       counts.households += 1
 
       if (partySize === 0) return counts
+
+      const scopedResponses = household.guests
+        .flatMap((guest) => guest.invitations ?? [])
+        .filter((invitation) => !eventId || invitation.eventId === eventId)
+      const hasAnswered = scopedResponses.some(
+        (invitation) => invitation.rsvp === 'Attending' || invitation.rsvp === 'Declined'
+      )
+      if (!hasAnswered) {
+        counts.pendingHouseholds += 1
+        counts.pendingGuests += partySize
+      }
 
       if (!eventId) {
         let attending = 0
@@ -76,6 +89,14 @@ export function deriveGuestListCounts(
       counts.noResponse += partySize - attending - declined
       return counts
     },
-    { guests: 0, households: 0, attending: 0, declined: 0, noResponse: 0 }
+    {
+      guests: 0,
+      households: 0,
+      attending: 0,
+      declined: 0,
+      noResponse: 0,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
+    }
   )
 }
