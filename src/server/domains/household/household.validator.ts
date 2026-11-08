@@ -7,6 +7,11 @@
 import { z } from 'zod'
 
 import { optionalPhoneSchema } from '~/lib/phone/phone-validator'
+import {
+  collapseInlineWhitespace,
+  normalizeEmail,
+  normalizeMultilineText,
+} from '~/lib/text/normalize'
 import { guestPartySchema, guestPartyUpdateSchema } from '~/server/domains/guest/guest.validator'
 
 /**
@@ -33,8 +38,19 @@ export const giftInputSchema = z.object({
  */
 function trimToNull(value: string | null | undefined): string | null | undefined {
   if (value == null) return value
-  const trimmed = value.trim()
+  const trimmed = collapseInlineWhitespace(value)
   return trimmed.length === 0 ? null : trimmed
+}
+
+/**
+ * Like `trimToNull`, but for multiline free text (notes): collapses inline
+ * whitespace per line while preserving `\n` paragraph breaks, and folds the
+ * result to `null` only if every line ends up empty.
+ */
+function multilineTrimToNull(value: string | null | undefined): string | null | undefined {
+  if (value == null) return value
+  const normalized = normalizeMultilineText(value)
+  return normalized.trim().length === 0 ? null : normalized
 }
 
 /**
@@ -44,18 +60,25 @@ function trimToNull(value: string | null | undefined): string | null | undefined
 export const baseHouseholdFields = z.object({
   address1: z.string().nullish().optional(),
   address2: z.string().nullish().optional(),
-  city: z.string().nullish().optional(),
+  city: z.string().nullish().transform(trimToNull).optional(),
   state: z.string().nullish().optional(),
   country: z.string().nullish().optional(),
   zipCode: z.string().nullish().optional(),
   phone: optionalPhoneSchema,
   email: z
     .string()
+    .trim()
     .email({ message: 'כתובת מייל לא תקינה' })
     .nullish()
     .optional()
-    .or(z.literal('').transform(() => null)),
-  notes: z.string().max(1000, 'הערות חייבות להיות עד 1000 תווים').nullish().optional(),
+    .or(z.literal('').transform(() => null))
+    .transform((value) => (value == null ? value : normalizeEmail(value))),
+  notes: z
+    .string()
+    .max(1000, 'הערות חייבות להיות עד 1000 תווים')
+    .nullish()
+    .transform(multilineTrimToNull)
+    .optional(),
   likelihoodOfAttending: z.number().int().min(1).max(5).nullish().optional(),
   invitedCount: z
     .number()

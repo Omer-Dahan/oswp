@@ -8,6 +8,7 @@
 import { z } from 'zod'
 
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
+import { normalizePersonName } from '~/lib/text/normalize'
 
 const fullNameSchema = z
   .string()
@@ -20,6 +21,7 @@ const fullNameSchema = z
     },
     { message: 'הזינו שם מלא' }
   )
+  .transform(normalizePersonName)
 
 const phoneSchema = z
   .string()

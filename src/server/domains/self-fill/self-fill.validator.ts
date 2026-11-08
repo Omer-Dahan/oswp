@@ -7,6 +7,7 @@
 import { z } from 'zod'
 
 import { optionalPhoneSchema } from '~/lib/phone/phone-validator'
+import { normalizeEmail, normalizePersonName } from '~/lib/text/normalize'
 
 /**
  * Token must be a 32-character lowercase hex string (output of randomBytes(16).toString('hex')).
@@ -28,6 +29,7 @@ const nameSchema = (label: string) =>
     .min(1, `${label} is required`)
     .max(100, `${label} must be 100 characters or fewer`)
     .refine((val) => !/[<>]/.test(val), `${label} contains invalid characters`)
+    .transform(normalizePersonName)
 
 /**
  * Schema for fetching wedding data by self-fill token
@@ -50,11 +52,16 @@ export const selfFillGuestSchema = z.object({
     .trim()
     .min(1, 'Email is required')
     .email('Please enter a valid email address')
-    .transform((v) => v.toLowerCase()),
+    .transform(normalizeEmail),
   phone: optionalPhoneSchema,
   address1: z.string().trim().max(200).nullish(),
   address2: z.string().trim().max(200).nullish(),
-  city: z.string().trim().max(100).nullish(),
+  city: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .transform((value) => (value == null ? value : normalizePersonName(value))),
   state: z.string().trim().max(100).nullish(),
   zipCode: z.string().trim().max(20).nullish(),
   country: z.string().trim().max(100).nullish(),

@@ -610,3 +610,30 @@ describe('side and groupName in baseHouseholdFields', () => {
     }
   })
 })
+
+describe('createHouseholdManualSchema — write-time text normalization', () => {
+  it('stores trimmed, single-spaced name/group/city and a lowercased, trimmed email', () => {
+    const result = createHouseholdManualSchema.safeParse({
+      invitedCount: 2,
+      city: '  Tel   Aviv  ',
+      groupName: '  משפחה   מירב  ',
+      email: '  John.Doe@Example.com  ',
+      guestParty: [
+        {
+          firstName: 'אבירן ',
+          lastName: '  צומו ',
+          isPrimaryContact: true,
+          invites: { 'event-123': 'Invited' },
+        },
+      ],
+    })
+
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.city).toBe('Tel Aviv')
+    expect(result.data.groupName).toBe('משפחה מירב')
+    expect(result.data.email).toBe('john.doe@example.com')
+    expect(result.data.guestParty[0]?.firstName).toBe('אבירן')
+    expect(result.data.guestParty[0]?.lastName).toBe('צומו')
+  })
+})

@@ -31,6 +31,7 @@ import {
   DEFAULT_SMS_INVITE_TEMPLATE,
   renderWeddingInviteSmsTemplate,
 } from '~/lib/sms/invite-message'
+import { matchesSearchTerms } from '~/lib/text/normalize'
 import { api } from '~/trpc/react'
 
 const MAX_CONSECUTIVE_FAILURES = 3
@@ -161,7 +162,7 @@ export function SmsMessagingScreen() {
     [recipients]
   )
   const searchableRecipients = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase('he')
+    const query = search.trim()
     const queryDigits = search.replace(/\D/g, '')
     return recipients.filter((recipient) => {
       if (sideFilter !== 'all' && recipient.side !== sideFilter) return false
@@ -170,9 +171,10 @@ export function SmsMessagingScreen() {
       const text = [recipient.householdName, recipient.primaryContact, recipient.groupName]
         .filter(Boolean)
         .join(' ')
-        .toLocaleLowerCase('he')
       const phoneDigits = recipient.phone?.replace(/\D/g, '') ?? ''
-      return text.includes(query) || Boolean(queryDigits && phoneDigits.includes(queryDigits))
+      return (
+        matchesSearchTerms(text, query) || Boolean(queryDigits && phoneDigits.includes(queryDigits))
+      )
     })
   }, [groupFilter, recipients, search, sideFilter])
   const counts = useMemo(

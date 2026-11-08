@@ -8,6 +8,7 @@ import { useOuterClick } from '~/components/hooks'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { RSVP_STATUS_LABELS, type RsvpStatus } from '~/lib/constants/rsvp'
+import { matchesSearchTerms } from '~/lib/text/normalize'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
@@ -243,7 +244,6 @@ export default function GuestSearchFilter({
     sideFilter: string | null,
     groupFilter: string | null
   ) => {
-    const normalizedSearch = searchText.toLowerCase()
     setFilteredHouseholds(() =>
       households.filter((household) => {
         if (countryFilter && household.country !== countryFilter) return false
@@ -265,12 +265,15 @@ export default function GuestSearchFilter({
           return false
         }
 
+        const householdSearchHaystack = [
+          ...household.guests.flatMap((guest) => [guest.firstName, guest.lastName]),
+          household.groupName,
+        ]
+          .filter(Boolean)
+          .join(' ')
+        const matchesName = matchesSearchTerms(householdSearchHaystack, searchText)
+
         return household.guests.some((guest) => {
-          const fullName = `${guest.firstName} ${guest.lastName}`.toLowerCase()
-          const matchesName =
-            guest.firstName.toLowerCase().includes(normalizedSearch) ||
-            guest.lastName.toLowerCase().includes(normalizedSearch) ||
-            fullName.includes(normalizedSearch)
           return rsvpFilter
             ? matchesName &&
                 guest.invitations?.some(

@@ -7,6 +7,7 @@
 import { z } from 'zod'
 
 import { optionalPhoneSchema } from '~/lib/phone/phone-validator'
+import { normalizeEmail, normalizePersonName } from '~/lib/text/normalize'
 
 const GUEST_AGE_GROUP_VALUES = ['INFANT', 'CHILD', 'TEEN', 'ADULT'] as const
 
@@ -69,14 +70,20 @@ export const getByEventSchema = z.object({
  */
 export const guestPartySchema = z.object({
   guestId: z.number().optional(),
-  firstName: z.string().min(1, { message: 'שם פרטי נדרש' }).max(NAME_MAX, nameTooLong),
-  lastName: z.string().max(NAME_MAX, nameTooLong).optional().default(''),
+  firstName: z
+    .string()
+    .min(1, { message: 'שם פרטי נדרש' })
+    .max(NAME_MAX, nameTooLong)
+    .transform(normalizePersonName),
+  lastName: z.string().max(NAME_MAX, nameTooLong).optional().default('').transform(normalizePersonName),
   email: z
     .string()
+    .trim()
     .email('כתובת מייל לא תקינה')
     .optional()
     .nullable()
-    .or(z.literal('').transform(() => null)),
+    .or(z.literal('').transform(() => null))
+    .transform((value) => (value == null ? value : normalizeEmail(value))),
   phone: optionalPhoneSchema,
   isPrimaryContact: z.boolean().default(false),
   ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).default('ADULT'),
@@ -99,14 +106,25 @@ export const guestPartySchema = z.object({
 export const guestPartyUpdateSchema = z
   .object({
     guestId: z.number().optional(),
-    firstName: z.string().min(1, { message: 'שם פרטי נדרש' }).max(NAME_MAX, nameTooLong).optional(),
-    lastName: z.string().max(NAME_MAX, nameTooLong).optional(),
+    firstName: z
+      .string()
+      .min(1, { message: 'שם פרטי נדרש' })
+      .max(NAME_MAX, nameTooLong)
+      .optional()
+      .transform((value) => (value === undefined ? value : normalizePersonName(value))),
+    lastName: z
+      .string()
+      .max(NAME_MAX, nameTooLong)
+      .optional()
+      .transform((value) => (value === undefined ? value : normalizePersonName(value))),
     email: z
       .string()
+      .trim()
       .email('כתובת מייל לא תקינה')
       .optional()
       .nullable()
-      .or(z.literal('').transform(() => null)),
+      .or(z.literal('').transform(() => null))
+      .transform((value) => (value == null ? value : normalizeEmail(value))),
     phone: optionalPhoneSchema,
     isPrimaryContact: z.boolean().optional(),
     ageGroup: z.enum(GUEST_AGE_GROUP_VALUES).optional(),

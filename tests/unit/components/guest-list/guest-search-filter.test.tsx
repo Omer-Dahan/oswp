@@ -202,6 +202,59 @@ describe('GuestSearchFilter — group filter for self-added households', () => {
   })
 })
 
+function makeHouseholdWithGuest(
+  id: string,
+  firstName: string,
+  lastName: string,
+  groupName: string | null = null
+): HouseholdWithGuests {
+  const household = makeHousehold(id, null, groupName)
+  return {
+    ...household,
+    guests: [{ ...household.guests[0], firstName, lastName }],
+  } as HouseholdWithGuests
+}
+
+describe('GuestSearchFilter — tolerant name search', () => {
+  // Real prod row (Guest id 1348): firstName stored with a trailing space,
+  // which used to break the "first last" concatenation this filter builds.
+  const households: HouseholdWithGuests[] = [
+    makeHouseholdWithGuest('aviran-tsumo', 'אבירן ', 'צומו', 'אבא - עבודה'),
+    // Control case: a clean, already-findable household that must keep working.
+    makeHouseholdWithGuest('anat-haretz', 'ענת', 'הרץ'),
+  ]
+
+  const search = (searchText: string) => {
+    render(<Harness households={households} />)
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), {
+      target: { value: searchText },
+    })
+    return within(screen.getByTestId('filtered-households'))
+      .getAllByRole('listitem')
+      .map((li) => li.textContent)
+  }
+
+  it('finds the household by first + last name', () => {
+    expect(search('אבירן צומו')).toEqual(['aviran-tsumo'])
+  })
+
+  it('finds the household with the terms reversed', () => {
+    expect(search('צומו אבירן')).toEqual(['aviran-tsumo'])
+  })
+
+  it('finds the household by last name alone', () => {
+    expect(search('צומו')).toEqual(['aviran-tsumo'])
+  })
+
+  it('tolerates extra whitespace typed into the search box', () => {
+    expect(search('  אבירן   צומו  ')).toEqual(['aviran-tsumo'])
+  })
+
+  it('keeps finding the already-clean control household', () => {
+    expect(search('ענת הרץ')).toEqual(['anat-haretz'])
+  })
+})
+
 describe('GuestSearchFilter — grouped affiliation options', () => {
   const households = [
     makeHousehold('groom-friends-1', 'חתן', 'חברים'),

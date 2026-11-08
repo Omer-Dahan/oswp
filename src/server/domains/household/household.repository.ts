@@ -7,6 +7,7 @@
 
 import { Prisma } from '@prisma/client'
 import type { PrismaClient } from '@prisma/client'
+import { forSearch, forSearchTerms } from '~/lib/text/normalize'
 import type {
   Household,
   HouseholdSearchResult,
@@ -99,29 +100,28 @@ export const publicRsvpHouseholdSelectWithDetails = {
  * and straight double quote ("), used the same way in Hebrew names/abbreviations.
  */
 export function normalizeNameForSearch(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/['’"׳״]/g, '')
-    .replace(/[-–—]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+  return forSearch(value)
 }
 
 /**
  * Split a search string into normalized name terms (see normalizeNameForSearch).
  */
 export function tokenizeNameForSearch(value: string): string[] {
-  return normalizeNameForSearch(value).split(' ').filter(Boolean)
+  return forSearchTerms(value)
 }
 
 /**
  * SQL expression that applies the same folding as `normalizeNameForSearch`
  * (lowercase, strip apostrophes/quotes/geresh/gershayim, fold hyphens/dashes
- * to spaces) to a raw name column, so it can be compared against an
- * already-normalized search term with `strpos`/`LIKE` at the DB level.
+ * to spaces, collapse whitespace) to a raw name column, so it can be
+ * compared against an already-normalized search term with `strpos`/`LIKE`
+ * at the DB level. Collapsing whitespace here matters because the stored
+ * column (unlike the search term) isn't guaranteed to be free of a stray
+ * double space, e.g. a trailing space on `firstName` plus the separating
+ * space when concatenated with `lastName` elsewhere.
  */
 function normalizedNameSql(column: Prisma.Sql): Prisma.Sql {
-  return Prisma.sql`regexp_replace(regexp_replace(lower(${column}), '[''’"׳״]', '', 'g'), '[-–—]', ' ', 'g')`
+  return Prisma.sql`regexp_replace(regexp_replace(regexp_replace(lower(${column}), '[''’"׳״]', '', 'g'), '[-–—]', ' ', 'g'), '\\s+', ' ', 'g')`
 }
 
 /**
@@ -454,7 +454,7 @@ export class HouseholdRepository {
    * single guest's status.
    */
   async search(searchText: string, weddingId: string): Promise<HouseholdSearchResult[]> {
-    const terms = searchText.trim().split(/\s+/).filter(Boolean)
+    const terms = forSearchTerms(searchText)
 
     // An empty/whitespace-only search must not return every household.
     if (terms.length === 0) return []

@@ -100,8 +100,8 @@ describe('HouseholdRepository.search', () => {
         guests: {
           some: {
             OR: [
-              { firstName: { contains: 'Betum', mode: 'insensitive' } },
-              { lastName: { contains: 'Betum', mode: 'insensitive' } },
+              { firstName: { contains: 'betum', mode: 'insensitive' } },
+              { lastName: { contains: 'betum', mode: 'insensitive' } },
             ],
           },
         },
@@ -118,12 +118,12 @@ describe('HouseholdRepository.search', () => {
     const and = whereOf().AND
     expect(and).toHaveLength(2)
     expect(and[0].guests.some.OR).toEqual([
-      { firstName: { contains: 'Betum', mode: 'insensitive' } },
-      { lastName: { contains: 'Betum', mode: 'insensitive' } },
+      { firstName: { contains: 'betum', mode: 'insensitive' } },
+      { lastName: { contains: 'betum', mode: 'insensitive' } },
     ])
     expect(and[1].guests.some.OR).toEqual([
-      { firstName: { contains: 'Adobo', mode: 'insensitive' } },
-      { lastName: { contains: 'Adobo', mode: 'insensitive' } },
+      { firstName: { contains: 'adobo', mode: 'insensitive' } },
+      { lastName: { contains: 'adobo', mode: 'insensitive' } },
     ])
   })
 
