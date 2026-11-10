@@ -275,7 +275,7 @@ describe('GuestSearchFilter — multi-value semantics', () => {
     fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
     fireEvent.click(screen.getAllByText('משפחה (1)')[0])
     fireEvent.click(screen.getByRole('button', { name: 'צד' }))
-    fireEvent.click(screen.getByText('חתן (2)'))
+    fireEvent.click(screen.getByText('חתן (1)'))
 
     expect(filteredHouseholdIds()).toEqual(['groom-family'])
   })

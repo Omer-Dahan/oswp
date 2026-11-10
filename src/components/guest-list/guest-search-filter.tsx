@@ -18,6 +18,7 @@ import {
   GROUP_SIDE_ORDER,
   groupKeyFor,
   NO_SIDE_FILTER_KEY,
+  sideKeyFor,
 } from '~/components/guest-list/guest-list-filtering'
 import type { GuestListFilters } from '~/components/guest-list/guest-list-view-state'
 import { useOuterClick } from '~/components/hooks'
@@ -211,15 +212,64 @@ export default function GuestSearchFilter({
     setFilteredHouseholds(filteredHouseholds)
   }, [filteredHouseholds, setFilteredHouseholds])
 
+  // Counts the sides/groups against every other active filter, but never the
+  // filter's own current selection - so picking one option never shrinks the
+  // count shown next to its sisters.
+  const sideCountsExcludingSideFilter = useMemo(() => {
+    const householdsIgnoringSide = applyGuestListFilters(households, {
+      ...currentFilters,
+      side: [],
+    })
+    const counts = new Map<string, number>()
+    for (const household of householdsIgnoringSide) {
+      const key = sideKeyFor(household.side)
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    return counts
+  }, [households, currentFilters])
+
   const availableSides = useMemo(() => {
-    const optionList = countByNormalizedValue(households.map((h) => h.side))
+    const optionList = countByNormalizedValue(households.map((h) => h.side)).map((option) => ({
+      ...option,
+      count: sideCountsExcludingSideFilter.get(option.key) ?? 0,
+    }))
     const noSideCount = households.filter((h) => !h.side?.trim()).length
     return noSideCount > 0
-      ? [...optionList, { key: NO_SIDE_FILTER_KEY, label: 'ללא צד', count: noSideCount }]
+      ? [
+          ...optionList,
+          {
+            key: NO_SIDE_FILTER_KEY,
+            label: 'ללא צד',
+            count: sideCountsExcludingSideFilter.get(NO_SIDE_FILTER_KEY) ?? 0,
+          },
+        ]
       : optionList
-  }, [households])
+  }, [households, sideCountsExcludingSideFilter])
 
-  const groupedAffiliations = useMemo(() => groupAffiliationSections(households), [households])
+  const groupCountsExcludingGroupFilter = useMemo(() => {
+    const householdsIgnoringGroup = applyGuestListFilters(households, {
+      ...currentFilters,
+      group: [],
+    })
+    const counts = new Map<string, number>()
+    for (const household of householdsIgnoringGroup) {
+      const key = groupKeyFor(affiliationSide(household.side), household.groupName)
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    return counts
+  }, [households, currentFilters])
+
+  const groupedAffiliations = useMemo(
+    () =>
+      groupAffiliationSections(households).map((section) => ({
+        ...section,
+        groups: section.groups.map((group) => ({
+          ...group,
+          count: groupCountsExcludingGroupFilter.get(group.key) ?? 0,
+        })),
+      })),
+    [households, groupCountsExcludingGroupFilter]
+  )
 
   const groupOptionsByKey = useMemo(() => {
     const map = new Map<string, { label: string; side: string }>()
