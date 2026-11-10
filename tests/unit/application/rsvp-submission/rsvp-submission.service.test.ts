@@ -818,6 +818,32 @@ describe('RsvpSubmissionService', () => {
       // so re-submitting the chuppah-only answer must not flip it again.
       expect(mockDb.invitation.updateMany).not.toHaveBeenCalled()
     })
+
+    it('lets an admin reset a chuppah-only household back to "not answered" on the wedding event', async () => {
+      // The household previously had its wedding row derived-Declined (the
+      // rule fired on an earlier guest submission). The chuppah is still
+      // Attending, so if the derived rule ran again for this admin edit it
+      // would immediately re-decline the row the admin just reset to
+      // 'Invited', leaving the admin unable to clear the answer.
+      stubHouseholdInvitations([
+        { eventId: CHUPPAH_EVENT.id, rsvp: 'Attending' },
+        { eventId: WEDDING_EVENT.id, rsvp: 'Invited' },
+      ])
+
+      await service.submitManagedRsvp(actorContext, 'wedding-123', {
+        rsvpResponses: [{ eventId: WEDDING_EVENT.id, guestId: 1, rsvp: 'Invited' }],
+        answersToQuestions: [],
+      })
+
+      expect(mockUpdate).toHaveBeenCalledWith(
+        1,
+        WEDDING_EVENT.id,
+        expect.objectContaining({ rsvp: 'Invited' })
+      )
+      // The derived-decline rule is guest-originated only - a managed
+      // (admin) submission must never trigger it.
+      expect(mockDb.invitation.updateMany).not.toHaveBeenCalled()
+    })
   })
 
   it('rejects when the site is unknown or RSVP is disabled and no token is supplied', async () => {

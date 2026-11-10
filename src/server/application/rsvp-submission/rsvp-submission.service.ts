@@ -320,7 +320,14 @@ export class RsvpSubmissionService {
         })
       }
 
-      await this.applyChuppahOnlyDecline(tx, data.rsvpResponses as RsvpResponse[])
+      // The derived decline only models what a *guest's own* chuppah-only
+      // submission implies - an admin explicitly managing a household's RSVP
+      // (submitManagedRsvp) must be able to set the wedding row back to
+      // "not answered" without this rule immediately re-deriving a Declined
+      // on top of it.
+      if (submission?.source === 'site') {
+        await this.applyChuppahOnlyDecline(tx, data.rsvpResponses as RsvpResponse[])
+      }
 
       for (const answer of data.answersToQuestions as AnswerToQuestion[]) {
         if (answer.questionType === 'Option') {
