@@ -12,7 +12,7 @@ import { matchesSearchTerms } from '~/lib/text/normalize'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
-type TSelectedRsvpFilter = {
+export type TSelectedRsvpFilter = {
   eventId: string
   rsvpValue: string
 }
@@ -20,6 +20,25 @@ type TSelectedRsvpFilter = {
 const NO_SIDE_FILTER_KEY = '__no_side__'
 const GROUP_SIDE_ORDER = ['חתן', 'כלה', 'ללא צד'] as const
 const SEARCHABLE_TAG_THRESHOLD = 8
+
+const toggleValue = <T,>(
+  values: T[],
+  value: T,
+  matches: (entry: T) => boolean = (entry) => entry === value
+) => (values.some(matches) ? values.filter((entry) => !matches(entry)) : [...values, value])
+
+const filterButtonLabel = (placeholder: string, labels: string[]) => {
+  if (labels.length === 0) return placeholder
+  return labels.length === 1 ? labels[0] : `${placeholder} · ${labels.length}`
+}
+
+const sameValues = <T,>(left: T[], right: T[], key: (value: T) => string) => {
+  if (left.length !== right.length) return false
+  return left.every((value, index) => {
+    const matchingValue = right[index]
+    return matchingValue !== undefined && key(value) === key(matchingValue)
+  })
+}
 
 const countByNormalizedValue = (values: Array<string | null | undefined>) => {
   const counts = new Map<string, { label: string; count: number }>()
@@ -94,26 +113,26 @@ export default function GuestSearchFilter({
 }: GuestSearchFilterProps) {
   const [searchInput, setSearchInput] = useState(initialFilters?.search ?? '')
   const [showInvitationDropdown, setShowInvitationDropdown] = useState(false)
-  const [selectedRsvpFilter, setSelectedRsvpFilter] = useState<TSelectedRsvpFilter | null>(
-    initialFilters?.rsvp ?? null
+  const [selectedRsvpFilters, setSelectedRsvpFilters] = useState<TSelectedRsvpFilter[]>(
+    initialFilters?.rsvp ?? []
   )
   const [showTagDropdown, setShowTagDropdown] = useState(false)
   const [tagSearch, setTagSearch] = useState('')
-  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(
-    initialFilters?.tagId ?? null
+  const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>(
+    initialFilters?.tagId ?? []
   )
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
-  const [selectedCountryFilter, setSelectedCountryFilter] = useState<string | null>(
-    initialFilters?.country ?? null
+  const [selectedCountryFilters, setSelectedCountryFilters] = useState<string[]>(
+    initialFilters?.country ?? []
   )
   const [showSideDropdown, setShowSideDropdown] = useState(false)
-  const [selectedSideFilter, setSelectedSideFilter] = useState<string | null>(
-    initialFilters?.side ?? null
+  const [selectedSideFilters, setSelectedSideFilters] = useState<string[]>(
+    initialFilters?.side ?? []
   )
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
   const [groupSearch, setGroupSearch] = useState('')
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string | null>(
-    initialFilters?.group ?? null
+  const [selectedGroupFilters, setSelectedGroupFilters] = useState<string[]>(
+    initialFilters?.group ?? []
   )
 
   const invitationFilterRef = useOuterClick(() => setShowInvitationDropdown(false))
@@ -201,31 +220,41 @@ export default function GuestSearchFilter({
   useEffect(() => {
     // Reset filters when event context changes so state never carries hidden stale constraints.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    const rsvp = initialFilters?.rsvp
-    const validRsvp = rsvp && events.some((event) => event.id === rsvp.eventId) ? rsvp : null
-    const tagId = initialFilters?.tagId
-    const validTagId = tagId && availableTags.some((tag) => tag.id === tagId) ? tagId : null
-    const country = availableCountries.includes(initialFilters?.country ?? '')
-      ? (initialFilters?.country ?? null)
-      : null
-    const side = availableSides.some((entry) => entry.key === initialFilters?.side)
-      ? (initialFilters?.side ?? null)
-      : null
-    const group = availableGroups.some((entry) => entry.key === initialFilters?.group)
-      ? (initialFilters?.group ?? null)
-      : null
+    const validRsvp = (initialFilters?.rsvp ?? []).filter((filter) =>
+      events.some((event) => event.id === filter.eventId)
+    )
+    const validTagIds = (initialFilters?.tagId ?? []).filter((tagId) =>
+      availableTags.some((tag) => tag.id === tagId)
+    )
+    const countries = (initialFilters?.country ?? []).filter((country) =>
+      availableCountries.includes(country)
+    )
+    const sides = (initialFilters?.side ?? []).filter((side) =>
+      availableSides.some((entry) => entry.key === side)
+    )
+    const groups = (initialFilters?.group ?? []).filter((group) =>
+      availableGroups.some((entry) => entry.key === group)
+    )
     const search = initialFilters?.search ?? ''
-    setSelectedRsvpFilter(validRsvp)
+    setSelectedRsvpFilters((current) =>
+      sameValues(current, validRsvp, (filter) => `${filter.eventId}:${filter.rsvpValue}`)
+        ? current
+        : validRsvp
+    )
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedTagFilter(validTagId)
+    setSelectedTagFilters((current) =>
+      sameValues(current, validTagIds, String) ? current : validTagIds
+    )
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedCountryFilter(country)
+    setSelectedCountryFilters((current) =>
+      sameValues(current, countries, String) ? current : countries
+    )
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedSideFilter(side)
+    setSelectedSideFilters((current) => (sameValues(current, sides, String) ? current : sides))
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedGroupFilter(group)
+    setSelectedGroupFilters((current) => (sameValues(current, groups, String) ? current : groups))
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    filterHouseholds(search, validRsvp, validTagId, country, side, group)
+    filterHouseholds(search, validRsvp, validTagIds, countries, sides, groups)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchInput(search)
     // Restoration is intentionally keyed to the wedding/event/reset, not to option arrays
@@ -238,29 +267,31 @@ export default function GuestSearchFilter({
 
   const filterHouseholds = (
     searchText: string,
-    rsvpFilter: TSelectedRsvpFilter | null,
-    tagFilter: string | null,
-    countryFilter: string | null,
-    sideFilter: string | null,
-    groupFilter: string | null
+    rsvpFilters: TSelectedRsvpFilter[],
+    tagFilters: string[],
+    countryFilters: string[],
+    sideFilters: string[],
+    groupFilters: string[]
   ) => {
     setFilteredHouseholds(() =>
       households.filter((household) => {
-        if (countryFilter && household.country !== countryFilter) return false
+        if (countryFilters.length > 0 && !countryFilters.includes(household.country ?? ''))
+          return false
 
-        if (sideFilter) {
-          if (sideFilter === NO_SIDE_FILTER_KEY) {
-            if (household.side?.trim()) return false
-          } else if (household.side?.trim().toLowerCase() !== sideFilter) {
-            return false
-          }
-        }
-
-        if (groupFilter && household.groupName?.trim().toLowerCase() !== groupFilter) return false
+        const householdSide = household.side?.trim().toLowerCase() || NO_SIDE_FILTER_KEY
+        if (sideFilters.length > 0 && !sideFilters.includes(householdSide)) return false
 
         if (
-          tagFilter &&
-          !household.guests.some((g) => g.guestTags?.some((t) => t.tagId === tagFilter))
+          groupFilters.length > 0 &&
+          !groupFilters.includes(household.groupName?.trim().toLowerCase() ?? '')
+        )
+          return false
+
+        if (
+          tagFilters.length > 0 &&
+          !household.guests.some((guest) =>
+            guest.guestTags?.some((tag) => tagFilters.includes(tag.tagId))
+          )
         ) {
           return false
         }
@@ -274,10 +305,13 @@ export default function GuestSearchFilter({
         const matchesName = matchesSearchTerms(householdSearchHaystack, searchText)
 
         return household.guests.some((guest) => {
-          return rsvpFilter
+          return rsvpFilters.length > 0
             ? matchesName &&
-                guest.invitations?.some(
-                  (inv) => inv.eventId === rsvpFilter?.eventId && inv.rsvp === rsvpFilter?.rsvpValue
+                guest.invitations?.some((invitation) =>
+                  rsvpFilters.some(
+                    (filter) =>
+                      invitation.eventId === filter.eventId && invitation.rsvp === filter.rsvpValue
+                  )
                 )
             : matchesName
         })
@@ -289,140 +323,142 @@ export default function GuestSearchFilter({
     setSearchInput(searchText)
     filterHouseholds(
       searchText,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
+      selectedRsvpFilters,
+      selectedTagFilters,
+      selectedCountryFilters,
+      selectedSideFilters,
+      selectedGroupFilters
     )
   }
 
   const filterHouseholdsByInvitation = ({ eventId, rsvpValue }: TSelectedRsvpFilter) => {
-    setShowInvitationDropdown(false)
-    setSelectedRsvpFilter({ eventId, rsvpValue })
+    const nextFilters = toggleValue(
+      selectedRsvpFilters,
+      { eventId, rsvpValue },
+      (filter) => filter.eventId === eventId && filter.rsvpValue === rsvpValue
+    )
+    setSelectedRsvpFilters(nextFilters)
     filterHouseholds(
       searchInput,
-      { eventId, rsvpValue },
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
+      nextFilters,
+      selectedTagFilters,
+      selectedCountryFilters,
+      selectedSideFilters,
+      selectedGroupFilters
     )
   }
 
   const filterHouseholdsByTag = (tagId: string) => {
-    setShowTagDropdown(false)
-    setSelectedTagFilter(tagId)
+    const nextFilters = toggleValue(selectedTagFilters, tagId)
+    setSelectedTagFilters(nextFilters)
     filterHouseholds(
       searchInput,
-      selectedRsvpFilter,
-      tagId,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
+      selectedRsvpFilters,
+      nextFilters,
+      selectedCountryFilters,
+      selectedSideFilters,
+      selectedGroupFilters
     )
   }
 
   const filterHouseholdsByCountry = (country: string) => {
-    setShowCountryDropdown(false)
-    setSelectedCountryFilter(country)
+    const nextFilters = toggleValue(selectedCountryFilters, country)
+    setSelectedCountryFilters(nextFilters)
     filterHouseholds(
       searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      country,
-      selectedSideFilter,
-      selectedGroupFilter
+      selectedRsvpFilters,
+      selectedTagFilters,
+      nextFilters,
+      selectedSideFilters,
+      selectedGroupFilters
     )
   }
 
   const filterHouseholdsBySide = (sideKey: string) => {
-    setShowSideDropdown(false)
-    setSelectedSideFilter(sideKey)
+    const nextFilters = toggleValue(selectedSideFilters, sideKey)
+    setSelectedSideFilters(nextFilters)
     filterHouseholds(
       searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      sideKey,
-      selectedGroupFilter
+      selectedRsvpFilters,
+      selectedTagFilters,
+      selectedCountryFilters,
+      nextFilters,
+      selectedGroupFilters
     )
   }
 
   const filterHouseholdsByGroup = (groupKey: string) => {
-    setShowGroupDropdown(false)
-    setSelectedGroupFilter(groupKey)
+    const nextFilters = toggleValue(selectedGroupFilters, groupKey)
+    setSelectedGroupFilters(nextFilters)
     filterHouseholds(
       searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      groupKey
+      selectedRsvpFilters,
+      selectedTagFilters,
+      selectedCountryFilters,
+      selectedSideFilters,
+      nextFilters
     )
   }
 
   const clearTagFilter = () => {
-    setShowTagDropdown(false)
-    setSelectedTagFilter(null)
+    setSelectedTagFilters([])
     filterHouseholds(
       searchInput,
-      selectedRsvpFilter,
-      null,
-      selectedCountryFilter,
-      selectedSideFilter,
-      selectedGroupFilter
+      selectedRsvpFilters,
+      [],
+      selectedCountryFilters,
+      selectedSideFilters,
+      selectedGroupFilters
     )
   }
 
   const clearGroupFilter = () => {
-    setShowGroupDropdown(false)
-    setSelectedGroupFilter(null)
+    setSelectedGroupFilters([])
     filterHouseholds(
       searchInput,
-      selectedRsvpFilter,
-      selectedTagFilter,
-      selectedCountryFilter,
-      selectedSideFilter,
-      null
+      selectedRsvpFilters,
+      selectedTagFilters,
+      selectedCountryFilters,
+      selectedSideFilters,
+      []
     )
   }
 
   const hasActiveFilters =
-    !!selectedRsvpFilter ||
-    !!selectedTagFilter ||
-    !!selectedCountryFilter ||
-    !!selectedSideFilter ||
-    !!selectedGroupFilter ||
+    selectedRsvpFilters.length > 0 ||
+    selectedTagFilters.length > 0 ||
+    selectedCountryFilters.length > 0 ||
+    selectedSideFilters.length > 0 ||
+    selectedGroupFilters.length > 0 ||
     !!searchInput
 
   useEffect(() => {
     onFiltersChange?.({
       search: searchInput,
-      rsvp: selectedRsvpFilter,
-      tagId: selectedTagFilter,
-      country: selectedCountryFilter,
-      side: selectedSideFilter,
-      group: selectedGroupFilter,
+      rsvp: selectedRsvpFilters,
+      tagId: selectedTagFilters,
+      country: selectedCountryFilters,
+      side: selectedSideFilters,
+      group: selectedGroupFilters,
     })
   }, [
     onFiltersChange,
     searchInput,
-    selectedCountryFilter,
-    selectedGroupFilter,
-    selectedRsvpFilter,
-    selectedSideFilter,
-    selectedTagFilter,
+    selectedCountryFilters,
+    selectedGroupFilters,
+    selectedRsvpFilters,
+    selectedSideFilters,
+    selectedTagFilters,
   ])
 
   const clearAllFilters = () => {
     setFilteredHouseholds(households)
     setSearchInput('')
-    setSelectedRsvpFilter(null)
-    setSelectedTagFilter(null)
-    setSelectedCountryFilter(null)
-    setSelectedSideFilter(null)
-    setSelectedGroupFilter(null)
+    setSelectedRsvpFilters([])
+    setSelectedTagFilters([])
+    setSelectedCountryFilters([])
+    setSelectedSideFilters([])
+    setSelectedGroupFilters([])
   }
 
   useEffect(() => {
@@ -436,13 +472,19 @@ export default function GuestSearchFilter({
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [mobileFiltersOpen, onMobileFiltersOpenChange])
 
-  const selectedTagName = allTags.find((t) => t.id === selectedTagFilter)?.name
-  const selectedSideLabel = availableSides.find((s) => s.key === selectedSideFilter)?.label
-  const selectedGroupLabel = availableGroups.find((g) => g.key === selectedGroupFilter)?.label
-  const selectedEventName =
-    selectedRsvpFilter === null
-      ? null
-      : events.find((event) => event.id === selectedRsvpFilter.eventId)?.name
+  const selectedTagLabels = selectedTagFilters.map(
+    (tagId) => allTags.find((tag) => tag.id === tagId)?.name ?? tagId
+  )
+  const selectedSideLabels = selectedSideFilters.map(
+    (sideKey) => availableSides.find((side) => side.key === sideKey)?.label ?? sideKey
+  )
+  const selectedGroupLabels = selectedGroupFilters.map(
+    (groupKey) => availableGroups.find((group) => group.key === groupKey)?.label ?? groupKey
+  )
+  const selectedRsvpLabels = selectedRsvpFilters.map(
+    (filter) => RSVP_STATUS_LABELS[filter.rsvpValue as RsvpStatus] ?? filter.rsvpValue
+  )
+  const selectedSingleRsvp = selectedRsvpFilters.length === 1 ? selectedRsvpFilters[0] : undefined
 
   return (
     <div className='flex w-full flex-col gap-3'>
@@ -503,25 +545,42 @@ export default function GuestSearchFilter({
               onClick={() => setShowInvitationDropdown((prev) => !prev)}
               className='w-40 justify-between font-sans text-sm normal-case tracking-normal'
             >
-              {selectedRsvpFilter === null ? (
-                <span>סטטוס RSVP</span>
-              ) : (
+              {selectedSingleRsvp ? (
                 <div className='flex items-center gap-1.5'>
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${sharedStyles.getRSVPcolor(
-                      selectedRsvpFilter.rsvpValue
+                      selectedSingleRsvp.rsvpValue
                     )}`}
                   />
-                  <span className='truncate'>
-                    {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
-                      selectedRsvpFilter.rsvpValue}
-                  </span>
+                  <span className='truncate'>{selectedRsvpLabels[0]}</span>
                 </div>
+              ) : (
+                <span>{filterButtonLabel('סטטוס RSVP', selectedRsvpLabels)}</span>
               )}
               <IoIosArrowDown size={16} />
             </Button>
             {showInvitationDropdown && (
-              <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md'>
+              <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-48 overflow-auto rounded-md border bg-popover p-3 shadow-md max-md:static max-md:w-full'>
+                <button
+                  type='button'
+                  className='mb-2 flex w-full items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
+                  onClick={() => {
+                    setSelectedRsvpFilters([])
+                    filterHouseholds(
+                      searchInput,
+                      [],
+                      selectedTagFilters,
+                      selectedCountryFilters,
+                      selectedSideFilters,
+                      selectedGroupFilters
+                    )
+                  }}
+                >
+                  <span>הכל</span>
+                  {selectedRsvpFilters.length === 0 ? (
+                    <IoMdCheckmark size={16} className='text-primary' />
+                  ) : null}
+                </button>
                 {eventsToMap?.map(
                   (event) =>
                     event && (
@@ -538,11 +597,9 @@ export default function GuestSearchFilter({
                             rsvpValue={rsvp}
                             eventId={event.id}
                             filterHouseholdsByInvitation={filterHouseholdsByInvitation}
-                            setSelectedRsvpFilter={setSelectedRsvpFilter}
-                            isSelected={
-                              event.id === selectedRsvpFilter?.eventId &&
-                              rsvp === selectedRsvpFilter?.rsvpValue
-                            }
+                            isSelected={selectedRsvpFilters.some(
+                              (filter) => event.id === filter.eventId && rsvp === filter.rsvpValue
+                            )}
                           />
                         ))}
                       </div>
@@ -564,15 +621,13 @@ export default function GuestSearchFilter({
                 }}
                 className='w-36 justify-between font-sans text-sm normal-case tracking-normal'
               >
-                {selectedTagFilter === null ? (
-                  <span>תגית אורח</span>
-                ) : (
-                  <span className='truncate'>{selectedTagName ?? selectedTagFilter}</span>
-                )}
+                <span className='truncate'>
+                  {filterButtonLabel('תגית אורח', selectedTagLabels)}
+                </span>
                 <IoIosArrowDown size={16} />
               </Button>
               {showTagDropdown && (
-                <div className='absolute start-0 top-full z-10 mt-1 w-64 rounded-md border bg-popover shadow-md'>
+                <div className='absolute start-0 top-full z-10 mt-1 w-64 rounded-md border bg-popover shadow-md max-md:static max-md:w-full'>
                   {availableTags.length > SEARCHABLE_TAG_THRESHOLD ? (
                     <div className='border-b p-2'>
                       <Input
@@ -592,7 +647,7 @@ export default function GuestSearchFilter({
                       onClick={clearTagFilter}
                     >
                       <span>הכל</span>
-                      {selectedTagFilter === null ? (
+                      {selectedTagFilters.length === 0 ? (
                         <IoMdCheckmark size={16} className='text-primary' />
                       ) : null}
                     </button>
@@ -606,7 +661,7 @@ export default function GuestSearchFilter({
                         <span>
                           {tag.name} ({availableTagCounts.get(tag.id) ?? 0})
                         </span>
-                        {selectedTagFilter === tag.id && (
+                        {selectedTagFilters.includes(tag.id) && (
                           <IoMdCheckmark size={16} className='text-primary' />
                         )}
                       </button>
@@ -631,15 +686,31 @@ export default function GuestSearchFilter({
                 onClick={() => setShowSideDropdown((prev) => !prev)}
                 className='w-32 justify-between font-sans text-sm normal-case tracking-normal'
               >
-                {selectedSideFilter === null ? (
-                  <span>צד</span>
-                ) : (
-                  <span className='truncate'>{selectedSideLabel ?? selectedSideFilter}</span>
-                )}
+                <span className='truncate'>{filterButtonLabel('צד', selectedSideLabels)}</span>
                 <IoIosArrowDown size={16} />
               </Button>
               {showSideDropdown && (
-                <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
+                <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md max-md:static max-md:w-full'>
+                  <button
+                    type='button'
+                    className='flex w-full items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
+                    onClick={() => {
+                      setSelectedSideFilters([])
+                      filterHouseholds(
+                        searchInput,
+                        selectedRsvpFilters,
+                        selectedTagFilters,
+                        selectedCountryFilters,
+                        [],
+                        selectedGroupFilters
+                      )
+                    }}
+                  >
+                    <span>הכל</span>
+                    {selectedSideFilters.length === 0 ? (
+                      <IoMdCheckmark size={16} className='text-primary' />
+                    ) : null}
+                  </button>
                   {availableSides.map((side) => (
                     <button
                       key={side.key}
@@ -650,7 +721,7 @@ export default function GuestSearchFilter({
                       <span>
                         {side.label} ({side.count})
                       </span>
-                      {selectedSideFilter === side.key && (
+                      {selectedSideFilters.includes(side.key) && (
                         <IoMdCheckmark size={16} className='text-primary' />
                       )}
                     </button>
@@ -672,15 +743,11 @@ export default function GuestSearchFilter({
                 }}
                 className='w-36 justify-between font-sans text-sm normal-case tracking-normal'
               >
-                {selectedGroupFilter === null ? (
-                  <span>קבוצה</span>
-                ) : (
-                  <span className='truncate'>{selectedGroupLabel ?? selectedGroupFilter}</span>
-                )}
+                <span className='truncate'>{filterButtonLabel('קבוצה', selectedGroupLabels)}</span>
                 <IoIosArrowDown size={16} />
               </Button>
               {showGroupDropdown && (
-                <div className='absolute start-0 top-full z-10 mt-1 w-80 rounded-md border bg-popover shadow-md'>
+                <div className='absolute start-0 top-full z-10 mt-1 w-80 rounded-md border bg-popover shadow-md max-md:static max-md:w-full'>
                   <div className='border-b p-2'>
                     <Input
                       aria-label='חיפוש קבוצה'
@@ -698,7 +765,7 @@ export default function GuestSearchFilter({
                       onClick={clearGroupFilter}
                     >
                       <span>הכל</span>
-                      {selectedGroupFilter === null ? (
+                      {selectedGroupFilters.length === 0 ? (
                         <IoMdCheckmark size={16} className='text-primary' />
                       ) : null}
                     </button>
@@ -726,7 +793,7 @@ export default function GuestSearchFilter({
                               <span>
                                 {group.label} ({group.count})
                               </span>
-                              {selectedGroupFilter === group.key ? (
+                              {selectedGroupFilters.includes(group.key) ? (
                                 <IoMdCheckmark size={16} className='text-primary' />
                               ) : null}
                             </button>
@@ -753,31 +820,49 @@ export default function GuestSearchFilter({
               onClick={() => setShowCountryDropdown((prev) => !prev)}
               className='w-32 justify-between font-sans text-sm normal-case tracking-normal'
             >
-              {selectedCountryFilter === null ? (
-                <span>ארץ</span>
-              ) : (
-                <span className='truncate'>{selectedCountryFilter}</span>
-              )}
+              <span className='truncate'>{filterButtonLabel('ארץ', selectedCountryFilters)}</span>
               <IoIosArrowDown size={16} />
             </Button>
             {showCountryDropdown && (
-              <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md'>
+              <div className='absolute start-0 top-full z-10 mt-1 max-h-64 w-40 overflow-auto rounded-md border bg-popover p-1 shadow-md max-md:static max-md:w-full'>
                 {availableCountries.length === 0 ? (
                   <p className='px-2 py-1.5 text-muted-foreground text-sm'>לא נמצאו מדינות</p>
                 ) : (
-                  availableCountries.map((country) => (
+                  <>
                     <button
-                      key={country}
                       type='button'
-                      className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
-                      onClick={() => filterHouseholdsByCountry(country)}
+                      className='flex w-full items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
+                      onClick={() => {
+                        setSelectedCountryFilters([])
+                        filterHouseholds(
+                          searchInput,
+                          selectedRsvpFilters,
+                          selectedTagFilters,
+                          [],
+                          selectedSideFilters,
+                          selectedGroupFilters
+                        )
+                      }}
                     >
-                      <span>{country}</span>
-                      {selectedCountryFilter === country && (
+                      <span>הכל</span>
+                      {selectedCountryFilters.length === 0 ? (
                         <IoMdCheckmark size={16} className='text-primary' />
-                      )}
+                      ) : null}
                     </button>
-                  ))
+                    {availableCountries.map((country) => (
+                      <button
+                        key={country}
+                        type='button'
+                        className='flex w-full cursor-pointer items-center justify-between rounded-sm p-2 text-sm transition-colors hover:bg-accent'
+                        onClick={() => filterHouseholdsByCountry(country)}
+                      >
+                        <span>{country}</span>
+                        {selectedCountryFilters.includes(country) && (
+                          <IoMdCheckmark size={16} className='text-primary' />
+                        )}
+                      </button>
+                    ))}
+                  </>
                 )}
               </div>
             )}
@@ -813,104 +898,62 @@ export default function GuestSearchFilter({
                 חיפוש: {searchInput} ×
               </button>
             ) : null}
-            {selectedRsvpFilter ? (
+            {selectedRsvpFilters.map((filter) => {
+              const eventName = events.find((event) => event.id === filter.eventId)?.name
+              return (
+                <button
+                  key={`${filter.eventId}-${filter.rsvpValue}`}
+                  type='button'
+                  className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
+                  onClick={() => filterHouseholdsByInvitation(filter)}
+                >
+                  סטטוס RSVP:{' '}
+                  {RSVP_STATUS_LABELS[filter.rsvpValue as RsvpStatus] ?? filter.rsvpValue}
+                  {eventName ? ` (${eventName})` : ''} ×
+                </button>
+              )
+            })}
+            {selectedTagFilters.map((tagId) => (
               <button
+                key={tagId}
                 type='button'
                 className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-                onClick={() => {
-                  setSelectedRsvpFilter(null)
-                  filterHouseholds(
-                    searchInput,
-                    null,
-                    selectedTagFilter,
-                    selectedCountryFilter,
-                    selectedSideFilter,
-                    selectedGroupFilter
-                  )
-                }}
+                onClick={() => filterHouseholdsByTag(tagId)}
               >
-                סטטוס RSVP:{' '}
-                {RSVP_STATUS_LABELS[selectedRsvpFilter.rsvpValue as RsvpStatus] ??
-                  selectedRsvpFilter.rsvpValue}
-                {selectedEventName ? ` (${selectedEventName})` : ''} ×
+                תגית: {allTags.find((tag) => tag.id === tagId)?.name ?? tagId} ×
               </button>
-            ) : null}
-            {selectedTagFilter ? (
+            ))}
+            {selectedSideFilters.map((sideKey) => (
               <button
+                key={sideKey}
                 type='button'
                 className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-                onClick={() => {
-                  setSelectedTagFilter(null)
-                  filterHouseholds(
-                    searchInput,
-                    selectedRsvpFilter,
-                    null,
-                    selectedCountryFilter,
-                    selectedSideFilter,
-                    selectedGroupFilter
-                  )
-                }}
+                onClick={() => filterHouseholdsBySide(sideKey)}
               >
-                תגית: {selectedTagName ?? selectedTagFilter} ×
+                צד: {availableSides.find((side) => side.key === sideKey)?.label ?? sideKey} ×
               </button>
-            ) : null}
-            {selectedSideFilter ? (
+            ))}
+            {selectedGroupFilters.map((groupKey) => (
               <button
+                key={groupKey}
                 type='button'
                 className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-                onClick={() => {
-                  setSelectedSideFilter(null)
-                  filterHouseholds(
-                    searchInput,
-                    selectedRsvpFilter,
-                    selectedTagFilter,
-                    selectedCountryFilter,
-                    null,
-                    selectedGroupFilter
-                  )
-                }}
+                onClick={() => filterHouseholdsByGroup(groupKey)}
               >
-                צד: {selectedSideLabel ?? selectedSideFilter} ×
+                קבוצה: {availableGroups.find((group) => group.key === groupKey)?.label ?? groupKey}{' '}
+                ×
               </button>
-            ) : null}
-            {selectedGroupFilter ? (
+            ))}
+            {selectedCountryFilters.map((country) => (
               <button
+                key={country}
                 type='button'
                 className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-                onClick={() => {
-                  setSelectedGroupFilter(null)
-                  filterHouseholds(
-                    searchInput,
-                    selectedRsvpFilter,
-                    selectedTagFilter,
-                    selectedCountryFilter,
-                    selectedSideFilter,
-                    null
-                  )
-                }}
+                onClick={() => filterHouseholdsByCountry(country)}
               >
-                קבוצה: {selectedGroupLabel ?? selectedGroupFilter} ×
+                ארץ: {country} ×
               </button>
-            ) : null}
-            {selectedCountryFilter ? (
-              <button
-                type='button'
-                className='shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs'
-                onClick={() => {
-                  setSelectedCountryFilter(null)
-                  filterHouseholds(
-                    searchInput,
-                    selectedRsvpFilter,
-                    selectedTagFilter,
-                    null,
-                    selectedSideFilter,
-                    selectedGroupFilter
-                  )
-                }}
-              >
-                ארץ: {selectedCountryFilter} ×
-              </button>
-            ) : null}
+            ))}
             <Button
               variant='ghost'
               size='sm'
@@ -929,7 +972,6 @@ export default function GuestSearchFilter({
 type InvitationOptionProps = {
   rsvpValue: string
   eventId: string
-  setSelectedRsvpFilter: Dispatch<SetStateAction<TSelectedRsvpFilter | null>>
   filterHouseholdsByInvitation: (filter: TSelectedRsvpFilter) => void
   isSelected: boolean
 }
@@ -937,12 +979,10 @@ type InvitationOptionProps = {
 const InvitationOption = ({
   rsvpValue,
   eventId,
-  setSelectedRsvpFilter,
   filterHouseholdsByInvitation,
   isSelected,
 }: InvitationOptionProps) => {
   const handleChangeOption = () => {
-    setSelectedRsvpFilter({ eventId, rsvpValue })
     filterHouseholdsByInvitation({ eventId, rsvpValue })
   }
 

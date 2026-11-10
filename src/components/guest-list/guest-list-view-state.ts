@@ -4,11 +4,11 @@ export type SortDirection = 'none' | 'ascending' | 'descending'
 
 export type GuestListFilters = {
   search: string
-  rsvp: { eventId: string; rsvpValue: string } | null
-  tagId: string | null
-  country: string | null
-  side: string | null
-  group: string | null
+  rsvp: Array<{ eventId: string; rsvpValue: string }>
+  tagId: string[]
+  country: string[]
+  side: string[]
+  group: string[]
 }
 
 export type GuestListViewState = {
@@ -24,11 +24,11 @@ export const DEFAULT_GUEST_LIST_VIEW_STATE: GuestListViewState = {
   partySort: 'none',
   filters: {
     search: '',
-    rsvp: null,
-    tagId: null,
-    country: null,
-    side: null,
-    group: null,
+    rsvp: [],
+    tagId: [],
+    country: [],
+    side: [],
+    group: [],
   },
 }
 
@@ -36,6 +36,23 @@ export const guestListViewStateKey = (weddingId: string) => `oswp:guest-list-vie
 
 const isSortDirection = (value: unknown): value is SortDirection =>
   value === 'none' || value === 'ascending' || value === 'descending'
+
+const storedStrings = (value: unknown) => {
+  if (Array.isArray(value))
+    return value.filter((entry): entry is string => typeof entry === 'string')
+  return typeof value === 'string' ? [value] : []
+}
+
+const storedRsvpFilters = (value: unknown): GuestListFilters['rsvp'] => {
+  const entries = Array.isArray(value) ? value : value ? [value] : []
+  return entries.filter(
+    (entry): entry is GuestListFilters['rsvp'][number] =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      typeof (entry as { eventId?: unknown }).eventId === 'string' &&
+      typeof (entry as { rsvpValue?: unknown }).rsvpValue === 'string'
+  )
+}
 
 export function readGuestListViewState(weddingId: string | null): GuestListViewState {
   if (!weddingId || typeof window === 'undefined') return DEFAULT_GUEST_LIST_VIEW_STATE
@@ -53,16 +70,11 @@ export function readGuestListViewState(weddingId: string | null): GuestListViewS
       partySort: isSortDirection(stored.partySort) ? stored.partySort : 'none',
       filters: {
         search: typeof filters.search === 'string' ? filters.search : '',
-        rsvp:
-          filters.rsvp &&
-          typeof filters.rsvp.eventId === 'string' &&
-          typeof filters.rsvp.rsvpValue === 'string'
-            ? filters.rsvp
-            : null,
-        tagId: typeof filters.tagId === 'string' ? filters.tagId : null,
-        country: typeof filters.country === 'string' ? filters.country : null,
-        side: typeof filters.side === 'string' ? filters.side : null,
-        group: typeof filters.group === 'string' ? filters.group : null,
+        rsvp: storedRsvpFilters(filters.rsvp),
+        tagId: storedStrings(filters.tagId),
+        country: storedStrings(filters.country),
+        side: storedStrings(filters.side),
+        group: storedStrings(filters.group),
       },
     }
   } catch {

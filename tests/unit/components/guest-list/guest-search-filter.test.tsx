@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { useState } from 'react'
 
+import type { Event } from '~/app/utils/shared-types'
 import GuestSearchFilter from '~/components/guest-list/guest-search-filter'
 import { SELF_ADD_GROUP_NAME } from '~/lib/constants/guest-self-add'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
@@ -70,14 +71,20 @@ function makeHousehold(
   } as unknown as HouseholdWithGuests
 }
 
-function Harness({ households }: { households: HouseholdWithGuests[] }) {
+function Harness({
+  households,
+  events = [],
+}: {
+  households: HouseholdWithGuests[]
+  events?: Event[]
+}) {
   const [filtered, setFiltered] = useState<HouseholdWithGuests[]>(households)
   return (
     <>
       <GuestSearchFilter
         households={households}
         setFilteredHouseholds={setFiltered}
-        events={[]}
+        events={events}
         selectedEventId='all'
       />
       <ul data-testid='filtered-households'>
@@ -100,11 +107,11 @@ function RestoredHarness({ households }: { households: HouseholdWithGuests[] }) 
         selectedEventId='all'
         initialFilters={{
           search: '',
-          rsvp: null,
-          tagId: null,
-          country: null,
-          side: null,
-          group: 'renamed-group',
+          rsvp: [],
+          tagId: [],
+          country: [],
+          side: [],
+          group: ['renamed-group'],
         }}
       />
       <span data-testid='restored-count'>{filtered.length}</span>
@@ -214,6 +221,108 @@ function makeHouseholdWithGuest(
     guests: [{ ...household.guests[0], firstName, lastName }],
   } as HouseholdWithGuests
 }
+
+const makeEvent = (id: string, name: string) => ({ id, name, questions: [] }) as unknown as Event
+
+const withInvitation = (
+  household: HouseholdWithGuests,
+  eventId: string,
+  rsvp: string
+): HouseholdWithGuests => ({
+  ...household,
+  guests: [
+    {
+      ...household.guests[0],
+      invitations: [{ eventId, rsvp }] as HouseholdWithGuests['guests'][number]['invitations'],
+    },
+  ],
+})
+
+const filteredHouseholdIds = () =>
+  within(screen.getByTestId('filtered-households'))
+    .getAllByRole('listitem')
+    .map((item) => item.textContent)
+
+describe('GuestSearchFilter — multi-value semantics', () => {
+  it('shows the union of two selected groups', () => {
+    const households = [
+      makeHousehold('friends', 'חתן', 'חברים'),
+      makeHousehold('family', 'כלה', 'משפחה'),
+      makeHousehold('work', 'חתן', 'עבודה'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    fireEvent.click(screen.getByText('חברים (1)'))
+    fireEvent.click(screen.getByText('משפחה (1)'))
+
+    expect(filteredHouseholdIds()).toEqual(['friends', 'family'])
+    expect(screen.getByRole('button', { name: 'קבוצה · 2' })).toBeInTheDocument()
+  })
+
+  it('intersects one selected group with one selected side', () => {
+    const households = [
+      makeHousehold('groom-family', 'חתן', 'משפחה'),
+      makeHousehold('bride-family', 'כלה', 'משפחה'),
+      makeHousehold('groom-friends', 'חתן', 'חברים'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    fireEvent.click(screen.getAllByText('משפחה (1)')[0])
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    fireEvent.click(screen.getByText('חתן (2)'))
+
+    expect(filteredHouseholdIds()).toEqual(['groom-family'])
+  })
+
+  it('shows the union of two RSVP statuses on the same event', () => {
+    const event = makeEvent('event-a', 'אירוע א')
+    const households = [
+      withInvitation(makeHousehold('attending', 'חתן'), event.id, 'Attending'),
+      withInvitation(makeHousehold('declined', 'כלה'), event.id, 'Declined'),
+      withInvitation(makeHousehold('invited', 'חתן'), event.id, 'Invited'),
+    ]
+    render(<Harness households={households} events={[event]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'סטטוס RSVP' }))
+    fireEvent.click(screen.getByText('מגיע/ה'))
+    fireEvent.click(screen.getByText('לא מגיע/ה'))
+
+    expect(filteredHouseholdIds()).toEqual(['attending', 'declined'])
+  })
+
+  it('shows the union of statuses selected on different events', () => {
+    const eventA = makeEvent('event-a', 'אירוע א')
+    const eventB = makeEvent('event-b', 'אירוע ב')
+    const households = [
+      withInvitation(makeHousehold('event-a-attending', 'חתן'), eventA.id, 'Attending'),
+      withInvitation(makeHousehold('event-b-declined', 'כלה'), eventB.id, 'Declined'),
+      withInvitation(makeHousehold('event-a-invited', 'חתן'), eventA.id, 'Invited'),
+    ]
+    render(<Harness households={households} events={[eventA, eventB]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'סטטוס RSVP' }))
+    fireEvent.click(screen.getAllByText('מגיע/ה')[0])
+    fireEvent.click(screen.getAllByText('לא מגיע/ה')[1])
+
+    expect(filteredHouseholdIds()).toEqual(['event-a-attending', 'event-b-declined'])
+  })
+
+  it('returns all households after the selection is cleared', () => {
+    const households = [
+      makeHousehold('friends', 'חתן', 'חברים'),
+      makeHousehold('family', 'כלה', 'משפחה'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    fireEvent.click(screen.getByText('חברים (1)'))
+    fireEvent.click(screen.getByText('הכל'))
+
+    expect(filteredHouseholdIds()).toEqual(['friends', 'family'])
+  })
+})
 
 describe('GuestSearchFilter — tolerant name search', () => {
   // Real prod row (Guest id 1348): firstName stored with a trailing space,
