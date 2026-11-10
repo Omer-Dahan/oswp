@@ -1647,4 +1647,166 @@ describe('GuestsView', () => {
     // "גררו את הסליידר כדי לקבוע סבירות" should NOT be shown when value is set
     expect(screen.queryByText('גררו את הסליידר כדי לקבוע סבירות')).not.toBeInTheDocument()
   })
+
+  it('finding #9: keeps the drawer open when an edit moves the household out of the active country filter', async () => {
+    const usHousehold: HouseholdWithGuests = { ...households[0], country: 'US' }
+
+    render(
+      <GuestsView
+        events={events}
+        households={[usHousehold]}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'ארץ' }))
+    fireEvent.click(screen.getByText('US'))
+    expect(
+      screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i })
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /בחירת משק הבית של alex rivera/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'עריכת פרטי קשר וכתובת' }))
+    fireEvent.change(screen.getByLabelText('ארץ'), { target: { value: 'UK' } })
+    fireEvent.click(screen.getByRole('button', { name: 'שמירת שינויים' }))
+
+    await waitFor(() => expect(mockHouseholdUpdateMutate).toHaveBeenCalled())
+
+    // The household no longer matches the "US" filter, but the drawer must
+    // not have auto-closed as if the household had disappeared.
+    expect(screen.getByRole('button', { name: 'סגירת פרטי אורח' })).toBeInTheDocument()
+    expect(screen.getByText('UK')).toBeInTheDocument()
+  })
+
+  it('finding #10: a refetch with a new households array reference does not reset the active filter', () => {
+    const { rerender } = render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Brooke' } })
+    expect(
+      screen.queryByRole('button', { name: /בחירת משק הבית של alex rivera/i })
+    ).not.toBeInTheDocument()
+
+    // A refetch (e.g. after router.refresh()) hands down a brand-new array
+    // reference with equivalent content - this must not flash the unfiltered
+    // list back in.
+    rerender(
+      <GuestsView
+        events={events}
+        households={[...householdsWithSecondFamily]}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(
+      screen.queryByRole('button', { name: /בחירת משק הבית של alex rivera/i })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /בחירת משק הבית של brooke chen/i })
+    ).toBeInTheDocument()
+  })
+
+  it('finding #8: shows the active filter count on the mobile סינון button and keeps chips reachable outside the sheet', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'סינון' })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Brooke' } })
+
+    expect(screen.getByRole('button', { name: 'סינון · 1' })).toBeInTheDocument()
+    expect(screen.getByTestId('active-filter-chips')).toBeInTheDocument()
+  })
+
+  it('finding #13: returns focus to the סינון button once the mobile filter sheet closes', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    const filterButton = screen.getByRole('button', { name: 'סינון' })
+    fireEvent.click(filterButton)
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    expect(filterButton).toHaveFocus()
+  })
+
+  it('finding #15: debounces the view-state localStorage write instead of writing on every keystroke', () => {
+    jest.useFakeTimers()
+    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem')
+
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+    setItemSpy.mockClear()
+
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'B' } })
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Br' } })
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Bro' } })
+
+    expect(setItemSpy).not.toHaveBeenCalled()
+
+    act(() => {
+      jest.advanceTimersByTime(120)
+    })
+
+    expect(setItemSpy).toHaveBeenCalledTimes(1)
+
+    setItemSpy.mockRestore()
+    jest.useRealTimers()
+  })
+
+  it('finding #19: shows a מסונן: X מתוך Y marker in the summary strip when a filter is active', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.queryByTestId('filtered-summary-marker')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText('חיפוש אורחים'), { target: { value: 'Brooke' } })
+
+    expect(screen.getByTestId('filtered-summary-marker')).toHaveTextContent('מסונן: 1 מתוך 2')
+  })
 })

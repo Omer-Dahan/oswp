@@ -21,6 +21,7 @@ import {
   type DrawerDraft,
   GuestDetailPanelContent,
 } from '~/components/guest-list/guest-detail-panel-content'
+import { applyGuestListFilters } from '~/components/guest-list/guest-list-filtering'
 import { GuestListLoadingIndicator } from '~/components/guest-list/guest-list-loading-indicator'
 import {
   clearGuestListViewState,
@@ -103,7 +104,6 @@ export default function GuestsView({
   // prop, but also patched optimistically on save so a filter/search action run
   // before the server refresh lands doesn't rebuild from stale, pre-save data.
   const [baseHouseholds, setBaseHouseholds] = useState(households)
-  const [filteredHouseholds, setFilteredHouseholds] = useState(households)
   const [nameSort, setNameSort] = useState(initialViewState.nameSort)
   const [partySort, setPartySort] = useState(initialViewState.partySort)
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<string | undefined>()
@@ -119,6 +119,8 @@ export default function GuestsView({
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
   const [inviteLinkOpen, setInviteLinkOpen] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const mobileFiltersTriggerRef = useRef<HTMLButtonElement>(null)
+  const wasMobileFiltersOpenRef = useRef(mobileFiltersOpen)
   const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
   const [editingSections, setEditingSections] = useState<
     Set<'contactAddress' | 'notes' | 'sideGroup'>
@@ -153,12 +155,21 @@ export default function GuestsView({
   })
   const initializedDrawerHouseholdIdRef = useRef<string | undefined>(undefined)
 
+  // Finding #15: don't write to localStorage on every keystroke - debounce
+  // the persisted-state write by ~120ms after the filters/sort/view settle.
+  const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   useEffect(() => {
     if (skipNextPersistenceRef.current) {
       skipNextPersistenceRef.current = false
       return
     }
-    writeGuestListViewState(weddingId, { viewMode, nameSort, partySort, filters })
+    if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current)
+    persistTimeoutRef.current = setTimeout(() => {
+      writeGuestListViewState(weddingId, { viewMode, nameSort, partySort, filters })
+    }, 120)
+    return () => {
+      if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current)
+    }
   }, [filters, nameSort, partySort, viewMode, weddingId])
 
   useEffect(() => {
@@ -181,6 +192,34 @@ export default function GuestsView({
     setFilters(DEFAULT_GUEST_LIST_VIEW_STATE.filters)
     setFilterResetKey((key) => key + 1)
   }, [weddingId])
+
+  // Finding #10: derive the filtered list from the base list + filters
+  // instead of a state that gets reset to the unfiltered array on every
+  // refetch (which flashed all households before filters re-applied).
+  const filteredHouseholds = useMemo(
+    () => applyGuestListFilters(baseHouseholds, filters),
+    [baseHouseholds, filters]
+  )
+  const noopSetFilteredHouseholds = useCallback(() => {}, [])
+
+  const activeFilterCount =
+    filters.rsvp.length +
+    filters.tagId.length +
+    filters.country.length +
+    filters.side.length +
+    filters.group.length +
+    (filters.search ? 1 : 0)
+  const hasActiveFilters = activeFilterCount > 0
+
+  // Finding #13: once the mobile filter sheet closes, return focus to the
+  // "סינון" button that opened it, regardless of how it closed (Escape,
+  // backdrop, the X, or Apply).
+  useEffect(() => {
+    if (wasMobileFiltersOpenRef.current && !mobileFiltersOpen) {
+      mobileFiltersTriggerRef.current?.focus()
+    }
+    wasMobileFiltersOpenRef.current = mobileFiltersOpen
+  }, [mobileFiltersOpen])
 
   const { filteredCounts, totalTagAlongs } = useMemo(() => {
     let tagAlongs = 0
@@ -206,7 +245,6 @@ export default function GuestsView({
 
   useEffect(() => {
     setBaseHouseholds(households)
-    setFilteredHouseholds(households)
   }, [households])
 
   const sortByName = useCallback(() => {
@@ -259,9 +297,12 @@ export default function GuestsView({
     return map
   }, [allHouseholds])
 
+  // Finding #9: resolve against the unfiltered base list, not the filtered
+  // one - an edit that moves the household out of the active filter must
+  // not read as "household disappeared" and auto-close the drawer.
   const selectedHousehold = useMemo(
-    () => filteredHouseholds.find((household) => household.id === selectedHouseholdId),
-    [filteredHouseholds, selectedHouseholdId]
+    () => baseHouseholds.find((household) => household.id === selectedHouseholdId),
+    [baseHouseholds, selectedHouseholdId]
   )
 
   const selectedCanonicalHousehold = useMemo(
@@ -432,7 +473,6 @@ export default function GuestsView({
                 }),
               }
             })
-          setFilteredHouseholds(applyPatch)
           setBaseHouseholds(applyPatch)
           if (selectedHouseholdId === activeHouseholdId) {
             setDrawerBaseline(draftSnapshot)
@@ -589,7 +629,6 @@ export default function GuestsView({
                     }),
                   }
                 })
-              setFilteredHouseholds(applyPatch)
               setBaseHouseholds(applyPatch)
               toast.success('בני הבית נשמרו')
               void utils.dashboard.getForActiveWorkspace.invalidate()
@@ -663,7 +702,7 @@ export default function GuestsView({
           setSelectedHouseholdId(undefined)
           initializedDrawerHouseholdIdRef.current = undefined
           setEditingSections(new Set())
-          setFilteredHouseholds((previous) =>
+          setBaseHouseholds((previous) =>
             previous.filter((household) => household.id !== householdId)
           )
           toast.success('המשפחה נמחקה בהצלחה')
@@ -784,9 +823,14 @@ export default function GuestsView({
           setPrefillEvent={setPrefillEvent}
         />
       )}
+      {hasActiveFilters ? (
+        <p data-testid='filtered-summary-marker' className='mb-2 text-muted-foreground text-xs'>
+          מסונן: {filteredHouseholds.length} מתוך {baseHouseholds.length}
+        </p>
+      ) : null}
       <div className='relative mb-4 flex flex-col gap-3'>
         <GuestSearchFilter
-          setFilteredHouseholds={setFilteredHouseholds}
+          setFilteredHouseholds={noopSetFilteredHouseholds}
           households={baseHouseholds}
           events={events}
           selectedEventId={selectedEventId}
@@ -839,12 +883,13 @@ export default function GuestsView({
             הוספת אורח
           </Button>
           <Button
+            ref={mobileFiltersTriggerRef}
             type='button'
             variant='outline'
             className='min-h-11 min-w-0 px-2'
             onClick={() => setMobileFiltersOpen(true)}
           >
-            סינון
+            {activeFilterCount > 0 ? `סינון · ${activeFilterCount}` : 'סינון'}
           </Button>
           <DropdownMenu dir='rtl'>
             <DropdownMenuTrigger asChild>

@@ -14,12 +14,13 @@ jest.mock('~/components/hooks', () => {
 })
 
 let mockTags: Array<{ id: string; name: string }> = []
+let mockTagsLoading = false
 
 jest.mock('~/trpc/react', () => ({
   api: {
     guestTag: {
       getAll: {
-        useQuery: () => ({ data: mockTags }),
+        useQuery: () => ({ data: mockTags, isLoading: mockTagsLoading }),
       },
     },
   },
@@ -74,9 +75,11 @@ function makeHousehold(
 function Harness({
   households,
   events = [],
+  mobileFiltersOpen = false,
 }: {
   households: HouseholdWithGuests[]
   events?: Event[]
+  mobileFiltersOpen?: boolean
 }) {
   const [filtered, setFiltered] = useState<HouseholdWithGuests[]>(households)
   return (
@@ -86,6 +89,7 @@ function Harness({
         setFilteredHouseholds={setFiltered}
         events={events}
         selectedEventId='all'
+        mobileFiltersOpen={mobileFiltersOpen}
       />
       <ul data-testid='filtered-households'>
         {filtered.map((household) => (
@@ -488,5 +492,311 @@ describe('GuestSearchFilter — tag option search', () => {
     fireEvent.change(search, { target: { value: 'משפחה' } })
     expect(screen.getByText('משפחה קרובה (1)')).toBeInTheDocument()
     expect(screen.queryByText('תגית 1 (1)')).not.toBeInTheDocument()
+  })
+})
+
+// Finding #5: production has 52 households in a "חברים" group split across
+// both sides - selecting one side's group must not pull in the other side's.
+describe('GuestSearchFilter — finding #5: side-scoped group keys', () => {
+  it('selecting "חברים" under חתן does not also select the כלה household named חברים', () => {
+    const households = [
+      makeHousehold('groom-friend', 'חתן', 'חברים'),
+      makeHousehold('bride-friend', 'כלה', 'חברים'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    const sections = screen.getAllByRole('region')
+    fireEvent.click(within(sections[0]).getByText('חברים (1)'))
+
+    expect(filteredHouseholdIds()).toEqual(['groom-friend'])
+  })
+
+  it('shows the chip and button label with the side so the two חברים groups are distinguishable', () => {
+    const households = [
+      makeHousehold('groom-friend', 'חתן', 'חברים'),
+      makeHousehold('bride-friend', 'כלה', 'חברים'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    const sections = screen.getAllByRole('region')
+    fireEvent.click(within(sections[0]).getByText('חברים (1)'))
+
+    expect(screen.getByRole('button', { name: 'חברים · חתן' })).toBeInTheDocument()
+    expect(screen.getByText(/^קבוצה: חברים · חתן/)).toBeInTheDocument()
+  })
+})
+
+// Finding #11: four production group names carry a stray double space -
+// they must collapse to one option, findable regardless of the typed spacing.
+describe('GuestSearchFilter — finding #11: tolerant group key normalisation', () => {
+  it('merges a double-spaced group name with its single-spaced twin into one option', () => {
+    const households = [
+      makeHousehold('a', 'חתן', 'אבא  עבודה'),
+      makeHousehold('b', 'חתן', 'אבא עבודה'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+
+    const mergedOption = screen.getByText(
+      (content) => content.includes('עבודה') && content.includes('(2)')
+    )
+    expect(mergedOption).toBeInTheDocument()
+    fireEvent.click(mergedOption)
+
+    expect(filteredHouseholdIds()).toEqual(['a', 'b'])
+  })
+})
+
+// Finding #16: households with no group name get a findable "ללא קבוצה" option.
+describe('GuestSearchFilter — finding #16: no-group option', () => {
+  it('lists "ללא קבוצה" and filters to households missing a group', () => {
+    const households = [
+      makeHousehold('has-group', 'חתן', 'חברים'),
+      makeHousehold('no-group', 'חתן', null),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    fireEvent.click(screen.getByText('ללא קבוצה (1)'))
+
+    expect(filteredHouseholdIds()).toEqual(['no-group'])
+  })
+})
+
+// Finding #18: a side header control selects every group on that side at once.
+describe('GuestSearchFilter — finding #18: select the whole side', () => {
+  it('selects every group under חתן, then deselects them on a second click', () => {
+    const households = [
+      makeHousehold('groom-a', 'חתן', 'חברים'),
+      makeHousehold('groom-b', 'חתן', 'עבודה'),
+      makeHousehold('bride-a', 'כלה', 'משפחה'),
+    ]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'קבוצה' }))
+    fireEvent.click(screen.getByRole('button', { name: 'בחירת כל הצד · חתן' }))
+
+    expect(filteredHouseholdIds()).toEqual(['groom-a', 'groom-b'])
+
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול בחירת כל הצד · חתן' }))
+
+    expect(filteredHouseholdIds()).toHaveLength(households.length)
+  })
+})
+
+// Finding #6: a restored tag filter must survive the tag query still loading,
+// and be re-validated (not blindly kept) once it resolves.
+describe('GuestSearchFilter — finding #6: tag filter survives a slow tag query', () => {
+  afterEach(() => {
+    mockTagsLoading = false
+    mockTags = []
+  })
+
+  it('keeps a restored tag id alive through the loading window, applying it once the tag resolves as real', () => {
+    mockTagsLoading = true
+    mockTags = []
+    const tagged = makeHousehold('tagged', 'חתן')
+    tagged.guests[0].guestTags = [
+      { tagId: 'tag-1' },
+    ] as HouseholdWithGuests['guests'][number]['guestTags']
+    const households = [tagged, makeHousehold('untagged', 'חתן')]
+    const initialFilters = {
+      search: '',
+      rsvp: [],
+      tagId: ['tag-1'],
+      country: [],
+      side: [],
+      group: [],
+    }
+
+    function Harness3() {
+      const [filtered, setFiltered] = useState<HouseholdWithGuests[]>(households)
+      return (
+        <>
+          <GuestSearchFilter
+            households={households}
+            setFilteredHouseholds={setFiltered}
+            events={[]}
+            selectedEventId='all'
+            initialFilters={initialFilters}
+          />
+          <ul data-testid='filtered-households'>
+            {filtered.map((household) => (
+              <li key={household.id}>{household.id}</li>
+            ))}
+          </ul>
+        </>
+      )
+    }
+
+    const { rerender } = render(<Harness3 />)
+
+    // While the tag query is loading there's no tag UI to show yet, but the
+    // restored filter must still be intact internally - not wiped to [].
+    mockTagsLoading = false
+    mockTags = [{ id: 'tag-1', name: 'משפחה' }]
+    rerender(<Harness3 />)
+
+    expect(filteredHouseholdIds()).toEqual(['tagged'])
+    expect(screen.getByRole('button', { name: 'משפחה' })).toBeInTheDocument()
+  })
+
+  it('drops a restored tag id once resolved as nonexistent, instead of keeping it forever', () => {
+    mockTagsLoading = true
+    mockTags = []
+    const taggedWithOtherTag = makeHousehold('a', 'חתן')
+    taggedWithOtherTag.guests[0].guestTags = [
+      { tagId: 'tag-2' },
+    ] as HouseholdWithGuests['guests'][number]['guestTags']
+    const households = [taggedWithOtherTag]
+    const initialFilters = {
+      search: '',
+      rsvp: [],
+      tagId: ['tag-1'],
+      country: [],
+      side: [],
+      group: [],
+    }
+
+    function Harness3() {
+      const [, setFiltered] = useState<HouseholdWithGuests[]>(households)
+      return (
+        <GuestSearchFilter
+          households={households}
+          setFilteredHouseholds={setFiltered}
+          events={[]}
+          selectedEventId='all'
+          initialFilters={initialFilters}
+        />
+      )
+    }
+
+    const { rerender } = render(<Harness3 />)
+
+    mockTagsLoading = false
+    mockTags = [{ id: 'tag-2', name: 'עבודה' }]
+    rerender(<Harness3 />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'תגית אורח' }))
+    expect(screen.getByText('הכל').closest('button')).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+// Finding #7: a status filter scoped to one event must not survive a switch
+// to a tab for a different event.
+describe('GuestSearchFilter — finding #7: event-scoped RSVP filter', () => {
+  it('drops the restored RSVP filter when it belongs to a different event than the selected tab', () => {
+    const eventA = makeEvent('event-a', 'אירוע א')
+    const eventB = makeEvent('event-b', 'אירוע ב')
+    // Stable references: Harness2 re-renders when its own effects push a
+    // filtered result back up, so these must not be recreated inline on
+    // every render or the push effect loops forever.
+    const stableHouseholds = [makeHousehold('a', 'חתן')]
+    const stableEvents = [eventA, eventB]
+    const stableInitialFilters = {
+      search: '',
+      rsvp: [{ eventId: 'event-a', rsvpValue: 'Attending' }],
+      tagId: [],
+      country: [],
+      side: [],
+      group: [],
+    }
+
+    function Harness2({ selectedEventId }: { selectedEventId: string }) {
+      const [filtered, setFiltered] = useState<HouseholdWithGuests[]>([])
+      return (
+        <>
+          <GuestSearchFilter
+            households={stableHouseholds}
+            setFilteredHouseholds={setFiltered}
+            events={stableEvents}
+            selectedEventId={selectedEventId}
+            initialFilters={stableInitialFilters}
+          />
+          <span data-testid='count'>{filtered.length}</span>
+        </>
+      )
+    }
+
+    render(<Harness2 selectedEventId='event-b' />)
+
+    expect(screen.getByRole('button', { name: 'סטטוס RSVP' })).toBeInTheDocument()
+    expect(screen.queryByText('מגיע/ה', { selector: 'span' })).not.toBeInTheDocument()
+  })
+})
+
+describe('GuestSearchFilter — finding #13/#20: accessibility and keyboard nav', () => {
+  it('marks the trigger buttons with aria-haspopup/aria-expanded and options with aria-pressed', () => {
+    const households = [makeHousehold('a', 'חתן', 'חברים')]
+    render(<Harness households={households} />)
+
+    const sideButton = screen.getByRole('button', { name: 'צד' })
+    expect(sideButton).toHaveAttribute('aria-haspopup', 'listbox')
+    expect(sideButton).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(sideButton)
+    expect(sideButton).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('חתן (1)').closest('button')).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('gives each active-filter chip an aria-label naming what it removes', () => {
+    const households = [makeHousehold('a', 'חתן')]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    fireEvent.click(screen.getByText('חתן (1)'))
+
+    expect(screen.getByRole('button', { name: 'הסרת סינון צד: חתן' })).toBeInTheDocument()
+  })
+
+  it('Escape closes an open desktop dropdown and returns focus to its trigger', () => {
+    const households = [makeHousehold('a', 'חתן')]
+    render(<Harness households={households} />)
+
+    const sideButton = screen.getByRole('button', { name: 'צד' })
+    fireEvent.click(sideButton)
+    expect(screen.getByText('חתן (1)')).toBeInTheDocument()
+
+    fireEvent.keyDown(screen.getByText('חתן (1)'), { key: 'Escape' })
+
+    expect(screen.queryByText('חתן (1)')).not.toBeInTheDocument()
+    expect(sideButton).toHaveFocus()
+  })
+
+  it('ArrowDown moves focus to the next option in an open dropdown', () => {
+    const households = [makeHousehold('a', 'חתן'), makeHousehold('b', 'כלה')]
+    render(<Harness households={households} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'צד' }))
+    const allOption = screen.getByText('הכל').closest('button') as HTMLButtonElement
+    allOption.focus()
+    fireEvent.keyDown(allOption, { key: 'ArrowDown' })
+
+    expect(screen.getByText('חתן (1)').closest('button')).toHaveFocus()
+  })
+
+  it('the mobile backdrop is not reachable by Tab (tabIndex -1)', () => {
+    const households = [makeHousehold('a', 'חתן')]
+    render(<Harness households={households} mobileFiltersOpen />)
+
+    expect(screen.getByLabelText('סגירת מסננים', { selector: 'button.fixed' })).toHaveAttribute(
+      'tabIndex',
+      '-1'
+    )
+  })
+})
+
+describe('GuestSearchFilter — finding #14: settled flex-wrap on the filter row', () => {
+  it('keeps exactly one of md:flex-wrap/md:flex-nowrap and adds a wrap fallback for 768-1000px', () => {
+    const households = [makeHousehold('a', 'חתן')]
+    render(<Harness households={households} />)
+
+    const row = screen.getByTestId('affiliation-filter-row')
+    expect(row).toHaveClass('md:flex-nowrap')
+    expect(row.className).not.toMatch(/(?<!-)md:flex-wrap\b/)
+    expect(row.className).toContain('[@media(min-width:768px)_and_(max-width:1000px)]:flex-wrap')
   })
 })
