@@ -384,6 +384,23 @@ describe('GuestCard', () => {
     expect(screen.queryByText(/לפי דיווח האורח/)).not.toBeInTheDocument()
   })
 
+  it('shows "לא מגיעים" instead of falling back to named rows when the stored count is explicitly 0', () => {
+    const storedZeroHousehold: HouseholdWithGuests = {
+      ...mockHousehold,
+      attendingCount: 0,
+      // Named rows still say "Invited" - nobody has an Attending or Declined
+      // row - but the guest's own reported count of 0 must still win and
+      // read as declined, not as unanswered.
+      guests: [mockGuest1],
+    }
+
+    render(<GuestCard household={storedZeroHousehold} onSelectHousehold={jest.fn()} />)
+
+    expect(screen.getByText('לא מגיעים לחתונה')).toBeInTheDocument()
+    expect(screen.queryByText('טרם השיבו')).not.toBeInTheDocument()
+    expect(screen.queryByText(/0 מגיעים/)).not.toBeInTheDocument()
+  })
+
   it('shows the singular "מגיע לחתונה" when exactly one guest is arriving', () => {
     const singleArrivalHousehold: HouseholdWithGuests = {
       ...mockHousehold,

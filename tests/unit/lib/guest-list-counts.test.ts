@@ -67,23 +67,105 @@ describe('deriveGuestListCounts', () => {
     })
   })
 
-  it('counts each guest with an answer on any event when no event is selected', () => {
-    const answeredAcrossEvents: CountableHousehold = {
+  it('resolves the "all events" tab to the wedding event instead of counting any event answered', () => {
+    // Finding #3: the "all" tab used to tally an answer on *any* event (the
+    // chuppah included), which never matched what the cards name. It must
+    // resolve and scope to the wedding's own RSVP-able event instead.
+    const weddingEvents = [
+      { id: 'chuppah', name: 'החופה', collectRsvp: true },
+      { id: 'wedding', name: 'החתונה', isPrimary: true, collectRsvp: true },
+    ]
+    const answeredOnlyOnChuppah: CountableHousehold = {
+      invitedCount: 1,
+      attendingCount: null,
+      guests: [{ invitations: [{ eventId: 'chuppah', rsvp: 'Attending' }] }],
+    }
+
+    expect(deriveGuestListCounts([answeredOnlyOnChuppah], undefined, weddingEvents)).toEqual({
+      guests: 1,
+      households: 1,
+      attending: 0,
+      declined: 0,
+      noResponse: 1,
+      pendingHouseholds: 1,
+      pendingGuests: 1,
+    })
+  })
+
+  it('counts every household as no response when no event can be resolved', () => {
+    const household = {
       invitedCount: 3,
       attendingCount: 3,
+      guests: [{ invitations: [{ eventId: 'wedding', rsvp: 'Attending' }] }],
+    }
+
+    expect(deriveGuestListCounts([household])).toEqual({
+      guests: 3,
+      households: 1,
+      attending: 0,
+      declined: 0,
+      noResponse: 3,
+      pendingHouseholds: 1,
+      pendingGuests: 3,
+    })
+  })
+
+  it('does not let a stale household attendingCount count a chuppah-only decline as attending the wedding', () => {
+    // Finding #1: 20 production households answered only the chuppah, which
+    // derives a Declined row on the wedding invitation, but their stored
+    // attendingCount (set from an earlier, broader answer) must not leak
+    // into the wedding tab's attending figure.
+    const chuppahOnlyHousehold: CountableHousehold = {
+      invitedCount: 2,
+      attendingCount: 2,
       guests: [
-        { invitations: [{ eventId: 'chuppah', rsvp: 'Attending' }] },
-        { invitations: [{ eventId: 'wedding', rsvp: 'Invited' }] },
+        { invitations: [{ eventId: 'wedding', rsvp: 'Declined' }] },
         { invitations: [{ eventId: 'wedding', rsvp: 'Declined' }] },
       ],
     }
 
-    expect(deriveGuestListCounts([answeredAcrossEvents])).toEqual({
-      guests: 3,
+    expect(deriveGuestListCounts([chuppahOnlyHousehold], 'wedding')).toEqual({
+      guests: 2,
+      households: 1,
+      attending: 0,
+      declined: 2,
+      noResponse: 0,
+      pendingHouseholds: 0,
+      pendingGuests: 0,
+    })
+  })
+
+  it('agrees with the "טרם השיבו" filter definition: pending is the scoped household-level answer', () => {
+    // Finding #4: a household invited to two events must be judged pending
+    // only against the *scoped* event's answer, not any other event's.
+    const answeredChuppahOnly: CountableHousehold = {
+      invitedCount: 1,
+      attendingCount: null,
+      guests: [
+        {
+          invitations: [
+            { eventId: 'chuppah', rsvp: 'Attending' },
+            { eventId: 'wedding', rsvp: 'Invited' },
+          ],
+        },
+      ],
+    }
+
+    expect(deriveGuestListCounts([answeredChuppahOnly], 'wedding')).toEqual({
+      guests: 1,
+      households: 1,
+      attending: 0,
+      declined: 0,
+      noResponse: 1,
+      pendingHouseholds: 1,
+      pendingGuests: 1,
+    })
+    expect(deriveGuestListCounts([answeredChuppahOnly], 'chuppah')).toEqual({
+      guests: 1,
       households: 1,
       attending: 1,
-      declined: 1,
-      noResponse: 1,
+      declined: 0,
+      noResponse: 0,
       pendingHouseholds: 0,
       pendingGuests: 0,
     })

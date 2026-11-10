@@ -192,13 +192,17 @@ export default function GuestsView({
     return {
       filteredCounts: deriveGuestListCounts(
         filteredHouseholds,
-        selectedEventId === 'all' ? undefined : selectedEventId
+        selectedEventId === 'all' ? undefined : selectedEventId,
+        events
       ),
       totalTagAlongs: tagAlongs,
     }
-  }, [filteredHouseholds, selectedEventId])
+  }, [filteredHouseholds, selectedEventId, events])
 
-  const unfilteredCounts = useMemo(() => deriveGuestListCounts(baseHouseholds), [baseHouseholds])
+  const unfilteredCounts = useMemo(
+    () => deriveGuestListCounts(baseHouseholds, undefined, events),
+    [baseHouseholds, events]
+  )
 
   useEffect(() => {
     setBaseHouseholds(households)

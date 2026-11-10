@@ -121,14 +121,14 @@ function GuestCardComponent({
 
   const weddingEventId = resolveHouseholdWeddingEventId(household, events)
   const rsvpSummary = getHouseholdWeddingRsvpCounts(household.guests, weddingEventId)
-  const weddingAnswered = rsvpSummary.attending > 0 || rsvpSummary.declined > 0
   // A stored household count is the guest's own report and always wins over
-  // the count of named guests with an Attending row; a null count falls back
-  // to the named rows.
-  const arrivingCount =
-    household.attendingCount != null && household.attendingCount > 0
-      ? household.attendingCount
-      : rsvpSummary.attending
+  // the count of named guests with an Attending row, including an explicit
+  // 0 - a null count falls back to the named rows. Either one being present
+  // means the wedding has been answered, even when the stored count is 0.
+  const storedCount = household.attendingCount
+  const hasStoredCount = storedCount != null
+  const arrivingCount = hasStoredCount ? storedCount : rsvpSummary.attending
+  const weddingAnswered = hasStoredCount || rsvpSummary.attending > 0 || rsvpSummary.declined > 0
 
   // A household that answered only the chuppah gets its own arrival state
   // instead of reading as entirely unanswered (owner decision, 05.11.2026).
@@ -184,7 +184,7 @@ function GuestCardComponent({
           </div>
 
           <div className='pt-0.5 text-left leading-[1.05]'>
-            {weddingAnswered && rsvpSummary.attending > 0 ? (
+            {weddingAnswered && arrivingCount > 0 ? (
               <div className='text-[22px] font-semibold text-[#2f5137] [font-variant-numeric:tabular-nums]'>
                 {arrivingCount}
                 <small className='mt-0.5 block text-[12px] font-normal text-[#6f8b74]'>
