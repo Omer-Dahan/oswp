@@ -3,7 +3,9 @@ import type { StepFormProps } from '~/app/utils/shared-types'
 import MainRsvpForm from '~/components/website/forms/main'
 
 const mockMutate = jest.fn()
-let capturedOnSuccess: (() => void) | undefined
+let capturedOnSuccess:
+  | ((submission: { attendingCount?: number; childrenCount?: number }) => void)
+  | undefined
 
 const translations: Record<string, string> = {
   'common.back': 'חזרה',
@@ -89,7 +91,9 @@ jest.mock('~/trpc/react', () => ({
   api: {
     website: {
       submitPublicRsvpForm: {
-        useMutation: (options: { onSuccess?: () => void }) => {
+        useMutation: (options: {
+          onSuccess?: (submission: { attendingCount?: number; childrenCount?: number }) => void
+        }) => {
           capturedOnSuccess = options.onSuccess
           return { mutate: mockMutate, isPending: false }
         },
@@ -179,7 +183,7 @@ describe('decline RSVP flow', () => {
       })
     )
 
-    act(() => capturedOnSuccess?.())
+    act(() => capturedOnSuccess?.({}))
 
     expect(screen.getAllByRole('heading')).toHaveLength(1)
     expect(

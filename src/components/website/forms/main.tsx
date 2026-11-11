@@ -1,7 +1,14 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import {
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { IoMdClose } from 'react-icons/io'
 import type { Event, Question, RsvpPageData } from '~/app/utils/shared-types'
 import { useRsvpForm, useUpdateRsvpForm } from '~/components/contexts/rsvp-form-context'
@@ -113,7 +120,7 @@ export default function MainRsvpForm({
         attendingCount: submission.attendingCount ?? undefined,
         childrenCount: submission.childrenCount ?? undefined,
       })
-      setCurrentStep((prev) => prev + 1)
+      goToStep((prev) => prev + 1)
     },
     onError: (err) => {
       console.error('Failed to submit RSVP', err)
@@ -158,9 +165,21 @@ export default function MainRsvpForm({
           for (const question of event.questions) {
             guestsForQuestions.forEach((guest) => {
               if (question.type === 'Text') {
-                acc.push(<QuestionShortAnswer question={question} guest={guest} />)
+                acc.push(
+                  <QuestionShortAnswer
+                    key={`question-${question.id}-guest-${guest.id}`}
+                    question={question}
+                    guest={guest}
+                  />
+                )
               } else {
-                acc.push(<QuestionMultipleChoice question={question} guest={guest} />)
+                acc.push(
+                  <QuestionMultipleChoice
+                    key={`question-${question.id}-guest-${guest.id}`}
+                    question={question}
+                    guest={guest}
+                  />
+                )
               }
             })
           }
@@ -170,9 +189,11 @@ export default function MainRsvpForm({
 
     weddingData?.website?.generalQuestions?.forEach((question: Question) => {
       if (question.type === 'Text') {
-        newSteps.push(<QuestionShortAnswer question={question} />)
+        newSteps.push(<QuestionShortAnswer key={`question-${question.id}`} question={question} />)
       } else {
-        newSteps.push(<QuestionMultipleChoice question={question} />)
+        newSteps.push(
+          <QuestionMultipleChoice key={`question-${question.id}`} question={question} />
+        )
       }
     })
 
@@ -232,6 +253,12 @@ export default function MainRsvpForm({
       configuredRsvpSteps.length +
       dynamicStepForms.length +
       2 // send, confirmation
+  const goToStep: Dispatch<SetStateAction<number>> = (step) => {
+    setCurrentStep((previousStep) => {
+      const requestedStep = typeof step === 'function' ? step(previousStep) : step
+      return Math.min(Math.max(requestedStep, 1), Math.max(numSteps, 1))
+    })
+  }
   const progress = (currentStep / numSteps) * 100
   // With no identity steps in front, the "who is coming" screen IS the first
   // step and nothing has been typed yet, so leaving it needs no confirmation.
@@ -331,15 +358,13 @@ export default function MainRsvpForm({
         }}
       >
         <AsyncState error={submitError} className='mb-4 text-center' />
-        <MultistepRsvpForm
-          currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
-          basePath={basePath}
-        >
-          {!skipIdentitySteps && <FindYourInvitationForm accessToken={accessToken} />}
-          {!skipIdentitySteps && <ConfirmNameForm accessToken={accessToken} />}
+        <MultistepRsvpForm currentStep={currentStep} setCurrentStep={goToStep} basePath={basePath}>
+          {!skipIdentitySteps && (
+            <FindYourInvitationForm key='find-invitation' accessToken={accessToken} />
+          )}
+          {!skipIdentitySteps && <ConfirmNameForm key='confirm-name' accessToken={accessToken} />}
           {isDeclineFlow ? (
-            <DeclineConfirmForm />
+            <DeclineConfirmForm key='decline-confirm' />
           ) : (
             [
               <WhoIsComingForm key='who-is-coming' />,
@@ -350,8 +375,8 @@ export default function MainRsvpForm({
               ...dynamicStepForms,
             ]
           )}
-          {!isDeclineFlow && <SendRsvp isFetching={submitRsvpForm.isPending} />}
-          <RsvpConfirmation basePath={basePath} />
+          {!isDeclineFlow && <SendRsvp key='send-rsvp' isFetching={submitRsvpForm.isPending} />}
+          <RsvpConfirmation key='confirmation' basePath={basePath} />
         </MultistepRsvpForm>
       </form>
     </div>

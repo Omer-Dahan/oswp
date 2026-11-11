@@ -6,7 +6,9 @@ import MainRsvpForm from '~/components/website/forms/main'
 
 const mockMutate = jest.fn()
 let capturedOnError: ((error: unknown) => void) | undefined
-let capturedOnSuccess: (() => void) | undefined
+let capturedOnSuccess:
+  | ((submission: { attendingCount?: number; childrenCount?: number }) => void)
+  | undefined
 let capturedSetCurrentStep: Dispatch<SetStateAction<number>> | undefined
 let mockPreselectedEventId: string | undefined
 
@@ -117,7 +119,10 @@ jest.mock('~/trpc/react', () => ({
   api: {
     website: {
       submitPublicRsvpForm: {
-        useMutation: (options: { onError?: (error: unknown) => void; onSuccess?: () => void }) => {
+        useMutation: (options: {
+          onError?: (error: unknown) => void
+          onSuccess?: (submission: { attendingCount?: number; childrenCount?: number }) => void
+        }) => {
           capturedOnError = options.onError
           capturedOnSuccess = options.onSuccess
 
@@ -389,7 +394,7 @@ describe('Main RSVP layout', () => {
     )
 
     act(() => {
-      capturedOnSuccess?.()
+      capturedOnSuccess?.({})
     })
     fireEvent.click(screen.getByRole('button', { name: 'סגרו טופס RSVP' }))
 
