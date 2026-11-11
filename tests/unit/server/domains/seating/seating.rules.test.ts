@@ -8,11 +8,11 @@ import {
 
 describe('seating.rules weighted seats', () => {
   const bigHousehold: WeightableHousehold = {
-    invitedCount: 10,
+    attendingCount: 10,
     guests: [{ id: 1, isPrimaryContact: true }],
   }
   const smallHousehold: WeightableHousehold = {
-    invitedCount: 7,
+    attendingCount: 7,
     guests: [{ id: 2, isPrimaryContact: true }],
   }
 

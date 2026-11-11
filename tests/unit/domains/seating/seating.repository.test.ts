@@ -6,7 +6,7 @@ import {
 } from '~/server/domains/seating/seating.errors'
 import { SeatingRepository } from '~/server/domains/seating/seating.repository'
 
-const SEATABLE = { eventId: 'event-1', rsvp: { notIn: ['Declined', 'Not Invited'] } }
+const SEATABLE = { eventId: 'event-1', rsvp: 'Attending' }
 
 const buildDb = () => {
   const tx = {
@@ -21,6 +21,7 @@ const buildDb = () => {
   const db = {
     seatingTable: { findMany: jest.fn(), findUnique: jest.fn() },
     seatAssignment: { findMany: jest.fn() },
+    invitation: { findMany: jest.fn().mockResolvedValue([]) },
     $transaction: jest.fn((work: (client: typeof tx) => Promise<unknown>) => work(tx)),
   }
   return { db, tx, repo: new SeatingRepository(db as unknown as PrismaClient) }
@@ -41,6 +42,16 @@ describe('SeatingRepository', () => {
           }),
         },
       })
+    )
+  })
+
+  it('only treats a guest with a confirmed Attending row for the event as seatable', async () => {
+    const { db, repo } = buildDb()
+
+    await repo.findSeatableGuests('event-1')
+
+    expect(db.invitation.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: SEATABLE })
     )
   })
 

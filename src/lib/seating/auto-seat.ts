@@ -2,22 +2,21 @@
  * Auto-seat planner - pure, deterministic. No Prisma, no randomness.
  *
  * Buckets guests by household (a household is never split), then places each
- * bucket at an existing table with free seats, or opens a new table when none
- * fits. The caller is responsible for turning the plan into database writes.
+ * bucket at an existing table with free seats. Tables are never invented
+ * here: they exist beforehand (round/rectangular presets, or whatever free
+ * capacity the planner entered), and a household that fits nowhere is
+ * reported as unseated instead. The caller is responsible for turning the
+ * plan into database writes.
  */
 
-import {
-  MAX_TABLE_CAPACITY,
-  NON_SEATABLE_RSVPS,
-  getGuestWeights,
-  getOccupiedSeats,
-} from '~/server/domains/seating/seating.rules'
+import { RSVP_STATUS } from '~/lib/constants/rsvp'
+import { getGuestWeights, getOccupiedSeats } from '~/server/domains/seating/seating.rules'
 
 export type AutoSeatHousehold = {
   id: string
   side: string | null
   groupName: string | null
-  invitedCount: number | null
+  attendingCount: number | null
 }
 
 export type AutoSeatGuest = {
@@ -40,14 +39,12 @@ export type AutoSeatOptions = {
   households: AutoSeatHousehold[]
   guests: AutoSeatGuest[]
   tables: AutoSeatTable[]
-  tableCapacity: number
   fillFreeSeatsOnly: boolean
 }
 
 export type AutoSeatPlan = {
   assignments: { guestId: number; tableId: string }[]
-  newTables: { name: string; capacity: number }[]
-  unseated: { householdId: string; reason: 'too_large' | 'no_room' }[]
+  unseated: { householdId: string; reason: 'no_table_capacity' }[]
 }
 
 type Bucket = {
@@ -75,28 +72,17 @@ const compareBuckets = (a: Bucket, b: Bucket): number =>
   b.size - a.size ||
   cmpStr(a.householdId, b.householdId)
 
-const TABLE_NAME_PATTERN = /^שולחן (\d+)$/
-
-const nextTableNumber = (names: readonly string[]): number => {
-  let max = 0
-  for (const name of names) {
-    const match = TABLE_NAME_PATTERN.exec(name)
-    if (match) max = Math.max(max, Number(match[1]))
-  }
-  return max + 1
-}
-
-const NON_SEATABLE: readonly string[] = NON_SEATABLE_RSVPS
-
 // Group weight must match the capacity check: the sum of the weights of the
-// guests actually being placed, never the household's raw invitedCount.
+// guests actually being placed, never the household's raw attendingCount.
 const buildBuckets = (
   households: readonly AutoSeatHousehold[],
   guests: readonly AutoSeatGuest[],
   weights: ReadonlyMap<number, number>
 ): Bucket[] => {
   const householdsById = new Map(households.map((household) => [household.id, household]))
-  const eligible = guests.filter((guest) => !NON_SEATABLE.includes(guest.rsvp) && !guest.seated)
+  const eligible = guests.filter(
+    (guest) => guest.rsvp === RSVP_STATUS.ATTENDING && !guest.seated
+  )
 
   const byHousehold = new Map<string, AutoSeatGuest[]>()
   for (const guest of eligible) {
@@ -122,25 +108,20 @@ const buildBuckets = (
 }
 
 export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
-  const { households, guests, tables, tableCapacity, fillFreeSeatsOnly } = options
+  const { households, guests, tables, fillFreeSeatsOnly } = options
 
-  // Declined guests carry no weight: excluded from the household's guest list
-  // entirely, same as the service's findSeatWeights.
+  // Declined/unconfirmed guests carry no weight: excluded from the
+  // household's guest list entirely, same as the service's findSeatWeights.
   const weights = getGuestWeights(
     households.map((household) => ({
-      invitedCount: household.invitedCount,
+      attendingCount: household.attendingCount,
       guests: guests
-        .filter((guest) => guest.householdId === household.id && !NON_SEATABLE.includes(guest.rsvp))
+        .filter((guest) => guest.householdId === household.id && guest.rsvp === RSVP_STATUS.ATTENDING)
         .map((guest) => ({ id: guest.id, isPrimaryContact: guest.isPrimaryContact })),
     }))
   )
 
   const buckets = buildBuckets(households, guests, weights)
-
-  const maxCapacity = Math.min(
-    MAX_TABLE_CAPACITY,
-    Math.max(tableCapacity, ...tables.map((table) => table.capacity), 0)
-  )
 
   const pool: WorkingTable[] = fillFreeSeatsOnly
     ? tables.map((table) => ({
@@ -165,45 +146,29 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
     }
   }
 
-  const names = tables.map((table) => table.name)
-  const newTables: { name: string; capacity: number }[] = []
   const assignments: { guestId: number; tableId: string }[] = []
-  const unseated: { householdId: string; reason: 'too_large' | 'no_room' }[] = []
+  const unseated: { householdId: string; reason: 'no_table_capacity' }[] = []
 
-  const openNewTable = (size: number): WorkingTable => {
-    const capacity = Math.max(tableCapacity, size)
-    const name = `שולחן ${nextTableNumber([...names, ...newTables.map((table) => table.name)])}`
-    newTables.push({ name, capacity })
-    const table: WorkingTable = {
-      key: `new:${newTables.length - 1}`,
-      capacity,
-      freeSeats: capacity,
-      tags: new Set<string>(),
-    }
-    pool.push(table)
-    return table
-  }
-
-  // Tightest fit first, so a table fills up before another one is opened
+  // Tightest fit first, so a table fills up before another one is used
   const bestFit = (candidates: readonly WorkingTable[], size: number): WorkingTable | undefined =>
     candidates
       .filter((table) => table.freeSeats >= size)
       .sort((a, b) => a.freeSeats - b.freeSeats)[0]
 
   for (const bucket of buckets) {
-    if (bucket.size > maxCapacity) {
-      unseated.push({ householdId: bucket.householdId, reason: 'too_large' })
-      continue
-    }
-
     // A table already holding the same side+group is preferred; failing
-    // that, an untouched table is packed before a new one opens, but a table
-    // already claimed by a different side+group is never mixed into
+    // that, an untouched table is packed, but a table already claimed by a
+    // different side+group is never mixed into. No table ever gets invented:
+    // a household that fits nowhere existing is reported as unseated.
     const tag = tagOf(bucket.side, bucket.groupName)
     const target =
       bestFit(pool.filter((table) => table.tags.has(tag)), bucket.size) ??
-      bestFit(pool.filter((table) => table.tags.size === 0), bucket.size) ??
-      openNewTable(bucket.size)
+      bestFit(pool.filter((table) => table.tags.size === 0), bucket.size)
+
+    if (!target) {
+      unseated.push({ householdId: bucket.householdId, reason: 'no_table_capacity' })
+      continue
+    }
 
     target.freeSeats -= bucket.size
     target.tags.add(tag)
@@ -212,5 +177,5 @@ export const planAutoSeating = (options: AutoSeatOptions): AutoSeatPlan => {
     }
   }
 
-  return { assignments, newTables, unseated }
+  return { assignments, unseated }
 }

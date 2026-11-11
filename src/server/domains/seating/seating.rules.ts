@@ -62,18 +62,20 @@ export const householdSeatsMessage = (
 // Household/guest shape needed to attribute a party's seats to one guest
 type WeightableGuest = { id: number; isPrimaryContact: boolean }
 export type WeightableHousehold = {
-  invitedCount: number | null
+  attendingCount: number | null
   guests: readonly WeightableGuest[]
 }
 
+// The household's confirmed seat count, never the invite-list count: a
+// household that invited 10 but confirmed 4 only ever needs 4 seats.
 export const getPartySize = (household: WeightableHousehold): number =>
-  Math.max(1, household.invitedCount ?? household.guests.length)
+  Math.max(1, household.attendingCount ?? household.guests.length)
 
 // Every named guest occupies one real seat. The primary contact additionally
-// absorbs any unnamed plus-ones implied by invitedCount exceeding the number
-// of named guests, so the household's total weight still equals its party
-// size. A non-primary guest therefore always carries weight >= 1, so seating
-// (or moving) them alone is never mistaken for a no-op.
+// absorbs any unnamed plus-ones implied by attendingCount exceeding the
+// number of named guests, so the household's total weight still equals its
+// party size. A non-primary guest therefore always carries weight >= 1, so
+// seating (or moving) them alone is never mistaken for a no-op.
 export const getGuestWeights = (households: readonly WeightableHousehold[]): Map<number, number> => {
   const weights = new Map<number, number>()
   for (const household of households) {

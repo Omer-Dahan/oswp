@@ -1,12 +1,13 @@
 import { Prisma, type PrismaClient } from '@prisma/client'
 
+import { RSVP_STATUS } from '~/lib/constants/rsvp'
 import type { RsvpEventInput } from '~/lib/wedding/rsvp-events'
 import {
   SeatAlreadyTakenError,
   SeatingTableNotFoundError,
 } from '~/server/domains/seating/seating.errors'
 
-import { getGuestWeights, NON_SEATABLE_RSVPS } from '~/server/domains/seating/seating.rules'
+import { getGuestWeights } from '~/server/domains/seating/seating.rules'
 import type {
   AutoSeatGuestRecord,
   CreateSeatingTableInput,
@@ -16,9 +17,13 @@ import type {
   SeatingTableRecord,
 } from '~/server/domains/seating/seating.types'
 
+// Only a confirmed guest is seatable: a household with no Attending row for
+// the wedding event (e.g. still Invited, or only confirmed the chuppah) never
+// enters the seating list, and a Declined guest within an attending
+// household is excluded without having to check household-level separately.
 const seatableInvitation = (eventId: string) => ({
   eventId,
-  rsvp: { notIn: [...NON_SEATABLE_RSVPS] },
+  rsvp: RSVP_STATUS.ATTENDING,
 })
 
 // Seats whose guest has declined or lost their invitation since being seated
@@ -61,8 +66,8 @@ export class SeatingRepository {
   }
 
   /**
-   * Invited guests for an event who have not declined, with what the seating
-   * UI needs to group them by household and show their details.
+   * Guests who confirmed Attending for the event, with what the seating UI
+   * needs to group them by household and show their details.
    */
   async findSeatableGuests(eventId: string): Promise<SeatableGuestRecord[]> {
     return this.db.invitation.findMany({
@@ -92,6 +97,7 @@ export class SeatingRepository {
                 country: true,
                 notes: true,
                 invitedCount: true,
+                attendingCount: true,
               },
             },
             guestTagAssignments: { select: { guestTag: { select: { name: true } } } },
@@ -116,7 +122,7 @@ export class SeatingRepository {
             id: true,
             isPrimaryContact: true,
             householdId: true,
-            household: { select: { invitedCount: true } },
+            household: { select: { attendingCount: true } },
           },
         },
       },
@@ -124,12 +130,12 @@ export class SeatingRepository {
 
     const households = new Map<
       string,
-      { invitedCount: number | null; guests: Array<{ id: number; isPrimaryContact: boolean }> }
+      { attendingCount: number | null; guests: Array<{ id: number; isPrimaryContact: boolean }> }
     >()
     for (const { guest } of invitations) {
       let household = households.get(guest.householdId)
       if (!household) {
-        household = { invitedCount: guest.household.invitedCount, guests: [] }
+        household = { attendingCount: guest.household.attendingCount, guests: [] }
         households.set(guest.householdId, household)
       }
       household.guests.push({ id: guest.id, isPrimaryContact: guest.isPrimaryContact })
@@ -230,7 +236,7 @@ export class SeatingRepository {
             id: true,
             isPrimaryContact: true,
             householdId: true,
-            household: { select: { id: true, side: true, groupName: true, invitedCount: true } },
+            household: { select: { id: true, side: true, groupName: true, attendingCount: true } },
             seatAssignments: { where: { eventId }, select: { tableId: true } },
           },
         },
@@ -239,34 +245,21 @@ export class SeatingRepository {
   }
 
   /**
-   * Creates the auto-seat plan's new tables and AUTO assignments in one
-   * transaction. Never touches an existing SeatAssignment row.
+   * Creates the auto-seat plan's AUTO assignments. Never invents a table and
+   * never touches an existing SeatAssignment row.
    */
   async createAutoSeating(
-    weddingId: string,
     eventId: string,
-    newTables: Array<{ name: string; capacity: number; positionX: number; positionY: number }>,
     assignments: Array<{ guestId: number; tableId: string }>
   ): Promise<void> {
-    await this.db.$transaction(async (tx) => {
-      const created = []
-      for (const table of newTables) {
-        created.push(
-          await tx.seatingTable.create({
-            data: { ...table, weddingId, eventId, shape: 'ROUND' },
-          })
-        )
-      }
-      const realIdByVirtual = new Map(created.map((table, index) => [`new:${index}`, table.id]))
-      const data = assignments.map(({ guestId, tableId }) => ({
+    if (assignments.length === 0) return
+    await this.db.seatAssignment.createMany({
+      data: assignments.map(({ guestId, tableId }) => ({
         eventId,
         guestId,
-        tableId: realIdByVirtual.get(tableId) ?? tableId,
+        tableId,
         source: 'AUTO' as const,
-      }))
-      if (data.length > 0) {
-        await tx.seatAssignment.createMany({ data })
-      }
+      })),
     })
   }
 }

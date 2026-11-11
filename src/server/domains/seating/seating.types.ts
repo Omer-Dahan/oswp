@@ -53,7 +53,7 @@ export type AutoSeatGuestRecord = {
       id: string
       side: string | null
       groupName: string | null
-      invitedCount: number | null
+      attendingCount: number | null
     }
     seatAssignments: Array<{ tableId: string }>
   }
@@ -87,6 +87,7 @@ export type SeatableGuestRecord = {
       country: string | null
       notes: string | null
       invitedCount: number | null
+      attendingCount: number | null
     }
     guestTagAssignments: Array<{ guestTag: { name: string } }>
     seatAssignments: Array<{ tableId: string }>
@@ -134,6 +135,7 @@ export type SeatingHousehold = {
   address: string | null
   notes: string | null
   invitedCount: number | null
+  attendingCount: number | null
   guests: SeatingGuest[]
 }
 

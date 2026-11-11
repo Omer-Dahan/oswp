@@ -42,6 +42,7 @@ export const buildSeatableGuest = (
       country: null,
       notes: null,
       invitedCount: null,
+      attendingCount: null,
     },
     guestTagAssignments: [],
     seatAssignments: [],

@@ -2,7 +2,6 @@ import { TRPCError } from '@trpc/server'
 
 import { planAutoSeating } from '~/lib/seating/auto-seat'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
-import { getNextTablePosition } from '~/components/seating-chart/seating-layout'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import {
@@ -52,6 +51,7 @@ const groupByHousehold = (records: SeatableGuestRecord[]): SeatingHousehold[] =>
         address: formatAddress(guest.household),
         notes: guest.household.notes,
         invitedCount: guest.household.invitedCount,
+        attendingCount: guest.household.attendingCount,
         guests: [],
       }
       households.set(guest.householdId, household)
@@ -220,7 +220,7 @@ export class SeatingService {
 
     const householdsById = new Map<
       string,
-      { id: string; side: string | null; groupName: string | null; invitedCount: number | null }
+      { id: string; side: string | null; groupName: string | null; attendingCount: number | null }
     >()
     const guests = invitations.map((invitation) => {
       const { household } = invitation.guest
@@ -243,40 +243,18 @@ export class SeatingService {
         capacity: table.capacity,
         guestIds: table.seatAssignments.map((assignment) => assignment.guestId),
       })),
-      tableCapacity: input.tableCapacity,
       fillFreeSeatsOnly: input.fillFreeSeatsOnly,
     })
 
-    if (plan.assignments.length === 0 && plan.newTables.length === 0) {
+    if (plan.assignments.length === 0) {
       return { seated: 0, createdTables: 0, unseated: plan.unseated.length }
     }
 
-    // Places each new table on the floor plan in turn, so none overlaps an
-    // existing table or one placed earlier in this same run
-    const placed: Array<{
-      positionX: number
-      positionY: number
-      shape: 'ROUND'
-      capacity: number
-    }> = tables.map((table) => ({
-      positionX: table.positionX,
-      positionY: table.positionY,
-      shape: 'ROUND',
-      capacity: table.capacity,
-    }))
-    const newTables = plan.newTables.map((table) => {
-      const position = getNextTablePosition(placed, { shape: 'ROUND', capacity: table.capacity })
-      const positionX = position?.x ?? 0
-      const positionY = position?.y ?? 0
-      placed.push({ positionX, positionY, shape: 'ROUND', capacity: table.capacity })
-      return { ...table, positionX, positionY }
-    })
-
-    await this.repo.createAutoSeating(weddingId, input.eventId, newTables, plan.assignments)
+    await this.repo.createAutoSeating(input.eventId, plan.assignments)
 
     return {
       seated: plan.assignments.length,
-      createdTables: plan.newTables.length,
+      createdTables: 0,
       unseated: plan.unseated.length,
     }
   }

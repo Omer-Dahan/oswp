@@ -452,7 +452,7 @@ describe('SeatingService', () => {
                     id: 1,
                     isPrimaryContact: true,
                     householdId: 'household-1',
-                    household: { id: 'household-1', side: null, groupName: null, invitedCount: 1 },
+                    household: { id: 'household-1', side: null, groupName: null, attendingCount: 1 },
                     seatAssignments: [],
                   },
                 },
@@ -460,6 +460,21 @@ describe('SeatingService', () => {
             : []
         )
       )
+      ;(mockFindTablesByEventId as jest.Mock).mockResolvedValue([
+        {
+          id: 'table-1',
+          weddingId: WEDDING_ID,
+          eventId: 'event-1',
+          name: 'Table 1',
+          shape: 'ROUND',
+          capacity: 4,
+          positionX: 0,
+          positionY: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          seatAssignments: [],
+        },
+      ])
 
       const result = await service.autoSeat(ctx, WEDDING_ID, {
         eventId: 'event-1',
@@ -468,13 +483,37 @@ describe('SeatingService', () => {
       })
 
       expect(mockFindAutoSeatGuests).toHaveBeenCalledWith('event-1')
-      expect(result).toEqual({ seated: 1, createdTables: 1, unseated: 0 })
+      expect(result).toEqual({ seated: 1, createdTables: 0, unseated: 0 })
       expect(mockCreateAutoSeating).toHaveBeenCalledWith(
-        WEDDING_ID,
         'event-1',
-        expect.any(Array),
-        expect.arrayContaining([expect.objectContaining({ guestId: 1 })])
+        expect.arrayContaining([expect.objectContaining({ guestId: 1, tableId: 'table-1' })])
       )
+    })
+
+    it('never invents a table: a household that fits nowhere existing is unseated', async () => {
+      mockFindAutoSeatGuests.mockResolvedValue([
+        {
+          rsvp: 'Attending',
+          guest: {
+            id: 1,
+            isPrimaryContact: true,
+            householdId: 'household-1',
+            household: { id: 'household-1', side: null, groupName: null, attendingCount: 1 },
+            seatAssignments: [],
+          },
+        },
+      ])
+      // No existing tables at all - the planner must never open one itself.
+      ;(mockFindTablesByEventId as jest.Mock).mockResolvedValue([])
+
+      const result = await service.autoSeat(ctx, WEDDING_ID, {
+        eventId: 'event-1',
+        tableCapacity: 8,
+        fillFreeSeatsOnly: true,
+      })
+
+      expect(result).toEqual({ seated: 0, createdTables: 0, unseated: 1 })
+      expect(mockCreateAutoSeating).not.toHaveBeenCalled()
     })
   })
 })
