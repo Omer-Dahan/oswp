@@ -120,4 +120,25 @@ describe('suggestPlacements', () => {
     expect(results[0]?.reason).toContain('עשירי')
     expect(results[0]?.reason).toContain('משפחה')
   })
+
+  it('does not double the word שולחן when the table name already starts with it', () => {
+    const groupHousehold = household({ id: 'h-new', side: 'bride', groupName: 'חברים', seatWeight: 2 })
+    const group: SeatingGroup = { side: 'bride', groupName: 'חברים', households: [groupHousehold] }
+    const onlyTable = table({ id: 't1', name: 'שולחן 1', capacity: 10, guestIds: [] })
+
+    const results = suggestPlacements({ group, tables: [onlyTable], households: [groupHousehold] })
+
+    expect(results[0]?.reason).toMatch(/^שולחן 1:/)
+    expect(results[0]?.reason).not.toContain('שולחן שולחן')
+  })
+
+  it('prefixes the table name with שולחן when it does not already start with it', () => {
+    const groupHousehold = household({ id: 'h-new', side: 'bride', groupName: 'חברים', seatWeight: 2 })
+    const group: SeatingGroup = { side: 'bride', groupName: 'חברים', households: [groupHousehold] }
+    const onlyTable = table({ id: 't1', name: 'עשירי', capacity: 10, guestIds: [] })
+
+    const results = suggestPlacements({ group, tables: [onlyTable], households: [groupHousehold] })
+
+    expect(results[0]?.reason).toMatch(/^שולחן עשירי:/)
+  })
 })

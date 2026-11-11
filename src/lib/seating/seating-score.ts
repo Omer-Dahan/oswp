@@ -161,7 +161,8 @@ const buildReason = (
   tables: readonly SeatingTable[],
   allHouseholds: readonly SeatingHousehold[]
 ): string => {
-  const base = `שולחן ${table.name}: ${group.households.length} משקי בית מקבוצת ${group.groupName ?? ''}`
+  const tableLabel = table.name.startsWith('שולחן') ? table.name : `שולחן ${table.name}`
+  const base = `${tableLabel}: ${group.households.length} משקי בית מקבוצת ${group.groupName ?? ''}`
   const neighbor = nearestNeighborName(table, tables, group, allHouseholds)
   return neighbor ? `${base}, ליד שולחן ${neighbor}` : base
 }
