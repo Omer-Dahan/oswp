@@ -432,7 +432,6 @@ describe('SeatingService', () => {
       await expect(
         service.autoSeat(ctx, WEDDING_ID, {
           eventId: 'event-chuppah',
-          tableCapacity: 8,
           fillFreeSeatsOnly: true,
         })
       ).rejects.toMatchObject({ code: 'FORBIDDEN' })
@@ -480,7 +479,6 @@ describe('SeatingService', () => {
 
       const result = await service.autoSeat(ctx, WEDDING_ID, {
         eventId: 'event-1',
-        tableCapacity: 8,
         fillFreeSeatsOnly: true,
       })
 
@@ -510,7 +508,6 @@ describe('SeatingService', () => {
 
       const result = await service.autoSeat(ctx, WEDDING_ID, {
         eventId: 'event-1',
-        tableCapacity: 8,
         fillFreeSeatsOnly: true,
       })
 

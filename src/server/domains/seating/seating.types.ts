@@ -31,7 +31,6 @@ export type UnassignGuestsInput = {
 
 export type AutoSeatInput = {
   eventId: string
-  tableCapacity: number
   fillFreeSeatsOnly: boolean
 }
 

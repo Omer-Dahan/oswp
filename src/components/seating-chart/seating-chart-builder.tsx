@@ -547,7 +547,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
           </Button>
           <Button variant='outline' onClick={() => setAutoSeatOpen(true)} disabled={!chart}>
             <Wand2 className='me-2 h-4 w-4' aria-hidden='true' />
-            שיבוץ אוטומטי
+            שבץ את כל מי שנשאר
           </Button>
           <Button
             data-seating-focus-key={ADD_TABLE_FOCUS_KEY}
@@ -682,8 +682,8 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         open={autoSeatOpen}
         isSubmitting={autoSeat.isPending}
         onOpenChange={setAutoSeatOpen}
-        onSubmit={(tableCapacity) => {
-          autoSeat.mutate({ eventId: weddingEventId, tableCapacity, fillFreeSeatsOnly: true })
+        onSubmit={() => {
+          autoSeat.mutate({ eventId: weddingEventId, fillFreeSeatsOnly: true })
         }}
       />
 

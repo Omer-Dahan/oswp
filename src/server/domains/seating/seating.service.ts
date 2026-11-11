@@ -215,9 +215,10 @@ export class SeatingService {
   }
 
   /**
-   * Seats every eligible, not-yet-seated household the planner can place.
-   * Additive only: it creates new tables and AUTO assignments, and never
-   * touches a seat a planner (or an earlier auto-seat run) already made.
+   * Fills existing tables with eligible, not-yet-seated households. Never
+   * creates tables; households that don't fit anywhere are reported as
+   * unseated. Never touches a seat a planner (or an earlier auto-seat run)
+   * already made.
    */
   async autoSeat(
     ctx: AuthzContext,
