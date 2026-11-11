@@ -1214,48 +1214,46 @@ const DefaultTableHeader = ({ households, counts, totalTagAlongs }: DefaultTable
     <div className='py-8'>
       <div className='flex flex-wrap items-center gap-4 md:gap-6'>
         <div className='whitespace-nowrap'>
-          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            סה״כ משקי בית:{' '}
-          </span>
+          <span className='font-sans text-[0.58rem] text-foreground/55'>סה״כ משקי בית: </span>
           <span className='font-semibold text-foreground text-sm md:text-base'>
             {households.length}
           </span>
         </div>
         <div className='hidden h-4 w-px bg-border md:block' />
         <div className='whitespace-nowrap'>
-          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            סה״כ אורחים:{' '}
-          </span>
+          <span className='font-sans text-[0.58rem] text-foreground/55'>סה״כ אורחים: </span>
           <span className='font-semibold text-foreground text-sm md:text-base'>
-            {counts.guests}
+            {counts.guests} מוזמנים
             {totalTagAlongs > 0 && (
               <span className='font-normal text-foreground/55'>
                 {' '}
-                + {totalTagAlongs} {totalTagAlongs !== 1 ? 'נלווים' : 'נלווה'}
+                (מהם {totalTagAlongs} נלווים)
               </span>
             )}
           </span>
         </div>
         <div className='whitespace-nowrap'>
-          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            מגיעים:{' '}
-          </span>
+          <span className='font-sans text-[0.58rem] text-foreground/55'>מגיעים: </span>
           <span className='font-semibold text-sm text-success md:text-base'>
             {counts.attending}
           </span>
         </div>
         <div className='whitespace-nowrap'>
-          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            לא מגיעים:{' '}
-          </span>
+          <span className='font-sans text-[0.58rem] text-foreground/55'>לא מגיעים: </span>
           <span className='font-semibold text-destructive text-sm md:text-base'>
             {counts.declined}
           </span>
         </div>
+        {counts.noResponse > 0 && (
+          <div className='whitespace-nowrap'>
+            <span className='font-sans text-[0.58rem] text-foreground/55'>פחות מהמתוכנן: </span>
+            <span className='font-semibold text-muted-foreground text-sm md:text-base'>
+              {counts.noResponse}
+            </span>
+          </div>
+        )}
         <div className='whitespace-nowrap'>
-          <span className='font-mono text-[0.58rem] text-foreground/55 uppercase tracking-widest'>
-            טרם השיבו:{' '}
-          </span>
+          <span className='font-sans text-[0.58rem] text-foreground/55'>טרם השיבו: </span>
           {counts.pendingHouseholds === 0 ? (
             <span className='font-semibold text-muted-foreground text-sm md:text-base'>
               כולם השיבו

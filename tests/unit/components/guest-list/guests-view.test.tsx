@@ -397,6 +397,86 @@ const householdsWithSecondFamily: HouseholdWithGuests[] = [
   },
 ]
 
+const makeTagAlongGuest = (id: number): HouseholdWithGuests['guests'][number] => ({
+  id,
+  firstName: `Guest${id}`,
+  lastName: 'TagAlong',
+  email: null,
+  phone: null,
+  householdId: 'household-tagalongs',
+  weddingId: 'wedding-1',
+  isPrimaryContact: false,
+  isTagAlong: true,
+  ageGroup: 'ADULT',
+  guestTags: [],
+  createdAt: new Date('2026-01-03T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+  invitations: [
+    {
+      id: `inv-tagalong-${id}`,
+      weddingId: 'wedding-1',
+      guestId: id,
+      eventId: 'event-1',
+      rsvp: 'Attending',
+      dietaryRestrictions: null,
+      submittedBy: null,
+      submittedAt: null,
+      invitedAt: new Date('2026-01-03T00:00:00.000Z'),
+      createdAt: new Date('2026-01-03T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+    },
+  ],
+})
+
+const householdsWithTagAlongs: HouseholdWithGuests[] = [
+  {
+    id: 'household-tagalongs',
+    weddingId: 'wedding-1',
+    createdAt: new Date('2026-01-03T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+    address1: null,
+    address2: null,
+    city: null,
+    state: null,
+    zipCode: null,
+    country: 'US',
+    notes: null,
+    guests: [
+      {
+        id: 100,
+        firstName: 'Primary',
+        lastName: 'Host',
+        email: 'primary@example.com',
+        phone: null,
+        householdId: 'household-tagalongs',
+        weddingId: 'wedding-1',
+        isPrimaryContact: true,
+        ageGroup: 'ADULT',
+        guestTags: [],
+        createdAt: new Date('2026-01-03T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+        invitations: [
+          {
+            id: 'inv-primary-tagalongs',
+            weddingId: 'wedding-1',
+            guestId: 100,
+            eventId: 'event-1',
+            rsvp: 'Attending',
+            dietaryRestrictions: null,
+            submittedBy: null,
+            submittedAt: null,
+            invitedAt: new Date('2026-01-03T00:00:00.000Z'),
+            createdAt: new Date('2026-01-03T00:00:00.000Z'),
+            updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+          },
+        ],
+      },
+      ...Array.from({ length: 25 }, (_, index) => makeTagAlongGuest(index + 1)),
+    ],
+    gifts: [],
+  },
+]
+
 const householdsWithFilteredGuests: {
   displayed: HouseholdWithGuests[]
   canonical: HouseholdWithGuests[]
@@ -547,6 +627,95 @@ describe('GuestsView', () => {
     )
 
     expect(screen.getByText('טרם השיבו:').parentElement).toHaveTextContent('טרם השיבו: כולם השיבו')
+  })
+
+  it('shows tag-alongs as "מהם N נלווים" rather than an addition', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithTagAlongs}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('סה״כ אורחים:').parentElement).toHaveTextContent('26 מוזמנים (מהם 25 נלווים)')
+    expect(screen.queryByText(/\+\s*25/)).not.toBeInTheDocument()
+  })
+
+  it('shows the gap between planned and confirmed as a fourth figure when it is above zero', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('פחות מהמתוכנן:').parentElement).toHaveTextContent('פחות מהמתוכנן: 1')
+  })
+
+  it('hides the gap figure when it is zero', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={households}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.queryByText('פחות מהמתוכנן:')).not.toBeInTheDocument()
+  })
+
+  it('always sums attending, declined and the planning gap back to the invited total', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('סה״כ אורחים:').parentElement).toHaveTextContent('3 מוזמנים')
+    expect(screen.getByText('מגיעים:').parentElement).toHaveTextContent('מגיעים: 1')
+    expect(screen.getByText('לא מגיעים:').parentElement).toHaveTextContent('לא מגיעים: 1')
+    expect(screen.getByText('פחות מהמתוכנן:').parentElement).toHaveTextContent('פחות מהמתוכנן: 1')
+  })
+
+  it('renders the summary strip labels in the Hebrew sans font instead of the glyph-missing mono font', () => {
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSecondFamily}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    const summaryLabels = [
+      screen.getByText('סה״כ משקי בית:'),
+      screen.getByText('סה״כ אורחים:'),
+      screen.getByText('מגיעים:'),
+      screen.getByText('לא מגיעים:'),
+      screen.getByText('טרם השיבו:'),
+    ]
+    for (const label of summaryLabels) {
+      expect(label).not.toHaveClass('font-mono')
+      expect(label).toHaveClass('font-sans')
+    }
   })
 
   it('should save canonical household guest party when members modal is saved from a filtered list', async () => {
