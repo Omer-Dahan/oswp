@@ -249,9 +249,9 @@ export class SmsRepository {
     })
   }
 
-  markReminderSent(id: string, providerMessageId?: string): Promise<SmsOutbound> {
-    return this.db.smsOutbound.update({
-      where: { id },
+  async markReminderSent(id: string, providerMessageId?: string): Promise<SmsOutbound> {
+    await this.db.smsOutbound.updateMany({
+      where: { id, status: 'QUEUED' },
       data: {
         status: 'SENT',
         providerMessageId,
@@ -260,18 +260,20 @@ export class SmsRepository {
         sentAt: new Date(),
       },
     })
+    return this.db.smsOutbound.findUniqueOrThrow({ where: { id } })
   }
 
-  markReminderFailed(id: string, error: string): Promise<SmsOutbound> {
-    return this.db.smsOutbound.update({
-      where: { id },
+  async markReminderFailed(id: string, error: string): Promise<SmsOutbound> {
+    await this.db.smsOutbound.updateMany({
+      where: { id, status: 'QUEUED' },
       data: { status: 'FAILED', error },
     })
+    return this.db.smsOutbound.findUniqueOrThrow({ where: { id } })
   }
 
-  markSent(id: string, providerMessageId?: string): Promise<SmsOutbound> {
-    return this.db.smsOutbound.update({
-      where: { id },
+  async markSent(id: string, providerMessageId?: string): Promise<SmsOutbound> {
+    await this.db.smsOutbound.updateMany({
+      where: { id, status: 'QUEUED' },
       data: {
         status: 'SENT',
         providerMessageId,
@@ -279,6 +281,7 @@ export class SmsRepository {
         sentAt: new Date(),
       },
     })
+    return this.db.smsOutbound.findUniqueOrThrow({ where: { id } })
   }
 
   markFailed(id: string, error: string): Promise<SmsOutbound> {
