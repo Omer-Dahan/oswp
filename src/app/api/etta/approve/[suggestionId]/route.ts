@@ -119,10 +119,30 @@ export async function PATCH(
     }
 
     if (action === 'approve') {
+      const claim = await db.ettaSuggestion.updateMany({
+        where: { id: suggestionId, status: 'pending' },
+        data: { status: 'approved' },
+      })
+
+      if (claim.count === 0) {
+        const handledSuggestion = await db.ettaSuggestion.findUnique({
+          where: { id: suggestionId },
+        })
+
+        if (!handledSuggestion || handledSuggestion.weddingId !== weddingId) {
+          return Response.json({ error: 'Suggestion not found' }, { status: 404 })
+        }
+
+        return Response.json(
+          { error: `Suggestion already ${handledSuggestion.status}` },
+          { status: 409 }
+        )
+      }
+
       await executeApprovalAction(suggestion, authz, weddingId)
     }
 
-    const newStatus = action === 'approve' ? 'approved' : 'dismissed'
+    const newStatus = action === 'approve' ? 'executed' : 'dismissed'
     const updated = await db.ettaSuggestion.update({
       where: { id: suggestionId },
       data: {

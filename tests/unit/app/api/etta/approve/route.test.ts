@@ -25,6 +25,7 @@ jest.mock('~/server/db', () => ({
   db: {
     ettaSuggestion: {
       findUnique: jest.fn(),
+      updateMany: jest.fn(),
       update: jest.fn(),
     },
   },
@@ -43,6 +44,7 @@ jest.mock('~/server/domains/vendor', () => {
 const mockValidateSession = validateCoupleSession as jest.Mock
 const mockLogAudit = logAudit as jest.Mock
 const mockFindUnique = db.ettaSuggestion.findUnique as jest.Mock
+const mockUpdateMany = db.ettaSuggestion.updateMany as jest.Mock
 const mockUpdate = db.ettaSuggestion.update as jest.Mock
 const mockVendorService = vendorService as {
   getCategoryConfig: jest.Mock
@@ -89,6 +91,7 @@ beforeEach(() => {
     authz: { userId: USER_ID, activeOrganization: null },
   })
   mockFindUnique.mockResolvedValue(pendingSuggestion())
+  mockUpdateMany.mockResolvedValue({ count: 1 })
   mockUpdate.mockImplementation(async ({ data, where }) => ({
     ...pendingSuggestion(),
     ...data,
@@ -104,13 +107,23 @@ beforeEach(() => {
 // ── Approve ─────────────────────────────────────────────────────────────────
 
 describe('PATCH /api/etta/approve/[suggestionId]', () => {
-  it('approves a pending suggestion and returns 200', async () => {
+  it('claims a pending suggestion and marks it executed', async () => {
     const res = await PATCH(makeRequest({ action: 'approve' }), makeParams())
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.status).toBe('approved')
-    expect(body.message).toBe('Suggestion approved')
+    expect(body.status).toBe('executed')
+    expect(body.message).toBe('Suggestion executed')
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: { id: SUGGESTION_ID, status: 'pending' },
+      data: { status: 'approved' },
+    })
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SUGGESTION_ID },
+        data: expect.objectContaining({ status: 'executed' }),
+      })
+    )
   })
 
   it('dismisses a pending suggestion and returns 200', async () => {
@@ -191,6 +204,32 @@ describe('PATCH /api/etta/approve/[suggestionId]', () => {
     expect((await res.json()).error).toBe('Suggestion already approved')
   })
 
+  it('does not execute an approval when another request already claimed it', async () => {
+    mockFindUnique
+      .mockResolvedValueOnce(
+        pendingSuggestion({
+          actionType: 'SUGGEST_VENDOR_FIELD',
+          payload: {
+            category: 'VENUE',
+            key: 'ceremony_site_fee',
+            label: 'Ceremony Site Fee',
+            type: 'number',
+            reason: 'Track separate ceremony pricing',
+          },
+        })
+      )
+      .mockResolvedValueOnce(pendingSuggestion({ status: 'approved' }))
+    mockUpdateMany.mockResolvedValue({ count: 0 })
+
+    const res = await PATCH(makeRequest({ action: 'approve' }), makeParams())
+
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toBe('Suggestion already approved')
+    expect(mockVendorService.getCategoryConfig).not.toHaveBeenCalled()
+    expect(mockVendorService.upsertCategoryConfig).not.toHaveBeenCalled()
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
   // ── Audit logging ──────────────────────────────────────────────────────
 
   it('calls logAudit with correct args on approve', async () => {
@@ -219,7 +258,7 @@ describe('PATCH /api/etta/approve/[suggestionId]', () => {
     const { data } = mockUpdate.mock.calls[0][0]
 
     expect(data.resolvedBy).toBe(USER_ID)
-    expect(data.status).toBe('approved')
+    expect(data.status).toBe('executed')
     expect(new Date(data.resolvedAt).getTime()).toBeGreaterThanOrEqual(before.getTime())
     expect(new Date(data.resolvedAt).getTime()).toBeLessThanOrEqual(after.getTime())
   })
@@ -244,7 +283,7 @@ describe('PATCH /api/etta/approve/[suggestionId]', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.status).toBe('approved')
+      expect(body.status).toBe('executed')
       expect(mockVendorService.getCategoryConfig).toHaveBeenCalledWith(
         { userId: USER_ID, activeOrganization: null },
         WEDDING_ID,
@@ -267,7 +306,7 @@ describe('PATCH /api/etta/approve/[suggestionId]', () => {
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: SUGGESTION_ID },
-          data: expect.objectContaining({ status: 'approved', resolvedBy: USER_ID }),
+          data: expect.objectContaining({ status: 'executed', resolvedBy: USER_ID }),
         })
       )
     })
@@ -293,7 +332,7 @@ describe('PATCH /api/etta/approve/[suggestionId]', () => {
       expect(mockVendorService.upsertCategoryConfig).not.toHaveBeenCalled()
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ status: 'approved' }),
+          data: expect.objectContaining({ status: 'executed' }),
         })
       )
     })
@@ -316,6 +355,36 @@ describe('PATCH /api/etta/approve/[suggestionId]', () => {
       expect((await res.json()).error).toBe('Invalid suggestion payload for SUGGEST_VENDOR_FIELD')
       expect(mockVendorService.getCategoryConfig).not.toHaveBeenCalled()
       expect(mockVendorService.upsertCategoryConfig).not.toHaveBeenCalled()
+      expect(mockUpdateMany).toHaveBeenCalledWith({
+        where: { id: SUGGESTION_ID, status: 'pending' },
+        data: { status: 'approved' },
+      })
+      expect(mockUpdate).not.toHaveBeenCalled()
+    })
+
+    it('leaves the suggestion approved when the action fails', async () => {
+      mockFindUnique.mockResolvedValue(
+        pendingSuggestion({
+          actionType: 'SUGGEST_VENDOR_FIELD',
+          payload: {
+            category: 'VENUE',
+            key: 'ceremony_site_fee',
+            label: 'Ceremony Site Fee',
+            type: 'number',
+            reason: 'Track separate ceremony pricing',
+          },
+        })
+      )
+      mockVendorService.upsertCategoryConfig.mockRejectedValue(new Error('Config update failed'))
+
+      const res = await PATCH(makeRequest({ action: 'approve' }), makeParams())
+
+      expect(res.status).toBe(500)
+      expect((await res.json()).error).toBe('Config update failed')
+      expect(mockUpdateMany).toHaveBeenCalledWith({
+        where: { id: SUGGESTION_ID, status: 'pending' },
+        data: { status: 'approved' },
+      })
       expect(mockUpdate).not.toHaveBeenCalled()
     })
   })
