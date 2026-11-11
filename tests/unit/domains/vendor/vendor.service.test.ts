@@ -34,6 +34,7 @@ import {
   mockFileBelongsToQuote,
   mockFindAllByWeddingId,
   mockFindAllFileUrlsByQuoteId,
+  mockFindById,
   mockFindByIdWithQuotes,
   mockFindCategoryConfig,
   mockFindCustomFieldsById,
@@ -61,6 +62,7 @@ import { VendorService } from '~/server/domains/vendor/vendor.service'
 import { fetchWebsiteImages } from '~/server/infrastructure/scraper/website-images'
 
 const mockFindAllByWeddingIdFn = mockFindAllByWeddingId as jest.Mock
+const mockFindByIdFn = mockFindById as jest.Mock
 const mockFindByIdWithQuotesFn = mockFindByIdWithQuotes as jest.Mock
 const mockFindCustomFieldsByIdFn = mockFindCustomFieldsById as jest.Mock
 const mockCreateFn = mockCreate as jest.Mock
@@ -477,6 +479,10 @@ describe('VendorService', () => {
     it('should update vendor status when it belongs to the wedding', async () => {
       const updated = { ...mockVendor, status: VendorStatus.SELECTED }
       mockBelongsToWeddingFn.mockResolvedValue(true)
+      mockFindByIdFn.mockResolvedValue({
+        ...mockVendor,
+        status: VendorStatus.IN_NEGOTIATION,
+      })
       mockUpdateStatusFn.mockResolvedValue(updated)
 
       const result = await vendorService.updateStatus(

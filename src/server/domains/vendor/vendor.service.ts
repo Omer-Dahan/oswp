@@ -13,6 +13,7 @@ import { getStorageDriver } from '~/server/infrastructure/storage'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
 import type { VendorRepository } from '~/server/domains/vendor/vendor.repository'
+import { canTransition } from '~/server/domains/vendor/vendor-status-transitions'
 import type {
   Vendor,
   VendorCategory,
@@ -200,6 +201,20 @@ export class VendorService {
   ): Promise<Vendor> {
     this.requireVendorPermission(ctx, 'update')
     await this.assertVendorOwnership(vendorId, weddingId)
+
+    const vendor = await this.vendorRepository.findById(vendorId)
+    if (!vendor) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Vendor not found' })
+    }
+
+    if (!canTransition(vendor.status, status)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Cannot transition vendor status from ${vendor.status} to ${status}`,
+      })
+    }
+
+    if (vendor.status === status) return vendor
     return this.vendorRepository.updateStatus(vendorId, status)
   }
 
