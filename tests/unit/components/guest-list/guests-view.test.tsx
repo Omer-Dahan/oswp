@@ -645,6 +645,30 @@ describe('GuestsView', () => {
     expect(screen.queryByText(/\+\s*25/)).not.toBeInTheDocument()
   })
 
+  it('shows tag-alongs as "מהם 1 נלווה" in singular form', () => {
+    const householdsWithSingleTagAlong: HouseholdWithGuests[] = [
+      {
+        ...householdsWithTagAlongs[0],
+        guests: householdsWithTagAlongs[0].guests.filter(
+          (guest) => !guest.isTagAlong || guest.id === 1
+        ),
+      },
+    ]
+
+    render(
+      <GuestsView
+        events={events}
+        households={householdsWithSingleTagAlong}
+        selectedEventId='all'
+        setPrefillHousehold={jest.fn()}
+        setPrefillEvent={jest.fn()}
+        onImportClick={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('סה״כ אורחים:').parentElement).toHaveTextContent('2 מוזמנים (מהם 1 נלווה)')
+  })
+
   it('shows the gap between planned and confirmed as a fourth figure when it is above zero', () => {
     render(
       <GuestsView

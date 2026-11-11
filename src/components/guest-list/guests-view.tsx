@@ -1227,7 +1227,7 @@ const DefaultTableHeader = ({ households, counts, totalTagAlongs }: DefaultTable
             {totalTagAlongs > 0 && (
               <span className='font-normal text-foreground/55'>
                 {' '}
-                (מהם {totalTagAlongs} נלווים)
+                (מהם {totalTagAlongs} {totalTagAlongs === 1 ? 'נלווה' : 'נלווים'})
               </span>
             )}
           </span>
