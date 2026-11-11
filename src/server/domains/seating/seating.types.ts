@@ -69,6 +69,7 @@ export type SeatingPlacementSuggestion = {
   openSeats: number
   seatsNeeded: number
   fits: boolean
+  householdIds: string[]
 }
 
 export type ApplyGroupPlacementResult = {

@@ -395,6 +395,7 @@ export class SeatingService {
     })
 
     const tableRecordsById = new Map(tableRecords.map((table) => [table.id, table]))
+    const householdIds = unassignedHouseholds.map((household) => household.id)
 
     return suggestions.map((suggestion) => {
       const table = tableRecordsById.get(suggestion.tableId)
@@ -413,6 +414,7 @@ export class SeatingService {
         openSeats,
         seatsNeeded,
         fits: openSeats >= seatsNeeded,
+        householdIds,
       }
     })
   }

@@ -27,6 +27,7 @@ type SeatingTableNodeProps = {
   seatWeights: ReadonlyMap<number, number>
   onEdit: (tableId: string) => void
   onSelectGuest: (guestId: number) => void
+  highlighted?: boolean
 }
 
 // A seat is a SEAT_SIZE circle centred on its position
@@ -96,7 +97,7 @@ function SeatedGuest(
 }
 
 export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
-  const { table, guestsById, seatWeights, onEdit, onSelectGuest } = props
+  const { table, guestsById, seatWeights, onEdit, onSelectGuest, highlighted = false } = props
   const { footprint, surface, seats } = useMemo(
     () => ({
       footprint: getTableFootprint(table.shape, table.capacity),
@@ -221,7 +222,8 @@ export function SeatingTableNode(props: Readonly<SeatingTableNodeProps>) {
           table.shape === 'ROUND' ? 'rounded-full' : 'rounded-md',
           isGuestOver && fits && 'border-success bg-success/10',
           isGuestOver && !fits && 'border-destructive bg-destructive/10',
-          !isGuestOver && 'border-foreground/40'
+          !isGuestOver && 'border-foreground/40',
+          !isGuestOver && highlighted && 'border-primary ring-2 ring-primary'
         )}
       >
         <span className='line-clamp-2 font-medium text-foreground text-xs leading-tight'>

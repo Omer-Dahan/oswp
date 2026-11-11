@@ -18,6 +18,11 @@ import {
 import type { DragData, DropData, GuestDragData } from '~/components/seating-chart/seating-dnd'
 import { pickFocusAfterDrawerClose } from '~/components/seating-chart/seating-drawer-focus'
 import { type FocusCandidate, getNextFocusKey } from '~/components/seating-chart/seating-focus'
+import {
+  type SeatingGroupKey,
+  SeatingGroupRail,
+  groupKey,
+} from '~/components/seating-chart/seating-group-rail'
 import { SeatingGuestDrawer } from '~/components/seating-chart/seating-guest-drawer'
 import { SeatingGuestSidebar } from '~/components/seating-chart/seating-guest-sidebar'
 import {
@@ -65,6 +70,7 @@ import {
 import type {
   SeatingChart,
   SeatingGuest,
+  SeatingPlacementSuggestion,
   SeatingTableView,
   UpdateSeatingTableInput,
 } from '~/server/domains/seating/seating.types'
@@ -269,6 +275,48 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
       }),
     ...optimisticHandlers,
   })
+
+  const [selectedGroup, setSelectedGroup] = useState<SeatingGroupKey | null>(null)
+  const [selectedSuggestion, setSelectedSuggestion] = useState<SeatingPlacementSuggestion | null>(
+    null
+  )
+  const [lastApply, setLastApply] = useState<{ tableId: string; householdIds: string[] } | null>(
+    null
+  )
+
+  const groupsQuery = api.seating.getGroups.useQuery({ eventId: weddingEventId })
+  const suggestionsQuery = api.seating.suggestForGroup.useQuery(
+    selectedGroup
+      ? { eventId: weddingEventId, side: selectedGroup.side, groupName: selectedGroup.groupName }
+      : { eventId: weddingEventId, side: null, groupName: null },
+    { enabled: selectedGroup !== null }
+  )
+
+  const applyGroupPlacement = api.seating.applyGroupPlacement.useMutation({
+    onError: (error) => toast.error(error.message),
+    onSuccess: (_result, input) => {
+      setLastApply({ tableId: input.tableId, householdIds: input.householdIds })
+      setSelectedSuggestion(null)
+      setSelectedGroup(null)
+      utils.seating.getGroups.invalidate({ eventId: weddingEventId })
+      utils.seating.getChart.invalidate({ eventId: weddingEventId })
+    },
+  })
+
+  const handleApplyGroupPlacement = (input: { tableId: string; householdIds: string[] }) => {
+    applyGroupPlacement.mutate({ eventId: weddingEventId, ...input })
+  }
+
+  const handleUndoLastApply = () => {
+    if (!lastApply || !chart) return
+    const guestIds = chart.households
+      .filter((household) => lastApply.householdIds.includes(household.id))
+      .flatMap((household) => household.guests)
+      .filter((guest) => guest.tableId === lastApply.tableId)
+      .map((guest) => guest.id)
+    if (guestIds.length > 0) unassignGuests.mutate({ eventId: weddingEventId, guestIds })
+    setLastApply(null)
+  }
 
   // Waits for the chart to change, then focuses on the next frame so dnd-kit's
   // own focus restore (which finds no node) goes first
@@ -537,12 +585,30 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
           onDragEnd={handleDragEnd}
           onDragCancel={() => setActiveDrag(null)}
         >
-          <div className='grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[18rem_1fr]'>
+          <div className='grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[18rem_16rem_1fr]'>
             <SeatingGuestSidebar
               households={chart.households}
               totalGuests={allGuests.length}
               seatedGuests={seatedCount}
               onSelectGuest={openGuestFrom('sidebar-guest')}
+            />
+            <SeatingGroupRail
+              groups={groupsQuery.data ?? []}
+              households={chart.households}
+              selectedGroup={selectedGroup}
+              onSelectGroup={(group) => {
+                setSelectedGroup(group)
+                setSelectedSuggestion(null)
+              }}
+              suggestions={selectedGroup ? suggestionsQuery.data ?? [] : []}
+              isLoadingSuggestions={selectedGroup !== null && suggestionsQuery.isLoading}
+              selectedSuggestion={selectedSuggestion}
+              onSelectSuggestion={setSelectedSuggestion}
+              onApply={handleApplyGroupPlacement}
+              isApplying={applyGroupPlacement.isPending}
+              onAddTable={() => openTableDialog({ mode: 'create' })}
+              canUndo={lastApply !== null}
+              onUndoLastApply={handleUndoLastApply}
             />
             <section
               aria-label='תוכנית מקומות'
@@ -573,6 +639,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
                       seatWeights={seatWeights}
                       onEdit={(tableId) => openTableDialog({ mode: 'edit', tableId })}
                       onSelectGuest={openGuestFrom('seat-guest')}
+                      highlighted={selectedSuggestion?.tableId === table.id}
                     />
                   ))}
                 </TooltipProvider>
