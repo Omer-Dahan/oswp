@@ -41,6 +41,40 @@ export type AutoSeatResult = {
   unseated: number
 }
 
+export type SuggestForGroupInput = {
+  eventId: string
+  side: string | null
+  groupName: string | null
+}
+
+export type ApplyGroupPlacementInput = {
+  eventId: string
+  tableId: string
+  householdIds: string[]
+}
+
+// Service output shapes - group suggestions
+export type SeatingGroupSummary = {
+  side: string | null
+  groupName: string | null
+  assignedHouseholds: number
+  unassignedHouseholds: number
+  seatsNeeded: number
+}
+
+export type SeatingPlacementSuggestion = {
+  tableId: string
+  tableName: string
+  reason: string
+  openSeats: number
+  seatsNeeded: number
+  fits: boolean
+}
+
+export type ApplyGroupPlacementResult = {
+  assignmentIds: string[]
+}
+
 // Repository shape: every invitation for an event, with what the auto-seat
 // planner needs to bucket guests by household and tell who is already seated
 export type AutoSeatGuestRecord = {
@@ -100,6 +134,9 @@ export type SeatingTableLock = {
   table: { name: string; capacity: number }
   seatedGuestIds: () => Promise<number[]>
   replaceAssignments: (guestIds: number[]) => Promise<void>
+  // Seats guests at the table without touching any other table; returns the
+  // created assignment ids so a caller can offer to undo the placement.
+  createAssignments: (guestIds: number[]) => Promise<string[]>
   updateTable: (data: UpdateSeatingTableInput) => Promise<SeatingTable>
 }
 

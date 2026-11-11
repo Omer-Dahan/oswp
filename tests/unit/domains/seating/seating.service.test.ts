@@ -23,9 +23,11 @@ import {
   mockFindAutoSeatGuests,
   mockFindSeatableGuestIds,
   mockFindSeatableGuests,
+  mockFindSeatWeights,
   mockFindTableById,
   mockFindTablesByEventId,
   mockFindWeddingEvents,
+  mockLockedCreateAssignments,
   mockLockedReplaceAssignments,
   mockLockedSeatedGuestIds,
   mockLockedTableRow,
@@ -514,6 +516,167 @@ describe('SeatingService', () => {
 
       expect(result).toEqual({ seated: 0, createdTables: 0, unseated: 1 })
       expect(mockCreateAutoSeating).not.toHaveBeenCalled()
+    })
+  })
+
+  const buildInvitation = (
+    guestId: number,
+    household: { id: string; side: string | null; groupName: string | null },
+    options: { rsvp?: string; seated?: boolean; isPrimaryContact?: boolean } = {}
+  ) => ({
+    rsvp: options.rsvp ?? 'Attending',
+    guest: {
+      id: guestId,
+      isPrimaryContact: options.isPrimaryContact ?? true,
+      householdId: household.id,
+      household: { ...household, attendingCount: 1 },
+      seatAssignments: options.seated ? [{ tableId: 'table-1' }] : [],
+    },
+  })
+
+  describe('getGroups', () => {
+    beforeEach(() => {
+      mockFindWeddingEvents.mockResolvedValue([
+        { id: 'event-1', name: 'חתונה', isPrimary: false, collectRsvp: true },
+        { id: 'event-chuppah', name: 'חופה', isPrimary: true, collectRsvp: true },
+      ])
+      mockFindSeatWeights.mockResolvedValue(new Map())
+    })
+
+    it('splits households into assigned and unassigned per side+group, skipping declined households', async () => {
+      mockFindAutoSeatGuests.mockResolvedValue([
+        buildInvitation(1, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }, { seated: true }),
+        buildInvitation(2, { id: 'h-2', side: 'כלה', groupName: 'משפחה' }, { seated: false }),
+        buildInvitation(3, { id: 'h-3', side: 'חתן', groupName: 'חברים' }, { rsvp: 'Declined' }),
+      ])
+
+      const groups = await service.getGroups(ctx, WEDDING_ID, 'event-1')
+
+      expect(mockRequirePermission).toHaveBeenCalledWith(ctx, { event: ['read'] })
+      expect(groups).toEqual([
+        {
+          side: 'כלה',
+          groupName: 'משפחה',
+          assignedHouseholds: 1,
+          unassignedHouseholds: 1,
+          seatsNeeded: 1,
+        },
+      ])
+    })
+
+    it('rejects a non-wedding eventId', async () => {
+      await expect(service.getGroups(ctx, WEDDING_ID, 'event-chuppah')).rejects.toMatchObject({
+        code: 'FORBIDDEN',
+      })
+      expect(mockFindAutoSeatGuests).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('suggestForGroup', () => {
+    beforeEach(() => {
+      mockFindWeddingEvents.mockResolvedValue([
+        { id: 'event-1', name: 'חתונה', isPrimary: false, collectRsvp: true },
+        { id: 'event-chuppah', name: 'חופה', isPrimary: true, collectRsvp: true },
+      ])
+      mockFindSeatWeights.mockResolvedValue(new Map())
+    })
+
+    it('ranks up to three existing tables with a non-empty reason', async () => {
+      mockFindAutoSeatGuests.mockResolvedValue([
+        buildInvitation(1, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }),
+      ])
+      mockFindTablesByEventId.mockResolvedValue([
+        {
+          id: 'table-1',
+          weddingId: WEDDING_ID,
+          eventId: 'event-1',
+          name: 'שולחן 1',
+          shape: 'ROUND',
+          capacity: 8,
+          positionX: 0,
+          positionY: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          seatAssignments: [],
+        },
+      ])
+
+      const suggestions = await service.suggestForGroup(ctx, WEDDING_ID, {
+        eventId: 'event-1',
+        side: 'כלה',
+        groupName: 'משפחה',
+      })
+
+      expect(mockRequirePermission).toHaveBeenCalledWith(ctx, { event: ['read'] })
+      expect(suggestions.length).toBeGreaterThan(0)
+      expect(suggestions.length).toBeLessThanOrEqual(3)
+      for (const suggestion of suggestions) {
+        expect(suggestion.reason.length).toBeGreaterThan(0)
+        expect(suggestion).toMatchObject({ tableId: 'table-1', tableName: 'שולחן 1' })
+      }
+    })
+
+    it('returns nothing when the group has no unseated households', async () => {
+      mockFindAutoSeatGuests.mockResolvedValue([
+        buildInvitation(1, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }, { seated: true }),
+      ])
+      mockFindTablesByEventId.mockResolvedValue([])
+
+      const suggestions = await service.suggestForGroup(ctx, WEDDING_ID, {
+        eventId: 'event-1',
+        side: 'כלה',
+        groupName: 'משפחה',
+      })
+
+      expect(suggestions).toEqual([])
+    })
+  })
+
+  describe('applyGroupPlacement', () => {
+    beforeEach(() => {
+      mockFindWeddingEvents.mockResolvedValue([
+        { id: 'event-1', name: 'חתונה', isPrimary: false, collectRsvp: true },
+      ])
+      mockFindSeatWeights.mockResolvedValue(new Map())
+      mockLockedSeatedGuestIds.mockResolvedValue([])
+    })
+
+    it('seats every eligible guest of the households, skipping declined and already-seated guests', async () => {
+      mockFindAutoSeatGuests.mockResolvedValue([
+        buildInvitation(1, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }),
+        buildInvitation(2, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }, { seated: true }),
+        buildInvitation(3, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }, { rsvp: 'Declined' }),
+      ])
+      mockLockedCreateAssignments.mockResolvedValue(['assignment-1'])
+
+      const result = await service.applyGroupPlacement(ctx, WEDDING_ID, {
+        eventId: 'event-1',
+        tableId: 'table-1',
+        householdIds: ['h-1'],
+      })
+
+      expect(mockRequirePermission).toHaveBeenCalledWith(ctx, { event: ['update'] })
+      expect(mockLockedCreateAssignments).toHaveBeenCalledWith([1])
+      expect(result).toEqual({ assignmentIds: ['assignment-1'] })
+    })
+
+    it('fails with BAD_REQUEST when the table does not have enough free seats', async () => {
+      mockFindAutoSeatGuests.mockResolvedValue([
+        buildInvitation(1, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }),
+        buildInvitation(2, { id: 'h-1', side: 'כלה', groupName: 'משפחה' }),
+      ])
+      mockLockedSeatedGuestIds.mockResolvedValue([10, 11, 12])
+      mockLockedTableRow.capacity = 4
+
+      await expect(
+        service.applyGroupPlacement(ctx, WEDDING_ID, {
+          eventId: 'event-1',
+          tableId: 'table-1',
+          householdIds: ['h-1'],
+        })
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+      expect(mockLockedCreateAssignments).not.toHaveBeenCalled()
+      mockLockedTableRow.capacity = 4
     })
   })
 })

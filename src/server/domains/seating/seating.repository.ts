@@ -206,6 +206,23 @@ export class SeatingRepository {
               })),
             })
           },
+          // Seats guests at the table without touching any other table; returns
+          // the created assignment ids so a caller can offer to undo the placement.
+          createAssignments: async (guestIds) => {
+            if (guestIds.length === 0) return []
+            await tx.seatAssignment.createMany({
+              data: guestIds.map((guestId) => ({
+                eventId: table.eventId,
+                tableId: table.id,
+                guestId,
+              })),
+            })
+            const created = await tx.seatAssignment.findMany({
+              where: { eventId: table.eventId, tableId: table.id, guestId: { in: guestIds } },
+              select: { id: true },
+            })
+            return created.map((row) => row.id)
+          },
           updateTable: (data) => tx.seatingTable.update({ where: { id: table.id }, data }),
         })
       })

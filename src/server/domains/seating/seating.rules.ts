@@ -52,6 +52,9 @@ export const tableHasRoom = (
 export const openSeatsMessage = (tableName: string, openSeats: number): string =>
   `בשולחן ${tableName} נשארו ${openSeats} מקומות פנויים`
 
+export const missingSeatsMessage = (tableName: string, missingSeats: number): string =>
+  `אין מקום בשולחן ${tableName}, חסרים ${missingSeats} מקומות`
+
 export const householdSeatsMessage = (
   tableName: string,
   openSeats: number,

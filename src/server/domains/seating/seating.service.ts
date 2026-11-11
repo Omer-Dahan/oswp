@@ -1,6 +1,13 @@
 import { TRPCError } from '@trpc/server'
 
+import { RSVP_STATUS } from '~/lib/constants/rsvp'
 import { planAutoSeating } from '~/lib/seating/auto-seat'
+import {
+  suggestPlacements,
+  type SeatingGroup,
+  type SeatingHousehold as ScoreHousehold,
+  type SeatingTable as ScoreTable,
+} from '~/lib/seating/seating-score'
 import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
@@ -13,19 +20,26 @@ import {
   getOccupiedSeats,
   getOpenSeats,
   getSeatsNeeded,
+  missingSeatsMessage,
   openSeatsMessage,
   tableHasRoom,
 } from '~/server/domains/seating/seating.rules'
 import type {
+  ApplyGroupPlacementInput,
+  ApplyGroupPlacementResult,
   AssignGuestsInput,
+  AutoSeatGuestRecord,
   AutoSeatInput,
   AutoSeatResult,
   CreateSeatingTableInput,
   SeatableGuestRecord,
   SeatingChart,
+  SeatingGroupSummary,
   SeatingHousehold,
+  SeatingPlacementSuggestion,
   SeatingTable,
   SeatingTableLock,
+  SuggestForGroupInput,
   UnassignGuestsInput,
   UpdateSeatingTableInput,
 } from '~/server/domains/seating/seating.types'
@@ -257,6 +271,242 @@ export class SeatingService {
       createdTables: 0,
       unseated: plan.unseated.length,
     }
+  }
+
+  /**
+   * One row per household confirmed for the wedding event, grouped by
+   * side+group. A household counts as assigned only once every one of its
+   * seatable guests already has a seat for the event; seatsNeeded only ever
+   * covers the household's still-unseated guests.
+   */
+  async getGroups(
+    ctx: AuthzContext,
+    weddingId: string,
+    eventId: string
+  ): Promise<SeatingGroupSummary[]> {
+    requirePermission(ctx, { event: ['read'] })
+    await this.assertWeddingEvent(eventId, weddingId)
+
+    const [invitations, weights] = await Promise.all([
+      this.repo.findAutoSeatGuests(eventId),
+      this.repo.findSeatWeights(eventId),
+    ])
+
+    const households = this.buildGroupHouseholds(invitations)
+
+    const groups = new Map<string, SeatingGroupSummary>()
+    for (const household of households) {
+      const key = `${household.side ?? ''}\u0000${household.groupName ?? ''}`
+      let group = groups.get(key)
+      if (!group) {
+        group = {
+          side: household.side,
+          groupName: household.groupName,
+          assignedHouseholds: 0,
+          unassignedHouseholds: 0,
+          seatsNeeded: 0,
+        }
+        groups.set(key, group)
+      }
+      if (household.unseatedGuestIds.length === 0) {
+        group.assignedHouseholds += 1
+      } else {
+        group.unassignedHouseholds += 1
+        group.seatsNeeded += this.seatWeightOf(household.unseatedGuestIds, weights)
+      }
+    }
+
+    return [...groups.values()].sort(
+      (a, b) =>
+        (a.side ?? '').localeCompare(b.side ?? '') ||
+        (a.groupName ?? '').localeCompare(b.groupName ?? '')
+    )
+  }
+
+  /**
+   * Scores the event's existing tables for the group's still-unseated
+   * households (never invents a table), returning up to three suggestions.
+   */
+  async suggestForGroup(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: SuggestForGroupInput
+  ): Promise<SeatingPlacementSuggestion[]> {
+    requirePermission(ctx, { event: ['read'] })
+    await this.assertWeddingEvent(input.eventId, weddingId)
+
+    const [tableRecords, invitations, weights] = await Promise.all([
+      this.repo.findTablesByEventId(input.eventId),
+      this.repo.findAutoSeatGuests(input.eventId),
+      this.repo.findSeatWeights(input.eventId),
+    ])
+
+    const households = this.buildGroupHouseholds(invitations)
+
+    // All seatable households, full guest list, so affinity scoring can
+    // attribute a table's current occupants to their household correctly.
+    const allHouseholds: ScoreHousehold[] = households.map((household) => ({
+      id: household.id,
+      side: household.side,
+      groupName: household.groupName,
+      seatWeight: this.seatWeightOf(household.guestIds, weights),
+      guestIds: household.guestIds,
+    }))
+
+    // Only the group's still-unseated households are what need a placement.
+    const unassignedHouseholds: ScoreHousehold[] = households
+      .filter(
+        (household) =>
+          household.side === input.side &&
+          household.groupName === input.groupName &&
+          household.unseatedGuestIds.length > 0
+      )
+      .map((household) => ({
+        id: household.id,
+        side: household.side,
+        groupName: household.groupName,
+        seatWeight: this.seatWeightOf(household.unseatedGuestIds, weights),
+        guestIds: household.unseatedGuestIds,
+      }))
+
+    if (unassignedHouseholds.length === 0) return []
+
+    const scoreTables: ScoreTable[] = tableRecords.map((table) => ({
+      id: table.id,
+      name: table.name,
+      capacity: table.capacity,
+      positionX: table.positionX,
+      positionY: table.positionY,
+      guestIds: table.seatAssignments.map((assignment) => assignment.guestId),
+    }))
+
+    const group: SeatingGroup = {
+      side: input.side,
+      groupName: input.groupName,
+      households: unassignedHouseholds,
+    }
+    const seatsNeeded = unassignedHouseholds.reduce((total, h) => total + h.seatWeight, 0)
+
+    const suggestions = suggestPlacements({
+      group,
+      tables: scoreTables,
+      households: allHouseholds,
+      maxResults: 3,
+    })
+
+    const tableRecordsById = new Map(tableRecords.map((table) => [table.id, table]))
+
+    return suggestions.map((suggestion) => {
+      const table = tableRecordsById.get(suggestion.tableId)
+      if (!table) throw new Error(`Unknown table: ${suggestion.tableId}`)
+      const openSeats = getOpenSeats(
+        {
+          capacity: table.capacity,
+          guestIds: table.seatAssignments.map((assignment) => assignment.guestId),
+        },
+        weights
+      )
+      return {
+        tableId: table.id,
+        tableName: table.name,
+        reason: suggestion.reason,
+        openSeats,
+        seatsNeeded,
+        fits: openSeats >= seatsNeeded,
+      }
+    })
+  }
+
+  /**
+   * Seats every seatable, not-yet-seated guest of the given households at
+   * one table, as a planner's deliberate decision (source MANUAL). Never
+   * touches a Declined guest or a guest already seated for the event.
+   */
+  async applyGroupPlacement(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: ApplyGroupPlacementInput
+  ): Promise<ApplyGroupPlacementResult> {
+    requirePermission(ctx, { event: ['update'] })
+    await this.assertWeddingEvent(input.eventId, weddingId)
+    const table = await this.getTableInWedding(input.tableId, weddingId)
+    if (table.eventId !== input.eventId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'You do not have permission to access this table',
+      })
+    }
+
+    const householdIds = new Set(input.householdIds)
+    const invitations = await this.repo.findAutoSeatGuests(input.eventId)
+    const guestIds = invitations
+      .filter(
+        (invitation) =>
+          invitation.rsvp === RSVP_STATUS.ATTENDING &&
+          householdIds.has(invitation.guest.householdId) &&
+          invitation.guest.seatAssignments.length === 0
+      )
+      .map((invitation) => invitation.guest.id)
+
+    const weights = await this.repo.findSeatWeights(input.eventId)
+
+    return this.withLockedTable(table, async (lock) => {
+      const seatedGuestIds = await lock.seatedGuestIds()
+      const seats = { capacity: lock.table.capacity, guestIds: seatedGuestIds }
+      if (!tableHasRoom(seats, guestIds, weights)) {
+        const missing =
+          getSeatsNeeded(seatedGuestIds, guestIds, weights) - getOpenSeats(seats, weights)
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: missingSeatsMessage(lock.table.name, missing),
+        })
+      }
+      const assignmentIds = await lock.createAssignments(guestIds)
+      return { assignmentIds }
+    })
+  }
+
+  // Confirmed-for-the-event households, with every seatable guest id and the
+  // subset that still has no seat for the event.
+  private buildGroupHouseholds(invitations: AutoSeatGuestRecord[]): Array<{
+    id: string
+    side: string | null
+    groupName: string | null
+    guestIds: number[]
+    unseatedGuestIds: number[]
+  }> {
+    const households = new Map<
+      string,
+      {
+        id: string
+        side: string | null
+        groupName: string | null
+        guestIds: number[]
+        unseatedGuestIds: number[]
+      }
+    >()
+    for (const invitation of invitations) {
+      if (invitation.rsvp !== RSVP_STATUS.ATTENDING) continue
+      const { guest } = invitation
+      let household = households.get(guest.householdId)
+      if (!household) {
+        household = {
+          id: guest.householdId,
+          side: guest.household.side,
+          groupName: guest.household.groupName,
+          guestIds: [],
+          unseatedGuestIds: [],
+        }
+        households.set(guest.householdId, household)
+      }
+      household.guestIds.push(guest.id)
+      if (guest.seatAssignments.length === 0) household.unseatedGuestIds.push(guest.id)
+    }
+    return [...households.values()]
+  }
+
+  private seatWeightOf(guestIds: number[], weights: ReadonlyMap<number, number>): number {
+    return guestIds.reduce((total, id) => total + (weights.get(id) ?? 1), 0)
   }
 
   /**

@@ -66,6 +66,7 @@ export const mockCreateAutoSeating = jest.fn()
 // Locked-table transaction: the callback runs against these lock helpers
 export const mockLockedSeatedGuestIds = jest.fn()
 export const mockLockedReplaceAssignments = jest.fn()
+export const mockLockedCreateAssignments = jest.fn()
 export const mockLockedUpdateTable = jest.fn()
 export const mockWithLockedTable = jest.fn()
 
@@ -77,6 +78,7 @@ const runWithLock = async (_table: unknown, work: (lock: unknown) => Promise<unk
     table: mockLockedTableRow,
     seatedGuestIds: mockLockedSeatedGuestIds,
     replaceAssignments: mockLockedReplaceAssignments,
+    createAssignments: mockLockedCreateAssignments,
     updateTable: mockLockedUpdateTable,
   })
 
@@ -117,6 +119,8 @@ export const resetMocks = (): void => {
   mockCreateAutoSeating.mockReset()
   mockLockedSeatedGuestIds.mockReset()
   mockLockedReplaceAssignments.mockReset()
+  mockLockedCreateAssignments.mockReset()
+  mockLockedCreateAssignments.mockResolvedValue([])
   mockLockedUpdateTable.mockReset()
   mockWithLockedTable.mockReset()
   mockWithLockedTable.mockImplementation(runWithLock)

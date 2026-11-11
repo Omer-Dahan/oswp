@@ -9,11 +9,13 @@ import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { requireActiveWeddingId } from '~/server/authz/active-wedding'
 import { seatingService } from '~/server/domains/seating'
 import {
+  applyGroupPlacementSchema,
   assignGuestsSchema,
   autoSeatSchema,
   createSeatingTableSchema,
   seatingEventIdSchema,
   seatingTableIdSchema,
+  suggestForGroupSchema,
   unassignGuestsSchema,
   updateSeatingTableSchema,
 } from '~/server/domains/seating/seating.validator'
@@ -59,4 +61,23 @@ export const seatingRouter = createTRPCRouter({
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return seatingService.autoSeat(ctx.authz, weddingId, input)
   }),
+
+  getGroups: protectedProcedure.input(seatingEventIdSchema).query(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return seatingService.getGroups(ctx.authz, weddingId, input.eventId)
+  }),
+
+  suggestForGroup: protectedProcedure
+    .input(suggestForGroupSchema)
+    .query(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return seatingService.suggestForGroup(ctx.authz, weddingId, input)
+    }),
+
+  applyGroupPlacement: protectedProcedure
+    .input(applyGroupPlacementSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return seatingService.applyGroupPlacement(ctx.authz, weddingId, input)
+    }),
 })

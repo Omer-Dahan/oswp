@@ -59,3 +59,18 @@ export const autoSeatSchema = z.object({
   tableCapacity: z.number().int().min(2).max(30).default(8),
   fillFreeSeatsOnly: z.boolean().default(true),
 })
+
+const groupSideSchema = z.string().min(1).nullable()
+const groupNameSchema = z.string().min(1).nullable()
+
+export const suggestForGroupSchema = z.object({
+  eventId: z.string().min(1),
+  side: groupSideSchema,
+  groupName: groupNameSchema,
+})
+
+export const applyGroupPlacementSchema = z.object({
+  eventId: z.string().min(1),
+  tableId: z.string().min(1),
+  householdIds: z.array(z.string().min(1)).min(1).max(200),
+})
