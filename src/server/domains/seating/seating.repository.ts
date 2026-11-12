@@ -10,12 +10,20 @@ import {
 import { getGuestWeights } from '~/server/domains/seating/seating.rules'
 import type {
   AutoSeatGuestRecord,
+  CreateSeatingAreaInput,
   CreateSeatingTableInput,
+  SaveSeatingMapInput,
   SeatableGuestRecord,
   SeatingTable,
   SeatingTableLock,
   SeatingTableRecord,
+  UpdateSeatingAreaInput,
 } from '~/server/domains/seating/seating.types'
+
+const seatingMapInclude = {
+  areas: { orderBy: { createdAt: 'asc' as const } },
+  activeArea: true,
+}
 
 // Only a confirmed guest is seatable: a household with no Attending row for
 // the wedding event (e.g. still Invited, or only confirmed the chuppah) never
@@ -278,5 +286,74 @@ export class SeatingRepository {
         source: 'AUTO' as const,
       })),
     })
+  }
+
+  async countTablesForWedding(weddingId: string): Promise<number> {
+    return this.db.seatingTable.count({ where: { weddingId } })
+  }
+
+  async findMapByWeddingId(weddingId: string) {
+    return this.db.seatingMap.findUnique({
+      where: { weddingId },
+      include: seatingMapInclude,
+    })
+  }
+
+  async findAreaById(id: string) {
+    return this.db.seatingArea.findUnique({
+      where: { id },
+      include: { map: true },
+    })
+  }
+
+  /**
+   * Creates the map, or replaces an existing one: areas are metadata on the
+   * image, so a new image wipes them and clears the active area.
+   */
+  async saveMap(weddingId: string, data: SaveSeatingMapInput) {
+    return this.db.$transaction(async (tx) => {
+      const existing = await tx.seatingMap.findUnique({ where: { weddingId } })
+      if (existing) {
+        await tx.seatingMap.update({
+          where: { id: existing.id },
+          data: { activeAreaId: null },
+        })
+        await tx.seatingArea.deleteMany({ where: { mapId: existing.id } })
+        return tx.seatingMap.update({
+          where: { id: existing.id },
+          data: {
+            imageUrl: data.imageUrl,
+            imageWidth: data.imageWidth,
+            imageHeight: data.imageHeight,
+          },
+          include: seatingMapInclude,
+        })
+      }
+      return tx.seatingMap.create({
+        data: {
+          weddingId,
+          imageUrl: data.imageUrl,
+          imageWidth: data.imageWidth,
+          imageHeight: data.imageHeight,
+        },
+        include: seatingMapInclude,
+      })
+    })
+  }
+
+  async createArea(mapId: string, data: CreateSeatingAreaInput) {
+    return this.db.seatingArea.create({ data: { ...data, mapId } })
+  }
+
+  async updateArea(id: string, data: UpdateSeatingAreaInput) {
+    return this.db.seatingArea.update({ where: { id }, data })
+  }
+
+  async deleteArea(id: string): Promise<void> {
+    await this.db.seatingArea.delete({ where: { id } })
+  }
+
+  async setActiveArea(mapId: string, areaId: string | null): Promise<void> {
+    await this.db.seatingMap.update({ where: { id: mapId }, data: { activeAreaId: areaId } })
   }
 }

@@ -40,6 +40,7 @@ model Wedding {
 
   // Seating chart
   seatingTables SeatingTable[]
+  seatingMap    SeatingMap?
 
   // Shareable token links for workspace access
   workspaceInviteLinks WorkspaceInviteLink[]
@@ -683,6 +684,51 @@ model SeatAssignment {
   @@unique([guestId, eventId])
   @@index([tableId])
   @@index([eventId])
+}
+
+// Seating chart: the floor plan image for a wedding, with the zero or more
+// crop areas a planner defined on it. At most one area is active at a time;
+// when none is active the chart falls back to the default blank canvas.
+model SeatingMap {
+  id        String  @id @default(uuid())
+  weddingId String  @unique
+  wedding   Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  // The uploaded image, kept as-is; areas are metadata, never a physical crop
+  imageUrl    String
+  imageWidth  Int
+  imageHeight Int
+
+  activeAreaId String?      @unique
+  activeArea   SeatingArea? @relation("ActiveArea", fields: [activeAreaId], references: [id], onDelete: SetNull)
+  areas        SeatingArea[] @relation("MapAreas")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A named crop rectangle (in source-image pixels) on a SeatingMap, with the
+// zoom level the chart opens to when this area becomes active.
+model SeatingArea {
+  id    String     @id @default(uuid())
+  mapId String
+  map   SeatingMap @relation("MapAreas", fields: [mapId], references: [id], onDelete: Cascade)
+
+  name String
+
+  cropX      Int
+  cropY      Int
+  cropWidth  Int
+  cropHeight Int
+
+  initialZoom Float @default(1)
+
+  activeFor SeatingMap? @relation("ActiveArea")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mapId])
 }
 
 enum SeatingTableShape {

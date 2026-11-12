@@ -12,11 +12,16 @@ import {
   applyGroupPlacementSchema,
   assignGuestsSchema,
   autoSeatSchema,
+  createSeatingAreaSchema,
   createSeatingTableSchema,
+  saveSeatingMapSchema,
+  seatingAreaIdSchema,
   seatingEventIdSchema,
   seatingTableIdSchema,
+  setActiveSeatingAreaSchema,
   suggestForGroupSchema,
   unassignGuestsSchema,
+  updateSeatingAreaSchema,
   updateSeatingTableSchema,
 } from '~/server/domains/seating/seating.validator'
 
@@ -79,5 +84,41 @@ export const seatingRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
       return seatingService.applyGroupPlacement(ctx.authz, weddingId, input)
+    }),
+
+  getMap: protectedProcedure.query(async ({ ctx }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return seatingService.getMap(ctx.authz, weddingId)
+  }),
+
+  saveMap: protectedProcedure.input(saveSeatingMapSchema).mutation(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return seatingService.saveMap(ctx.authz, weddingId, input)
+  }),
+
+  createArea: protectedProcedure
+    .input(createSeatingAreaSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return seatingService.createArea(ctx.authz, weddingId, input)
+    }),
+
+  updateArea: protectedProcedure
+    .input(updateSeatingAreaSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return seatingService.updateArea(ctx.authz, weddingId, input.id, input.data)
+    }),
+
+  deleteArea: protectedProcedure.input(seatingAreaIdSchema).mutation(async ({ ctx, input }) => {
+    const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+    return seatingService.deleteArea(ctx.authz, weddingId, input.id)
+  }),
+
+  setActiveArea: protectedProcedure
+    .input(setActiveSeatingAreaSchema)
+    .mutation(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return seatingService.setActiveArea(ctx.authz, weddingId, input.areaId)
     }),
 })

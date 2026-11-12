@@ -4,6 +4,11 @@ export const CANVAS_WIDTH = 2400
 export const CANVAS_HEIGHT = 1600
 export const SEAT_SIZE = 30
 
+export type Canvas = { width: number; height: number }
+
+// Default, used whenever no floor-plan area is active
+export const DEFAULT_CANVAS: Canvas = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT }
+
 const SEAT_GAP = 6
 const SEAT_PITCH = SEAT_SIZE + SEAT_GAP
 const MIN_ROUND_DIAMETER = 84
@@ -72,9 +77,13 @@ export const getSeatPositions = (shape: SeatingTableShape, capacity: number): Po
   })
 }
 
-export const clampTablePosition = (position: Point, footprint: Footprint): Point => ({
-  x: Math.round(Math.min(Math.max(position.x, 0), CANVAS_WIDTH - footprint.width)),
-  y: Math.round(Math.min(Math.max(position.y, 0), CANVAS_HEIGHT - footprint.height)),
+export const clampTablePosition = (
+  position: Point,
+  footprint: Footprint,
+  canvas: Canvas = DEFAULT_CANVAS
+): Point => ({
+  x: Math.round(Math.min(Math.max(position.x, 0), canvas.width - footprint.width)),
+  y: Math.round(Math.min(Math.max(position.y, 0), canvas.height - footprint.height)),
 })
 
 /**
@@ -89,7 +98,8 @@ export const getNextTablePosition = (
     shape: SeatingTableShape
     capacity: number
   }>,
-  newTable: { shape: SeatingTableShape; capacity: number }
+  newTable: { shape: SeatingTableShape; capacity: number },
+  canvas: Canvas = DEFAULT_CANVAS
 ): Point | null => {
   const size = getTableFootprint(newTable.shape, newTable.capacity)
   // Existing footprints grown by the gap, so a hit means "too close"
@@ -103,9 +113,9 @@ export const getNextTablePosition = (
     }
   })
 
-  for (let y = PLACEMENT_MARGIN; y + size.height <= CANVAS_HEIGHT; y += PLACEMENT_STEP) {
+  for (let y = PLACEMENT_MARGIN; y + size.height <= canvas.height; y += PLACEMENT_STEP) {
     let x = PLACEMENT_MARGIN
-    while (x + size.width <= CANVAS_WIDTH) {
+    while (x + size.width <= canvas.width) {
       const blocker = occupied.find(
         (rect) =>
           x < rect.right &&
@@ -128,11 +138,13 @@ export const getNextTablePosition = (
 export const fitOnCanvas = (
   position: { positionX: number; positionY: number },
   shape: SeatingTableShape,
-  capacity: number
+  capacity: number,
+  canvas: Canvas = DEFAULT_CANVAS
 ): { positionX: number; positionY: number } => {
   const { x, y } = clampTablePosition(
     { x: position.positionX, y: position.positionY },
-    getTableFootprint(shape, capacity)
+    getTableFootprint(shape, capacity),
+    canvas
   )
   return { positionX: x, positionY: y }
 }
@@ -145,9 +157,10 @@ export const fitOnCanvas = (
 export const refitAfterResize = (
   table: { positionX: number; positionY: number },
   shape: SeatingTableShape,
-  capacity: number
+  capacity: number,
+  canvas: Canvas = DEFAULT_CANVAS
 ): { positionX: number; positionY: number } | undefined => {
-  const fitted = fitOnCanvas(table, shape, capacity)
+  const fitted = fitOnCanvas(table, shape, capacity, canvas)
   const moved = fitted.positionX !== table.positionX || fitted.positionY !== table.positionY
   return moved ? fitted : undefined
 }

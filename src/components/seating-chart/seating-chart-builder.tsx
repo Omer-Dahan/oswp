@@ -2,7 +2,7 @@
 
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { keepPreviousData } from '@tanstack/react-query'
-import { Download, Plus, Wand2 } from 'lucide-react'
+import { Download, Map as MapIcon, Plus, Wand2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -26,12 +26,12 @@ import {
 import { SeatingGuestDrawer } from '~/components/seating-chart/seating-guest-drawer'
 import { SeatingGuestSidebar } from '~/components/seating-chart/seating-guest-sidebar'
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
+  DEFAULT_CANVAS,
   fitOnCanvas,
   getNextTablePosition,
   refitAfterResize,
 } from '~/components/seating-chart/seating-layout'
+import { SeatingMapDialog } from '~/components/seating-chart/seating-map-dialog'
 import {
   SeatingTableDialog,
   type SeatingTableFormValues,
@@ -146,6 +146,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
   const drawerOpener = useRef<{ key: string; sidebarKeys: string[]; guestId: number } | null>(null)
   const [tableDialog, setTableDialog] = useState<TableDialogState>(null)
   const [autoSeatOpen, setAutoSeatOpen] = useState(false)
+  const [mapDialogOpen, setMapDialogOpen] = useState(false)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   // Where focus returns when the table or delete dialog closes
   const tableDialogReturnKey = useRef(ADD_TABLE_FOCUS_KEY)
@@ -168,6 +169,12 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
     { eventId: weddingEventId },
     { placeholderData: keepPreviousData }
   )
+  const mapQuery = api.seating.getMap.useQuery()
+  const activeArea = mapQuery.data?.activeArea ?? null
+  const seatingMap = mapQuery.data?.map ?? null
+  const canvas = activeArea
+    ? { width: activeArea.cropWidth, height: activeArea.cropHeight }
+    : DEFAULT_CANVAS
   // Server data plus still-pending changes; everything below reads this chart
   const refetchChart = useCallback(
     (changeEventId: string) => utils.seating.getChart.invalidate({ eventId: changeEventId }),
@@ -423,7 +430,8 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
       const position = fitOnCanvas(
         { positionX: table.positionX + event.delta.x, positionY: table.positionY + event.delta.y },
         table.shape,
-        table.capacity
+        table.capacity,
+        canvas
       )
       updateTable.mutate({ id: table.id, data: position })
       return
@@ -499,7 +507,8 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         ? refitAfterResize(
             editingTable,
             changed.shape ?? editingTable.shape,
-            changed.capacity ?? editingTable.capacity
+            changed.capacity ?? editingTable.capacity,
+            canvas
           )
         : undefined
       // The promise belongs to this call alone, so a table drag on the same
@@ -509,7 +518,7 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
         .then(closeIfStillOpen, () => undefined)
       return
     }
-    const position = getNextTablePosition(chart.tables, values)
+    const position = getNextTablePosition(chart.tables, values, canvas)
     if (!position) {
       toast.error('אין מקום פנוי בתוכנית האולם. הזיזו או הסירו שולחן כדי לפנות מקום.')
       return
@@ -548,6 +557,10 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
           <Button variant='outline' onClick={() => setAutoSeatOpen(true)} disabled={!chart}>
             <Wand2 className='me-2 h-4 w-4' aria-hidden='true' />
             שבץ את כל מי שנשאר
+          </Button>
+          <Button variant='outline' onClick={() => setMapDialogOpen(true)}>
+            <MapIcon className='me-2 h-4 w-4' aria-hidden='true' />
+            מפת אולם
           </Button>
           <Button
             data-seating-focus-key={ADD_TABLE_FOCUS_KEY}
@@ -616,14 +629,35 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
             >
               <div
                 className='relative'
-                style={{
-                  width: CANVAS_WIDTH,
-                  height: CANVAS_HEIGHT,
-                  backgroundImage:
-                    'radial-gradient(circle, hsl(var(--foreground) / 0.12) 1px, transparent 1px)',
-                  backgroundSize: '24px 24px',
-                }}
+                style={
+                  activeArea && seatingMap
+                    ? {
+                        width: canvas.width,
+                        height: canvas.height,
+                        backgroundImage: `url(${seatingMap.imageUrl})`,
+                        backgroundPosition: `-${activeArea.cropX}px -${activeArea.cropY}px`,
+                        backgroundSize: `${seatingMap.imageWidth}px ${seatingMap.imageHeight}px`,
+                        backgroundRepeat: 'no-repeat',
+                      }
+                    : {
+                        width: canvas.width,
+                        height: canvas.height,
+                        backgroundImage:
+                          'radial-gradient(circle, hsl(var(--foreground) / 0.12) 1px, transparent 1px)',
+                        backgroundSize: '24px 24px',
+                      }
+                }
               >
+                {activeArea && seatingMap ? (
+                  <div
+                    className='pointer-events-none absolute inset-0 opacity-10'
+                    style={{
+                      backgroundImage:
+                        'radial-gradient(circle, hsl(var(--foreground) / 0.5) 1px, transparent 1px)',
+                      backgroundSize: '24px 24px',
+                    }}
+                  />
+                ) : null}
                 {chart.tables.length === 0 ? (
                   <p className='absolute top-10 start-10 max-w-xs text-muted-foreground text-sm'>
                     הוסיפו שולחן כדי להתחיל את תוכנית המקומות. גררו שולחנות כדי לסדר את האולם, ואז
@@ -686,6 +720,8 @@ export function SeatingChartBuilder(props: Readonly<SeatingChartBuilderProps>) {
           autoSeat.mutate({ eventId: weddingEventId, fillFreeSeatsOnly: true })
         }}
       />
+
+      <SeatingMapDialog open={mapDialogOpen} onOpenChange={setMapDialogOpen} />
 
       <AlertDialog
         open={pendingDeleteId !== null}

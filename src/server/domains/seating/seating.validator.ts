@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { uploadedAssetUrlSchema } from '~/lib/upload-config'
 import { MAX_TABLE_CAPACITY, MIN_TABLE_CAPACITY } from '~/server/domains/seating/seating.rules'
 
 export const seatingTableShapeSchema = z.enum(['ROUND', 'RECTANGULAR'])
@@ -73,3 +74,62 @@ export const applyGroupPlacementSchema = z.object({
   tableId: z.string().min(1),
   householdIds: z.array(z.string().min(1)).min(1).max(200),
 })
+
+const MIN_AREA_SIZE = 200
+
+export const seatingAreaNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Area name is required')
+  .max(40, 'Area name must be 40 characters or less')
+
+const cropCoordinateSchema = z.number().int().min(0)
+const cropSizeSchema = z.number().int().min(MIN_AREA_SIZE)
+const initialZoomSchema = z.number().min(0.2).max(4)
+
+export const saveSeatingMapSchema = z.object({
+  imageUrl: uploadedAssetUrlSchema,
+  imageWidth: z.number().int().positive().max(20_000),
+  imageHeight: z.number().int().positive().max(20_000),
+  confirmReplace: z.boolean().optional(),
+})
+
+export const createSeatingAreaSchema = z.object({
+  name: seatingAreaNameSchema,
+  cropX: cropCoordinateSchema,
+  cropY: cropCoordinateSchema,
+  cropWidth: cropSizeSchema,
+  cropHeight: cropSizeSchema,
+})
+
+export const updateSeatingAreaSchema = z.object({
+  id: z.string().min(1),
+  data: z.object({
+    name: seatingAreaNameSchema.optional(),
+    cropX: cropCoordinateSchema.optional(),
+    cropY: cropCoordinateSchema.optional(),
+    cropWidth: cropSizeSchema.optional(),
+    cropHeight: cropSizeSchema.optional(),
+    initialZoom: initialZoomSchema.optional(),
+  }),
+})
+
+export const seatingAreaIdSchema = z.object({ id: z.string().min(1) })
+
+export const setActiveSeatingAreaSchema = z.object({ areaId: z.string().min(1) })
+
+/**
+ * Whether a crop rectangle fits inside its source image. Checked separately
+ * from the zod schemas above because createArea/updateArea only validate
+ * the fields the caller sent — the image's dimensions are only known once
+ * the map this area belongs to has been loaded.
+ */
+export function isCropWithinImage(
+  crop: { cropX: number; cropY: number; cropWidth: number; cropHeight: number },
+  image: { imageWidth: number; imageHeight: number }
+): boolean {
+  return (
+    crop.cropX + crop.cropWidth <= image.imageWidth &&
+    crop.cropY + crop.cropHeight <= image.imageHeight
+  )
+}

@@ -163,3 +163,41 @@ describe('refitAfterResize', () => {
     expect(refitAfterResize({ positionX: 40, positionY: 40 }, 'ROUND', 8)).toBeUndefined()
   })
 })
+
+describe('explicit canvas size (floor-plan area instead of the default canvas)', () => {
+  const smallCanvas = { width: 484, height: 770 }
+
+  it('clamps to the given canvas instead of the default dimensions', () => {
+    const footprint = getTableFootprint('ROUND', 8)
+    expect(clampTablePosition({ x: 10_000, y: 10_000 }, footprint, smallCanvas)).toEqual({
+      x: smallCanvas.width - footprint.width,
+      y: smallCanvas.height - footprint.height,
+    })
+  })
+
+  it('fits a new table only within the given canvas', () => {
+    const position = getNextTablePosition([], { shape: 'ROUND', capacity: 8 }, smallCanvas)
+    expect(position).not.toBeNull()
+    const footprint = getTableFootprint('ROUND', 8)
+    expect(position!.x + footprint.width).toBeLessThanOrEqual(smallCanvas.width)
+    expect(position!.y + footprint.height).toBeLessThanOrEqual(smallCanvas.height)
+  })
+
+  it('returns null when no table fits inside a tiny canvas', () => {
+    const position = getNextTablePosition(
+      [],
+      { shape: 'ROUND', capacity: 8 },
+      { width: 50, height: 50 }
+    )
+    expect(position).toBeNull()
+  })
+
+  it('still defaults to the standard canvas when none is passed', () => {
+    expect(fitOnCanvas({ positionX: 10_000, positionY: 10_000 }, 'ROUND', 8)).toEqual(
+      fitOnCanvas({ positionX: 10_000, positionY: 10_000 }, 'ROUND', 8, {
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
+      })
+    )
+  })
+})

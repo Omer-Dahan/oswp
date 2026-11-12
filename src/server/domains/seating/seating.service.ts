@@ -31,18 +31,42 @@ import type {
   AutoSeatGuestRecord,
   AutoSeatInput,
   AutoSeatResult,
+  CreateSeatingAreaInput,
   CreateSeatingTableInput,
+  SaveSeatingMapInput,
   SeatableGuestRecord,
+  SeatingAreaView,
   SeatingChart,
   SeatingGroupSummary,
   SeatingHousehold,
+  SeatingMapChart,
   SeatingPlacementSuggestion,
   SeatingTable,
   SeatingTableLock,
   SuggestForGroupInput,
   UnassignGuestsInput,
+  UpdateSeatingAreaInput,
   UpdateSeatingTableInput,
 } from '~/server/domains/seating/seating.types'
+import { isCropWithinImage } from '~/server/domains/seating/seating.validator'
+
+const toAreaView = (area: {
+  id: string
+  name: string
+  cropX: number
+  cropY: number
+  cropWidth: number
+  cropHeight: number
+  initialZoom: number
+}): SeatingAreaView => ({
+  id: area.id,
+  name: area.name,
+  cropX: area.cropX,
+  cropY: area.cropY,
+  cropWidth: area.cropWidth,
+  cropHeight: area.cropHeight,
+  initialZoom: area.initialZoom,
+})
 
 const formatAddress = (household: SeatableGuestRecord['guest']['household']): string | null => {
   const cityLine = [household.city, [household.state, household.zipCode].filter(Boolean).join(' ')]
@@ -583,5 +607,118 @@ export class SeatingService {
       })
     }
     return table
+  }
+
+  async getMap(ctx: AuthzContext, weddingId: string): Promise<SeatingMapChart> {
+    requirePermission(ctx, { event: ['read'] })
+    const map = await this.repo.findMapByWeddingId(weddingId)
+    if (!map) return null
+    return {
+      map: { imageUrl: map.imageUrl, imageWidth: map.imageWidth, imageHeight: map.imageHeight },
+      areas: map.areas.map(toAreaView),
+      activeArea: map.activeArea ? toAreaView(map.activeArea) : null,
+    }
+  }
+
+  async saveMap(ctx: AuthzContext, weddingId: string, input: SaveSeatingMapInput) {
+    requirePermission(ctx, { event: ['update'] })
+    if (!input.confirmReplace) {
+      const tableCount = await this.repo.countTablesForWedding(weddingId)
+      if (tableCount > 0) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `יש כבר ${tableCount} שולחנות בתוכנית המקומות. החלפת המפה לא תזיז אותם, הם יישארו באותן קואורדינטות. להחליף בכל זאת?`,
+        })
+      }
+    }
+    const map = await this.repo.saveMap(weddingId, input)
+    return {
+      map: { imageUrl: map.imageUrl, imageWidth: map.imageWidth, imageHeight: map.imageHeight },
+      areas: map.areas.map(toAreaView),
+      activeArea: map.activeArea ? toAreaView(map.activeArea) : null,
+    }
+  }
+
+  async createArea(
+    ctx: AuthzContext,
+    weddingId: string,
+    input: CreateSeatingAreaInput
+  ): Promise<SeatingAreaView> {
+    requirePermission(ctx, { event: ['update'] })
+    const map = await this.getMapInWedding(weddingId)
+    this.assertCropWithinImage(input, map)
+    const area = await this.repo.createArea(map.id, input)
+    return toAreaView(area)
+  }
+
+  async updateArea(
+    ctx: AuthzContext,
+    weddingId: string,
+    id: string,
+    data: UpdateSeatingAreaInput
+  ): Promise<SeatingAreaView> {
+    requirePermission(ctx, { event: ['update'] })
+    const existing = await this.getAreaInWedding(id, weddingId)
+    if (
+      data.cropX !== undefined ||
+      data.cropY !== undefined ||
+      data.cropWidth !== undefined ||
+      data.cropHeight !== undefined
+    ) {
+      this.assertCropWithinImage(
+        {
+          cropX: data.cropX ?? existing.cropX,
+          cropY: data.cropY ?? existing.cropY,
+          cropWidth: data.cropWidth ?? existing.cropWidth,
+          cropHeight: data.cropHeight ?? existing.cropHeight,
+        },
+        existing.map
+      )
+    }
+    const area = await this.repo.updateArea(id, data)
+    return toAreaView(area)
+  }
+
+  async deleteArea(ctx: AuthzContext, weddingId: string, id: string): Promise<void> {
+    requirePermission(ctx, { event: ['update'] })
+    await this.getAreaInWedding(id, weddingId)
+    await this.repo.deleteArea(id)
+  }
+
+  async setActiveArea(ctx: AuthzContext, weddingId: string, areaId: string): Promise<void> {
+    requirePermission(ctx, { event: ['update'] })
+    const area = await this.getAreaInWedding(areaId, weddingId)
+    await this.repo.setActiveArea(area.mapId, areaId)
+  }
+
+  private async getMapInWedding(weddingId: string) {
+    const map = await this.repo.findMapByWeddingId(weddingId)
+    if (!map) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'לא הועלתה מפת אולם' })
+    }
+    return map
+  }
+
+  private async getAreaInWedding(id: string, weddingId: string) {
+    const area = await this.repo.findAreaById(id)
+    if (!area || area.map.weddingId !== weddingId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'You do not have permission to access this area',
+      })
+    }
+    return area
+  }
+
+  private assertCropWithinImage(
+    crop: { cropX: number; cropY: number; cropWidth: number; cropHeight: number },
+    image: { imageWidth: number; imageHeight: number }
+  ): void {
+    if (!isCropWithinImage(crop, image)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'אזור החיתוך חורג מגבולות התמונה',
+      })
+    }
   }
 }

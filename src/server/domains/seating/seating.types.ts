@@ -180,3 +180,49 @@ export type SeatingChart = {
   tables: SeatingTableView[]
   households: SeatingHousehold[]
 }
+
+export type SeatingAreaView = {
+  id: string
+  name: string
+  cropX: number
+  cropY: number
+  cropWidth: number
+  cropHeight: number
+  initialZoom: number
+}
+
+export type SeatingMapView = {
+  imageUrl: string
+  imageWidth: number
+  imageHeight: number
+}
+
+export type SeatingMapChart = {
+  map: SeatingMapView
+  areas: SeatingAreaView[]
+  activeArea: SeatingAreaView | null
+} | null
+
+export type SaveSeatingMapInput = {
+  imageUrl: string
+  imageWidth: number
+  imageHeight: number
+  confirmReplace?: boolean
+}
+
+export type CreateSeatingAreaInput = {
+  name: string
+  cropX: number
+  cropY: number
+  cropWidth: number
+  cropHeight: number
+}
+
+export type UpdateSeatingAreaInput = {
+  name?: string
+  cropX?: number
+  cropY?: number
+  cropWidth?: number
+  cropHeight?: number
+  initialZoom?: number
+}
