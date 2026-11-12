@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server'
 
+import { buildGuestExportRows, type GuestExportRow } from '~/lib/reports/guest-export-xlsx'
 import { buildKitchenReport, type KitchenReport } from '~/lib/reports/kitchen-report'
 import type { AuthzContext } from '~/server/authz/authorization.types'
 import { requirePermission } from '~/server/authz/permission-checker'
@@ -45,6 +46,27 @@ export class ReportService {
 
     return {
       report: buildKitchenReport({ ...source, eventId, plans }),
+      eventName: eventName ?? 'event',
+    }
+  }
+
+  async getGuestExportForDownload(
+    ctx: AuthzContext,
+    weddingId: string,
+    eventId: string,
+    side: string | undefined,
+    groupName: string | undefined
+  ): Promise<{ rows: GuestExportRow[]; eventName: string }> {
+    requirePermission(ctx, { guest: ['read'] })
+    await this.assertEventInWedding(eventId, weddingId)
+
+    const [source, eventName] = await Promise.all([
+      this.repo.findGuestExportSource(weddingId, eventId),
+      this.repo.findEventName(eventId),
+    ])
+
+    return {
+      rows: buildGuestExportRows({ ...source, eventId, side, groupName }),
       eventName: eventName ?? 'event',
     }
   }

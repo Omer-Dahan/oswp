@@ -1,6 +1,11 @@
 import type { GroupPortionPlan, PrismaClient } from '@prisma/client'
 
 import type {
+  GuestExportGuest,
+  GuestExportHousehold,
+  GuestExportInvitation,
+} from '~/lib/reports/guest-export-xlsx'
+import type {
   KitchenReportAssignment,
   KitchenReportGuest,
   KitchenReportHousehold,
@@ -14,6 +19,12 @@ export interface KitchenReportSourceData {
   invitations: KitchenReportInvitation[]
   tables: KitchenReportTable[]
   assignments: KitchenReportAssignment[]
+}
+
+export interface GuestExportSourceData {
+  households: GuestExportHousehold[]
+  guests: GuestExportGuest[]
+  invitations: GuestExportInvitation[]
 }
 
 export class ReportRepository {
@@ -63,6 +74,51 @@ export class ReportRepository {
     ])
 
     return { households, guests, invitations, tables, assignments }
+  }
+
+  async findGuestExportSource(weddingId: string, eventId: string): Promise<GuestExportSourceData> {
+    const [households, guests, invitations] = await Promise.all([
+      this.db.household.findMany({
+        where: { weddingId },
+        select: {
+          id: true,
+          side: true,
+          groupName: true,
+          attendingCount: true,
+          phoneAlt: true,
+          city: true,
+          address1: true,
+          zipCode: true,
+          address2: true,
+          expectedCheck: true,
+        },
+      }),
+      this.db.guest.findMany({
+        where: { weddingId },
+        select: {
+          id: true,
+          householdId: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          email: true,
+          isPrimaryContact: true,
+        },
+      }),
+      this.db.invitation.findMany({
+        where: { weddingId, eventId },
+        select: { guestId: true, eventId: true, rsvp: true },
+      }),
+    ])
+
+    return {
+      households: households.map((household) => ({
+        ...household,
+        expectedCheck: household.expectedCheck ? household.expectedCheck.toNumber() : null,
+      })),
+      guests,
+      invitations,
+    }
   }
 
   async findGroupPortionPlans(weddingId: string): Promise<GroupPortionPlan[]> {

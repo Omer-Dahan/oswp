@@ -33,6 +33,24 @@ export const reportRouter = createTRPCRouter({
       return reportService.getKitchenReportForExport(ctx.authz, weddingId, input.eventId)
     }),
 
+  getGuestExportForDownload: protectedProcedure
+    .input(
+      eventIdSchema.extend({
+        side: z.string().trim().min(1).optional(),
+        group: z.string().trim().min(1).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
+      return reportService.getGuestExportForDownload(
+        ctx.authz,
+        weddingId,
+        input.eventId,
+        input.side,
+        input.group
+      )
+    }),
+
   getGroupPortionPlans: protectedProcedure.query(async ({ ctx }) => {
     const weddingId = requireActiveWeddingId(ctx.auth.activeWeddingId)
     return reportService.getGroupPortionPlans(ctx.authz, weddingId)

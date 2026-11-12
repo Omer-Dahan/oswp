@@ -70,6 +70,7 @@ import { useWorkspace } from '~/hooks/use-workspace'
 import { deriveGuestListCounts } from '~/lib/guest-list-counts'
 import { getHouseholdPartySize } from '~/lib/household-party-size'
 import { normalizePhoneToE164 } from '~/lib/phone/phone-validator'
+import { resolveRsvpEvents } from '~/lib/wedding/rsvp-events'
 import type { HouseholdWithGuests } from '~/server/application/dashboard/dashboard.types'
 import { api } from '~/trpc/react'
 
@@ -201,6 +202,29 @@ export default function GuestsView({
     [baseHouseholds, filters]
   )
   const noopSetFilteredHouseholds = useCallback(() => {}, [])
+
+  // Export targets the wedding's own RSVP event, not whichever event tab is
+  // selected - same resolution rule the seating screen uses. Side/group are
+  // only sent when the current filter narrows the list to exactly one value,
+  // so an export with mixed sides/groups just exports everyone it matched.
+  const handleExportXlsx = useCallback(() => {
+    const weddingEventId = resolveRsvpEvents(events).weddingEvent?.id
+    if (!weddingEventId) return
+
+    const params = new URLSearchParams({ eventId: weddingEventId })
+    const sides = new Set(filteredHouseholds.map((household) => household.side ?? ''))
+    if (sides.size === 1) {
+      const [onlySide] = sides
+      if (onlySide) params.set('side', onlySide)
+    }
+    const groups = new Set(filteredHouseholds.map((household) => household.groupName ?? ''))
+    if (groups.size === 1) {
+      const [onlyGroup] = groups
+      if (onlyGroup) params.set('group', onlyGroup)
+    }
+
+    window.location.href = `/api/reports/guest-export?${params.toString()}`
+  }, [events, filteredHouseholds])
 
   const activeFilterCount =
     filters.rsvp.length +
@@ -856,6 +880,9 @@ export default function GuestsView({
           <Button type='button' variant='outline' onClick={onImportClick}>
             ייבוא אורחים
           </Button>
+          <Button type='button' variant='outline' onClick={handleExportXlsx}>
+            ייצוא לאקסל
+          </Button>
           <InviteLinkButton
             open={inviteLinkOpen}
             onToggle={() => setInviteLinkOpen((open) => !open)}
@@ -905,6 +932,9 @@ export default function GuestsView({
             <DropdownMenuContent align='end' className='w-56'>
               <DropdownMenuItem className='min-h-11' onSelect={onImportClick}>
                 ייבוא אורחים
+              </DropdownMenuItem>
+              <DropdownMenuItem className='min-h-11' onSelect={handleExportXlsx}>
+                ייצוא לאקסל
               </DropdownMenuItem>
               <DropdownMenuItem
                 className='min-h-11'
