@@ -117,6 +117,18 @@ describe('buildGuestExportRows', () => {
     expect(rows[0]?.side).toBe('חתן')
   })
 
+  it('collapses double spaces and trims the side and group columns, and the affiliation built from them', () => {
+    const households = [household({ id: 'h1', side: ' אמא ', groupName: 'אמא -  עבודה' })]
+    const guests = [guest({ id: 1, householdId: 'h1' })]
+    const invitations = [invitation({ guestId: 1 })]
+
+    const rows = buildGuestExportRows({ households, guests, invitations, eventId: EVENT_ID })
+
+    expect(rows[0]?.side).toBe('אמא')
+    expect(rows[0]?.groupName).toBe('אמא - עבודה')
+    expect(rows[0]?.affiliation).toBe('אמא · אמא - עבודה')
+  })
+
   it('filters by side, returning only households on that side', () => {
     const households = [
       household({ id: 'h1', side: 'חתן' }),

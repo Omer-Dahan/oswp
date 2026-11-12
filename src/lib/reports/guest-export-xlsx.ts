@@ -7,6 +7,10 @@
  * already scoped to the wedding.
  */
 
+function normalizeSpacing(value: string | null): string {
+  return (value ?? '').trim().replace(/\s{2,}/g, ' ')
+}
+
 export interface GuestExportHousehold {
   id: string
   side: string | null
@@ -124,13 +128,15 @@ export function buildGuestExportRows(input: BuildGuestExportInput): GuestExportR
     if (groupName !== undefined && household.groupName !== groupName) continue
 
     const lead = leadGuestOf(household.id, guestsByHousehold)
+    const normalizedSide = normalizeSpacing(household.side)
+    const normalizedGroupName = normalizeSpacing(household.groupName)
 
     rows.push({
-      affiliation: [household.side, household.groupName].filter(Boolean).join(' · '),
+      affiliation: [normalizedSide, normalizedGroupName].filter(Boolean).join(' · '),
       honoreeName: honoreeNameOf(lead),
       invitedCount: household.attendingCount ?? attendingRows,
-      side: household.side ?? '',
-      groupName: household.groupName ?? '',
+      side: normalizedSide,
+      groupName: normalizedGroupName,
       mobile: lead?.phone ?? '',
       landline: household.phoneAlt ?? '',
       email: lead?.email ?? '',
