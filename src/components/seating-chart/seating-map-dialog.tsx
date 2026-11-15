@@ -1,12 +1,13 @@
 'use client'
 
 /**
- * "מפת אולם" dialog, step א: upload a floor-plan image, define display areas
- * on it with numeric crop fields, and pick the one active area the chart
- * renders against. Mouse-drawn rectangles are step ב.
+ * "מפת אולם" dialog: upload a floor-plan image, draw display areas directly
+ * on a visible preview of it (drag to select, drag a corner to resize), and
+ * pick the one active area the chart renders against. The numeric crop
+ * fields still exist as a precise, secondary way to adjust a drawn area.
  */
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -32,8 +33,12 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { uploadFile } from '~/lib/upload-client'
 import { DROPZONE_ACCEPT, MAX_FILE_SIZE } from '~/lib/upload-config'
+import { cn } from '~/lib/utils'
+import type { Crop, DisplayedImage, DragPoint } from '~/components/seating-chart/map-crop-geometry'
+import { clampCrop, cropFromDrag, cropToDisplayRect } from '~/components/seating-chart/map-crop-geometry'
 import {
   isCropWithinImage,
+  MIN_AREA_SIZE,
   seatingAreaNameSchema,
 } from '~/server/domains/seating/seating.validator'
 import { api } from '~/trpc/react'
@@ -50,7 +55,7 @@ const MAP_DROPZONE_ACCEPT = Object.fromEntries(
 const ACCEPTED_IMAGE_TYPES = Object.keys(MAP_DROPZONE_ACCEPT)
 const MAP_ACCEPT_ATTR = Object.values(MAP_DROPZONE_ACCEPT).flat().join(',')
 const MAX_IMAGE_DIMENSION = 4000
-const MIN_AREA_SIZE = 200
+const PREVIEW_HEIGHT = 180
 
 const areaDraftSchema = z.object({
   name: seatingAreaNameSchema,
@@ -126,6 +131,13 @@ export function SeatingMapDialog(props: Readonly<SeatingMapDialogProps>) {
   const [editDraft, setEditDraft] = useState<AreaDraft | null>(null)
   const [editError, setEditError] = useState<string | null>(null)
   const [pendingDeleteAreaId, setPendingDeleteAreaId] = useState<string | null>(null)
+  const [showPreciseFields, setShowPreciseFields] = useState(false)
+  const [imageLoadError, setImageLoadError] = useState(false)
+  const [displayedImage, setDisplayedImage] = useState<{ width: number; height: number } | null>(
+    null
+  )
+  const imageBoxRef = useRef<HTMLDivElement>(null)
+  const dragModeRef = useRef<{ kind: 'draw' | 'resize'; anchor: DragPoint } | null>(null)
 
   const mapQuery = api.seating.getMap.useQuery(undefined, { enabled: open })
   const invalidateMap = () => utils.seating.getMap.invalidate()
@@ -180,6 +192,94 @@ export function SeatingMapDialog(props: Readonly<SeatingMapDialogProps>) {
   const areas = mapQuery.data?.areas ?? []
   const activeAreaId = mapQuery.data?.activeArea?.id ?? null
 
+  const activeDraft = draft ?? editDraft
+  const setActiveError = (message: string | null) => {
+    if (draft) setDraftError(message)
+    else if (editDraft) setEditError(message)
+  }
+  const applyDraftCrop = (crop: Crop) => {
+    if (!map) return
+    const clamped = clampCrop(crop, map)
+    if (draft) setDraft({ ...draft, ...clamped })
+    else if (editDraft) setEditDraft({ ...editDraft, ...clamped })
+    setActiveError(null)
+  }
+
+  const measureDisplayed = (): DisplayedImage | null => {
+    const box = imageBoxRef.current
+    if (!box || !map) return null
+    const rect = box.getBoundingClientRect()
+    if (rect.width <= 0 || rect.height <= 0) return null
+    return { width: rect.width, height: rect.height, naturalWidth: map.imageWidth, naturalHeight: map.imageHeight }
+  }
+
+  const pointFromClient = (clientX: number, clientY: number): DragPoint | null => {
+    const box = imageBoxRef.current
+    if (!box) return null
+    const rect = box.getBoundingClientRect()
+    return { x: clientX - rect.left, y: clientY - rect.top }
+  }
+
+  const handleEditorPointerDown = (event: React.PointerEvent<HTMLElement>, handle?: 'nw' | 'ne' | 'sw' | 'se') => {
+    if (!activeDraft || !map) return
+    const point = pointFromClient(event.clientX, event.clientY)
+    const displayed = measureDisplayed()
+    if (!point || !displayed) return
+    event.preventDefault()
+    event.stopPropagation()
+    imageBoxRef.current?.setPointerCapture(event.pointerId)
+
+    if (handle) {
+      const rect = cropToDisplayRect(activeDraft, displayed)
+      const anchors: Record<'nw' | 'ne' | 'sw' | 'se', DragPoint> = {
+        nw: { x: rect.left + rect.width, y: rect.top + rect.height },
+        ne: { x: rect.left, y: rect.top + rect.height },
+        sw: { x: rect.left + rect.width, y: rect.top },
+        se: { x: rect.left, y: rect.top },
+      }
+      dragModeRef.current = { kind: 'resize', anchor: anchors[handle] }
+    } else {
+      dragModeRef.current = { kind: 'draw', anchor: point }
+    }
+  }
+
+  const handleEditorPointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    const dragMode = dragModeRef.current
+    if (!dragMode) return
+    const point = pointFromClient(event.clientX, event.clientY)
+    const displayed = measureDisplayed()
+    if (!point || !displayed) return
+    const result = cropFromDrag({ start: dragMode.anchor, end: point, displayed })
+    if (result) applyDraftCrop(result)
+  }
+
+  const handleEditorPointerUp = (event: React.PointerEvent<HTMLElement>) => {
+    const dragMode = dragModeRef.current
+    if (!dragMode) return
+    dragModeRef.current = null
+    const point = pointFromClient(event.clientX, event.clientY)
+    const displayed = measureDisplayed()
+    if (!point || !displayed) return
+    const result = cropFromDrag({ start: dragMode.anchor, end: point, displayed })
+    if (!result) setActiveError('האזור קטן מדי')
+    else applyDraftCrop(result)
+  }
+
+  const isEditing = activeDraft !== null
+  useEffect(() => {
+    const box = imageBoxRef.current
+    if (!box || !isEditing) {
+      setDisplayedImage(null)
+      return
+    }
+    const update = () => setDisplayedImage({ width: box.clientWidth, height: box.clientHeight })
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(box)
+    return () => observer.disconnect()
+  }, [isEditing, map?.imageUrl])
+
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
@@ -221,6 +321,7 @@ export function SeatingMapDialog(props: Readonly<SeatingMapDialogProps>) {
       initialZoom: 1,
     })
     setDraftError(null)
+    setShowPreciseFields(false)
   }
 
   const submitNewArea = () => {
@@ -248,6 +349,7 @@ export function SeatingMapDialog(props: Readonly<SeatingMapDialogProps>) {
       initialZoom: area.initialZoom,
     })
     setEditError(null)
+    setShowPreciseFields(false)
   }
 
   const submitEditArea = () => {
@@ -306,170 +408,322 @@ export function SeatingMapDialog(props: Readonly<SeatingMapDialogProps>) {
               </div>
             </section>
 
-            {map ? (
-              <section className='space-y-3 border-t border-border pt-4'>
-                <div className='flex items-center justify-between'>
-                  <Label className='font-mono text-[0.62rem] text-foreground/55 uppercase tracking-[0.1em]'>
-                    אזורי תצוגה
-                  </Label>
+            <section className='space-y-2 border-t border-border pt-4'>
+              <Label className='font-mono text-[0.62rem] text-foreground/55 uppercase tracking-[0.1em]'>
+                תצוגה מקדימה
+              </Label>
+              {map ? (
+                <div
+                  ref={imageBoxRef}
+                  className={cn(
+                    'relative mx-auto max-h-[55vh] w-full overflow-hidden rounded-[10px] border border-border bg-muted/40',
+                    activeDraft && 'touch-none'
+                  )}
+                  onPointerDown={activeDraft ? (e) => handleEditorPointerDown(e) : undefined}
+                  onPointerMove={activeDraft ? handleEditorPointerMove : undefined}
+                  onPointerUp={activeDraft ? handleEditorPointerUp : undefined}
+                  onPointerCancel={activeDraft ? handleEditorPointerUp : undefined}
+                >
+                  {imageLoadError ? (
+                    <p className='p-6 text-center text-destructive text-sm'>טעינת המפה נכשלה</p>
+                  ) : (
+                    <img
+                      src={map.imageUrl}
+                      alt='מפת האולם'
+                      draggable={false}
+                      className='block max-h-[55vh] w-full object-contain'
+                      onLoad={() => setImageLoadError(false)}
+                      onError={() => setImageLoadError(true)}
+                    />
+                  )}
+                  {activeDraft && displayedImage && !imageLoadError
+                    ? (() => {
+                        const rect = cropToDisplayRect(activeDraft, {
+                          width: displayedImage.width,
+                          height: displayedImage.height,
+                          naturalWidth: map.imageWidth,
+                          naturalHeight: map.imageHeight,
+                        })
+                        return (
+                          <div
+                            className='pointer-events-none absolute border-2 border-primary'
+                            style={{
+                              left: rect.left,
+                              top: rect.top,
+                              width: rect.width,
+                              height: rect.height,
+                              boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
+                            }}
+                          >
+                            {(['nw', 'ne', 'sw', 'se'] as const).map((handle) => (
+                              <div
+                                key={handle}
+                                onPointerDown={(e) => handleEditorPointerDown(e, handle)}
+                                className={cn(
+                                  'pointer-events-auto absolute h-4 w-4 rounded-full border-2 border-primary bg-background',
+                                  handle === 'nw' && '-left-2 -top-2 cursor-nwse-resize',
+                                  handle === 'ne' && '-right-2 -top-2 cursor-nesw-resize',
+                                  handle === 'sw' && '-left-2 -bottom-2 cursor-nesw-resize',
+                                  handle === 'se' && '-right-2 -bottom-2 cursor-nwse-resize'
+                                )}
+                              />
+                            ))}
+                          </div>
+                        )
+                      })()
+                    : null}
+                </div>
+              ) : (
+                <p className='text-muted-foreground text-sm'>לא הועלתה מפה עדיין</p>
+              )}
+            </section>
+
+            <section className='space-y-3 border-t border-border pt-4'>
+              <div className='flex items-center justify-between'>
+                <Label className='font-mono text-[0.62rem] text-foreground/55 uppercase tracking-[0.1em]'>
+                  אזורי תצוגה
+                </Label>
+                {map ? (
                   <Button type='button' variant='outline' size='sm' onClick={startNewArea}>
                     אזור חדש
                   </Button>
-                </div>
-
-                <ul className='space-y-2'>
-                  {areas.map((area) =>
-                    editingAreaId === area.id && editDraft ? (
-                      <li key={area.id} className='space-y-2 rounded-[10px] border border-border p-3'>
-                        <Input
-                          value={editDraft.name}
-                          onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })}
-                          placeholder='שם האזור'
-                        />
-                        <div className='grid grid-cols-4 gap-2'>
-                          {cropFields.map(({ key, label }) => (
-                            <div key={key} className='space-y-1'>
-                              <Label className='text-xs'>{label}</Label>
-                              <Input
-                                type='number'
-                                value={editDraft[key]}
-                                onChange={(e) =>
-                                  setEditDraft({ ...editDraft, [key]: Number(e.target.value) })
-                                }
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        <div className='space-y-1'>
-                          <Label className='text-xs'>זום פתיחה</Label>
-                          <Input
-                            type='number'
-                            step='0.1'
-                            value={editDraft.initialZoom}
-                            onChange={(e) =>
-                              setEditDraft({ ...editDraft, initialZoom: Number(e.target.value) })
-                            }
-                          />
-                        </div>
-                        {editError ? <p className='text-destructive text-sm'>{editError}</p> : null}
-                        <div className='flex justify-end gap-2'>
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='sm'
-                            onClick={() => {
-                              setEditingAreaId(null)
-                              setEditDraft(null)
-                              setEditError(null)
-                            }}
-                          >
-                            ביטול
-                          </Button>
-                          <Button
-                            type='button'
-                            size='sm'
-                            disabled={updateArea.isPending}
-                            onClick={submitEditArea}
-                          >
-                            שמירה
-                          </Button>
-                        </div>
-                      </li>
-                    ) : (
-                      <li
-                        key={area.id}
-                        className='flex items-center justify-between gap-3 rounded-[10px] border border-border p-3'
-                      >
-                        <div className='min-w-0'>
-                          <p className='truncate font-medium text-sm'>
-                            {area.name}
-                            {activeAreaId === area.id ? (
-                              <span className='ms-2 font-mono text-[0.6rem] text-primary uppercase tracking-wide'>
-                                פעיל
-                              </span>
-                            ) : null}
-                          </p>
-                          <p className='text-muted-foreground text-xs'>
-                            {area.cropWidth}×{area.cropHeight} פיקסלים
-                          </p>
-                        </div>
-                        <div className='flex flex-shrink-0 gap-2'>
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='sm'
-                            disabled={activeAreaId === area.id || setActiveArea.isPending}
-                            onClick={() => setActiveArea.mutate({ areaId: area.id })}
-                          >
-                            קבעו כאזור פעיל
-                          </Button>
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='sm'
-                            onClick={() => startEditArea(area)}
-                          >
-                            עריכה
-                          </Button>
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='sm'
-                            onClick={() => setPendingDeleteAreaId(area.id)}
-                          >
-                            מחיקה
-                          </Button>
-                        </div>
-                      </li>
-                    )
-                  )}
-                </ul>
-
-                {draft ? (
-                  <div className='space-y-2 rounded-[10px] border border-dashed border-border p-3'>
-                    <Input
-                      value={draft.name}
-                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                      placeholder='שם האזור'
-                    />
-                    <div className='grid grid-cols-4 gap-2'>
-                      {cropFields.map(({ key, label }) => (
-                        <div key={key} className='space-y-1'>
-                          <Label className='text-xs'>{label}</Label>
-                          <Input
-                            type='number'
-                            value={draft[key]}
-                            onChange={(e) => setDraft({ ...draft, [key]: Number(e.target.value) })}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    {draftError ? <p className='text-destructive text-sm'>{draftError}</p> : null}
-                    <div className='flex justify-end gap-2'>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='sm'
-                        onClick={() => {
-                          setDraft(null)
-                          setDraftError(null)
-                        }}
-                      >
-                        ביטול
-                      </Button>
-                      <Button
-                        type='button'
-                        size='sm'
-                        disabled={createArea.isPending}
-                        onClick={submitNewArea}
-                      >
-                        הוספת אזור
-                      </Button>
-                    </div>
-                  </div>
                 ) : null}
-              </section>
-            ) : null}
+              </div>
+
+              {!map ? (
+                <p className='text-muted-foreground text-sm'>העלו מפה כדי להוסיף אזורי תצוגה.</p>
+              ) : null}
+
+              <ul className='space-y-2'>
+                {areas.map((area) =>
+                  editingAreaId === area.id && editDraft && map ? (
+                    <li key={area.id} className='space-y-3 rounded-[10px] border border-border p-3'>
+                      <Input
+                        value={editDraft.name}
+                        onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })}
+                        placeholder='שם האזור'
+                      />
+                      <p className='text-muted-foreground text-xs'>גררו על התמונה למעלה כדי לשנות.</p>
+
+                      <div className='flex flex-col items-center gap-1'>
+                        <div
+                          className='border border-border bg-muted/40'
+                          style={{
+                            width: (editDraft.cropWidth * PREVIEW_HEIGHT) / editDraft.cropHeight,
+                            height: PREVIEW_HEIGHT,
+                            backgroundImage: `url(${map.imageUrl})`,
+                            backgroundPosition: `-${(editDraft.cropX * PREVIEW_HEIGHT) / editDraft.cropHeight}px -${(editDraft.cropY * PREVIEW_HEIGHT) / editDraft.cropHeight}px`,
+                            backgroundSize: `${(map.imageWidth * PREVIEW_HEIGHT) / editDraft.cropHeight}px ${(map.imageHeight * PREVIEW_HEIGHT) / editDraft.cropHeight}px`,
+                            backgroundRepeat: 'no-repeat',
+                          }}
+                        />
+                        <p className='font-mono text-[0.65rem] text-muted-foreground'>
+                          {editDraft.cropWidth}×{editDraft.cropHeight} פיקסלים
+                        </p>
+                      </div>
+
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        className='h-auto p-0 text-xs underline'
+                        onClick={() => setShowPreciseFields((v) => !v)}
+                      >
+                        {showPreciseFields ? 'הסתרת ערכים מדויקים' : 'עדכון מדויק (פיקסלים)'}
+                      </Button>
+                      {showPreciseFields ? (
+                        <>
+                          <div className='grid grid-cols-4 gap-2'>
+                            {cropFields.map(({ key, label }) => (
+                              <div key={key} className='space-y-1'>
+                                <Label className='text-xs'>{label}</Label>
+                                <Input
+                                  type='number'
+                                  value={editDraft[key]}
+                                  onChange={(e) =>
+                                    setEditDraft({ ...editDraft, [key]: Number(e.target.value) })
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className='space-y-1'>
+                            <Label className='text-xs'>זום פתיחה</Label>
+                            <Input
+                              type='number'
+                              step='0.1'
+                              value={editDraft.initialZoom}
+                              onChange={(e) =>
+                                setEditDraft({ ...editDraft, initialZoom: Number(e.target.value) })
+                              }
+                            />
+                          </div>
+                        </>
+                      ) : null}
+
+                      {editError ? <p className='text-destructive text-sm'>{editError}</p> : null}
+                      <div className='flex justify-end gap-2'>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={() => {
+                            setEditingAreaId(null)
+                            setEditDraft(null)
+                            setEditError(null)
+                          }}
+                        >
+                          ביטול
+                        </Button>
+                        <Button
+                          type='button'
+                          size='sm'
+                          disabled={updateArea.isPending}
+                          onClick={submitEditArea}
+                        >
+                          שמירה
+                        </Button>
+                      </div>
+                    </li>
+                  ) : (
+                    <li
+                      key={area.id}
+                      className='flex items-center justify-between gap-3 rounded-[10px] border border-border p-3'
+                    >
+                      <div className='min-w-0'>
+                        <p className='truncate font-medium text-sm'>
+                          {area.name}
+                          {activeAreaId === area.id ? (
+                            <span className='ms-2 font-mono text-[0.6rem] text-primary uppercase tracking-wide'>
+                              פעיל
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className='text-muted-foreground text-xs'>
+                          {area.cropWidth}×{area.cropHeight} פיקסלים
+                        </p>
+                      </div>
+                      <div className='flex flex-shrink-0 gap-2'>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          disabled={activeAreaId === area.id || setActiveArea.isPending}
+                          onClick={() => setActiveArea.mutate({ areaId: area.id })}
+                        >
+                          קבעו כאזור פעיל
+                        </Button>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={() => startEditArea(area)}
+                        >
+                          עריכה
+                        </Button>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setPendingDeleteAreaId(area.id)}
+                        >
+                          מחיקה
+                        </Button>
+                      </div>
+                    </li>
+                  )
+                )}
+              </ul>
+
+              {draft && map ? (
+                <div className='space-y-3 rounded-[10px] border border-dashed border-border p-3'>
+                  <Input
+                    value={draft.name}
+                    onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    placeholder='שם האזור'
+                  />
+
+                  <div className='flex flex-col items-center gap-1'>
+                    <div
+                      className='border border-border bg-muted/40'
+                      style={{
+                        width: (draft.cropWidth * PREVIEW_HEIGHT) / draft.cropHeight,
+                        height: PREVIEW_HEIGHT,
+                        backgroundImage: `url(${map.imageUrl})`,
+                        backgroundPosition: `-${(draft.cropX * PREVIEW_HEIGHT) / draft.cropHeight}px -${(draft.cropY * PREVIEW_HEIGHT) / draft.cropHeight}px`,
+                        backgroundSize: `${(map.imageWidth * PREVIEW_HEIGHT) / draft.cropHeight}px ${(map.imageHeight * PREVIEW_HEIGHT) / draft.cropHeight}px`,
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    />
+                    <p className='font-mono text-[0.65rem] text-muted-foreground'>
+                      {draft.cropWidth}×{draft.cropHeight} פיקסלים
+                    </p>
+                  </div>
+
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='h-auto p-0 text-xs underline'
+                    onClick={() => setShowPreciseFields((v) => !v)}
+                  >
+                    {showPreciseFields ? 'הסתרת ערכים מדויקים' : 'עדכון מדויק (פיקסלים)'}
+                  </Button>
+                  {showPreciseFields ? (
+                    <>
+                      <div className='grid grid-cols-4 gap-2'>
+                        {cropFields.map(({ key, label }) => (
+                          <div key={key} className='space-y-1'>
+                            <Label className='text-xs'>{label}</Label>
+                            <Input
+                              type='number'
+                              value={draft[key]}
+                              onChange={(e) =>
+                                setDraft({ ...draft, [key]: Number(e.target.value) })
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div className='space-y-1'>
+                        <Label className='text-xs'>זום פתיחה</Label>
+                        <Input
+                          type='number'
+                          step='0.1'
+                          value={draft.initialZoom}
+                          onChange={(e) =>
+                            setDraft({ ...draft, initialZoom: Number(e.target.value) })
+                          }
+                        />
+                      </div>
+                    </>
+                  ) : null}
+
+                  {draftError ? <p className='text-destructive text-sm'>{draftError}</p> : null}
+                  <div className='flex justify-end gap-2'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={() => {
+                        setDraft(null)
+                        setDraftError(null)
+                      }}
+                    >
+                      ביטול
+                    </Button>
+                    <Button
+                      type='button'
+                      size='sm'
+                      disabled={createArea.isPending}
+                      onClick={submitNewArea}
+                    >
+                      הוספת אזור
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </section>
           </div>
         </DialogContent>
       </Dialog>

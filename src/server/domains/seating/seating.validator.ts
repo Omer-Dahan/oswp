@@ -75,7 +75,7 @@ export const applyGroupPlacementSchema = z.object({
   householdIds: z.array(z.string().min(1)).min(1).max(200),
 })
 
-const MIN_AREA_SIZE = 200
+export const MIN_AREA_SIZE = 200
 
 export const seatingAreaNameSchema = z
   .string()
