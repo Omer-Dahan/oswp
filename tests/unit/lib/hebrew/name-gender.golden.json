@@ -1,0 +1,317 @@
+[
+  {
+    "name": "אשר",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "ישראל",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "שגיב",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "רמי",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "יואל",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "אבישי",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "מאיר",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "יעקב",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "יגאל",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "יונתן",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "אוהד",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "דוד",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "משה",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "אליהו",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "איתן",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "עמוס",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "חגי",
+    "category": "male",
+    "expected": "male"
+  },
+  {
+    "name": "תומר",
+    "category": "male",
+    "expected": "unisex"
+  },
+  {
+    "name": "ציפורה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "ברוריה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "אניטה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "חביבה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "דקלה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "אורטל",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "אפרת",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "מרים",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "חנה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "חדווה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "סמדר",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "הודיה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "דליה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "רחל",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "לאה",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "איילת",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "מירי",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "יפית",
+    "category": "female",
+    "expected": "female"
+  },
+  {
+    "name": "ציון",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "שמחה",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "ארז",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "רותם",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "אביב",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "מאור",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "אריאל",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "שירן",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "חנן",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "שקד",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "ענבר",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "אורן",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "דניאל",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "שליו",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "נתי",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "עומר",
+    "category": "unisex",
+    "expected": "unisex"
+  },
+  {
+    "name": "משפחת",
+    "category": "unknown",
+    "expected": "unknown"
+  },
+  {
+    "name": "סבטלנה",
+    "category": "unknown",
+    "expected": "unknown"
+  },
+  {
+    "name": "אוה",
+    "category": "unknown",
+    "expected": "unknown"
+  },
+  {
+    "name": "ברנדר",
+    "category": "unknown",
+    "expected": "unknown"
+  },
+  {
+    "name": "קליין",
+    "category": "unknown",
+    "expected": "female"
+  },
+  {
+    "name": "הרב דוד",
+    "category": "compound",
+    "expected": "unknown",
+    "note": "first token only (\"הרב\") is looked up; the honorific itself is not in the table"
+  },
+  {
+    "name": "קנפו",
+    "category": "unknown",
+    "expected": "unknown",
+    "note": "a surname stored in the first-name field in this guest's row"
+  },
+  {
+    "name": "הדסוש",
+    "category": "unknown",
+    "expected": "unknown",
+    "note": "a nickname not present in the CBS-derived table"
+  },
+  {
+    "name": "ג'יאמי",
+    "category": "unknown",
+    "expected": "unknown",
+    "note": "quote character stripped before lookup; no table hit"
+  },
+  {
+    "name": "מובארך",
+    "category": "final-letter",
+    "expected": "male",
+    "note": "constructed - the guest list has no name that needs the sofit fold; מובארכ (stored without its final sofit) is the m-list entry this exercises"
+  }
+]
